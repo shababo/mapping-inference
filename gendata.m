@@ -37,17 +37,17 @@ pct_excitatory = 1.00;
 % a = compute_prior_connectivity_probability(c, p, p_star, ...
 %        prob_a_max_excite, prob_a_max_inhibit, a_excite_lambda, a_inhibit_var);
 
-a = .01;
+a = .015;
 
 
 % draw latent weights and sparsity pattern
 
 % prior weight variances. we take these as known, at the moment
-slab_sd_excite = 15;
+slab_sd_excite = 20;
 slab_sd_inhib = .75;
 %slab_mode_excite = 1;
 %slab_mode_inhib = -1.5;
-slab_mode_excite = 50;
+slab_mode_excite = 25;
 slab_mode_inhib = 0;
 
 % draw the sparsity pattern
@@ -64,8 +64,12 @@ sigma_s = slab_sd_excite*ones(K,1).*c + slab_sd_inhib*ones(K,1).*~c;
 % draw taus for each neuron
 
 %tau priors
-tau_r_bounds = [.0001 .0015];
-tau_f_bounds = [.001 .015];
+%excite
+tau_r_bounds = [1 20]/20000;
+tau_f_bounds = [50 200]/20000;
+%inhib
+% tau_r_bounds = [40 150]/20000;
+% tau_f_bounds = [200 500]/20000;
 
 % draw taus
 tau_r_k = unifrnd(tau_r_bounds(1),tau_r_bounds(2),[K,1]);
@@ -76,10 +80,10 @@ tau_f_k = unifrnd(tau_f_bounds(1),tau_f_bounds(2),[K,1]);
 %% Plot the neurons
 
 figure(1);
-scatter3(p(c,1),p(c,2),p(c,3), 'b.'); hold on;
+scatter3(p(c,2),-p(c,1),p(c,3), 'b.'); hold on;
 % scatter3(p(~c,1),p(~c,2),p(~c,3), 'g.'); hold on;
 scatter3(0,0,0,'c.'); hold on;
-scatter3(p(gamma,1),p(gamma,2),p(gamma,3),'ro');
+scatter3(p(gamma,2),-p(gamma,1),p(gamma,3),'ro');
 hold off;
 legend({'excitatory', 'postsynaptic','connected'})
 drawnow;
@@ -95,10 +99,10 @@ data_params.sigmasq = 3.5;
 data_params.phi = [1, .80, -.12]; %this determines what the AR noise looks like.
 
 
-bg_params.tau_r_bounds = [5 20];
-bg_params.tau_f_bounds = [20 150];
+bg_params.tau_r_bounds = tau_r_bounds*20000;
+bg_params.tau_f_bounds = tau_f_bounds*20000;
 bg_params.a_min = .5;
-bg_params.a_max = 20;
+bg_params.a_max = 10;
 bg_params.firing_rate = 20; %spike/sec 
 
 
@@ -108,7 +112,7 @@ bg_params.firing_rate = 20; %spike/sec
 %% stim paramters
 
 % covariance of point spread function
-A = diag([300, 300, 10000]);
+A = diag([225, 225, 10000]);
 
 evoked_params.stim_tau_rise = .0015*20000; % values for chr2 from lin et al 2009 (biophysics)
 evoked_params.stim_tau_fall = .013*20000;
@@ -133,9 +137,9 @@ R = 1;
 % point-spread-function stimuli for a particular trial
 % in seconds
 d_mean0 = .000;
-d_sigma0 = .000;
-d_mean_coef = .000;
-d_sigma_coef = .000;
+d_sigma0 = .002;
+d_mean_coef = .01;
+d_sigma_coef = .005;
 
 % the neurons being stimulated at each trial
 % Z = false(N,K);
@@ -158,7 +162,7 @@ trial_grid_locations = repmat(trial_grid_locations,3,1);
 % pi_nk = zeros(N,K);
 pi_kr = exp(-0.5*squareform(pdist([Z; p],'mahalanobis',A)).^2);
 pi_nk = pi_kr(1:N,N+1:N+K);
-
+pi_nk(pi_nk > .65) = 1;
 % for n = 1:N
 %     stimulus = randsample(K,R);
 %     Z(n,stimulus) = 1;
@@ -176,7 +180,8 @@ D = normrnd(d_mean_nk,d_sigma_nk)/data_params.dt + evoked_params.stim_start;
 % D(D < 4) = 4;
 
 % sample "ground truth" stimulations
-X = .2 < pi_nk; %rand(N,K)
+
+X = rand(N,K) < pi_nk; %.2 
 X(D > 2000) = 0;
 
 %% Generate a response, given D, Pi, X, w
@@ -204,11 +209,20 @@ X(D > 2000) = 0;
 Y = zeros(N,data_params.T);
 
 for n = 1:N
-    firing_neurons = X(n,:);
-    evoked_params.times = D(n,firing_neurons);
-    evoked_params.a = w(firing_neurons);
-    evoked_params.tau_r = tau_r_k(firing_neurons)/data_params.dt;
-    evoked_params.tau_f = tau_f_k(firing_neurons)/data_params.dt;
+    firing_neurons = X(n,:) & w' > 0;
+    
+    if any(w(firing_neurons) > 0)
+        
+        evoked_params.times = D(n,firing_neurons);
+        evoked_params.a = w(firing_neurons);
+        evoked_params.tau_r = tau_r_k(firing_neurons)/data_params.dt;
+        evoked_params.tau_f = tau_f_k(firing_neurons)/data_params.dt;
+    else
+        evoked_params.times = [];
+        evoked_params.a = [];
+        evoked_params.tau_r = [];
+        evoked_params.tau_f = [];
+    end
     
     Y(n,:) = gen_trace(data_params,bg_params,evoked_params);
     
@@ -223,55 +237,55 @@ end
 
 Y_grid = unstack_traces(Y,trial_grid_locations);
 
-figure
+figure(2)
 plot_trace_stack_grid(Y_grid,3,1,0);
 
 
 %% now we can gibbs sample it and see how we do. initialize sampler:
 
 % L samples
-L = 100;
-
-% B burn-in samples
-B = -1;
-
-% store post-burnin samples here:
-w_samples = zeros(K,L);
-gamma_samples = zeros(K,L);
-X_samples = zeros(N,K,L);
-D_samples = zeros(N,K,L);
-
-% current iteration / initialization
-gamma_s = rand(K,1) < a;
-w_s = gamma_s .* (sign(c - .5) .* abs(normrnd(0,1,K,1)));
-D_s = d_mean0 + (1 - pi_nk)*d_mean_coef;
-X_s = rand(N,K) < pi_nk;
-
-
-%% okay, let's sample
-
-for sample = -B:L
-
-    fprintf('Sample %d of %d\n', sample, L);
-    [X_s, D_s, w_s, gamma_s] = gibbs_single_sweep(X_s, D_s, w_s, gamma_s, Y, pi_nk, c, a, sigma_s, sigma_n, d_mean_nk, d_sigma_nk, t, tau, gmax);
-
-    if sample > 0
-        
-        w_samples(:,sample) = w_s;
-        gamma_samples(:,sample) = gamma_s;
-        D_samples(:,:,sample) = D_s;
-        X_samples(:,:,sample) = X_s;
-        
-    end
-%%
-    figure(3); imagesc(X_s); 
-    figure(5); imagesc(D_s); 
-    figure(4); bar([w, mean(w_samples(:,1:sample),2)]); legend({'weights', 'current sample'});
-    title(num2str(norm(w - mean(w_samples(:,1:sample),2))/norm(w)))
-    drawnow;
-end
-
-%%
-figure(6); bar([w, mean(w_samples,2)]); legend({'weights', 'estimate'});
+% L = 100;
+% 
+% % B burn-in samples
+% B = -1;
+% 
+% % store post-burnin samples here:
+% w_samples = zeros(K,L);
+% gamma_samples = zeros(K,L);
+% X_samples = zeros(N,K,L);
+% D_samples = zeros(N,K,L);
+% 
+% % current iteration / initialization
+% gamma_s = rand(K,1) < a;
+% w_s = gamma_s .* (sign(c - .5) .* abs(normrnd(0,1,K,1)));
+% D_s = d_mean0 + (1 - pi_nk)*d_mean_coef;
+% X_s = rand(N,K) < pi_nk;
+% 
+% 
+% %% okay, let's sample
+% 
+% for sample = -B:L
+% 
+%     fprintf('Sample %d of %d\n', sample, L);
+%     [X_s, D_s, w_s, gamma_s] = gibbs_single_sweep(X_s, D_s, w_s, gamma_s, Y, pi_nk, c, a, sigma_s, sigma_n, d_mean_nk, d_sigma_nk, t, tau, gmax);
+% 
+%     if sample > 0
+%         
+%         w_samples(:,sample) = w_s;
+%         gamma_samples(:,sample) = gamma_s;
+%         D_samples(:,:,sample) = D_s;
+%         X_samples(:,:,sample) = X_s;
+%         
+%     end
+% %%
+%     figure(3); imagesc(X_s); 
+%     figure(5); imagesc(D_s); 
+%     figure(4); bar([w, mean(w_samples(:,1:sample),2)]); legend({'weights', 'current sample'});
+%     title(num2str(norm(w - mean(w_samples(:,1:sample),2))/norm(w)))
+%     drawnow;
+% end
+% 
+figure(2)% %%
+% figure(6); bar([w, mean(w_samples,2)]); legend({'weights', 'estimate'});
 
 
