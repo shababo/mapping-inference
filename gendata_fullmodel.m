@@ -9,20 +9,54 @@ rng(12,'twister');
 
 %% Gen neurons and their types/locations/features
 
-% number of neurons
-K = 500;
+%% build layers
 
-% location of postsynaptic neuron
-p_star = [0 0 0];
+% set priors on layer boundaries (from Lefort et al 2009)
+num_layers = 7;
+layer_names = {'L1','L2','L3','L4','L5A','L5B','L6'};
+layer_bottom_means = [0 128 269 418 588 708 890 1154];
+layer_bottom_sds = [0 18 36 44 44 62 80 116]/10;
+
+% draw layer boundaries
+layer_boundaries = normrnd(layer_bottom_means,layer_bottom_sds);
+while any(diff(layer_boundaries) < 20)
+    layer_boundaries = normrnd(layer_bottom_means,layer_bottom_sds);
+end
+
+% plot layers
+% figure(1234)
+% plot([0 1],-bsxfun(@times,[ones(num_layers + 1,2)],[layer_boundaries]'))
+
+%% draw number of cells per layer
+% set priors (from Lefort et al 2009)
+exc_neurons_per_layer_mean = [0 546 1145 1656 454 641 1288];
+exc_neurons_per_layer_sd = [0 120 323 203 112 122 205];
+K_layers = ceil(normrnd(exc_neurons_per_layer_mean,exc_neurons_per_layer_sd));
+while any(K_layers < 0)
+    K_layers = ceil(normrnd(exc_neurons_per_layer_mean,exc_neurons_per_layer_sd));
+end
 
 % size of region containing neurons (or region we can stim)
-xyz_dims = [400, 400, 80] / ((300/K)^(1/3));
+barrel_width = 300;
+slide_width = 300;
 
 % how many neurons are excitatory (for now we will only consider a
 % homogenous population of excitatory neurons - in the future we may
 % consider many different cell types whose properties are different
 pct_excitatory = 1.00;
-[p, c] = create_synthetic_neuron_field(K, xyz_dims, pct_excitatory);
+neuron_locations = cell(num_layers,1);
+for i = 1:num_layers
+    neuron_locations{i} = sample_neuron_positions(K_layers(i), ...
+        [0 barrel_width; layer_boundaries(i) layer_boundaries(i+1); 0 slide_width]);
+end
+
+figure(12341)
+for i = 1:num_layers
+    scatter3(neuron_locations{i}(:,1),-neuron_locations{i}(:,2),neuron_locations{i}(:,3),'.');
+    hold on
+end
+hold off
+%%
 
 
 % the K-vector "a" holds the base connectivity to the post-synaptic neuron.
