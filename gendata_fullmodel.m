@@ -50,78 +50,69 @@ for i = 1:num_layers
         [0 barrel_width; layer_boundaries(i) layer_boundaries(i+1); 0 slide_width]);
 end
 
-figure(12341)
+% figure(12341)
+% for i = 1:num_layers
+%     scatter3(neuron_locations{i}(:,1),-neuron_locations{i}(:,2),neuron_locations{i}(:,3),'.');
+%     hold on
+% end
+% hold off
+%% generate cell features conditioned on location
+
+% layer based priors on featues
+cell_feature_priors.connection_prob = [0 .095 .057 .116 .191 .017 .006]; % bernoulli
+cell_feature_priors.connection_strength_mean = [0 .8 .6 .8 2.0 .4 .1]; % log-normal
+cell_feature_priors.connection_strength_stddev = ones(num_layers,1); % log-normal
+cell_feature_priors.connection_tau_rise_mean = [0 2.8 1.86 1.77 2.37 5.41 1.1]/1.3/1000; % gaussian
+cell_feature_priors.connection_tau_rise_std = .0005*ones(num_layers,1); % gaussian
+cell_feature_priors.connection_tau_fall_mean = [0 73.2 37.2 61.7 74.4 36.8 27.2]/5/1000; % gaussian
+cell_feature_priors.connection_tau_fall_std = .003*ones(num_layers,1); % gaussian
+cell_feature_priors.rheobase_mean = [0 126 132 56 68 98 76]/126; % gaussian
+cell_feature_priors.rheobase_std = 5 * ones(num_layers,1); % gaussian
+
+% draw features for each neuron
+neuron_features = struct();
 for i = 1:num_layers
-    scatter3(neuron_locations{i}(:,1),-neuron_locations{i}(:,2),neuron_locations{i}(:,3),'.');
-    hold on
+    
+    num_neurons_layer = size(neuron_locations{i},1);
+    
+    neuron_features(i).connected = ...
+        rand(num_neurons_layer,1) < cell_feature_priors.connection_prob(i);
+    
+    neuron_features(i).amplitude = lognrnd(cell_feature_priors.connection_strength_mean(i),...
+                                           cell_feature_priors.connection_strength_stddev(i),...
+                                           [num_neurons_layer 1]);
+    neuron_features(i).amplitude = neuron_features(i).amplitude .* neuron_features(i).connected;                                  
+                                       
+    neuron_features(i).tau_rise = normrnd(cell_feature_priors.connection_tau_rise_mean(i),...
+                                           cell_feature_priors.connection_tau_rise_std(i),...
+                                           [num_neurons_layer 1]);
+    neuron_features(i).tau_rise(neuron_features(i).tau_rise < 0) = .001;                                   
+                                       
+    neuron_features(i).tau_fall = normrnd(cell_feature_priors.connection_tau_fall_mean(i),...
+                                           cell_feature_priors.connection_tau_fall_std(i),...
+                                           [num_neurons_layer 1]);    
+                                       
+	neuron_features(i).rheobase = normrnd(cell_feature_priors.rheobase_mean(i),...
+                                           cell_feature_priors.rheobase_std(i),...
+                                           [num_neurons_layer 1]); 
 end
-hold off
-%%
 
+%% condense all cells into single arrays
+all_locations = [];
+all_amplitudes = [];
+all_tau_rise = [];
+all_tau_fall = [];
+all_rheobase = [];
 
-% the K-vector "a" holds the base connectivity to the post-synaptic neuron.
+for i = 1:num_layers
+    all_locations = [all_locations; neuron_locations{i}];
+    all_amplitudes = [all_amplitudes; neuron_features(i).amplitude];
+    all_tau_rise = [all_tau_rise; neuron_features(i).tau_rise];
+    all_tau_fall = [all_tau_fall; neuron_features(i).tau_fall];
+    all_rheobase = [all_rheobase; neuron_features(i).rheobase];
+end
 
-% parameters governing probability of neurons being connected, given the
-% are excitatory / inhibitory, and the distance between the neurons
-% a_excite_lambda = .005;
-% a_inhibit_var = 5000;
-% prob_a_max_excite = .22;
-% prob_a_max_inhibit = .5;
-% 
-% a = compute_prior_connectivity_probability(c, p, p_star, ...
-%        prob_a_max_excite, prob_a_max_inhibit, a_excite_lambda, a_inhibit_var);
-
-a = .015;
-
-
-% draw latent weights and sparsity pattern
-
-% prior weight variances. we take these as known, at the moment
-slab_sd_excite = 20;
-slab_sd_inhib = .75;
-%slab_mode_excite = 1;
-%slab_mode_inhib = -1.5;
-slab_mode_excite = 25;
-slab_mode_inhib = 0;
-
-% draw the sparsity pattern
-gamma = rand(K,1) < a;
-
-% draw weights
-w = gamma.*c.*(slab_mode_excite + rnd_truncated_normal(-slab_mode_excite*ones(K,1))*slab_sd_excite);
-w(w < 0) = -w(w<0);
-% w = w - gamma.*~c.*(-slab_mode_inhib + rnd_truncated_normal(slab_mode_inhib*ones(K,1))*slab_sd_inhib);
-
-% put together slab priors
-sigma_s = slab_sd_excite*ones(K,1).*c + slab_sd_inhib*ones(K,1).*~c;
-
-% draw taus for each neuron
-
-%tau priors
-%excite
-tau_r_bounds = [1 20]/20000;
-tau_f_bounds = [50 200]/20000;
-%inhib
-% tau_r_bounds = [40 150]/20000;
-% tau_f_bounds = [200 500]/20000;
-
-% draw taus for each synapse
-tau_r_k = unifrnd(tau_r_bounds(1),tau_r_bounds(2),[K,1]);
-tau_f_k = unifrnd(tau_f_bounds(1),tau_f_bounds(2),[K,1]);
-
-
-
-%% Plot the neurons
-
-figure(1);
-scatter3(p(c,2),-p(c,1),p(c,3), 'b.'); hold on;
-% scatter3(p(~c,1),p(~c,2),p(~c,3), 'g.'); hold on;
-scatter3(0,0,0,'c.'); hold on;
-scatter3(p(gamma,2),-p(gamma,1),p(gamma,3),'ro');
-hold off;
-legend({'excitatory', 'postsynaptic','connected'})
-drawnow;
-%input('hit enter to continue')
+K = length(all_amplitudes); % num_neurons
 
 %% voltage-clamp parameters (daq stuff, bg psc parameters)
 
@@ -136,17 +127,13 @@ data_params.phi = [1, .80, -.12]; %this determines what the AR noise looks like.
 bg_params.tau_r_bounds = tau_r_bounds*20000;
 bg_params.tau_f_bounds = tau_f_bounds*20000;
 bg_params.a_min = .5;
-bg_params.a_max = 10;
+bg_params.a_max = 15;
 bg_params.firing_rate = 20; %spike/sec 
-
-
-
-
 
 %% stim paramters
 
 % covariance of point spread function
-A = diag([225, 225, 10000]);
+A = diag([225, 225, 1000]);
 
 evoked_params.stim_tau_rise = .0015*20000; % values for chr2 from lin et al 2009 (biophysics)
 evoked_params.stim_tau_fall = .013*20000;
@@ -159,8 +146,10 @@ evoked_params.stim_tau_rise = .0015*20000; % values for chr2 from lin et al 2009
 evoked_params.stim_tau_fall = .013*20000;
 evoked_params.stim_amp = 0;
 
-
-
+%% select a postsyanptic cell
+cell_layer = 5; % 5A
+num_cell_layer_neurons = size(neuron_locations{cell_layer},1);
+postsyn_position = neuron_locations{cell_layer}(randi(num_cell_layer_neurons),:);
 
 %% Generate some data
 
@@ -182,26 +171,25 @@ trial_grid_locations = zeros(N/3,2);
 count = 1;
 for i = 1:21
     for j = 1:21
+        
         trial_grid_locations(count,:) = [i j];
         count = count + 1;
-        Z((i-1)*21 + j,1) = (i-1)*20 - 200;
-        Z((i-1)*21 + j,2) = (j-1)*20 - 200;
+        Z((i-1)*21 + j,1) = (i-1)*20 - 200 + postsyn_position(1);
+        Z((i-1)*21 + j,2) = (j-1)*20 - 200 + postsyn_position(2);
+        Z((i-1)*21 + j,3) = postsyn_position(3);
         
     end
 end
+
 Z = repmat(Z,3,1);
 trial_grid_locations = repmat(trial_grid_locations,3,1);
 
 % probability of firing
 % pi_nk = zeros(N,K);
-pi_kr = exp(-0.5*squareform(pdist([Z; p],'mahalanobis',A)).^2);
+pi_kr = exp(-0.5*squareform(pdist([Z; all_locations],'mahalanobis',A)).^2);
 pi_nk = pi_kr(1:N,N+1:N+K);
 pi_nk(pi_nk > .65) = 1;
-% for n = 1:N
-%     stimulus = randsample(K,R);
-%     Z(n,stimulus) = 1;
-%     pi_nk(n,:) = min(1,sum(pi_kr.*Z(n*ones(K, 1),:),2)');
-% end
+
 
 % firing delay means and variances
 d_mean_nk = d_mean0 + (1 - pi_nk)*d_mean_coef;
@@ -209,9 +197,7 @@ d_sigma_nk = d_sigma0 + (1 - pi_nk)*d_sigma_coef;
 
 % sample "ground truth" firing delay
 D = normrnd(d_mean_nk,d_sigma_nk)/data_params.dt + evoked_params.stim_start;
-% D = D;
-
-% D(D < 4) = 4;
+D(D < evoked_params.stim_start + .002) = evoked_params.stim_start + .002;
 
 % sample "ground truth" stimulations
 
@@ -220,37 +206,17 @@ X(D > 2000) = 0;
 
 %% Generate a response, given D, Pi, X, w
 
-% 
-% t = 0:1:2000;
-% T = length(t);
-% Y = zeros(N,T);
-% gmax = 1;
-% tau = 2.5;
-% sigma_n = 2.5;
-% 
-% for n = 1:N
-%     for k = 1:K
-%         if gamma(k) == 1 && X(n,k) == 1
-%             Y(n,:) = Y(n,:) + w(k)*X(n,k)*alpha_synapse(t,D(n,k),tau,-gmax);
-%         end 
-%     end
-%     Y(n,:) = Y(n,:) + normrnd(0,sigma_n,1,length(t));
-% end
-
-% PUT IN NEW CODE FOR EVENTS
-    % - NEED TO DRAW TAUS FOR EACH CELL AS WELL
-
 Y = zeros(N,data_params.T);
 
 for n = 1:N
-    firing_neurons = X(n,:) & w' > 0;
+    firing_neurons = X(n,:) & all_amplitudes' > 0;
     
-    if any(w(firing_neurons) > 0)
+    if any(all_amplitudes(firing_neurons) > 0)
         
         evoked_params.times = D(n,firing_neurons);
-        evoked_params.a = w(firing_neurons);
-        evoked_params.tau_r = tau_r_k(firing_neurons)/data_params.dt;
-        evoked_params.tau_f = tau_f_k(firing_neurons)/data_params.dt;
+        evoked_params.a = all_amplitudes(firing_neurons);
+        evoked_params.tau_r = all_tau_rise(firing_neurons)/data_params.dt;
+        evoked_params.tau_f = all_tau_fall(firing_neurons)/data_params.dt;
     else
         evoked_params.times = [];
         evoked_params.a = [];
@@ -259,10 +225,6 @@ for n = 1:N
     end
     
     Y(n,:) = gen_trace(data_params,bg_params,evoked_params);
-    
-%     if sum(firing_neurons) && sum(evoked_params.a)
-%         break
-%     end
     
 end
 
