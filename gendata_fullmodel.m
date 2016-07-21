@@ -29,8 +29,8 @@ end
 
 %% draw number of cells per layer
 % set priors (from Lefort et al 2009)
-exc_neurons_per_layer_mean = [0 546 1145 1656 454 641 1288];
-exc_neurons_per_layer_sd = [0 120 323 203 112 122 205];
+exc_neurons_per_layer_mean = [0 546 1145 1656 454 641 1288]/3;
+exc_neurons_per_layer_sd = [0 120 323 203 112 122 205]/3;
 K_layers = ceil(normrnd(exc_neurons_per_layer_mean,exc_neurons_per_layer_sd));
 while any(K_layers < 0)
     K_layers = ceil(normrnd(exc_neurons_per_layer_mean,exc_neurons_per_layer_sd));
@@ -38,7 +38,7 @@ end
 
 % size of region containing neurons (or region we can stim)
 barrel_width = 300;
-slide_width = 300;
+slide_width = 100;
 
 % how many neurons are excitatory (for now we will only consider a
 % homogenous population of excitatory neurons - in the future we may
@@ -50,22 +50,25 @@ for i = 1:num_layers
         [0 barrel_width; layer_boundaries(i) layer_boundaries(i+1); 0 slide_width]);
 end
 
-% figure(12341)
-% for i = 1:num_layers
-%     scatter3(neuron_locations{i}(:,1),-neuron_locations{i}(:,2),neuron_locations{i}(:,3),'.');
-%     hold on
-% end
-% hold off
+%% plot the neurons - colored by layer
+
+figure(123412)
+for i = 1:num_layers
+    scatter3(neuron_locations{i}(:,1),-neuron_locations{i}(:,2),neuron_locations{i}(:,3),'.');
+    hold on
+end
+hold off
+set(gca,'yticklabels',{'1200','1000','800','600','400','200','0'})
 %% generate cell features conditioned on location
 
 % layer based priors on featues
 cell_feature_priors.connection_prob = [0 .095 .057 .116 .191 .017 .006]; % bernoulli
 cell_feature_priors.connection_strength_mean = [0 .8 .6 .8 2.0 .4 .1]; % log-normal
 cell_feature_priors.connection_strength_stddev = ones(num_layers,1); % log-normal
-cell_feature_priors.connection_tau_rise_mean = [0 2.8 1.86 1.77 2.37 5.41 1.1]/1.3/1000; % gaussian
-cell_feature_priors.connection_tau_rise_std = .0005*ones(num_layers,1); % gaussian
-cell_feature_priors.connection_tau_fall_mean = [0 73.2 37.2 61.7 74.4 36.8 27.2]/5/1000; % gaussian
-cell_feature_priors.connection_tau_fall_std = .003*ones(num_layers,1); % gaussian
+cell_feature_priors.connection_tau_rise_mean = [0 2.8 1.86 1.77 2.37 5.41 1.1]/1/1000; % gaussian
+cell_feature_priors.connection_tau_rise_std = .0005*ones(num_layers,1)/2.5; % gaussian
+cell_feature_priors.connection_tau_fall_mean = [0 73.2 37.2 61.7 74.4 36.8 27.2]/20/1000; % gaussian
+cell_feature_priors.connection_tau_fall_std = .003*ones(num_layers,1)/10; % gaussian
 cell_feature_priors.rheobase_mean = [0 126 132 56 68 98 76]/126; % gaussian
 cell_feature_priors.rheobase_std = 5 * ones(num_layers,1); % gaussian
 
@@ -114,8 +117,36 @@ end
 
 K = length(all_amplitudes); % num_neurons
 
-%% voltage-clamp parameters (daq stuff, bg psc parameters)
 
+
+%%
+
+figure(12345)
+for i = 1:num_layers
+    connected_neurons_ind = find(neuron_features(i).amplitude);
+    scatter3(neuron_locations{i}(connected_neurons_ind,1),...
+        -neuron_locations{i}(connected_neurons_ind,2),...
+        neuron_locations{i}(connected_neurons_ind,3),...
+        neuron_features(i).amplitude(connected_neurons_ind)*5,'.');
+    hold on
+end
+hold off
+set(gca,'yticklabels',{'1200','1000','800','600','400','200','0'})
+view(2)
+
+%%
+
+figure(123456)
+subplot(131)
+histogram(all_amplitudes(all_amplitudes ~= 0),1000)
+subplot(132)
+histogram(all_tau_rise(all_tau_rise ~= 0),1000)
+subplot(133)
+histogram(all_tau_fall(all_tau_fall ~= 0),1000)
+
+%% voltage-clamp parameters (daq stuff, bg psc parameters)
+tau_r_bounds = [1 20]/20000;
+tau_f_bounds = [50 200]/20000;
 
 data_params.T = 2000; %bins - start not too long
 data_params.dt = 1/20000; %
@@ -133,7 +164,7 @@ bg_params.firing_rate = 20; %spike/sec
 %% stim paramters
 
 % covariance of point spread function
-A = diag([225, 225, 1000]);
+A = diag([200, 200, 750]);
 
 evoked_params.stim_tau_rise = .0015*20000; % values for chr2 from lin et al 2009 (biophysics)
 evoked_params.stim_tau_fall = .013*20000;
@@ -153,7 +184,8 @@ postsyn_position = neuron_locations{cell_layer}(randi(num_cell_layer_neurons),:)
 
 %% Generate some data
 
-N = 1323;
+num_repeats = 5;
+N = 21*21*num_repeats;
 R = 1;
 
 % these parameters govern the time delay, as a function of the
@@ -161,13 +193,13 @@ R = 1;
 % in seconds
 d_mean0 = .000;
 d_sigma0 = .002;
-d_mean_coef = .01;
-d_sigma_coef = .005;
+d_mean_coef = .005;
+d_sigma_coef = .050;
 
 % the neurons being stimulated at each trial
 % Z = false(N,K);
-Z = zeros(N/3,3);
-trial_grid_locations = zeros(N/3,2);
+Z = zeros(N/num_repeats,3);
+trial_grid_locations = zeros(N/num_repeats,2);
 count = 1;
 for i = 1:21
     for j = 1:21
@@ -181,27 +213,36 @@ for i = 1:21
     end
 end
 
-Z = repmat(Z,3,1);
-trial_grid_locations = repmat(trial_grid_locations,3,1);
+Z = repmat(Z,num_repeats,1);
+trial_grid_locations = repmat(trial_grid_locations,num_repeats,1);
 
 % probability of firing
 % pi_nk = zeros(N,K);
 pi_kr = exp(-0.5*squareform(pdist([Z; all_locations],'mahalanobis',A)).^2);
 pi_nk = pi_kr(1:N,N+1:N+K);
-pi_nk(pi_nk > .65) = 1;
+pi_nk_spike = pi_nk;
+pi_nk_spike(pi_nk_spike > .65) = 1;
 
+
+% % firing delay means and variances
+% d_mean_nk = d_mean0 + (1 - pi_nk)*d_mean_coef;
+% d_sigma_nk = d_sigma0 + (1 - pi_nk)*d_sigma_coef;
+% 
+% % sample "ground truth" firing delay
+% D = normrnd(d_mean_nk,d_sigma_nk)/data_params.dt + evoked_params.stim_start;
+% D(D < evoked_params.stim_start + .002) = evoked_params.stim_start + .002;
 
 % firing delay means and variances
-d_mean_nk = d_mean0 + (1 - pi_nk)*d_mean_coef;
+d_mean_nk = d_mean0 + (1.5 - pi_nk)*d_mean_coef;
 d_sigma_nk = d_sigma0 + (1 - pi_nk)*d_sigma_coef;
 
 % sample "ground truth" firing delay
-D = normrnd(d_mean_nk,d_sigma_nk)/data_params.dt + evoked_params.stim_start;
-D(D < evoked_params.stim_start + .002) = evoked_params.stim_start + .002;
+D = exprnd(d_mean_nk/data_params.dt) + evoked_params.stim_start;
+% D(D < evoked_params.stim_start + .002) = evoked_params.stim_start + .002;
 
 % sample "ground truth" stimulations
 
-X = rand(N,K) < pi_nk; %.2 
+X = rand(N,K) < pi_nk_spike; %.2 
 X(D > 2000) = 0;
 
 %% Generate a response, given D, Pi, X, w
@@ -233,55 +274,9 @@ end
 
 Y_grid = unstack_traces(Y,trial_grid_locations);
 
+%%
 figure(2)
-plot_trace_stack_grid(Y_grid,3,1,0);
+plot_trace_stack_grid(Y_grid,5,1,0);
 
-
-%% now we can gibbs sample it and see how we do. initialize sampler:
-
-% L samples
-% L = 100;
-% 
-% % B burn-in samples
-% B = -1;
-% 
-% % store post-burnin samples here:
-% w_samples = zeros(K,L);
-% gamma_samples = zeros(K,L);
-% X_samples = zeros(N,K,L);
-% D_samples = zeros(N,K,L);
-% 
-% % current iteration / initialization
-% gamma_s = rand(K,1) < a;
-% w_s = gamma_s .* (sign(c - .5) .* abs(normrnd(0,1,K,1)));
-% D_s = d_mean0 + (1 - pi_nk)*d_mean_coef;
-% X_s = rand(N,K) < pi_nk;
-% 
-% 
-% %% okay, let's sample
-% 
-% for sample = -B:L
-% 
-%     fprintf('Sample %d of %d\n', sample, L);
-%     [X_s, D_s, w_s, gamma_s] = gibbs_single_sweep(X_s, D_s, w_s, gamma_s, Y, pi_nk, c, a, sigma_s, sigma_n, d_mean_nk, d_sigma_nk, t, tau, gmax);
-% 
-%     if sample > 0
-%         
-%         w_samples(:,sample) = w_s;
-%         gamma_samples(:,sample) = gamma_s;
-%         D_samples(:,:,sample) = D_s;
-%         X_samples(:,:,sample) = X_s;
-%         
-%     end
-% %%
-%     figure(3); imagesc(X_s); 
-%     figure(5); imagesc(D_s); 
-%     figure(4); bar([w, mean(w_samples(:,1:sample),2)]); legend({'weights', 'current sample'});
-%     title(num2str(norm(w - mean(w_samples(:,1:sample),2))/norm(w)))
-%     drawnow;
-% end
-% 
-figure(2)% %%
-% figure(6); bar([w, mean(w_samples,2)]); legend({'weights', 'estimate'});
 
 
