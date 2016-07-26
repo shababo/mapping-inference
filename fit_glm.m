@@ -10,11 +10,11 @@ basis = bs.B';
 
 x0= rand(num_params,1);
 obj_fun = @(x) glm_log_likelihood(x, stims_x, stims_t, spikes, basis);
-% options = optimoptions('fmincon','Algorithm','interior-point',...
-%                                 'Display','iter','GradObj','on',...
-%                                 'UseParallel',true,'DerivativeCheck','on','Diagnostics','on');
+options = optimoptions('fmincon','Algorithm','interior-point',...
+                                'Display','iter','GradObj','on',...
+                                'UseParallel',true,'Diagnostics','on');
                             
-options = optimoptions('fminunc','Algorithm','trust-region', 'Display','iter','GradObj','on');
+% options = optimoptions('fminunc','Algorithm','trust-region', 'Display','iter','GradObj','on');
 
 % options = optimset('Display','iter');
 
@@ -23,12 +23,12 @@ lb = -Inf*ones(size(x0));
 lb(2:num_spatial_pos+1) = 0;
                             
 
-% delete(gcp('nocreate'))
-% this_pool = parpool();
-fit_params = fminunc(obj_fun,x0,options)
-% fit_params = fmincon(obj_fun,x0,[],[],[],[],lb,ub,[],options);
+delete(gcp('nocreate'))
+this_pool = parpool();
+% fit_params = fminunc(obj_fun,x0,options)
+fit_params = fmincon(obj_fun,x0,[],[],[],[],lb,ub,[],options);
 % fit_params = fminsearch(obj_fun,x0,options);
-% delete(this_pool)
+delete(this_pool)
 
 
 function [log_likelihood, grad_ll] = glm_log_likelihood(param_vec, stims_x, stims_t, spikes, basis)
