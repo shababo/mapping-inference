@@ -67,8 +67,8 @@ end
 % fit_params_tmp = fit_params;
 clc
 
-% delete(gcp('nocreate'))
-% this_pool = parpool();
+delete(gcp('nocreate'))
+this_pool = parpool();
 % % init_vals = fit_params;
 fit_params_all_cells3 = cell(num_cells,1);
 % fit_params{1} = init_vals;
@@ -87,10 +87,10 @@ for m = [1 3:10]
 %     end
 end
 
-% delete(this_pool)
+delete(this_pool)
 %%
 
-for i = [1 3:10]
+for i = [1]
     
     fit_params = fit_params_all_cells3{i};
     
@@ -149,32 +149,75 @@ for i = [1 3:10]
     set(gcf, 'Color', 'w');
     export_fig(gcf, ['cell' num2str(i) '_glm_results_01.png'],'-png')
     
-%     spikes_grids = cell(1,3);
-%     params.stim_filter = stim_filter;
-%     params.history_filter = history_filter;
-%     params.baseline = baseline_rate;
-%     params.spatial_footprint = sptial_footprint;
-%     
-%     spikes_sim = sim_glm(params,stims_x,stims_t);
-% 
-%     count = 1;
-%     for ii = 1:3
-%         spikes_grids{ii} = cell(11,11);
-%         for ll = 1:5
-%             for jj = 1:11
-%                 for kk = 1:11
-%                     if jj == 1 && kk == 1
-%                         spikes_grids{ii}{jj,kk} = zeros(5,size(stims_t,2));
-%                     end
-%                     spikes_grids{ii}{jj,kk}(ll,:) = spikes_sim(ll,:)*70;
-%                     count = count + 1;
-%                 end
-%             end
-%         end
-%     end
-%     
-%     figure
-%     compare_trace_stack_grid_overlap(...
-%         spikes_grids,3,1,[],0,{'L4','L5','a'},1)
+
+end
+
+%% sim glm
+
+for i = 1
+    
+    fit_params = fit_params_all_cells3{i};
+    
+    num_basis_funcs = 10;
+    bs = basisFactory.makeSmoothTemporalBasis('raised cosine', .750, num_basis_funcs, @(x) 75);
+    basis = bs.B(1:end,:)';
+
+    % build the filters from basis function
+    params.stim_filter = zeros(1,size(spikes,2));
+    params.hist_filter = zeros(1,size(spikes,2));
+
+    param_count = 1;
+    params.baseline = fit_params(param_count); param_count = param_count + 1;
+
+    t = (0:74)/1000;
+
+    % build spatial layout of cell
+    num_spatial_pos = 121;
+    params.spatial_footprint = fit_params(param_count:param_count + num_spatial_pos-1);
+    param_count = param_count + num_spatial_pos;
+
+    % a_stim = fit_params(param_count); param_count = param_count + 1;
+    % c_stim = fit_params(param_count); param_count = param_count + 1;
+
+    for j = 1:num_basis_funcs
+    %     phi = fit_params(param_count); param_count = param_count + 1;
+        weight =  fit_params(param_count); param_count = param_count + 1;
+        params.stim_filter = params.stim_filter + weight * basis(j,:); %raised_cosine(t,a_stim,c_stim,phi);
+    end
+    figure; plot(params.stim_filter)
+    
+    % a_hist = fit_params(param_count); param_count = param_count + 1;
+    % c_hist = fit_params(param_count); param_count = param_count + 1;
+    for j = 1:num_basis_funcs
+    %     phi = fit_params(param_count); param_count = param_count + 1;
+        weight =  fit_params(param_count); param_count = param_count + 1;
+        params.hist_filter = params.hist_filter + weight * basis(j,:); %raised_cosine(t,a_hist,c_hist,phi);
+    end
+    figure; plot(params.hist_filter)
+    
+    spikes_sim = sim_glm(params,stims_x,stims_t_downres,1/1000);
+    
+    
+    spikes_grids = cell(3,1);
+    
+    count = 1;
+    for ii = 1:length(spike_grids)
+        spikes_grids{ii} = cell(11,11);
+        for ll = 1:5
+            for jj = 1:11
+                for kk = 1:11
+                    if jj == 1 && kk == 1
+                        spikes_grids{ii}{jj,kk} = zeros(5,size(stims_t_downres,2));
+                    end
+                    spikes_grids{ii}{jj,kk}(ll,:) = spikes_sim(count,:)*70;
+                    count = count + 1;
+                end
+            end
+        end
+    end
+    
+    figure
+    compare_trace_stack_grid(...
+        spikes_grids,5,1,[],0,{'25','50','100'},1)
 
 end
