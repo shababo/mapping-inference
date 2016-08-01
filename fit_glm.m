@@ -12,7 +12,7 @@ x0= rand(num_params,1);
 obj_fun = @(x) glm_log_likelihood(x, stims_x, stims_t, spikes, basis);
 options = optimoptions('fmincon','Algorithm','interior-point',...
                                 'Display','iter','GradObj','on',...
-                                'UseParallel',true,'Diagnostics','on');
+                                'UseParallel',true,'DerivativeCheck','on','Diagnostics','on');
                             
 % options = optimoptions('fminunc','Algorithm','trust-region', 'Display','iter','GradObj','on');
 
