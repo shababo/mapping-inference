@@ -20,7 +20,7 @@ for i = 1:3
     for l = 1:5
         for j = 1:11
             for k = 1:11
-                stims_t_downres(count,5:9) = powers(i);
+                stims_t_downres(count,5:14) = powers(i);
                 stims_x_vec(count,stims_x_value(count)) = 1;
                 count = count + 1;
             end
@@ -31,7 +31,7 @@ end
 
 spikes_downres = cell(num_cells,1);
 spatial_inits = zeros(11,11,num_cells);
-
+all_detection_grids_downres = cell(size(all_detection_grids));
 
 for m = 1:num_cells
     
@@ -41,15 +41,20 @@ for m = 1:num_cells
     % % stims_t = repmat(stim_t,size(stims_x,1),1);
 
     spikes_downres{m} = zeros(size(stims_t_downres));
-
+    all_detection_grids_downres{m} = cell(1,3);
     count = 1;
     for i = 1:3
+        all_detection_grids_downres{m}{i} = cell(11,11);
         for l = 1:5
             for j = 1:11
                 for k = 1:11
+                    if l == 1
+                        all_detection_grids_downres{m}{i}{j,k} = zeros(5,75);
+                    end
                     if l <= size(all_detection_grids{m}{i}{j,k},1)
                         spike_inds = ceil(find(all_detection_grids{m}{i}{j,k}(l,1:1500))/20);
                         spikes_downres{m}(count,spike_inds) = 1;
+                        all_detection_grids_downres{m}{i}{j,k}(l,spike_inds) = 70;
                         if ~isempty(spike_inds)
                             spatial_inits(j,k,m) = spatial_inits(j,k,m) + 1;
                         end
@@ -63,6 +68,8 @@ for m = 1:num_cells
 end
 
 %%
+fit_params_all_cells4 = cell(num_cells,1);
+%%
 % num_cells = 10;
 % fit_params_tmp = fit_params;
 clc
@@ -70,7 +77,7 @@ clc
 delete(gcp('nocreate'))
 this_pool = parpool();
 % % init_vals = fit_params;
-fit_params_all_cells3 = cell(num_cells,1);
+
 % fit_params{1} = init_vals;
 for m = [1 3:10]
 %     try
@@ -79,9 +86,9 @@ for m = [1 3:10]
         spatial_init_cell = spatial_init_cell(:)/max(spatial_init_cell(:));
         init_values(2:num_spatial_pos+1) = init_values(2:num_spatial_pos+1) + spatial_init_cell*5e-3;
         if m > 1
-            init_values(123:132) = fit_params_all_cells3{1}(123:132);
+            init_values(123:132) = fit_params_all_cells4{1}(123:132);
         end
-        fit_params_all_cells3{m} = fit_glm(stims_x, stims_t_downres, spikes_downres{m}, init_values);
+        fit_params_all_cells4{m} = fit_glm(stims_x, stims_t_downres, spikes_downres{m}, init_values);
 %     catch e
 %         disp(['iter' num2str(m) 'failed'])
 %     end
@@ -90,17 +97,17 @@ end
 delete(this_pool)
 %%
 
-for i = [1]
+for i = [1 3:10]
     
-    fit_params = fit_params_all_cells3{i};
+    fit_params = fit_params_all_cells4{i};
     
     num_basis_funcs = 10;
     bs = basisFactory.makeSmoothTemporalBasis('raised cosine', .750, num_basis_funcs, @(x) 75);
     basis = bs.B(1:end,:)';
 
     % build the filters from basis function
-    stim_filter = zeros(1,size(spikes,2));
-    history_filter = zeros(1,size(spikes,2));
+    stim_filter = zeros(1,75);
+    history_filter = zeros(1,75);
 
     param_count = 1;
     baseline_rate = fit_params(param_count); param_count = param_count + 1;
@@ -130,41 +137,46 @@ for i = [1]
     end
 
     figure
-    subplot(2,2,[1 3])
+    subplot(3,2,[1 3 5])
     imagesc(reshape(sptial_footprint,11,11)')
     title(['Cell ' num2str(i) ': Spatial Stim Filter'])
     axis off
 
-    subplot(222)
+    subplot(322)
     plot(t,stim_filter)
     title('Temporal Stim Filter')
-    set(gca,'YTickLabels',{})
+%     set(gca,'YTickLabels',{})
 
-    subplot(224)
+    subplot(324)
     plot(t,history_filter)
     title('Spike History/Intrinsic Firing Property Filter')
-    set(gca,'YTickLabels',{})
+%     set(gca,'YTickLabels',{})
+
+    subplot(326)
+    plot(t,history_filter)
+    title('Y-ZOOM: Spike History/Intrinsic Firing Property Filter')
+    ylim([-5 5])
     
     set(gcf,'Position',[1 1 1231 433])
     set(gcf, 'Color', 'w');
-    export_fig(gcf, ['cell' num2str(i) '_glm_results_01.png'],'-png')
+%     export_fig(gcf, ['cell' num2str(i) '_glm_results_02.png'],'-eps')
     
 
 end
 
 %% sim glm
 
-for i = 1
+for i = [1 3:10]
     
-    fit_params = fit_params_all_cells3{i};
+    fit_params = fit_params_all_cells4{i};
     
     num_basis_funcs = 10;
     bs = basisFactory.makeSmoothTemporalBasis('raised cosine', .750, num_basis_funcs, @(x) 75);
     basis = bs.B(1:end,:)';
 
     % build the filters from basis function
-    params.stim_filter = zeros(1,size(spikes,2));
-    params.hist_filter = zeros(1,size(spikes,2));
+    params.stim_filter = zeros(1,75);
+    params.hist_filter = zeros(1,75);
 
     param_count = 1;
     params.baseline = fit_params(param_count); param_count = param_count + 1;
@@ -184,7 +196,7 @@ for i = 1
         weight =  fit_params(param_count); param_count = param_count + 1;
         params.stim_filter = params.stim_filter + weight * basis(j,:); %raised_cosine(t,a_stim,c_stim,phi);
     end
-    figure; plot(params.stim_filter)
+%     figure; plot(params.stim_filter)
     
     % a_hist = fit_params(param_count); param_count = param_count + 1;
     % c_hist = fit_params(param_count); param_count = param_count + 1;
@@ -193,7 +205,7 @@ for i = 1
         weight =  fit_params(param_count); param_count = param_count + 1;
         params.hist_filter = params.hist_filter + weight * basis(j,:); %raised_cosine(t,a_hist,c_hist,phi);
     end
-    figure; plot(params.hist_filter)
+%     figure; plot(params.hist_filter)
     
     spikes_sim = sim_glm(params,stims_x,stims_t_downres,1/1000);
     
@@ -201,7 +213,7 @@ for i = 1
     spikes_grids = cell(3,1);
     
     count = 1;
-    for ii = 1:length(spike_grids)
+    for ii = 1:length(spike_grids)  
         spikes_grids{ii} = cell(11,11);
         for ll = 1:5
             for jj = 1:11
@@ -218,6 +230,18 @@ for i = 1
     
     figure
     compare_trace_stack_grid(...
-        spikes_grids,5,1,[],0,{'25','50','100'},1)
+        [all_detection_grids_downres{i} spikes_grids'],5,1,[],0,{'25','50','100'},2)
+    
+    set(gcf,'position',[66 1 1855 1121]);
+    set(gcf, 'Color', 'w');
+    
+%     export_fig(gcf, ['cell' num2str(i) '_glm_sim_02'],'-eps')
 
+%     close gcf
 end
+
+%%
+
+figure
+    compare_trace_stack_grid(...
+        all_detection_grids{1},5,1,[],0,{'25','50','100'},1)

@@ -43,7 +43,7 @@ options = optimoptions('fmincon','Algorithm','interior-point',...
 
 ub = Inf*ones(size(x0));                            
 lb = -Inf*ones(size(x0));
-lb(1:num_spatial_pos+num_basis_funcs+1) = 0;
+lb(2:num_spatial_pos+num_basis_funcs+1) = 0;
 % ub(1) = 1e-8;
 ub(2:num_spatial_pos+1) = 1e-2;
                             

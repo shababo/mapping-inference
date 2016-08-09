@@ -72,6 +72,7 @@ for i = 1:size(stims_t,1)
     
     hist_filter_conv_out = conv(spikes(i,:),history_filter);
     hist_filter_conv_out = hist_filter_conv_out(1:size(spikes,2));
+    
 %     
 %     figure(124)
 %     plot(hist_filter_conv_out)
