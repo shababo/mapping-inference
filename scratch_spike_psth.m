@@ -11,7 +11,7 @@ trace_grids_3_29_s1c2_r2 = {traces_by_location_3_29_s1c2_r2_25mw, traces_by_loca
 
 trace_grids_3_29_s1c4_r2 = {traces_by_location_3_29_s1c4_r2_25mw, traces_by_location_3_29_s1c4_r2_50mw, traces_by_location_3_29_s1c4_r2_100mw};
 
-trace_grids_3_31_s1c1_r4_5 = {traces_by_location_3_31_s1c1_r4_5_25mw, traces_by_location_3_31_s1c1_r4_5_50mw, traces_by_location_3_31_s1c1_r4_5_100mw};
+%trace_grids_3_31_s1c1_r4_5 = {traces_by_location_3_31_s1c1_r4_5_25mw, traces_by_location_3_31_s1c1_r4_5_50mw, traces_by_location_3_31_s1c1_r4_%5_100mw};
 
 trace_grids_3_31_s1c2_r4_5 = {traces_by_location_3_31_s1c2_r5_5mw, traces_by_location_3_31_s1c2_r5_10mw, traces_by_location_3_31_s1c2_r5_15mw,...
     traces_by_location_3_31_s1c2_r4_25mw, traces_by_location_3_31_s1c2_r4_50mw, traces_by_location_3_31_s1c2_r4_100mw};
@@ -28,7 +28,7 @@ trace_grids_4_6_s3c8_r3 = {traces_by_location_4_6_s3c8_r3_25mw, traces_by_locati
 
 %%
 
-trace_grids = trace_grids_3_31_s1c1_r4_5;
+trace_grids = trace_grids_4_6_s3c2_r1;
 
 detection_grids = cell(size(trace_grids));
 
@@ -37,16 +37,16 @@ for i = 1:length(trace_grids)
     trace_grid_tmp = trace_grids{i};
     [traces_tmp, rebuild_map] = stack_traces(trace_grid_tmp);
 
-    detection_results = detect_peaks(-1.0*bsxfun(@minus,traces_tmp,median(traces_tmp(:,1300:1500),2)),.25,20,1,1,0)*70;
+    detection_results = detect_peaks(-1.0*bsxfun(@minus,traces_tmp,median(traces_tmp(:,1300:1500),2)),1.0,20,1,1,0)*70;
     detection_grids{i} = unstack_traces(detection_results,rebuild_map);
     
 end
     
-detection_results_3_31_s1c1_r4_5 = detection_results;
-detection_grids_3_31_s1c1_r4_5 = detection_grids;
+detection_results_4_6_s3c2_r1 = detection_results;
+detection_grids_4_6_s3c2_r1 = detection_grids;
 
 
-figure; compare_trace_stack_grid({trace_grids{:},detection_grids_3_31_s1c1_r4_5{:}},...
+figure; compare_trace_stack_grid({trace_grids{:},detection_grids_4_6_s3c2_r1{:}},...
     5,1,[],0,{'25 mW', '50 mW', '100 mW'},2)
 
 %%
