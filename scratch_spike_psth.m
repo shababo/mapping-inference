@@ -45,6 +45,7 @@ end
 detection_results_4_6_s3c2_r1 = detection_results;
 detection_grids_4_6_s3c2_r1 = detection_grids;
 
+%%
 
 figure; compare_trace_stack_grid({trace_grids{:},detection_grids_4_6_s3c2_r1{:}},...
     5,1,[],0,{'25 mW', '50 mW', '100 mW'},2)
