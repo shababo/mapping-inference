@@ -6,7 +6,6 @@ stims_x = [repmat((1:121)',5*3,1) [25*ones(121*5,1); 50*ones(121*5,1); 100*ones(
 num_spatial_pos = 121;
 num_trials = 121*5*3;
 
-num_cells = 10;
 
 stims_x_value = repmat((1:121)',5*3,1);
 stims_x_vec = zeros(num_trials,121);
@@ -28,6 +27,7 @@ for i = 1:3
     end
 end
 %%
+num_cells = length(all_detection_grids);
 
 spikes_downres = cell(num_cells,1);
 spatial_inits = zeros(11,11,num_cells);
@@ -68,7 +68,7 @@ for m = 1:num_cells
 end
 
 %%
-fit_params_all_cells4 = cell(num_cells,1);
+fit_params_all_cells_fix = cell(num_cells,1);
 %%
 % num_cells = 10;
 % fit_params_tmp = fit_params;
@@ -86,9 +86,9 @@ for m = [1 3:10]
         spatial_init_cell = spatial_init_cell(:)/max(spatial_init_cell(:));
         init_values(2:num_spatial_pos+1) = init_values(2:num_spatial_pos+1) + spatial_init_cell*5e-3;
         if m > 1
-            init_values(123:132) = fit_params_all_cells4{1}(123:132);
+            init_values(123:132) = fit_params_all_cells_fix{1}(123:132);
         end
-        fit_params_all_cells4{m} = fit_glm(stims_x, stims_t_downres, spikes_downres{m}, init_values);
+        fit_params_all_cells_fix{m} = fit_glm(stims_x, stims_t_downres, spikes_downres{m}, init_values);
 %     catch e
 %         disp(['iter' num2str(m) 'failed'])
 %     end
@@ -245,3 +245,84 @@ end
 figure
     compare_trace_stack_grid(...
         all_detection_grids{1},5,1,[],0,{'25','50','100'},1)
+    
+%%
+num_spatial_pos = 441;
+stims_x = [repmat((1:num_spatial_pos)',5*2+3,1) [25*ones(num_spatial_pos*5,1); 50*ones(num_spatial_pos*5,1); 100*ones(num_spatial_pos*3,1);]];
+num_spatial_repeats = 5*2 + 3;
+num_trials = num_spatial_pos*num_spatial_repeats;
+
+
+stims_x_value = repmat((1:num_spatial_pos)',num_spatial_repeats,1);
+stims_x_vec = zeros(num_trials,num_spatial_pos);
+
+powers = [25 50 100];
+
+stims_t = zeros(num_trials,2000);
+
+count = 1;
+for i = 1:2
+    for l = 1:5
+        for j = 1:21
+            for k = 1:21
+                stims_t(count,(.005*20000):(.015*20000)) = powers(i);
+                stims_x_vec(count,stims_x_value(count)) = 1;
+                count = count + 1;
+            end
+        end
+    end
+end
+
+i = 3;
+for l = 1:3
+    for j = 1:21
+        for k = 1:21
+            stims_t(count,(.005*20000):(.015*20000)) = powers(i);
+            stims_x_vec(count,stims_x_value(count)) = 1;
+            count = count + 1;
+        end
+    end
+end
+
+%%
+
+num_cells = 1;
+data =  zeros(size(stims_t));
+
+% for m = 1:num_grids
+    
+
+    % stim_t = zeros(size(stims_x,1),1500);
+    % % stim_t(100:199) = 1;
+    % % stims_t = repmat(stim_t,size(stims_x,1),1);
+
+count = 1;
+for i = 1:2
+    for l = 1:5
+        for j = 1:21
+            for k = 1:21
+                if l <= size(all_trace_grids{i}{j,k},1)
+                    data(count,:) = all_trace_grids{i}{j,k}(l,:);
+                end
+                count = count + 1;
+            end 
+        end
+    end
+end
+
+i= 3;
+for l = 1:3
+    for j = 1:21
+        for k = 1:21
+            if l <= size(all_trace_grids{i}{j,k},1)
+                data(count,:) = all_trace_grids{i}{j,k}(l,:);
+            end
+            count = count + 1;
+        end 
+    end
+end
+
+% end    
+%%
+
+save('psc_map_data.mat','data','stims_t','stims_x_vec','stims_x')
