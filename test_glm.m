@@ -1,10 +1,17 @@
 % load 'work_spiking_data_0720.mat'
+% load 'current_template.mat'
 
+trial_length = 1500;
+downres_rate = 20;
+trial_length_downres = trial_length/downres_rate;
 
+stims_t_norm = norm_average_current(1:trial_length);
+stims_t_norm_downres = downsample(stims_t_norm,downres_rate);
 
 stims_x = [repmat((1:121)',5*3,1) [25*ones(121*5,1); 50*ones(121*5,1); 100*ones(121*5,1);]];
 num_spatial_pos = 121;
 num_trials = 121*5*3;
+
 
 
 stims_x_value = repmat((1:121)',5*3,1);
@@ -12,14 +19,14 @@ stims_x_vec = zeros(num_trials,121);
 
 powers = [25 50 100];
 
-stims_t_downres = zeros(num_trials,75);
+stims_t_downres = zeros(num_trials,trial_length_downres);
 
 count = 1;
 for i = 1:3
     for l = 1:5
         for j = 1:11
             for k = 1:11
-                stims_t_downres(count,5:14) = powers(i);
+                stims_t_downres(count,:) = stims_t_norm_downres * powers(i);
                 stims_x_vec(count,stims_x_value(count)) = 1;
                 count = count + 1;
             end
