@@ -99,7 +99,7 @@ end
 
 %%
 % 
-cell_choice = 6;
+cell_choice = 1;
 spikes = spikes_downres{cell_choice}';
 % spikes = [spikes; zeros(25,num_trials)];
 
@@ -158,7 +158,7 @@ derlink = @(mu) exp(mu)./(exp(mu)-1);
 invlink = @(resp) log(1 + exp(resp));
 F = {link, derlink, invlink};
 
-[betahat_conv,~,stats_conv]=glmfit([expg_hyperpol(:) full_stim_mat_nozero],spikes_trunc(:),'binomial','link',F);
+[betahat_conv,~,stats_conv]=glmfit([expg_hyperpol(:) full_stim_mat_nozero],spikes_trunc(:),'poisson','link',F);
 
 betahat_conv(1:2)
 
@@ -208,6 +208,7 @@ V_plot_vect2=zeros(1,length(t_vect));
 %INTEGRATE THE EQUATION tau*dV/dt = -V + E_L + I_e*R_m
 spikes_sim = zeros(t_end,num_trials);
 voltages_grid = cell(11,11);
+spikes_grid = cell(11,11);
 clear I_e_vect_mat
 
 for j = 1:num_trials %loop over different I_Stim values
@@ -258,6 +259,7 @@ for j = 1:num_trials %loop over different I_Stim values
     
     [ind1,ind2] = ind2sub([11 11],stims_x(j,1));
     voltages_grid{ind2,ind1} = [voltages_grid{ind2,ind1}; V_plot_vect];
+    spikes_grid{ind2,ind1} = [spikes_grid{ind2,ind1}; spikes_sim(:,j)'];
     %MAKE PLOTS
 %     figure(2)
 %     subplot(sqrt(num_spatial_pos),sqrt(num_spatial_pos),stims_x(j,1))
@@ -284,19 +286,43 @@ end
 %%
 
 voltages_power_grids = cell(3,1);
+spikes_grids = cell(3,1);
 for i = 1:3
     voltages_power_grids{i} = cell(11,11);
     for j = 1:11
         for k = 1:11
             voltages_power_grids{i}{j,k} = voltages_grid{j,k}((i-1)*5+1:i*5,:);
+            spikes_grids{i}{j,k} = spikes_grid{j,k}((i-1)*5+1:i*5,:);
         end
     end
 end
 %%
 figure;compare_trace_stack_grid(voltages_power_grids,5,1,[],0,{'raw','detected events'})
- title(['Cell ' num2str(cell_choice) ': Output From LIF-GLM fit'])
- drawnow
+title(['Cell ' num2str(cell_choice) ': Output From LIF-GLM fit'])
+drawnow
 figure;compare_trace_stack_grid(all_detection_grids_downres{cell_choice},5,1,[],0,{'raw','detected events'})
 title(['Cell ' num2str(cell_choice) ': Data (detected spikes)']);
 
+%% summarize events
+
+spikes_per_location_data = zeros(size(voltages_power_grids{1}));
+spikes_per_location_sim = zeros(size(voltages_power_grids{1}));
+first_spike_latency_data = zeros(size(voltages_power_grids{1}));
+first_spike_latency_sim = zeros(size(voltages_power_grids{1}));
+spikes_per_location_var_data = zeros(size(voltages_power_grids{1}));
+spikes_per_location_var_sim = zeros(size(voltages_power_grids{1}));
+first_spike_latency_var_data = zeros(size(voltages_power_grids{1}));
+first_spike_latency_var_sim = zeros(size(voltages_power_grids{1}));
+
+for m = 1:length(voltages_power_grids)
+    for i = 1:size(voltages_power_grids{m},1)
+        for j = 1:size(voltages_power_grids{m},2)
+            
+            spikes_per_location_sim(i,j) = mean(sum(spikes_grids{m}{i,j}),2);
+            spikes_per_location_var_sim(i,j) = var(sum(spikes_grids{m}{i,j}),2);
+            
+            spikes_per_location_data(i,j) = mean(sum(all_detection_grids_downres{cell_choice}{m}{i,j}),2);
+            spikes_per_location_var_data(i,j) = var(sum(all_detection_grids_downres{cell_choice}{m}{i,j}),2);
+            
+            for k = 1:size(
 
