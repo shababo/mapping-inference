@@ -99,7 +99,7 @@ end
 
 %%
 % 
-cell_choice = 1;
+cell_choice = 7;
 spikes = spikes_downres{cell_choice}';
 % spikes = [spikes; zeros(25,num_trials)];
 
@@ -133,43 +133,66 @@ stims_x_trunc(bad_trials,:) = [];
 %%
 
 g_tmp = 1/10;
-[expg_hyperpol,expg_rheo,expg_stim]=gconv_multidim(stims_t_downres_trunc',spikes_trunc,g_tmp);
+g_vals = .001:.002:.01;
+g_likelihoods = zeros(size(g_vals));
+% max_ll = 
 
-full_stim_mat = zeros(trial_length_downres*num_trials_good,num_spatial_pos);
+for g_i = 1:length(g_likelihoods)
+    
+    g = g_vals(g_i);
+    [expg_hyperpol,expg_rheo,expg_stim]=gconv_multidim(stims_t_downres_trunc',spikes_trunc,g);
+    
+    full_stim_mat = zeros(trial_length_downres*num_trials_good,num_spatial_pos);
 
-for i = 1:num_trials_good
-    full_stim_mat(1+(i-1)*trial_length_downres:i*trial_length_downres,stims_x_trunc(i,1))...
-        = expg_stim(:,i); 
-end
-
-stim_scale = 1/100;
-full_stim_mat = full_stim_mat*stim_scale;
-
-
-full_stim_mat_nozero = full_stim_mat(:,spike_locs);
-
-
-
-
-%%
-
-link = @(mu) log(exp(mu)-1);  %link = @(mu) mu + log(1-exp(-mu));
-derlink = @(mu) exp(mu)./(exp(mu)-1);
-invlink = @(resp) log(1 + exp(resp));
-F = {link, derlink, invlink};
-
-[betahat_conv,~,stats_conv]=glmfit([expg_hyperpol(:) full_stim_mat_nozero],spikes_trunc(:),'poisson','link',F);
-
-betahat_conv(1:2)
-
-spatial_filt_fit = zeros(num_spatial_pos,1);
-count = 1;
-for i = 1:num_spatial_pos
-    if any(i == spike_locs)
-        spatial_filt_fit(i) = betahat_conv(count+2);
-        count = count + 1;
+    for i = 1:num_trials_good
+        full_stim_mat(1+(i-1)*trial_length_downres:i*trial_length_downres,stims_x_trunc(i,1))...
+            = expg_stim(:,i); 
     end
+
+    stim_scale = 1/100;
+    full_stim_mat = full_stim_mat*stim_scale;
+
+
+    full_stim_mat_nozero = full_stim_mat(:,spike_locs);
+
+
+    link = @(mu) log(exp(mu)-1);  %link = @(mu) mu + log(1-exp(-mu));
+    derlink = @(mu) exp(mu)./(exp(mu)-1);
+    invlink = @(resp) log(1 + exp(resp));
+    F = {link, derlink, invlink};
+
+    [betahat_conv,~,stats_conv]=glmfit([expg_hyperpol(:) full_stim_mat_nozero],spikes_trunc(:),'binomial','link',F);
+
+    betahat_conv(1:2)
+
+    spatial_filt_fit = zeros(num_spatial_pos,1);
+    count = 1;
+    for i = 1:num_spatial_pos
+        if any(i == spike_locs)
+            spatial_filt_fit(i) = betahat_conv(count+2);
+            count = count + 1;
+        end
+    end
+    
+    [expg_hyperpol,expg_rheo,expg_stim]=gconv_multidim(stims_t_downres',spikes,g);
+    full_stim_mat = zeros(trial_length_downres*num_trials,num_spatial_pos);
+
+    for i = 1:num_trials_good
+        full_stim_mat(1+(i-1)*trial_length_downres:i*trial_length_downres,stims_x(i,1))...
+            = expg_stim(:,i); 
+    end
+
+    stim_scale = 1/100;
+    full_stim_mat = full_stim_mat*stim_scale;
+    
+    this_mu = betahat_conv(2)*expg_hyperpol(:) + betahat_conv(1) + full_stim_mat*spatial_filt_fit;
+    this_lambda = log(exp(this_mu) + 1);
+    g_likelihoods(g_i) = -sum(this_lambda) + sum(this_lambda.*spikes(:));
+
 end
+
+figure; plot(g_vals,g_likelihoods);
+
 figure
 imagesc(reshape(spatial_filt_fit,sqrt(num_spatial_pos),sqrt(num_spatial_pos))')
 title(['Cell ' num2str(cell_choice) ': Spatial Filter, V_{th} = ' num2str(betahat_conv(1)) ', V_{res} = ' num2str(betahat_conv(2))])
@@ -183,7 +206,6 @@ t_end=75; %total run time ms
 V_spike=70; %value to draw a spike to, when cell spikes
 tau=10; %membrane time constant [ms]
 R_m=10; %membrane resistance [MOhm]
-g = 1./tau;
 
 E_L = 0;
 V_reset = betahat_conv(2);
@@ -324,5 +346,13 @@ for m = 1:length(voltages_power_grids)
             spikes_per_location_data(i,j) = mean(sum(all_detection_grids_downres{cell_choice}{m}{i,j}),2);
             spikes_per_location_var_data(i,j) = var(sum(all_detection_grids_downres{cell_choice}{m}{i,j}),2);
             
-            for k = 1:size(
+            first_spikes_sim = [];
+            first_spikes_data = [];
+            for k = 1:size(spikes_grids{m}{i,j},1)
 
+                first_spikes_sim = []
+                
+                
+                
+                
+                
