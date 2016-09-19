@@ -3,7 +3,7 @@
 
 % load('spike_detect_revisit_about_to_fit_0810.mat','all_detection_grids')
 load('data/current_template.mat')
-load('data/all_detection_grids.mat')
+load('all_detection_grids.mat')
 
 %%
 trial_length = 1500;
@@ -103,7 +103,7 @@ end
 cells_to_run = [1 2 3 4 5 6 7];
 cells_to_run = 4;
 
-g_vals = .001:.05:.3;
+g_vals = .5:.1:1.0;
 % g_vals = .1
 g_likelihoods = zeros([length(g_vals) length(cells_to_run)]);
 num_params = 2 + num_spatial_pos;
