@@ -1,5 +1,7 @@
 load('data/current_template.mat')
 
+rng(1234)
+
 %% build stimuli and set some params
 
 trial_length = 1500;
@@ -314,7 +316,7 @@ for g_i = 1:length(g_vals)
 
         this_resp = betahat_conv(2)*expg_hyperpol(:) + betahat_conv(1) + full_stim_mat*spatial_filt_fit;
 %         this_lambda = log(exp(this_resp) + 1);
-        this_lambda = invlink_test(this_resp);
+        this_lambda = invlink(this_resp);
         g_likelihoods(g_i) = -sum(this_lambda) + sum(this_lambda.*spikes(:));
 
     
@@ -374,7 +376,7 @@ for j = 1:num_trials %loop over different I_Stim values
 
     tao=exprnd(1);
 %     lambda(i)=log(exp(V_vect(i)-V_th_sim)+1);
-    lambda(i) = invlink_test(V_vect(i)-V_th_sim);
+    lambda(i) = invlink(V_vect(i)-V_th_sim);
     last_spike = 1;
 
     for t=dt:dt:t_end %loop through values of t in steps of df ms        
@@ -383,7 +385,7 @@ for j = 1:num_trials %loop over different I_Stim values
         V_vect(i+1) = V_vect(i) + ...
             -g_test*V_vect(i) + stims_t_downres(j,i)*spatial_filt_sim(stims_x(j,1)); %Euler's method
 %         lambda(i+1)=log(exp(V_vect(i+1)-V_th_sim)+1);
-        lambda(i+1) = invlink_test(V_vect(i)-V_th_sim);
+        lambda(i+1) = invlink(V_vect(i)-V_th_sim);
 
         %if statement below says what to do if voltage crosses threshold
         if sum(lambda(last_spike+1:i+1))>tao %cell spiked
