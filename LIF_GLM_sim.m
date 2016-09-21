@@ -248,8 +248,7 @@ for i = 1:num_trials
     end
 end
 
-stims_t_downres_noisey = stims_t_downres + normrnd(0,2.5,size(stims_t_downres));
-% stims_t_downres_trunc = stims_t_downres_noisey;
+% stims_t_downres = stims_t_downres + normrnd(0,2.5,size(stims_t_downres));
 stims_t_downres_trunc = stims_t_downres;
 spikes_trunc = spikes;
 stims_t_downres_trunc(bad_trials,:) = [];
@@ -304,7 +303,7 @@ for g_i = 1:length(g_vals)
         fits(g_i,3:end) = spatial_filt_fit;
 
         % compute ll
-        [expg_hyperpol,expg_rheo,expg_stim]=gconv_multidim(stims_t_downres_noisey',spikes,g_tmp);
+        [expg_hyperpol,expg_rheo,expg_stim]=gconv_multidim(stims_t_downres',spikes,g_tmp);
         full_stim_mat = zeros(trial_length_downres*num_trials,num_spatial_pos);
 
         for i = 1:num_trials_good
