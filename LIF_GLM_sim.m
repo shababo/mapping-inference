@@ -36,7 +36,7 @@ E_L = 0;
 %%%DEFINE INITIAL VALUES AND VECTORS TO HOLD RESULTS
 t_vect=0:dt:t_end; 
 
-
+ 
 
 %%
 %INTEGRATE THE EQUATION tau*dV/dt = -V + E_L + I_e*R_m
@@ -115,13 +115,13 @@ for i = 1:3
     voltages_grids{i} = cell(11,11);
     for j = 1:11
         for k = 1:11
-            spikes_grids{i}{j,k} = spikes_grid{j,k}((i-1)*5+1:i*5,:);
+            spikes_grids{i}{j,k} = spikes_grid{j,k}((i-1)*5+1:i*5,:)*70;
             voltages_grids{i}{j,k} = voltages_grid{j,k}((i-1)*5+1:i*5,:);
         end
     end
 end
 
-figure;compare_trace_stack_grid(voltages_grids,5,1,[],0,{'raw','detected events'})
+figure;compare_trace_stack_grid(spikes_grids,5,1,[],0,{'raw','detected events'})
 
 spikes_per_location_sim = cell(3,1);
 first_spike_latency_sim = cell(3,1);
@@ -215,7 +215,9 @@ for i = 1:num_trials
         bad_trials = [bad_trials i];
     end
 end
-stims_t_downres_trunc = stims_t_downres;
+
+stims_t_downres_noisey = stims_t_downres + normrnd(0,2.5,size(stims_t_downres))
+stims_t_downres_trunc = stims_t_downres_noisey;
 spikes_trunc = spikes;
 stims_t_downres_trunc(bad_trials,:) = [];
 spikes_trunc(:,bad_trials) = [];
@@ -235,7 +237,7 @@ for g_i = 1:length(g_vals)
                 = expg_stim(:,i); 
         end
 
-        stim_scale = 1/100;
+        stim_scale = 1/1;
         full_stim_mat = full_stim_mat*stim_scale;
 
 
@@ -266,7 +268,7 @@ for g_i = 1:length(g_vals)
         fits(g_i,3:end) = spatial_filt_fit;
 
         % compute ll
-        [expg_hyperpol,expg_rheo,expg_stim]=gconv_multidim(stims_t_downres',spikes,g);
+        [expg_hyperpol,expg_rheo,expg_stim]=gconv_multidim(stims_t_downres_noisey',spikes,g);
         full_stim_mat = zeros(trial_length_downres*num_trials,num_spatial_pos);
 
         for i = 1:num_trials_good
@@ -274,7 +276,6 @@ for g_i = 1:length(g_vals)
                 = expg_stim(:,i); 
         end
 
-        stim_scale = 1/1;
         full_stim_mat = full_stim_mat*stim_scale;
 
         this_mu = betahat_conv(2)*expg_hyperpol(:) + betahat_conv(1) + full_stim_mat*spatial_filt_fit;
@@ -291,7 +292,7 @@ end
 %% re-output spikes
 
 g = .05
-betahat_conv = fits(5,:);
+betahat_conv = fits(6,:);
 
 %%%DEFINE PARAMETERS
 V_reset_sim = betahat_conv(2);
@@ -309,10 +310,10 @@ spatial_filt_sim = betahat_conv(3:end);
 %%%DEFINE INITIAL VALUES AND VECTORS TO HOLD RESULTS
 t_vect=0:dt:t_end; 
 
-% gain_sim = 10;
-% V_reset_sim = V_reset*gain_sim;
-% V_th_sim = V_th*gain_sim;
-% spatial_filt_sim = spatial_filt*gain_sim;
+gain_sim = 100;
+V_reset_sim = V_reset*gain_sim;
+V_th_sim = V_th*gain_sim;
+spatial_filt_sim = spatial_filt*gain_sim;
 
 
 %%
@@ -391,13 +392,13 @@ for i = 1:3
     voltages_grids_sim{i} = cell(11,11);
     for j = 1:11
         for k = 1:11
-            spikes_grids_sim{i}{j,k} = spikes_grid_sim{j,k}((i-1)*5+1:i*5,:);
+            spikes_grids_sim{i}{j,k} = spikes_grid_sim{j,k}((i-1)*5+1:i*5,:)*70;
             voltages_grids_sim{i}{j,k} = voltages_grid_sim{j,k}((i-1)*5+1:i*5,:);
         end
     end
 end
 
-figure;compare_trace_stack_grid(voltages_grids_sim,5,1,[],0,{'raw','detected events'})
+figure;compare_trace_stack_grid(spikes_grids_sim,5,1,[],0,{'raw','detected events'})
 
 spikes_per_location_simsim = cell(3,1);
 first_spike_latency_simsim = cell(3,1);
