@@ -101,7 +101,7 @@ end
 %%
 % 
 cells_to_run = [1 2 3 4 5 6 7];
-cells_to_run = 4;
+% cells_to_run = 4;
 
 g_vals = .5:.1:1.0;
 % g_vals = .1
@@ -157,7 +157,7 @@ for cell_choice_i = 1:length(cells_to_run);
     stims_x_trunc = stims_x;
     stims_x_trunc(bad_trials,:) = [];
     
-    figure
+%     figure
     for m = 1:3
 
         spikes_per_location_data{m,cell_choice_i} = zeros(size(all_detection_grids_downres{cell_choice}{m}));
@@ -186,24 +186,24 @@ for cell_choice_i = 1:length(cells_to_run);
             end
         end
 
-        subplot(3,3,m)
-        imagesc(spikes_per_location_data{m,cell_choice_i})
-        colorbar
-        title(['DATA: Cell ' num2str(cell_choice) ': Spikes/Location'])
-
-        subplot(3,3,m + 3)
-        imagesc(spikes_per_location_var_data{m,cell_choice_i})
-        colorbar
-        title(['DATA: Cell ' num2str(cell_choice) ': Spikes/Location Var'])
-
-        subplot(3,3,m + 6)
-%         imagesc(first_spike_latency_data{m,cell_choice_i})
-        pcolor([first_spike_latency_data{m,cell_choice_i} nan(11,1); nan(1,11+1)]);
-         shading flat;
-         set(gca, 'ydir', 'reverse');
-         caxis([0 60])
-        colorbar
-        title(['DATA: Cell ' num2str(cell_choice) ': First Spike Time Mean'])
+%         subplot(3,3,m)
+%         imagesc(spikes_per_location_data{m,cell_choice_i})
+%         colorbar
+%         title(['DATA: Cell ' num2str(cell_choice) ': Spikes/Location'])
+% 
+%         subplot(3,3,m + 3)
+%         imagesc(spikes_per_location_var_data{m,cell_choice_i})
+%         colorbar
+%         title(['DATA: Cell ' num2str(cell_choice) ': Spikes/Location Var'])
+% 
+%         subplot(3,3,m + 6)
+% %         imagesc(first_spike_latency_data{m,cell_choice_i})
+%         pcolor([first_spike_latency_data{m,cell_choice_i} nan(11,1); nan(1,11+1)]);
+%          shading flat;
+%          set(gca, 'ydir', 'reverse');
+%          caxis([0 60])
+%         colorbar
+%         title(['DATA: Cell ' num2str(cell_choice) ': First Spike Time Mean'])
 
 %         subplot(4,3,m + 9)
 % %         imagesc(first_spike_latency_var_data{m,cell_choice_i})
@@ -232,7 +232,7 @@ for cell_choice_i = 1:length(cells_to_run);
                 = expg_stim(:,i); 
         end
 
-        stim_scale = 1/100;
+        stim_scale = 1/1;
         full_stim_mat = full_stim_mat*stim_scale;
 
 
@@ -270,7 +270,7 @@ for cell_choice_i = 1:length(cells_to_run);
                 = expg_stim(:,i); 
         end
 
-        stim_scale = 1/100;
+%         stim_scale = 1/100;
         full_stim_mat = full_stim_mat*stim_scale;
 
         this_mu = betahat_conv(2)*expg_hyperpol(:) + betahat_conv(1) + full_stim_mat*spatial_filt_fit;
@@ -279,8 +279,8 @@ for cell_choice_i = 1:length(cells_to_run);
 
     
 
-        figure; imagesc(reshape(spatial_filt_fit,sqrt(num_spatial_pos),sqrt(num_spatial_pos))')
-        title(['Cell ' num2str(cell_choice) ', g = ' num2str(g) ': Spatial Filter, V_{th} = ' num2str(-1.0*betahat_conv(1)) ', V_{res} = ' num2str(betahat_conv(2))])
+%         figure; imagesc(reshape(spatial_filt_fit,sqrt(num_spatial_pos),sqrt(num_spatial_pos))')
+%         title(['Cell ' num2str(cell_choice) ', g = ' num2str(g) ': Spatial Filter, V_{th} = ' num2str(-1.0*betahat_conv(1)) ', V_{res} = ' num2str(betahat_conv(2))])
 
         %% output spikes
 
@@ -388,10 +388,10 @@ for cell_choice_i = 1:length(cells_to_run);
         
         %%
         
-        figure;compare_trace_stack_grid(voltages_power_grids(:,cell_choice_i,g_i),5,1,[],0,{'raw','detected events'})
-        title(['Cell ' num2str(cell_choice) ', g = ' num2str(g) ': Output From LIF-GLM fit'])
-        
-        drawnow
+%         figure;compare_trace_stack_grid(voltages_power_grids(:,cell_choice_i,g_i),5,1,[],0,{'raw','detected events'})
+%         title(['Cell ' num2str(cell_choice) ', g = ' num2str(g) ': Output From LIF-GLM fit'])
+%         
+%         drawnow
         
         if g_i == 1
             figure;compare_trace_stack_grid(all_detection_grids_downres{cell_choice},5,1,[],0,{'raw','detected events'})
