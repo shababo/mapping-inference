@@ -137,13 +137,13 @@ view(2)
 
 %%
 
-figure(123456)
-subplot(131)
-histogram(all_amplitudes(all_amplitudes ~= 0),1000)
-subplot(132)
-histogram(all_tau_rise(all_tau_rise ~= 0),1000)
-subplot(133)
-histogram(all_tau_fall(all_tau_fall ~= 0),1000)
+% figure(123456)
+% subplot(131)
+% histogram(all_amplitudes(all_amplitudes ~= 0),1000)
+% subplot(132)
+% histogram(all_tau_rise(all_tau_rise ~= 0),1000)
+% subplot(133)
+% histogram(all_tau_fall(all_tau_fall ~= 0),1000)
 
 %% voltage-clamp parameters (daq stuff, bg psc parameters)
 tau_r_bounds = [1 20]/20000;
@@ -266,7 +266,12 @@ for n = 1:N
         evoked_params.tau_f = [];
     end
     
-    Y(n,:) = gen_trace(data_params,bg_params,evoked_params);
+    [Y(n,:), mpp_n] = gen_trace(data_params,bg_params,evoked_params);
+    if n == 1
+        mpp = mpp_n;
+    else
+        mpp(n) = mpp_n;
+    end
     
 end
 
@@ -274,6 +279,7 @@ end
 %% plot response
 
 Y_grid = unstack_traces(Y,trial_grid_locations);
+mpp_grid = unstack_struct(mpp,trial_grid_locations);
 
 %%
 figure(2)
