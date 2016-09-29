@@ -59,6 +59,7 @@ for i = 1:num_layers
 end
 hold off
 set(gca,'yticklabels',{'1200','1000','800','600','400','200','0'})
+view(2)
 %% generate cell features conditioned on location
 
 % layer based priors on featues
