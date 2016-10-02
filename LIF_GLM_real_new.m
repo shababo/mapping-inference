@@ -44,7 +44,7 @@ for i = 1:num_powers
 end
 
 %%
-% load('data/all_detection_grids.mat')
+load('data/all_detection_grids.mat')
 %% 
 num_cells = length(all_detection_grids);
 
@@ -128,26 +128,26 @@ end
 
 %% plot all stats
 
-% for i = 1:num_cells
-%     figure
-%     for m = 1:3
-%         
-%         subplot(2,3,m)
-%         imagesc(spikes_per_location_data{i}{m})
-%         caxis([0 3])
-%         colorbar
-%         title(['Spikes/Location'])
-% 
-%         subplot(2,3,m + 3)
-%         pcolor([first_spike_latency_data{i}{m} nan(11,1); nan(1,11+1)]);
-%         shading flat;
-%         set(gca, 'ydir', 'reverse');
-%         caxis([0 50])
-%         colorbar
-%         title(['First Spike Time Mean'])
-%     end
-%     colormap hot
-% end
+for i = 1:num_cells
+    figure
+    for m = 1:3
+        
+        subplot(2,3,m)
+        imagesc(spikes_per_location_data{i}{m})
+        caxis([0 3])
+        colorbar
+        title(['Spikes/Location'])
+
+        subplot(2,3,m + 3)
+        pcolor([first_spike_latency_data{i}{m} nan(11,1); nan(1,11+1)]);
+        shading flat;
+        set(gca, 'ydir', 'reverse');
+        caxis([0 30])
+        colorbar
+        title(['First Spike Time Mean'])
+    end
+    colormap hot
+end
 
 
 %% fit this data
