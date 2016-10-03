@@ -207,13 +207,15 @@ d_sigma_coef = .050;
 % The dimension of array is N
 Z = zeros(num_grids*num_grids,3);
 grid_locations = zeros(num_grids*num_grids,2);
+grid_spacing = 20;
+
 count = 1;
 for i = 1:num_grids
     for j = 1:num_grids
         grid_locations(count,:) = [i j];
         count = count + 1;
-        Z((i-1)*num_grids + j,1) = (i-1)*(num_grids-1) - 200 + postsyn_position(1);
-        Z((i-1)*num_grids + j,2) = (j-1)*(num_grids-1) - 200 + postsyn_position(2);
+        Z((i-1)*num_grids + j,1) = (i-1)*grid_spacing - grid_spacing*floor(num_grids/2) + postsyn_position(1);
+        Z((i-1)*num_grids + j,2) = (j-1)*grid_spacing - grid_spacing*floor(num_grids/2) + postsyn_position(2);
         Z((i-1)*num_grids + j,3) = postsyn_position(3);
         
     end
@@ -257,7 +259,7 @@ end
 
 spots = scatter(Z(:,1), -Z(:,2),20,'filled');
 set(spots,'MarkerFaceColor','k');
-alpha(spots,.4);
+% alpha(spots,.4);
 hold off
 set(gca,'yticklabels',{'1200','1000','800','600','400','200','0'})
 view(2)
