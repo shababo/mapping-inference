@@ -5,7 +5,7 @@
 % voltage-clamp data from Merel, Shababo et al 2016.
 
 % set RNG seed
-rng(12,'twister');
+rng(12242,'twister');
 
 %% Gen neurons and their types/locations/features
 
@@ -37,7 +37,7 @@ while any(K_layers < 0)
 end
 
 % size of region containing neurons (or region we can stim)
-barrel_width = 300;
+barrel_width = 600;
 slide_width = 100;
 
 % how many neurons are excitatory (for now we will only consider a
@@ -181,7 +181,11 @@ evoked_params.stim_amp = 0;
 %% select a postsyanptic cell
 cell_layer = 5; % 5A
 num_cell_layer_neurons = size(neuron_locations{cell_layer},1);
-postsyn_position = neuron_locations{cell_layer}(randi(num_cell_layer_neurons),:);
+
+postsyn_position = zeros(1,3);
+while postsyn_position(1) < 100 || postsyn_position(1) > 500
+    postsyn_position = neuron_locations{cell_layer}(randi(num_cell_layer_neurons),:);
+end
 
 
 %% Stimulating multiple spots in each trial
