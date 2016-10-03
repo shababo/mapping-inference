@@ -1,4 +1,4 @@
-% load('data/current_template_w_deriv.mat')
+load('data/current_template_w_deriv.mat')
 
 %%
 rng(1234)
@@ -9,12 +9,10 @@ trial_length = 1500;
 downres_rate = 20;
 trial_length_downres = trial_length/downres_rate;
 
-% stims_t_norm = -1.0*norm_average_current(1:trial_length);
-stims_t_norm = zeros(1,trial_length);
-stims_t_norm(100:300) = 1;
-% d_stims_t_norm = -1.0*d_norm_average_current(1:trial_length);
+stims_t_norm = -1.0*norm_average_current(1:trial_length);
+d_stims_t_norm = -1.0*d_norm_average_current(1:trial_length);
 stims_t_norm_downres = downsample(stims_t_norm,downres_rate);
-% d_stims_t_norm_downres = downsample(d_stims_t_norm,downres_rate);
+d_stims_t_norm_downres = downsample(d_stims_t_norm,downres_rate);
 
 num_spatial_pos = 121;
 powers = [25 50 100];
@@ -31,6 +29,7 @@ stims_x_vec = zeros(num_trials,num_spatial_pos);
 
 
 stims_t_downres = zeros(num_trials,trial_length_downres);
+d_stims_t_downres = zeros(num_trials,trial_length_downres);
 
 count = 1;
 
@@ -40,6 +39,7 @@ for i = 1:num_powers
         for j = 1:sqrt(num_spatial_pos)
             for k = 1:sqrt(num_spatial_pos)
                 stims_t_downres(count,:) = stims_t_norm_downres * powers(i);
+                d_stims_t_downres(count,:) = d_stims_t_norm_downres * powers(i);
                 stims_x_vec(count,stims_x_value(count)) = 1;
                 count = count + 1;
                 
@@ -47,7 +47,6 @@ for i = 1:num_powers
         end
     end
 end
-
 
 %%
 load('data/all_detection_grids.mat')
@@ -160,7 +159,7 @@ end
 
 g_vals = [.01:.01:.1];
 g_likelihoods = zeros([num_cells length(g_vals) 1]);
-num_params = 2 + num_spatial_pos;
+num_params = 2 + num_spatial_pos*2;
 fits = zeros(num_cells,length(g_vals),num_params);
 
 spike_locs = cell(num_cells,1);
@@ -208,11 +207,11 @@ for cell_i = 1:num_cells
 
     % stims_t_downres = stims_t_downres + normrnd(0,2.5,size(stims_t_downres));
     stims_t_downres_trunc = stims_t_downres;
-%     d_stims_t_downres_trunc = d_stims_t_downres;
+    d_stims_t_downres_trunc = d_stims_t_downres;
     spikes = spikes_downres{cell_i}';
     spikes_trunc = spikes;
     stims_t_downres_trunc(bad_trials,:) = [];
-%     d_stims_t_downres_trunc(bad_trials,:) = [];
+    d_stims_t_downres_trunc(bad_trials,:) = [];
     spikes_trunc(:,bad_trials) = [];
     stims_x_trunc = stims_x;
     stims_x_trunc(bad_trials,:) = [];
@@ -222,16 +221,16 @@ for cell_i = 1:num_cells
 
             g_tmp = g_vals(g_i)
 
-            [expg_hyperpol,expg_rheo,expg_stim,expg_dstim]=gconv_multidim(stims_t_downres_trunc',zeros(size(stims_t_downres_trunc))',spikes_trunc,g_tmp);
+            [expg_hyperpol,expg_rheo,expg_stim,expg_dstim]=gconv_multidim(stims_t_downres_trunc',d_stims_t_downres_trunc',spikes_trunc,g_tmp);
 
             full_stim_mat = zeros(trial_length_downres*num_trials_good,num_spatial_pos);
-%             full_d_stim_mat = zeros(trial_length_downres*num_trials_good,num_spatial_pos);
+            full_d_stim_mat = zeros(trial_length_downres*num_trials_good,num_spatial_pos);
             
             for i = 1:num_trials_good
                 full_stim_mat(1+(i-1)*trial_length_downres:i*trial_length_downres,stims_x_trunc(i,1))...
                     = expg_stim(:,i);
-%                 full_d_stim_mat(1+(i-1)*trial_length_downres:i*trial_length_downres,stims_x_trunc(i,1))...
-%                     = expg_dstim(:,i);
+                full_d_stim_mat(1+(i-1)*trial_length_downres:i*trial_length_downres,stims_x_trunc(i,1))...
+                    = expg_dstim(:,i);
             end
 
 %             stim_scale = 1/1;
@@ -239,17 +238,17 @@ for cell_i = 1:num_cells
 
 
             full_stim_mat_trunc = full_stim_mat(:,spike_locs{cell_i});
-%             full_d_stim_mat_trunc = full_d_stim_mat(:,spike_locs{cell_i});
+            full_d_stim_mat_trunc = full_d_stim_mat(:,spike_locs{cell_i});
 
             F = {link, derlink, invlink};
 
-            [betahat_conv,~,stats_conv]=glmfit([expg_hyperpol(:) full_stim_mat_trunc],spikes_trunc(:),'poisson','link',F);
+            [betahat_conv,~,stats_conv]=glmfit([expg_hyperpol(:) full_stim_mat_trunc full_d_stim_mat_trunc],spikes_trunc(:),'poisson','link',F);
 
             disp(['Threshold: ' num2str(-1.0*betahat_conv(1))])
             disp(['Reset: ' num2str(betahat_conv(2))])
 
             spatial_filt_fit = zeros(num_spatial_pos,1);
-%             d_spatial_filt_fit = zeros(num_spatial_pos,1);
+            d_spatial_filt_fit = zeros(num_spatial_pos,1);
             count = 1;
             for i = 1:num_spatial_pos
                 if any(i == spike_locs{cell_i})
@@ -258,32 +257,32 @@ for cell_i = 1:num_cells
                 end
             end
             
-%             for i = 1:num_spatial_pos
-%                 if any(i == spike_locs{cell_i})
-%                     d_spatial_filt_fit(i) = betahat_conv(count+2);
-%                     count = count + 1;
-%                 end
-%             end
+            for i = 1:num_spatial_pos
+                if any(i == spike_locs{cell_i})
+                    d_spatial_filt_fit(i) = betahat_conv(count+2);
+                    count = count + 1;
+                end
+            end
     %         spatial_filt_fit = betahat_conv(3:end);
 
             fits(cell_i,g_i,1:2) = betahat_conv(1:2);
-            fits(cell_i,g_i,3:end) = [spatial_filt_fit];
+            fits(cell_i,g_i,3:end) = [spatial_filt_fit; d_spatial_filt_fit];
 
             % compute ll
-            [expg_hyperpol,expg_rheo,expg_stim,expg_dstim]=gconv_multidim(stims_t_downres',zeros(size(stims_t_downres))',spikes,g_tmp);
+            [expg_hyperpol,expg_rheo,expg_stim,expg_dstim]=gconv_multidim(stims_t_downres',d_stims_t_downres',spikes,g_tmp);
             full_stim_mat = zeros(trial_length_downres*num_trials,num_spatial_pos);
             full_d_stim_mat = zeros(trial_length_downres*num_trials,num_spatial_pos);
 
             for i = 1:num_trials_good
                 full_stim_mat(1+(i-1)*trial_length_downres:i*trial_length_downres,stims_x(i,1))...
                     = expg_stim(:,i); 
-%                 full_d_stim_mat(1+(i-1)*trial_length_downres:i*trial_length_downres,stims_x(i,1))...
-%                     = expg_dstim(:,i); 
+                full_d_stim_mat(1+(i-1)*trial_length_downres:i*trial_length_downres,stims_x(i,1))...
+                    = expg_dstim(:,i); 
             end
 
 %             full_stim_mat = full_stim_mat*stim_scale;
 
-            this_resp = betahat_conv(2)*expg_hyperpol(:) + betahat_conv(1) + full_stim_mat*spatial_filt_fit;
+            this_resp = betahat_conv(2)*expg_hyperpol(:) + betahat_conv(1) + full_stim_mat*spatial_filt_fit + full_d_stim_mat*d_spatial_filt_fit;
     %         this_lambda = log(exp(this_resp) + 1);
             this_lambda = invlink(this_resp);
             g_likelihoods(cell_i,g_i) = -sum(this_lambda) + sum(this_lambda.*spikes(:));
@@ -362,7 +361,7 @@ for cell_i = 1:num_cells
             %V_inf = E_L + I_e_vect(i)*R_m;
 
             V_vect(i+1) = V_vect(i) + ...
-                -g_test*V_vect(i) + stims_t_downres(j,i)*spatial_filt_sim(stims_x(j,1)); %Euler's method
+                -g_test*V_vect(i) + stims_t_downres(j,i)*spatial_filt_sim(stims_x(j,1)) + d_stims_t_downres(j,i)*d_spatial_filt_sim(stims_x(j,1)); %Euler's method
     %         lambda(i+1)=log(exp(V_vect(i+1)-V_th_sim)+1);
             lambda(i+1) = invlink(V_vect(i)-V_th_sim);
 

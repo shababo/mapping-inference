@@ -5,7 +5,7 @@
 % voltage-clamp data from Merel, Shababo et al 2016.
 
 % set RNG seed
-rng(12,'twister');
+rng(12242,'twister');
 
 %% Gen neurons and their types/locations/features
 
@@ -37,7 +37,7 @@ while any(K_layers < 0)
 end
 
 % size of region containing neurons (or region we can stim)
-barrel_width = 300;
+barrel_width = 600;
 slide_width = 100;
 
 % how many neurons are excitatory (for now we will only consider a
@@ -181,7 +181,11 @@ evoked_params.stim_amp = 0;
 %% select a postsyanptic cell
 cell_layer = 5; % 5A
 num_cell_layer_neurons = size(neuron_locations{cell_layer},1);
-postsyn_position = neuron_locations{cell_layer}(randi(num_cell_layer_neurons),:);
+
+postsyn_position = zeros(1,3);
+while postsyn_position(1) < 100 || postsyn_position(1) > 500
+    postsyn_position = neuron_locations{cell_layer}(randi(num_cell_layer_neurons),:);
+end
 
 
 %% Stimulating multiple spots in each trial
@@ -207,13 +211,15 @@ d_sigma_coef = .050;
 % The dimension of array is N
 Z = zeros(num_grids*num_grids,3);
 grid_locations = zeros(num_grids*num_grids,2);
+grid_spacing = 20;
+
 count = 1;
 for i = 1:num_grids
     for j = 1:num_grids
         grid_locations(count,:) = [i j];
         count = count + 1;
-        Z((i-1)*num_grids + j,1) = (i-1)*(num_grids-1) - 200 + postsyn_position(1);
-        Z((i-1)*num_grids + j,2) = (j-1)*(num_grids-1) - 200 + postsyn_position(2);
+        Z((i-1)*num_grids + j,1) = (i-1)*grid_spacing - grid_spacing*floor(num_grids/2) + postsyn_position(1);
+        Z((i-1)*num_grids + j,2) = (j-1)*grid_spacing - grid_spacing*floor(num_grids/2) + postsyn_position(2);
         Z((i-1)*num_grids + j,3) = postsyn_position(3);
         
     end
@@ -257,7 +263,7 @@ end
 
 spots = scatter(Z(:,1), -Z(:,2),20,'filled');
 set(spots,'MarkerFaceColor','k');
-alpha(spots,.4);
+% alpha(spots,.4);
 hold off
 set(gca,'yticklabels',{'1200','1000','800','600','400','200','0'})
 view(2)
