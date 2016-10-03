@@ -187,14 +187,12 @@ postsyn_position = neuron_locations{cell_layer}(randi(num_cell_layer_neurons),:)
 %% Stimulating multiple spots in each trial
 
 % Code is similar to that in the previous version 
-% The structure has to be changed due to the new stimulation scheme 
+% The combination is designed so that each location is stimulated M times
+
 
 % 
-num_combinations = 100;
 num_repeats = 5;
 num_grids = 21; 
-N = num_combinations*num_repeats;
-R = 1;
 
 % these parameters govern the time delay, as a function of the
 % point-spread-function stimuli for a particular trial
@@ -222,14 +220,49 @@ for i = 1:num_grids
 end
 
 % Define the combination of trials 
-% Better replace the random draft with an orthogonal design
-num_sources = 4; 
-trial_locations_on_grid = zeros(num_combinations, num_sources);
-for	i = 1:(num_combinations) 
-	trial_locations_on_grid(i,:) = randsample(num_grids*num_grids,num_sources);
-end 
+% We define the combination by randomly permuting the sequence 1:num_grids^2,
+% and then let num_sources consequent spots to be stimulated in each trial.
+% For the last trial, we enroll elements at the beginning of the sequence
+% if it is not full. 
+% Better replace it with an "orthogonal" design
 
-% Calculate the light-induced probability 
+M = 3;
+num_sources = 4; 
+num_combinations = ceil(num_grids*num_grids/num_sources)*M;
+N = num_combinations*num_repeats;
+
+
+trial_locations_on_grid = zeros(num_combinations, num_sources);
+for m = 1:M
+    perm_sequence = randperm(num_grids*num_grids); 
+    for	i = 1:ceil(num_grids*num_grids/num_sources)
+        if i < ceil(num_grids*num_grids/num_sources) 
+           trial_locations_on_grid(i + (m-1)*num_combinations/M,:) = perm_sequence( (i-1)*num_sources + (1:num_sources));
+        else 
+           num_missing = num_grids*num_grids-(i-1)*num_sources;
+           trial_locations_on_grid(i + (m-1)*num_combinations/M,:) = [perm_sequence( ((i-1)*num_sources):end) perm_sequence(1:2)];
+        end
+    end 
+end
+
+%% Visualize the stimuli
+figure(12345)
+for i = 1:num_layers
+    connected_neurons_ind = find(neuron_features(i).amplitude);
+    scatter(neuron_locations{i}(connected_neurons_ind,1),...
+        -neuron_locations{i}(connected_neurons_ind,2),...
+        neuron_features(i).amplitude(connected_neurons_ind)*5,'.');
+    hold on
+end
+
+spots = scatter(Z(:,1), -Z(:,2),20,'filled');
+set(spots,'MarkerFaceColor','k');
+alpha(spots,.4);
+hold off
+set(gca,'yticklabels',{'1200','1000','800','600','400','200','0'})
+view(2)
+
+%% Calculate the light-induced probability 
 trial_locations_on_grid = repmat(trial_locations_on_grid,num_repeats,1);
 N= num_repeats*num_combinations;
 pi_k = zeros(N,size(all_locations,1));
@@ -308,23 +341,18 @@ for n = 1:N
 end
 
 %% Plot response
-% Not sure how to plot them...
+% Draw the responses that cover this location 
+
+Y_grid = unstack_traces_multi(Y,trial_locations_on_grid, grid_locations);
+% mpp_grid = unstack_struct(mpp,trial_grid_locations);
+plot_trace_stack_grid(Y_grid,10,1,0);
 
 
-%% Output synthetic data
-
-% The ground truth 
 
 
-% Experimental design
-save('Experiment.mat', 'trial_locations_on_grid', 'Z', 'grid_locations');
 
-% Traces
-save('Traces.mat','Y');
-
-% Event times and amplitudes
-save('MarkedSpikeTrains.mat', 'mpp');
-
+%% New thoughts:
+% Use more combinations rather than replicates
 
 
 
