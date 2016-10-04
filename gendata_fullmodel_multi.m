@@ -232,7 +232,7 @@ end
 % if it is not full. 
 % Better replace it with an "orthogonal" design
 
-M = 3;
+M = 4;
 num_sources = 4; 
 num_combinations = ceil(num_grids*num_grids/num_sources)*M;
 N = num_combinations*num_repeats;

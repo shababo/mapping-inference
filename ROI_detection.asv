@@ -200,9 +200,7 @@ covariates_intercept = [covariates ones(size(covariates,1),1)];
 
 lm1=fitlm(covariates,auc_trials);
 
-lm2=fitlm(covariates,count_trials);
-
-lm1.Coefficients.pValue(2:end);
+lm1.Coefficients.pValue(2:end)
 
 %% Visualizing the pvalues 
 % Take the logorithm of the pvalues
