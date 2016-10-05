@@ -195,7 +195,9 @@ end
 
 
 % 
-num_repeats = 5;
+num_repeats = 1;
+M = 20;
+
 num_grids = 21; 
 
 % these parameters govern the time delay, as a function of the
@@ -232,7 +234,6 @@ end
 % if it is not full. 
 % Better replace it with an "orthogonal" design
 
-M = 4;
 num_sources = 4; 
 num_combinations = ceil(num_grids*num_grids/num_sources)*M;
 N = num_combinations*num_repeats;
@@ -349,21 +350,57 @@ end
 %% Plot response
 % Draw the responses that cover this location 
 
-Y_grid = unstack_traces_multi(Y,trial_locations_on_grid, grid_locations);
+%Y_grid = unstack_traces_multi(Y,trial_locations_on_grid, grid_locations);
 % mpp_grid = unstack_struct(mpp,trial_grid_locations);
-plot_trace_stack_grid(Y_grid,10,1,0);
-
-
+%plot_trace_stack_grid(Y_grid,10,1,0);
 
 
 
 %% New thoughts:
-% Use more combinations rather than replicates
+temp=Y_grid{grid_locations(32,1),grid_locations(32,2)};
+
+figure(12322)
+num_stim = size(temp,1);
+for i = 1:num_stim
+    plot(1:2000,temp(i,:)+i*(20));
+    hold on
+end
+hold off
+
+%% 
 
 
+temp=Y_grid{grid_locations(80,1),grid_locations(80,2)};
+
+figure(12322)
+num_stim = size(temp,1);
+for i = 1:num_stim
+    plot(1:2000,temp(i,:)+i*(20));
+    hold on
+end
+hold off
+
+%%
+  pvalues_grid = lm1.Coefficients.pValue(2:end);
 
 
+figure(12345)
+for i = 1:num_layers
+    connected_neurons_ind = find(neuron_features(i).amplitude);
+    scatter(neuron_locations{i}(connected_neurons_ind,1),...
+        -neuron_locations{i}(connected_neurons_ind,2),...
+        20*neuron_features(i).amplitude(connected_neurons_ind)*5,'.');
+    hold on
+end
 
+fullvote = scatter(Z(32,1), -Z(32,2),80,'filled','d');
+set(fullvote,'MarkerFaceColor','k');
+alpha(fullvote,1);
 
+halfvote = scatter(Z(80,1), -Z(80,2),80,'filled','d');
+set(halfvote,'MarkerFaceColor','b');
+alpha(halfvote,1);
 
-
+hold off
+set(gca,'yticklabels',{'1200','1000','800','600','400','200','0'})
+view(2)

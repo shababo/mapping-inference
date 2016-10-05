@@ -28,7 +28,8 @@ alpha(spots,.4);
 hold off
 set(gca,'yticklabels',{'1200','1000','800','600','400','200','0'})
 view(2)
-
+%% Data generation
+run('gendata_fullmodel_multi.m')
 
 %% KS test
 % Obtain the background rate
@@ -189,7 +190,15 @@ for i = 1:size(trial_locations_on_grid,1)
 end
 muhat = mean(count_trials);
 
-
+% Check the time to first event 
+first_trials = ones(size(trial_locations_on_grid,1),1);
+for i = 1:size(trial_locations_on_grid,1)
+    if size(mpp(i).event_times,2)==0
+        first_trials(i) = 2000;
+    else 
+        first_trials(i) = mpp(i).event_times(1);
+    end
+end
 
 covariates = zeros(size(auc_trials,1), num_grids^2);
 for i = 1:num_combinations
@@ -198,38 +207,86 @@ end
 
 covariates_intercept = [covariates ones(size(covariates,1),1)];
 
-lm1=fitlm(covariates,auc_trials);
+lm1=fitlm(covariates,auc_trials,'Intercept',false);
 
-lm2=fitlm(covariates,count_trials);
+lm2=fitlm(covariates,count_trials,'Intercept',false);
+
+lm3=fitlm(covariates,first_trials,'Intercept',false);
+
 
 lm1.Coefficients.pValue(2:end);
 
+
+%% Try an alternative way of doing KS test
+
+% Obtain the background rate
+count_trials = ones(size(trial_locations_on_grid,1),1);
+for i = 1:size(trial_locations_on_grid,1)
+    count_trials(i) = size(mpp(i).event_times,2);
+end
+% Two options:
+muhat = mean(count_trials);
+%muhat = median(count_trials)/log(2);
+
+Y_grid = unstack_traces_multi(Y,trial_locations_on_grid, grid_locations);
+
+
+mpp_grid = unstack_struct_multi(mpp,trial_locations_on_grid, grid_locations);
+
+pvalues_grid = ones(num_grids^2,1);
+count=1;
+for i = 1:size(mpp_grid,1)
+    for j = 1:size(mpp_grid,2)
+
+        events_combined = mpp_grid{i,j}(1).event_times;
+        for nr = 2:size(mpp_grid{i,j},2)
+            events_combined = [events_combined mpp_grid{i,j}(nr).event_times];
+        end 
+        
+        events_combined = sort(events_combined);
+        events_diff = events_combined(1);
+        events_diff = [events_diff events_combined(2:end)-events_combined(1: end-1)];
+        
+        nulldist = makedist('Exponential','mu',2000/muhat/size(mpp_grid{i,j},2)); 
+
+        [h p k c] = kstest(events_diff,'CDF',nulldist);
+        count = count +1;
+        pvalues_grid(count)= p;
+        p;
+    end 
+end
+
+
 %% Visualizing the pvalues 
 % Take the logorithm of the pvalues
-pvalues_grid = lm1.Coefficients.pValue(2:end);
+  pvalues_grid = lm1.Coefficients.pValue(2:end);
+
 
 figure(12345)
 for i = 1:num_layers
     connected_neurons_ind = find(neuron_features(i).amplitude);
     scatter(neuron_locations{i}(connected_neurons_ind,1),...
         -neuron_locations{i}(connected_neurons_ind,2),...
-        10*neuron_features(i).amplitude(connected_neurons_ind)*5,'.');
+        20*neuron_features(i).amplitude(connected_neurons_ind)*5,'.');
     hold on
 end
 
-fullvote = scatter(Z(pvalues_grid<0.01,1), -Z(pvalues_grid<0.01,2),500,'filled');
+fullvote = scatter(Z(pvalues_grid<0.001,1), -Z(pvalues_grid<0.001,2),80,'filled','d');
 set(fullvote,'MarkerFaceColor','k');
 alpha(fullvote,.4);
 
-halfvote = scatter(Z(pvalues_grid<0.05,1), -Z(pvalues_grid<0.05,2),500,'filled');
+halfvote = scatter(Z(pvalues_grid<0.01,1), -Z(pvalues_grid<0.01,2),80,'filled','d');
 set(halfvote,'MarkerFaceColor','b');
 alpha(halfvote,.2);
 
-spots = scatter(Z(:,1), -Z(:,2),20,'filled');
-set(spots,'MarkerFaceColor','k');
-alpha(spots,.4);
+%spots = scatter(Z(:,1), -Z(:,2),20,'filled');
+%set(spots,'MarkerFaceColor','k');
+%alpha(spots,.4);
 
 hold off
 set(gca,'yticklabels',{'1200','1000','800','600','400','200','0'})
 view(2)
+
+
+
 
