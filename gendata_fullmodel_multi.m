@@ -4,6 +4,7 @@
 % Shababo, Paige et al 2013 and also from code used to generate
 % voltage-clamp data from Merel, Shababo et al 2016.
 
+
 % set RNG seed
 rng(12242,'twister');
 
@@ -52,14 +53,14 @@ end
 
 %% plot the neurons - colored by layer
 
-figure(123412)
-for i = 1:num_layers
-    scatter3(neuron_locations{i}(:,1),-neuron_locations{i}(:,2),neuron_locations{i}(:,3),'.');
-    hold on
-end
-hold off
-set(gca,'yticklabels',{'1200','1000','800','600','400','200','0'})
-view(2)
+%figure(123412)
+%for i = 1:num_layers
+%    scatter3(neuron_locations{i}(:,1),-neuron_locations{i}(:,2),neuron_locations{i}(:,3),'.');
+%    hold on
+%end
+%hold off
+%set(gca,'yticklabels',{'1200','1000','800','600','400','200','0'})
+%view(2)
 %% generate cell features conditioned on location
 
 % layer based priors on featues
@@ -122,18 +123,18 @@ K = length(all_amplitudes); % num_neurons
 
 %%
 
-figure(12345)
-for i = 1:num_layers
-    connected_neurons_ind = find(neuron_features(i).amplitude);
-    scatter3(neuron_locations{i}(connected_neurons_ind,1),...
-        -neuron_locations{i}(connected_neurons_ind,2),...
-        neuron_locations{i}(connected_neurons_ind,3),...
-        neuron_features(i).amplitude(connected_neurons_ind)*5,'.');
-    hold on
-end
-hold off
-set(gca,'yticklabels',{'1200','1000','800','600','400','200','0'})
-view(2)
+% figure(12345)
+%for i = 1:num_layers
+%    connected_neurons_ind = find(neuron_features(i).amplitude);
+%    scatter3(neuron_locations{i}(connected_neurons_ind,1),...
+%        -neuron_locations{i}(connected_neurons_ind,2),...
+%        neuron_locations{i}(connected_neurons_ind,3),...
+%        neuron_features(i).amplitude(connected_neurons_ind)*5,'.');
+%    hold on
+%end
+%hold off
+%set(gca,'yticklabels',{'1200','1000','800','600','400','200','0'})
+%view(2)
 
 %%
 
@@ -195,7 +196,9 @@ end
 
 
 % 
-num_repeats = 5;
+num_repeats = 1; % number of replicates
+num_all = 50; % number of times one location are stimulated
+
 num_grids = 21; 
 
 % these parameters govern the time delay, as a function of the
@@ -232,41 +235,40 @@ end
 % if it is not full. 
 % Better replace it with an "orthogonal" design
 
-M = 3;
 num_sources = 4; 
-num_combinations = ceil(num_grids*num_grids/num_sources)*M;
-N = num_combinations*num_repeats;
+num_combinations = ceil(num_grids*num_grids/num_sources)*num_all;
+num_runs = num_combinations*num_repeats;
 
 
 trial_locations_on_grid = zeros(num_combinations, num_sources);
-for m = 1:M
+for m = 1:num_all
     perm_sequence = randperm(num_grids*num_grids); 
     for	i = 1:ceil(num_grids*num_grids/num_sources)
         if i < ceil(num_grids*num_grids/num_sources) 
-           trial_locations_on_grid(i + (m-1)*num_combinations/M,:) = perm_sequence( (i-1)*num_sources + (1:num_sources));
+           trial_locations_on_grid(i + (m-1)*num_combinations/num_all,:) = perm_sequence( (i-1)*num_sources + (1:num_sources));
         else 
            num_missing = num_grids*num_grids-(i-1)*num_sources;
-           trial_locations_on_grid(i + (m-1)*num_combinations/M,:) = [perm_sequence( ((i-1)*num_sources):end) perm_sequence(1:2)];
+           trial_locations_on_grid(i + (m-1)*num_combinations/num_all,:) = [perm_sequence( ((i-1)*num_sources):end) perm_sequence(1:2)];
         end
     end 
 end
 
 %% Visualize the stimuli
-figure(12345)
-for i = 1:num_layers
-    connected_neurons_ind = find(neuron_features(i).amplitude);
-    scatter(neuron_locations{i}(connected_neurons_ind,1),...
-        -neuron_locations{i}(connected_neurons_ind,2),...
-        neuron_features(i).amplitude(connected_neurons_ind)*5,'.');
-    hold on
-end
+%figure(12345)
+%for i = 1:num_layers
+%    connected_neurons_ind = find(neuron_features(i).amplitude);
+%    scatter(neuron_locations{i}(connected_neurons_ind,1),...
+%        -neuron_locations{i}(connected_neurons_ind,2),...
+%        neuron_features(i).amplitude(connected_neurons_ind)*5,'.');
+%    hold on
+%end
 
-spots = scatter(Z(:,1), -Z(:,2),20,'filled');
-set(spots,'MarkerFaceColor','k');
+%spots = scatter(Z(:,1), -Z(:,2),20,'filled');
+%set(spots,'MarkerFaceColor','k');
 % alpha(spots,.4);
-hold off
-set(gca,'yticklabels',{'1200','1000','800','600','400','200','0'})
-view(2)
+%hold off
+%set(gca,'yticklabels',{'1200','1000','800','600','400','200','0'})
+%view(2)
 
 %% Calculate the light-induced probability 
 trial_locations_on_grid = repmat(trial_locations_on_grid,num_repeats,1);
@@ -349,20 +351,9 @@ end
 %% Plot response
 % Draw the responses that cover this location 
 
-Y_grid = unstack_traces_multi(Y,trial_locations_on_grid, grid_locations);
+%Y_grid = unstack_traces_multi(Y,trial_locations_on_grid, grid_locations);
 % mpp_grid = unstack_struct(mpp,trial_grid_locations);
-plot_trace_stack_grid(Y_grid,10,1,0);
-
-
-
-
-
-%% New thoughts:
-% Use more combinations rather than replicates
-
-
-
-
+%plot_trace_stack_grid(Y_grid,10,1,0);
 
 
 
