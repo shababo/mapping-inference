@@ -333,7 +333,7 @@ g_test = g_vals(g_mle_i)
 betahat_conv = fits(g_mle_i,:);
 
 %%%DEFINE PARAMETERS
-V_reset_sim = betahat_conv(2);
+V_reset_sim = betahxat_conv(2);
 V_th_sim = -betahat_conv(1);
 % spatial_filt_sim = zeros(num_spatial_pos,1);
 % count = 1;
@@ -465,6 +465,7 @@ for m = 1:3
     end
 
     subplot(2,3,m)
+
     imagesc(spikes_per_location_sim{m})
     caxis([0 3])
     colorbar
@@ -474,7 +475,7 @@ for m = 1:3
     pcolor([first_spike_latency_sim{m} nan(11,1); nan(1,11+1)]);
     shading flat;
     set(gca, 'ydir', 'reverse');
-    caxis([0 30])
+%     caxis([0 30])
     colorbar
     title(['First Spike Time Mean'])
 end

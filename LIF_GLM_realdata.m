@@ -3,7 +3,7 @@
 
 % load('spike_detect_revisit_about_to_fit_0810.mat','all_detection_grids')
 load('data/current_template.mat')
-load('all_detection_grids.mat')
+load('data/all_detection_grids.mat')
 
 %%
 trial_length = 1500;
