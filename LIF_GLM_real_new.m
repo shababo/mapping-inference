@@ -134,31 +134,32 @@ end
 
 %% plot all stats
 
-for i = 1:num_cells
-    figure
-    for m = 1:3
-        
-        subplot(2,3,m)
-        imagesc(spikes_per_location_data{i}{m})
-        caxis([0 3])
-        colorbar
-        title(['Spikes/Location'])
-
-        subplot(2,3,m + 3)
-        pcolor([first_spike_latency_data{i}{m} nan(11,1); nan(1,11+1)]);
-        shading flat;
-        set(gca, 'ydir', 'reverse');
-        caxis([0 30])
-        colorbar
-        title(['First Spike Time Mean'])
-    end
-    colormap hot
-end
+% for i = 1:num_cells
+%     figure
+%     for m = 1:3
+%         
+%         subplot(2,3,m)
+%         imagesc(spikes_per_location_data{i}{m})
+%         caxis([0 3])
+%         colorbar
+%         title(['Spikes/Location'])
+% 
+%         subplot(2,3,m + 3)
+%         pcolor([first_spike_latency_data{i}{m} nan(11,1); nan(1,11+1)]);
+%         shading flat;
+%         set(gca, 'ydir', 'reverse');
+%         caxis([0 30])
+%         colorbar
+%         title(['First Spike Time Mean'])
+%     end
+%     colormap hot
+% end
 
 
 %% fit this data
 
-g_vals = [.01:.01:.1];
+% g_vals = [.01:.01:.1];
+g_vals = logspace(-4,-1,4);
 g_likelihoods = zeros([num_cells length(g_vals) 1]);
 num_params = 2 + num_spatial_pos;
 fits = zeros(num_cells,length(g_vals),num_params);
@@ -171,9 +172,9 @@ for i = 1:num_cells
     for j = 1:11
         for k = 1:11
 
-            if spikes_per_location_data{i}{1}(i,j) || ...
-               spikes_per_location_data{i}{2}(i,j) || ...
-               spikes_per_location_data{i}{3}(i,j)
+            if spikes_per_location_data{i}{1}(j,k) || ...
+               spikes_per_location_data{i}{2}(j,k) || ...
+               spikes_per_location_data{i}{3}(j,k)
                 
                 spike_locs{i} = [spike_locs{i} count];
                 
@@ -197,6 +198,8 @@ invlink = @invlink_test;
 
 
 for cell_i = 1:num_cells
+    
+    cell_i
     
     num_trials_good = num_trials - num_repeats*num_powers*(num_spatial_pos - length(spike_locs{cell_i}));
     bad_trials = [];
@@ -315,7 +318,7 @@ for cell_i = 1:num_cells
     
     [~, g_mle_i] = max(g_likelihoods(cell_i,:)); 
     g_test = g_vals(g_mle_i)
-    betahat_conv = squeeze(fits(cell_i,g_mle_i,:));
+    betahat_conv = squeeze(fits(cell_i,g_mle_i,:))*10;
 
     %%%DEFINE PARAMETERS
     V_reset_sim = betahat_conv(2);
@@ -329,10 +332,11 @@ for cell_i = 1:num_cells
     %     end
     % end
     spatial_filt_sim = betahat_conv(3:2+num_spatial_pos);
-    d_spatial_filt_sim = betahat_conv(2+num_spatial_pos+1:end);
+%     d_spatial_filt_sim = betahat_conv(2+num_spatial_pos+1:end);
 
 
-
+     figure; imagesc(reshape(spatial_filt_sim,sqrt(num_spatial_pos),sqrt(num_spatial_pos))')
+     title(['Cell :' num2str(cell_i)])
 
     
     %INTEGRATE THE EQUATION tau*dV/dt = -V + E_L + I_e*R_m
@@ -412,7 +416,7 @@ for cell_i = 1:num_cells
         end
     end
 
-    figure;compare_trace_stack_grid(spikes_grids_sim,5,1,[],0,{'raw','detected events'})
+    figure;compare_trace_stack_grid(voltages_grids_sim,1,1,[],0,{'raw','detected events'})
 
     spikes_per_location_sim = cell(3,1);
     first_spike_latency_sim = cell(3,1);

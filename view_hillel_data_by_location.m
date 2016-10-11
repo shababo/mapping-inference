@@ -26,5 +26,8 @@ end
 
 figure
 compare_trace_stack_grid({traces_by_location(:,1), traces_by_location(:,2)},10,1,[],0,{'raw','detected events'})
-% compare_trace_stack_grid_overlap({traces_by_location(:,1), traces_by_location(:,2)},10,1,[],0,{'L4','L5'},1)
+figure
+compare_trace_stack_grid({traces_by_location(:,1), traces_by_location(:,2)},10,1,[],1,{'raw','detected events'})
+figure
+compare_trace_stack_grid_overlap({traces_by_location(:,1), traces_by_location(:,2)},10,1,[],0,{'L4','L5'},1)
 
