@@ -5,11 +5,14 @@ load(file,'sweeps','ExpStruct')
 % num_trials = max(good_trials);
 num_trials = length(sweeps);
 stim_order = ExpStruct.MP285struct.stimOrder;
-stim_power_order = ExpStruct.MP285struct.stimPowerOrder;
+if isfield(ExpStruct.MP285struct,'stimPowerOrder')
+    stim_power_order = ExpStruct.MP285struct.stimPowerOrder;
+    stim_power_order = stim_power_order(1:num_trials);
+end
 stim_locations = ExpStruct.MP285struct.StimPoints;
 num_locations = size(stim_locations,1);
 stim_order = stim_order(1:num_trials);
-stim_power_order = stim_power_order(1:num_trials);
+
 
 traces_by_location = cell(num_locations,2);
 
