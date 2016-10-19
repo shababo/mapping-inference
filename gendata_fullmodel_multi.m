@@ -1,12 +1,16 @@
-%% Generate data from circuit mapping model
-
-% This first pass is based on code we used to generate similar data from
-% Shababo, Paige et al 2013 and also from code used to generate
-% voltage-clamp data from Merel, Shababo et al 2016.
-
-
+%% Generate data from circuit mapping model with multi-source stimuli
+% 
 % set RNG seed
 rng(12242,'twister');
+
+% Parameters on the grid and experimental design 
+num_sources = 4; 
+
+num_all = 23; 
+num_grids = 31; 
+grid_spacing = 15;
+
+num_repeats = 1; % number of replicates
 
 %% Gen neurons and their types/locations/features
 
@@ -51,16 +55,6 @@ for i = 1:num_layers
         [0 barrel_width; layer_boundaries(i) layer_boundaries(i+1); 0 slide_width]);
 end
 
-%% plot the neurons - colored by layer
-
-%figure(123412)
-%for i = 1:num_layers
-%    scatter3(neuron_locations{i}(:,1),-neuron_locations{i}(:,2),neuron_locations{i}(:,3),'.');
-%    hold on
-%end
-%hold off
-%set(gca,'yticklabels',{'1200','1000','800','600','400','200','0'})
-%view(2)
 %% generate cell features conditioned on location
 
 % layer based priors on featues
@@ -121,31 +115,6 @@ K = length(all_amplitudes); % num_neurons
 
 
 
-%%
-
-% figure(12345)
-%for i = 1:num_layers
-%    connected_neurons_ind = find(neuron_features(i).amplitude);
-%    scatter3(neuron_locations{i}(connected_neurons_ind,1),...
-%        -neuron_locations{i}(connected_neurons_ind,2),...
-%        neuron_locations{i}(connected_neurons_ind,3),...
-%        neuron_features(i).amplitude(connected_neurons_ind)*5,'.');
-%    hold on
-%end
-%hold off
-%set(gca,'yticklabels',{'1200','1000','800','600','400','200','0'})
-%view(2)
-
-%%
-
-% figure(123456)
-% subplot(131)
-% histogram(all_amplitudes(all_amplitudes ~= 0),1000)
-% subplot(132)
-% histogram(all_tau_rise(all_tau_rise ~= 0),1000)
-% subplot(133)
-% histogram(all_tau_fall(all_tau_fall ~= 0),1000)
-
 %% voltage-clamp parameters (daq stuff, bg psc parameters)
 tau_r_bounds = [1 20]/20000;
 tau_f_bounds = [50 200]/20000;
@@ -191,15 +160,6 @@ end
 
 %% Stimulating multiple spots in each trial
 
-% Code is similar to that in the previous version 
-% The combination is designed so that each location is stimulated M times
-
-
-% 
-num_repeats = 1; % number of replicates
-num_all = 50; % number of times one location are stimulated
-
-num_grids = 21; 
 
 % these parameters govern the time delay, as a function of the
 % point-spread-function stimuli for a particular trial
@@ -214,65 +174,87 @@ d_sigma_coef = .050;
 % The dimension of array is N
 Z = zeros(num_grids*num_grids,3);
 grid_locations = zeros(num_grids*num_grids,2);
-grid_spacing = 20;
-
-count = 1;
+grid_index = zeros(num_grids,num_grids); 
 for i = 1:num_grids
     for j = 1:num_grids
-        grid_locations(count,:) = [i j];
-        count = count + 1;
+        grid_locations((i-1)*num_grids + j,:) = [i j];
+        grid_index(i,j) = (i-1)*num_grids + j;
         Z((i-1)*num_grids + j,1) = (i-1)*grid_spacing - grid_spacing*floor(num_grids/2) + postsyn_position(1);
         Z((i-1)*num_grids + j,2) = (j-1)*grid_spacing - grid_spacing*floor(num_grids/2) + postsyn_position(2);
-        Z((i-1)*num_grids + j,3) = postsyn_position(3);
-        
+        Z((i-1)*num_grids + j,3) = postsyn_position(3); 
     end
 end
 
-% Define the combination of trials 
+%% Define the combination of trials 
+
+
+% Option 1: almost pure randomization
 % We define the combination by randomly permuting the sequence 1:num_grids^2,
 % and then let num_sources consequent spots to be stimulated in each trial.
 % For the last trial, we enroll elements at the beginning of the sequence
 % if it is not full. 
-% Better replace it with an "orthogonal" design
+% trial_locations_on_grid = zeros(num_combinations, num_sources);
+% for m = 1:num_all
+%     perm_sequence = randperm(num_grids*num_grids); 
+%     for	i = 1:ceil(num_grids*num_grids/num_sources)
+%         if i < ceil(num_grids*num_grids/num_sources) 
+%            trial_locations_on_grid(i + (m-1)*num_combinations/num_all,:) = perm_sequence( (i-1)*num_sources + (1:num_sources));
+%         else 
+%            num_missing = num_grids*num_grids-(i-1)*num_sources;
+%            trial_locations_on_grid(i + (m-1)*num_combinations/num_all,:) = [perm_sequence( ((i-1)*num_sources):end) perm_sequence(1:2)];
+%         end
+%     end 
+% end
 
-num_sources = 4; 
-num_combinations = ceil(num_grids*num_grids/num_sources)*num_all;
+% Option 2: stimulate distant sites
+gap=floor(num_grids/num_sources);
+num_combinations = num_grids*ceil(num_grids/num_sources)*num_all;
 num_runs = num_combinations*num_repeats;
-
-
 trial_locations_on_grid = zeros(num_combinations, num_sources);
 for m = 1:num_all
-    perm_sequence = randperm(num_grids*num_grids); 
-    for	i = 1:ceil(num_grids*num_grids/num_sources)
-        if i < ceil(num_grids*num_grids/num_sources) 
-           trial_locations_on_grid(i + (m-1)*num_combinations/num_all,:) = perm_sequence( (i-1)*num_sources + (1:num_sources));
-        else 
-           num_missing = num_grids*num_grids-(i-1)*num_sources;
-           trial_locations_on_grid(i + (m-1)*num_combinations/num_all,:) = [perm_sequence( ((i-1)*num_sources):end) perm_sequence(1:2)];
+    % Alternating between rows and columns!
+    if mod(m,2)==0
+        perm_index = grid_index;
+        for i = 1:num_grids  % permuting the columns
+            perm_index(:,i) =  perm_index(randperm(num_grids),i);
         end
-    end 
+        for i = 1:ceil(num_grids/num_sources)
+            col_index = (1:num_sources)*gap+i-gap;
+            if max(col_index)>num_grids
+                col_index = mod(col_index,num_grids);
+            end
+            trial_locations_on_grid( (1:num_grids)+ (i-1)*num_grids + (m-1)*num_combinations/num_all,:) = perm_index(:,col_index);
+        end
+    else
+        perm_index = grid_index;
+        for i = 1:num_grids  % permuting the columns
+            perm_index(i,:) =  perm_index(i,randperm(num_grids));
+        end
+        for i = 1:ceil(num_grids/num_sources)
+            row_index = (1:num_sources)*gap+i-gap;
+            if max(row_index)>num_grids
+                row_index = mod(row_index,num_grids);
+            end
+            trial_locations_on_grid( (1:num_grids)+ (i-1)*num_grids + (m-1)*num_combinations/num_all,:) = perm_index(row_index,:)';
+        end
+    end
+    
 end
 
-%% Visualize the stimuli
-%figure(12345)
-%for i = 1:num_layers
-%    connected_neurons_ind = find(neuron_features(i).amplitude);
-%    scatter(neuron_locations{i}(connected_neurons_ind,1),...
-%        -neuron_locations{i}(connected_neurons_ind,2),...
-%        neuron_features(i).amplitude(connected_neurons_ind)*5,'.');
-%    hold on
-%end
 
-%spots = scatter(Z(:,1), -Z(:,2),20,'filled');
-%set(spots,'MarkerFaceColor','k');
-% alpha(spots,.4);
-%hold off
-%set(gca,'yticklabels',{'1200','1000','800','600','400','200','0'})
-%view(2)
+% covariates = zeros(size(trial_locations_on_grid,1), num_grids^2);
+% for i = 1:num_combinations
+% 	covariates(i, trial_locations_on_grid(i,:)) = 1;    
+%  end
+%  for i = 1:ceil(num_grids/num_sources)
+%     col_index = (1:num_sources)*gap+i-gap
+%  end
+% rank(covariates)
+% size(covariates)
 
 %% Calculate the light-induced probability 
 trial_locations_on_grid = repmat(trial_locations_on_grid,num_repeats,1);
-N= num_repeats*num_combinations;
+N= size(trial_locations_on_grid,1);
 pi_k = zeros(N,size(all_locations,1));
 
 B = diag(all_locations*inv(A)*all_locations')*ones(1,num_sources);
@@ -293,11 +275,8 @@ for n = 1:N
    pi_k(n,:) = min(.95,sum(pi_kr,2));
 end
 
-
 pi_k_spike = pi_k;
 pi_k_spike(pi_k_spike > .65) = 1; % what does this mean?
-
-
 
 % % firing delay means and variances
 % d_mean_nk = d_mean0 + (1 - pi_nk)*d_mean_coef;
@@ -348,12 +327,6 @@ for n = 1:N
     end
 end
 
-%% Plot response
-% Draw the responses that cover this location 
-
-%Y_grid = unstack_traces_multi(Y,trial_locations_on_grid, grid_locations);
-% mpp_grid = unstack_struct(mpp,trial_grid_locations);
-%plot_trace_stack_grid(Y_grid,10,1,0);
 
 
 
