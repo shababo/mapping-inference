@@ -63,14 +63,14 @@ for m = 1:num_cells
     
 
     spikes_downres{m} = zeros(num_trials,trial_length_downres);
-    all_detection_grids_downres{m} = cell(1,3);
+    all_detection_grids_downres{m} = cell(1,1);
     count = 1;
     loc_count = 1;
-    for i = 1:3
+    for i = 1:1
         all_detection_grids_downres{m}{i} = cell(11,11);
         for l = 1:5
-            for j = 1:11
-                for k = 1:11
+            for j = 1:5
+                for k = 1:5
                     if l == 1
                         all_detection_grids_downres{m}{i}{j,k} = zeros(5,75);
                     end
@@ -105,7 +105,7 @@ for cell_i = 1:num_cells
     spikes_per_location_data{cell_i} = cell(3,1);
     first_spike_latency_data{cell_i} = cell(3,1);
     
-    for m = 1:3
+    for m = 1:1
         spikes_per_location_data{cell_i}{m} = zeros(size(all_detection_grids_downres{cell_i}{m}));
         first_spike_latency_data{cell_i}{m} = zeros(size(all_detection_grids_downres{cell_i}{m}));
 
@@ -134,26 +134,33 @@ end
 
 %% plot all stats
 
-% for i = 1:num_cells
-%     figure
-%     for m = 1:3
-%         
-%         subplot(2,3,m)
-%         imagesc(spikes_per_location_data{i}{m})
-%         caxis([0 3])
+for i = 1:num_cells
+    figure
+    for m = 1:1
+        
+        subplot(2,2,1)
+        imagesc(spikes_per_location_data{i}{m})
+        caxis([0 3])
 %         colorbar
-%         title(['Spikes/Location'])
-% 
-%         subplot(2,3,m + 3)
-%         pcolor([first_spike_latency_data{i}{m} nan(11,1); nan(1,11+1)]);
-%         shading flat;
-%         set(gca, 'ydir', 'reverse');
-%         caxis([0 30])
+        title(['Spikes/Location'])
+        xlim([.5 5.5])
+        ylim([.5 5.5])
+        axis off
+        
+        subplot(2,2,3)
+        pcolor([first_spike_latency_data{i}{m} nan(11,1); nan(1,11+1)]);
+        shading flat;
+        set(gca, 'ydir', 'reverse');
+        caxis([0 30])
 %         colorbar
-%         title(['First Spike Time Mean'])
-%     end
-%     colormap hot
-% end
+        title(['First Spike Time Mean'])
+        xlim([1 6])
+        ylim([1 6])
+        axis off
+        
+    end
+    colormap hot
+end
 
 
 %% fit this data

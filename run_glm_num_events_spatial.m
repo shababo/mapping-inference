@@ -25,4 +25,5 @@ for i = 1:size(num_events_grid,1)
 end
 
 % [~, ~, glm_out] = glmfit(stim_mat,response,'poisson');
-glm_out = glmnet(stim_mat,response,'poisson');
+options.alpha = .5;
+glm_out = cvglmnet(stim_mat,response,'poisson',options);
