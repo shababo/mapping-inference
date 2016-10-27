@@ -1,0 +1,46 @@
+README file for dendritic_synaptic_connectivity
+
+
+=====================
+
+Run the file script_compare_horseshoe_spike_and_slab.m which will load data and estimate synaptic weights by the horseshoe model and also by the spike-and-slab model. Set the flags in the first few lines to choose whether or not to run either sampler. Change the "laprint…" line to point to a directory on your computer on in the Dropbox if you want to print the output to eps/tex.
+
+
+=====================
+
+The files are…
+
+compute_quartiles.m: computes the quartiles for the spike-and-slab estimate by Rao-Blackwellization, i.e. at each sweep we don't just sample from the full conditional distribution and tally the sample value but rather we record the means and covariaces of each sweep's full conditional and then consider the normalized sum of all these modes as our estimate of the distribution over W. To compute the quartiles we have to invert in the CDF of this estimate distribution, which has to be done numerically.
+
+full_conditional_sampler_tau.m: for x=tau, the full conditional distribution has the form 
+	f(x) ~ x^{-a} (1+x)^{-1} \exp{-b/x}
+which we find can be efficiently sampled from by a modification of rejection sampling in which we have not one but two envelope distributions, one of which is replaced for use instead of the other every time a proposal is rejected. For given values of the parameters {a,b} one envelope will have a much higher acceptance rate than the other. The envelopes are inverse Gamma densities:
+	g_1(x) ~ x^{-a-1} \exp{-b/x}
+	g_2(x) ~ x^{-a} \exp{-b/x}
+
+full_conditional_sample_lambda.m: same deal as with tau, but now the $a$ parameter takes the value a=1, so that g_2(x) above is not a proper inverse Gamma density (for which the exponent on $x$ must be strictly less that -1. So we use a different second envelope:
+	g_1(x) ~ x^{-a-1} \exp{-b/x} = x^2 \exp{-b/x}
+	g_2(x) ~ 1/2 x^{-3/2} \exp{-b/x}
+where epsilon is small. $\epsilon=0.1$ seems to work for the dendritic data. Epsilon can be varied between 0 and 1 making no difference to the results, but only to the effective acceptance rate of the lambda sampler.
+
+full_conditional_sample_sigma.m: same deal as with tau, but now the full conditional for x=sigma is
+	f(x) ~ x^a (1+x)^{-1} \exp{-bx}
+and the envelopes are Gamma densities.
+
+hline.m: this is a function (that I did not write) that puts a horizontal line in a plot.
+
+horseshoe.m: the Rao-Blackwellized Gibbs sampler that computes the horseshoe estimate.
+
+plotting_horseshoe.m: plotting functions associated with horseshoe.m. I just find it keeps things tidier to separate plotting functions into a separate file.
+
+plotting_spike_and_slab.m: plotting functions associated with spike_and_slab.m.
+
+script_compare_horseshoe_spike_and_slab.m: the main interface of the code. Run this. Change the first lines flags to specify whether to run horseshoe, spike-and-slab, or both, whether to plot results, etc.
+
+spike_and_slab.m: the Gibbs sampler that computes the spike_and_slab estimate.
+
+
+=====================
+
+The figure caption is: "Estimates of vector $W$ using the horseshoe (top panel) and spike-and-slab (bottom panel) priors. In each panel the true values of $W$ are shown as red circles, except for those components of $W$ that are exactly zero; markers for the true $W$ for these components have been omitted for clarity. Green circles depict the maximum likelihood estimate $W_{ML}$ of $W$. The black plusses with error bars are the Bayesian estimates each with its panel's respective prior. Error bars in the top panel are plus or minus twice the standard deviation of the sample of $W$. Error bars in the bottom panel delineate the estimated quartiles of the posterior distribution $p(W|D)$, $D$ the observed data. Horseshoe and spike-and-slab estimated weights that are exactly zero are marked with small white dots on top of the usual black dot markers. The Gibbs samplers used to estimate $W$ ran for <insert number here> sweeps after <insert number here> burn-in sweeps."
+
