@@ -35,7 +35,9 @@ for i = 1:(num_grids^2)
     if size(events_combined,2)>0
         events_combined = sort(events_combined);
         events_diff = events_combined(1);
+		
         events_diff = [events_diff events_combined(2:end)-events_combined(1: end-1)];
+		size(events_diff);
         [h p k c] = kstest(events_diff,'CDF',nulldist);
         pvalues_grid(this_trial(1),this_trial(2))= p;
         %pvalues_grid(i)= p;
