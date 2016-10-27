@@ -6,12 +6,13 @@ rng(12242,'twister');
 % Parameters on the grid and experimental design 
 num_sources = 4; 
 
-num_all = 23; 
+num_all = 20; 
 num_grids = 31; 
 grid_spacing = 15;
 
 num_repeats = 1; % number of replicates
 
+design=2;
 %% Gen neurons and their types/locations/features
 
 %% build layers
@@ -193,55 +194,60 @@ end
 % and then let num_sources consequent spots to be stimulated in each trial.
 % For the last trial, we enroll elements at the beginning of the sequence
 % if it is not full. 
-% trial_locations_on_grid = zeros(num_combinations, num_sources);
-% for m = 1:num_all
-%     perm_sequence = randperm(num_grids*num_grids); 
-%     for	i = 1:ceil(num_grids*num_grids/num_sources)
-%         if i < ceil(num_grids*num_grids/num_sources) 
-%            trial_locations_on_grid(i + (m-1)*num_combinations/num_all,:) = perm_sequence( (i-1)*num_sources + (1:num_sources));
-%         else 
-%            num_missing = num_grids*num_grids-(i-1)*num_sources;
-%            trial_locations_on_grid(i + (m-1)*num_combinations/num_all,:) = [perm_sequence( ((i-1)*num_sources):end) perm_sequence(1:2)];
-%         end
-%     end 
-% end
-
-% Option 2: stimulate distant sites
-gap=floor(num_grids/num_sources);
-num_combinations = num_grids*ceil(num_grids/num_sources)*num_all;
-num_runs = num_combinations*num_repeats;
-trial_locations_on_grid = zeros(num_combinations, num_sources);
-for m = 1:num_all
-    % Alternating between rows and columns!
-    if mod(m,2)==0
-        perm_index = grid_index;
-        for i = 1:num_grids  % permuting the columns
-            perm_index(:,i) =  perm_index(randperm(num_grids),i);
-        end
-        for i = 1:ceil(num_grids/num_sources)
-            col_index = (1:num_sources)*gap+i-gap;
-            if max(col_index)>num_grids
-                col_index = mod(col_index,num_grids);
+if design == 1
+    num_combinations = ceil(num_grids*num_grids/num_sources)*num_all;
+    trial_locations_on_grid = zeros(num_combinations, num_sources);
+    for m = 1:num_all
+        perm_sequence = randperm(num_grids*num_grids);
+        for	i = 1:ceil(num_grids*num_grids/num_sources)
+            if i < ceil(num_grids*num_grids/num_sources)
+                trial_locations_on_grid(i + (m-1)*num_combinations/num_all,:) = perm_sequence( (i-1)*num_sources + (1:num_sources));
+            else
+                num_missing = num_grids*num_grids-(i-1)*num_sources;
+                trial_locations_on_grid(i + (m-1)*num_combinations/num_all,:) = [perm_sequence( ((i-1)*num_sources):end) perm_sequence(1:2)];
             end
-            trial_locations_on_grid( (1:num_grids)+ (i-1)*num_grids + (m-1)*num_combinations/num_all,:) = perm_index(:,col_index);
         end
-    else
-        perm_index = grid_index;
-        for i = 1:num_grids  % permuting the columns
-            perm_index(i,:) =  perm_index(i,randperm(num_grids));
-        end
-        for i = 1:ceil(num_grids/num_sources)
-            row_index = (1:num_sources)*gap+i-gap;
-            if max(row_index)>num_grids
-                row_index = mod(row_index,num_grids);
+    end
+else
+    
+    % Option 2: stimulate distant sites
+    % To avoid singularity in design (the stimulated sets have rankds smaller
+    % than the number of sites), we need an extra layer of randomness by alternating
+    % between evenly spaced rows and columns
+    gap=floor(num_grids/num_sources);
+    num_combinations = num_grids*(num_grids- num_sources*gap+gap)*num_all;
+    num_runs = num_combinations*num_repeats;
+    trial_locations_on_grid = zeros(num_combinations, num_sources);
+    for m = 1:num_all
+        % Alternating between rows and columns!
+        if mod(m,2)==0
+            perm_index = grid_index;
+            for i = 1:num_grids  % permuting the columns
+                perm_index(:,i) =  perm_index(randperm(num_grids),i);
             end
-            trial_locations_on_grid( (1:num_grids)+ (i-1)*num_grids + (m-1)*num_combinations/num_all,:) = perm_index(row_index,:)';
+            for i = 1:(num_grids- num_sources*gap+gap)
+                col_index = (1:num_sources)*gap+i-gap;
+                if max(col_index)>num_grids
+                    col_index = mod(col_index,num_grids);
+                end
+                trial_locations_on_grid( (1:num_grids)+ (i-1)*num_grids + (m-1)*num_combinations/num_all,:) = perm_index(:,col_index);
+            end
+        else
+            perm_index = grid_index;
+            for i = 1:num_grids  % permuting the columns
+                perm_index(i,:) =  perm_index(i,randperm(num_grids));
+            end
+            for i = 1:(num_grids- num_sources*gap+gap)
+                row_index = (1:num_sources)*gap+i-gap;
+                if max(row_index)>num_grids
+                    row_index = mod(row_index,num_grids);
+                end
+                trial_locations_on_grid((1:num_grids)+ (i-1)*num_grids + (m-1)*num_combinations/num_all,:) = perm_index(row_index,:)';
+            end
         end
     end
     
 end
-
-
 % covariates = zeros(size(trial_locations_on_grid,1), num_grids^2);
 % for i = 1:num_combinations
 % 	covariates(i, trial_locations_on_grid(i,:)) = 1;    
