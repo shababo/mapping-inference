@@ -59,47 +59,50 @@ hold off
 view(2)
 
 
-%% When the locations of neurons are known
-% 
-neuron_likelihood_sum = cell(num_layers,1);
-neuron_likelihood_local_min = cell(num_layers,1);
-for i = 1:num_layers
-    neuron_likelihood_sum{i}= zeros(size(neuron_locations{i},1),size(amp_related_count_trials,2));
-    neuron_likelihood_max{i}=zeros(size(neuron_locations{i},1),size(amp_related_count_trials,2));
-end
+%% Visualize the estimated coefficients:
+figure(10)
+R=2500;
 
-num_layers;
-neuron_locations{i}(:,1:2);
-neuron_features(i).amplitude;
+colormap = jet(2);
+colormap(1,:)= [1 1 1];
+colormap(2,:)= [1 0 0];
+for i = 1:num_layers
+    connected_neurons_ind = find(neuron_features(i).amplitude);
+    temp = scatter(neuron_locations{i}(connected_neurons_ind,1),...
+        -neuron_locations{i}(connected_neurons_ind,2),...
+        neuron_features(i).amplitude(connected_neurons_ind)*25);
+    set(temp,'MarkerFaceColor','k');
+    alpha(temp,0.8);
+    hold on
+end
+set(gca,'yticklabels',{'1200','1000','800','600','400','200','0'})
+
+%selected_pixels = zeros(num_dense,num_dense,size(amp_related_count_trials,2));
+%cent = cell(size(amp_related_count_trials,2),1);
+
+    xlim([20,460]);
+    ylim([-900,-400]);
+%     
+%      potential_neuron_grid = scatter(Z(:,1),...
+%      -Z(:,2),20,colormap(2,:),...
+%     'filled','d');
+%     set(potential_neuron_grid,'MarkerFaceColor','k');
+%     alpha(potential_neuron_grid,0.2);
 
 for j = 1:size(amp_related_count_trials,2)
-    mdl_j=lmCount_related_amp{j};
-    pvalues_grid = lmCount_related_amp{j}.Coefficients.pValue(1:end);
-    probability = mdl_j.Coefficients.Estimate(pvalues_grid<0.05);
-    prob_sd = mdl_j.Coefficients.SE(pvalues_grid<0.05);
-    locations = Z(pvalues_grid<0.05,:);
-%     locations = Z_selected(pvalues_grid<0.05,:);
-    % Draw a "heat map" based on the probability
-    % We assume that the probability follows an Gaussian decay
-    % The reference point is set to be the maximum of the estimated coefficient
-    %
-    reference_prob = min(max(probability),1);
-    
-    % Note here A is the scaling matrix!
-    for i = 1:num_layers
-        for l = 1:size(neuron_locations{i},1)
-            this_one = neuron_locations{i}(l,1:2);
-            for k = 1:size(probability,1)
-                dist_scaled = (locations(k,1)-this_one(1))^2/A(1,1)+(locations(k,2)- this_one(2))^2/A(2,2);
-                p_ijk = reference_prob*exp(-0.5*dist_scaled);
-                % then check the Gaussian density
-                neuron_likelihood_sum{i}(l,j) = neuron_likelihood_sum{i}(l,j)+normpdf(p_ijk,probability(k),prob_sd(k));
-                neuron_likelihood_max{i}(l,j) = max(neuron_likelihood_max{i}(l,j),normpdf(p_ijk,probability(k),prob_sd(k)));
-                
-            end
-        end
-    end
+    coef = lmCount_related_amp{j}.Coefficients.Estimate;
+    coef_thres = quantile(coef,0.98);
+    potential_neuron_grid = scatter(Z(coef>coef_thres,1), -Z(coef>coef_thres,2), amplitude_threshold(j+1)*25,'filled','o');
+    set(potential_neuron_grid,'MarkerFaceColor','r');
+    alpha(potential_neuron_grid,0.4);
+hold on
+   
 end
+
+hold off
+%saveas(10,'../Data/Sites_to_stimulate.jpg')
+view(2)
+
 
 %% Draw the inferred neurons and their synaptic strengths
 % Merge the neurons in different layers into one big matrix:
