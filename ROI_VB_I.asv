@@ -71,7 +71,7 @@ lmCount_related_amp=cell(size(amp_related_count_trials,2),1);
 %lmCount_related_amp_Robust=cell(size(amp_related_count_trials,2),1);
 for j = 1:size(amp_related_count_trials,2)
     mdl_j=fitlm(covariates,amp_related_count_trials(:,j),'Intercept',false);
-    EstCov = hac(mdl_j);
+    %EstCov = hac(mdl_j);
     lmCount_related_amp{j}=mdl_j;
     %lmCount_related_amp_Robust{j}=EstCov;
 end
@@ -96,7 +96,7 @@ for i = 1:num_layers
     connected_neurons_ind = find(neuron_features(i).amplitude);
     temp = scatter(neuron_locations{i}(connected_neurons_ind,1),...
         -neuron_locations{i}(connected_neurons_ind,2),...
-        neuron_features(i).amplitude(connected_neurons_ind)*35);
+        neuron_features(i).amplitude(connected_neurons_ind)*25);
     set(temp,'MarkerFaceColor','k');
     alpha(temp,0.8);
     hold on
@@ -118,7 +118,7 @@ set(gca,'yticklabels',{'1200','1000','800','600','400','200','0'})
 for j = 1:size(amp_related_count_trials,2)
     coef = lmCount_related_amp{j}.Coefficients.Estimate;
     coef_thres = quantile(coef,0.98);
-    potential_neuron_grid = scatter(Z(coef>coef_thres,1), -Z(coef>coef_thres,2), amplitude_threshold(j+1)*35,'filled','o');
+    potential_neuron_grid = scatter(Z(coef>coef_thres,1), -Z(coef>coef_thres,2), amplitude_threshold(j+1)*25,'filled','o');
     set(potential_neuron_grid,'MarkerFaceColor','r');
     alpha(potential_neuron_grid,0.4);
 hold on
@@ -174,7 +174,7 @@ for j = 1:size(amp_related_count_trials,2)
     alphas = zeros(params.K,1); %ones(params.K, 1) * alpha_0;
     mu = zeros(params.K, 1);
     s_sq = zeros(params.K,1);
-    n_varbvs_samples = 5;
+    n_varbvs_samples = 20;
     % run_varbvs(X, Y, sigma_n, sigma_s, alpha, options)
     % run_varbvs_general(X, Y, sigma_n, sigma_s, alpha, eta, options);
     for sample = 1:n_varbvs_samples
@@ -224,68 +224,16 @@ set(gca,'yticklabels',{'1200','1000','800','600','400','200','0'})
 %     alpha(potential_neuron_grid,0.2);
 
 for j = 1:size(amp_related_count_trials,2)
-    coef = output(j).alpha;
+    coef = output(j).w_estimate;
     coef_thres = quantile(coef,0.98);
-    potential_neuron_grid = scatter(Z(coef>coef_thres,1), -Z(coef>coef_thres,2), amplitude_threshold(j+1)*25,'filled','o');
+    potential_neuron_grid = scatter(Z(coef>coef_thres,1), -Z(coef>coef_thres,2), amplitude_threshold(2+1)*25,'filled','o');
     set(potential_neuron_grid,'MarkerFaceColor','r');
     alpha(potential_neuron_grid,0.4);
-    hold on
-    
+hold on
+   
 end
 
 hold off
 view(2)
 
-%% 
-% Visualize the estiamted weights 
-
-% merging the estimated weights
-w_estimate_merge = [];
-mu_merge = [];
-alpha_merge = [];
-for j = 1:size(amp_related_count_trials,2)
-    w_estimate_merge = [w_estimate_merge output(j).w_estimate];
-    mu_merge = [mu_merge output(j).mu];
-    alpha_merge = [alpha_merge output(j).alpha];
-end
-
-%% Obtain true amplitudes of the related neurons
-Z_amplitudes = all_amplitudes(neuron_in_region==1);
-
-
-
-%% 
-   figure(11)
-  
-for j = 35:40
-       
-    if Z_amplitudes(j) > 0
-        temp = line( amplitude_threshold(2:20),...
-            (j-35)/2+w_estimate_merge(j,:),...
-            'LineWidth',3,...
-            'Color','k');
-        set(temp,'MarkerFaceColor','k');
-        %alpha(temp,0.8);
-        
-        %set(gca,'yticklabels',{'1200','1000','800','600','400','200','0'})
-        
-        %selected_pixels = zeros(num_dense,num_dense,size(amp_related_count_trials,2));
-        %cent = cell(size(amp_related_count_trials,2),1);
-        line([Z_amplitudes(j) Z_amplitudes(j)],...
-            (j-35)/2+[0 0.4],...
-            'LineWidth',4,...
-            'Color','r');
-        xlim([amplitude_threshold(1),amplitude_threshold(20)]);
-        ylim([-0.1,3.1]);
-        %
-    else 
-        temp = line( amplitude_threshold(2:20),...
-            (j-35)/2+w_estimate_merge(j,:),...
-            'LineWidth',3,...
-            'Color','b');
-        %set(temp,'MarkerFaceColor','b');
-        %alpha(temp, 0.3);
-    end
-end
-hold off
 %------------------------End of first stage-------------------------------------%

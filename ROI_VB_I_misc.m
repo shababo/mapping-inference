@@ -1,5 +1,104 @@
 %% Visualizations for the analysis in Stage I
 
+
+% params.A = A
+params = struct;
+params.A=A;
+params.coords=Z(:,1:3);
+params.K = size(Z,1);
+params.N=N;
+
+data=struct;
+data.stims = trial_locations_on_grid;
+
+% Unknows: 
+params.eta = zeros(params.K,1);
+params.sigma_s = ones(params.K,1);
+params.sigma_n = 1;
+
+params.t = 1:1:data_params.T;
+params.tau = 10;
+params.g = 1;
+alpha_sum = sum(alpha_synapse(params.t,0,params.tau,-params.g));
+
+
+pi_kr = exp(-0.5*squareform(pdist(params.coords,'mahalanobis',params.A)).^2);
+
+pi_nk = zeros(params.N,params.K);
+for n = 1:params.N
+    pi_nk(n,:) = min(1,sum(pi_kr(:,data.stims(n,:)),2)');
+end
+
+outputall=struct([]);
+    Y_n = sum(amp_related_count_trials,2);
+    
+    %Y_n = sum(data.responses,2)/alpha_sum;
+    
+    
+    hyperparam_sigma_n = sqrt(length(params.t))*params.sigma_n/abs(alpha_sum);
+    
+    hyperparam_p_connected = .1*ones(params.K,1);
+    
+    alphas = zeros(params.K,1); %ones(params.K, 1) * alpha_0;
+    mu = zeros(params.K, 1);
+    s_sq = zeros(params.K,1);
+    n_varbvs_samples = 5;
+    % run_varbvs(X, Y, sigma_n, sigma_s, alpha, options)
+    % run_varbvs_general(X, Y, sigma_n, sigma_s, alpha, eta, options);
+    for sample = 1:n_varbvs_samples
+        %[alpha_tmp, mu_tmp, s_sq_tmp] = run_varbvs(pi_nk>rand(params.N,params.K), Y_n, hyperparam_sigma_n, params.sigma_s(1), hyperparam_p_connected(1));%, params.eta);
+        [alpha_tmp, mu_tmp, s_sq_tmp] = run_varbvs_general(pi_nk>rand(params.N,params.K), Y_n, hyperparam_sigma_n, params.sigma_s(1), hyperparam_p_connected(1), params.eta);
+        alphas = alphas+alpha_tmp/n_varbvs_samples;
+        mu = mu+mu_tmp/n_varbvs_samples;
+        s_sq = s_sq+s_sq_tmp/n_varbvs_samples;
+    end
+    
+    outputall(1).alpha = alphas;
+    outputall(1).mu = mu;
+    outputall(1).s_sq = mu;
+    
+    %output(j).pi_kr = pi_kr;
+    %output(j).pi_nk = pi_nk;
+    % output(j).Y_scalar = Y_n;
+    
+    outputall(1).w_estimate = alphas.*mu;
+%%
+figure(90)
+
+for i = 1:num_layers
+    connected_neurons_ind = find(neuron_features(i).amplitude);
+    temp = scatter(neuron_locations{i}(connected_neurons_ind,1),...
+        -neuron_locations{i}(connected_neurons_ind,2),...
+        neuron_features(i).amplitude(connected_neurons_ind)*25);
+    set(temp,'MarkerFaceColor','k');
+   alpha(temp,0.8);
+    hold on
+end
+set(gca,'yticklabels',{'1200','1000','800','600','400','200','0'})
+
+%selected_pixels = zeros(num_dense,num_dense,size(amp_related_count_trials,2));
+%cent = cell(size(amp_related_count_trials,2),1);
+
+    xlim([20,460]);
+    ylim([-900,-400]);
+%     
+%      potential_neuron_grid = scatter(Z(:,1),...
+%      -Z(:,2),20,colormap(2,:),...
+%     'filled','d');
+%     set(potential_neuron_grid,'MarkerFaceColor','k');
+%     alpha(potential_neuron_grid,0.2);
+
+    coef = outputall.alpha;
+    coef_thres = quantile(coef,0.80);
+    potential_neuron_grid = scatter(Z(coef>coef_thres,1), -Z(coef>coef_thres,2), 45,'filled','o');
+    set(potential_neuron_grid,'MarkerFaceColor','r');
+    alpha(potential_neuron_grid,0.8);
+    hold on
+
+hold off
+view(2)
+
+
 %% Visualize sites to stimulate 
 figure(10)
 R=2500;
