@@ -5,7 +5,7 @@ rng(12242,'twister');
 
 % Parameters on the grid and experimental design 
 num_sources = 4; 
-N = 6000;
+N = 4000;
 
 % The map will be a square centered at the patched neuron
 region_width = 500;
@@ -147,6 +147,8 @@ evoked_params.stim_tau_rise = .0015*20000; % values for chr2 from lin et al 2009
 evoked_params.stim_tau_fall = .013*20000;
 evoked_params.stim_amp = 0;
 
+evoked_params.sigma_a = 1;
+evoked_params.failure_prob = 0.2;
 %% select a postsyanptic cell
 cell_layer = 5; % 5A
 num_cell_layer_neurons = size(neuron_locations{cell_layer},1);
