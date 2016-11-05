@@ -1,6 +1,6 @@
 function glm_out = run_glm_num_events_spatial(num_events_grid)
 
-num_locations = prod(size(num_events_grid));
+num_locations = numel(num_events_grid);
 
 num_trials = num_locations * length(num_events_grid{1,1});
 

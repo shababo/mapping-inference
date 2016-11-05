@@ -1,5 +1,12 @@
 function [xcorr_peaks, test_stat] = xcorr_peak_trials(traces1,traces2,t_bounds,null)
 
+% size(traces1)
+% size(traces2)
+
+% xcorr_peaks = 0;
+% test_stat = 0;
+% return
+
 if ~isempty(t_bounds)
     if null
         order = randperm(size(traces1,1));
