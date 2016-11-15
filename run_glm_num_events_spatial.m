@@ -17,11 +17,14 @@ for i = 1:size(results_grid,1)
         for k = 1:length(results_grid{i,j})
             
             stim_mat(trial_i,(i-1)*size(results_grid,2) + j + 1) = 1;
-            psth = histcounts(results_grid{i,j}(k).times,1:1:2000);
-            psth = smoothts(psth,'g',100,20);
-            [pks, locs] = findpeaks(psth(150:800),...
-                'MinPeakHeight',.25*std(psth),'MinPeakDistance',20);
-            response(trial_i) = length(pks);
+%             psth = histcounts(results_grid{i,j}(k).times,1:1:2000);
+%             psth = smoothts(psth,'g',100,20);
+%             [pks, locs] = findpeaks(psth(150:800),...
+%                 'MinPeakHeight',.25*std(psth),'MinPeakDistance',20);
+            [~,map_ind] = min(results_grid{i,j}(k).obj);
+            map_sample = ...
+                truncate_samples(results_grid{i,j}(k),[map_ind map_ind]);
+            response(trial_i) = length(map_sample.times);
             if response(trial_i) > 5
                 response(trial_i) = 5;
             end
