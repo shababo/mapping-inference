@@ -147,7 +147,7 @@ evoked_params.stim_tau_rise = .0015*20000; % values for chr2 from lin et al 2009
 evoked_params.stim_tau_fall = .013*20000;
 evoked_params.stim_amp = 0;
 
-evoked_params.sigma_a = 1;
+evoked_params.sigma_a = 0.4;
 evoked_params.failure_prob = 0.2;
 %% select a postsyanptic cell
 cell_layer = 5; % 5A
@@ -189,7 +189,7 @@ Z = zeros(sum(neuron_in_region),3);
 count = 1;
 for i = 1:size(all_neuron_locations,1)
     if neuron_in_region(i) > 0
-        Z(count,:) = all_neuron_locations(i,1:3);
+        Z(count,:) = [all_neuron_locations(i,1:2) postsyn_position(3)];
         count = count + 1;
     end 
 end
@@ -291,8 +291,7 @@ for n = 1:N
 end
 
 pi_k_spike = pi_k;
-pi_k_spike(pi_k_spike > .65) = 1; % what does this mean?
-
+pi_k_spike(pi_k_spike > .65) = 1; 
 % % firing delay means and variances
 % d_mean_nk = d_mean0 + (1 - pi_nk)*d_mean_coef;
 % d_sigma_nk = d_sigma0 + (1 - pi_nk)*d_sigma_coef;
@@ -334,7 +333,7 @@ for n = 1:N
         evoked_params.tau_f = [];
     end
     
-    [Y(n,:), mpp_n] = gen_trace(data_params,bg_params,evoked_params);
+    [Y(n,:), mpp_n] = gen_trace_noise(data_params,bg_params,evoked_params);
     if n == 1
         mpp = mpp_n;
     else
