@@ -82,8 +82,12 @@ for j = 1:size(amp_related_count_trials,2)
     mu = zeros(params.K, 1);
     s_sq = zeros(params.K,1);
     n_varbvs_samples = 5;
+        options= struct();
+    options.verbose= false;
+    options.center= 0;
+
     for sample = 1:n_varbvs_samples
-        [alpha_tmp, mu_tmp, s_sq_tmp] = run_varbvs_general(pi_nk>rand(params.N,params.K), Y_n, hyperparam_sigma_n, params.sigma_s(1), hyperparam_p_connected(1), params.eta);
+        [alpha_tmp, mu_tmp, s_sq_tmp] = run_varbvs_general(pi_nk>rand(params.N,params.K), Y_n, hyperparam_sigma_n, params.sigma_s(1), hyperparam_p_connected(1), params.eta,options);
         alphas = alphas+alpha_tmp/n_varbvs_samples;
         mu = mu+mu_tmp/n_varbvs_samples;
         s_sq = s_sq+s_sq_tmp/n_varbvs_samples;
