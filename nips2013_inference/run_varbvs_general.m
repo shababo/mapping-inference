@@ -10,13 +10,13 @@ hyper_sigma_s_guess = sigma_s.^2;
 hyper_logodds = logit(alpha);
 
 
-if nargin < 7
-    options = struct('verbose', true);
+if ~exist('options')
+        options = struct('verbose', true);
 end
 
-if ~isfield(options,'center')
-    options.center = 1;
-end
+    if ~isfield(options,'center')
+        options.center = 0;
+    end
 
 % CENTER Y and X:
 if options.center

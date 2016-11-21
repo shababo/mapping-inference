@@ -5,7 +5,7 @@ rng(12242,'twister');
 
 % Parameters on the grid and experimental design 
 num_sources = 4; 
-N = 4000;
+N = 2000;
 
 % The map will be a square centered at the patched neuron
 region_width = 500;
