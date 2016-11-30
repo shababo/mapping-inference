@@ -1,35 +1,78 @@
-%% Loading functions and Data generation
-clear;
-addpath(genpath('../psc-detection'),genpath('../mapping-inference'),genpath('../mapping-core'));
-%addpath(genpath('../Data'));
-%%
-% Generate data
-run('gendata_fullmodel_multicells.m')
-% Run Stage I
-run('ROI_VB_I.m')
-%% Hyperparameters:
-num_samples=50; % Number of samples to estimate the expected entropies
-num_trials_batch=20;
+
+%% Option II: fit a full model but use the online update 
+% This might be slow
+% Good news is that it does not depend on Stage I too much 
+% To improve the effiiency, we need to reduce the density of the grid 
 %% Design parameters:
 
-ND=100; % Number of batches
+%% For random stimuli
+%% Find the neurons that locate in the region:
+% 
+% all_neuron_locations record locations of the neurons and their layer info
+all_neuron_locations =zeros(0,4);
+for i = 1:num_layers
+    all_neuron_locations = [all_neuron_locations; [neuron_locations{i}(:,1:3) i*ones(size(neuron_locations{i},1),1) ]];
+end
 
-num_simultaneous_inputs = 4; % Number of locations to stimulate in each trial
-num_peaks = 30;
-% We consider new locations on a grid (rather than the cell somas) in order
-% to gain extra information (e.g., to be able to distinguish two
-% neighbouring cells)
+epsilon = 0.01;
+x_low = postsyn_position(1) - region_width/2-epsilon;
+x_upp = postsyn_position(1) + region_width/2;
+y_low = postsyn_position(2) - region_height/2-epsilon;
+y_upp = postsyn_position(2) + region_height/2;
 
-num_dense=80; % Grid density
+% Identify neurons within this location:
+neuron_in_region = zeros(size(all_neuron_locations,1),1); 
+for i = 1:size(all_neuron_locations,1)
+    if all_neuron_locations(i,1) > x_low & all_neuron_locations(i,1) < x_upp
+        if all_neuron_locations(i,2) > y_low & all_neuron_locations(i,2) < y_upp
+            neuron_in_region(i)=1;
+        end
+    end
+end
 
+Z = zeros(sum(neuron_in_region),3);
+count = 1;
+for i = 1:size(all_neuron_locations,1)
+    if neuron_in_region(i) > 0
+        Z(count,:) = [all_neuron_locations(i,1:2) postsyn_position(3)];
+        count = count + 1;
+    end 
+end
+
+
+%% Define the combination of trials 
+% We want to stimulate neurons that are far apart from each other
+
+% To do this, we split the cells by the quantiles of their x and y
+% coordinates, then alternating between x and y.
+
+% Find the quantiles:
+nquantile = num_sources*2;
+
+[~, ~, x_ranks] = unique(Z(:,1));
+x_freq = x_ranks / size(Z,1);
+
+x_index = ceil(x_freq / (1/nquantile));
+
+x_group = cell(nquantile,1);
+for i = 1:size(Z,1)
+    x_group{x_index(i)} = [x_group{x_index(i)} i];
+end
+max_x_group = 0;
+for i = 1:nquantile
+    max_x_group = max(max_x_group, size(x_group{i},2));
+end
+
+
+
+%% For entropy estimation
 % The new stimuli are chosen to stay away from the true neurons
 % We stimulate a dense grid instead
-x_dense = zeros(num_dense,1);
-y_dense = zeros(num_dense,1);
+%x_dense = zeros(num_dense,1);
+%y_dense = zeros(num_dense,1);
 x_dense = (0:(num_dense-1))*(max(Z(:,1))-min(Z(:,1)))/(num_dense-1) + min(Z(:,1));
 y_dense = (0:(num_dense-1))*(max(Z(:,2))-min(Z(:,2)))/(num_dense-1) + min(Z(:,2));
 Z_dense = zeros(num_dense^2,3);
-
 for i = 1:num_dense
     for l = 1:num_dense
         Z_dense((i-1)*num_dense + l,:) = [x_dense(i) y_dense(l) postsyn_position(3)];
@@ -46,60 +89,16 @@ pi_kr_all = exp(-0.5*(diff_mat));
 % Calculate the probability of firing for the LOCAL neurons (i.e., those
 % that are within the 2-D plane we consider)
 % We will use this in estimating the expectation, and in fitting the model
-B = diag(params.coords*inv(A)*params.coords');
-diff_mat=B*ones(size(Z_dense,1),1)'+(ones(size(params.coords,1),1)*diag(Z_dense*inv(A)*Z_dense')')-2*params.coords*inv(A)*Z_dense';
+B = diag(Z*inv(A)*Z');
+diff_mat=B*ones(size(Z_dense,1),1)'+(ones(size(Z,1),1)*diag(Z_dense*inv(A)*Z_dense')')-2*Z*inv(A)*Z_dense';
 pi_kr_grid = exp(-0.5*(diff_mat));
 
-%% Option I: evaluate the entropy on a reduced model
-% VB inference in each batch is very fast
-% Its validity relies on sufficient data from the first stage 
-
-
-% Given the VB estimates, we can reduce the number of cells to consider for
-% each amplitude bin by removing those with probability of firing being
-% in the lower 80% (purely to reduce the dimension)
-
-% The reduced models have far fewer parameters to fit.
-
-output_reduced= struct([]);
-selected_cells = cell(size(amp_related_count_trials,2),1);
-idx_temp = 1:params.K;
-for j = 1:size(amp_related_count_trials,2)
-    
-    Y_n = amp_related_count_trials(:,j);
-    params.sigma_n = std(Y_n);
-    % Select the cells whose probability of excitation is larger than 0.05
-    selected_cells{j} = idx_temp(output(j).alpha > 0.1);
-    pi_nk_j =pi_nk(:,selected_cells{j});
-    %size(selected_cells{j})
-    hyper_sigma_s = 1*ones( size(selected_cells{j},2)+1,1);
-    hyperparam_p_connected = .1*ones( size(selected_cells{j},2)+1,1);
-    
-    alphas = zeros(size(selected_cells{j},2)+1,1); %ones(params.K, 1) * alpha_0;
-    mu = zeros(size(selected_cells{j},2)+1, 1);
-    s_sq = zeros(size(selected_cells{j},2)+1,1);
-    options= struct();
-    options.verbose= false;
-    options.center= 0;
-    
-    X_temp = pi_nk_j;
-    X_temp = [ones(size(X_temp,1),1) X_temp];
-    [alpha_tmp, mu_tmp, s_sq_tmp] = run_varbvs_general(X_temp, Y_n, params.sigma_n, hyper_sigma_s, hyperparam_p_connected, params.eta,options);
-    output_reduced(j).alpha = alpha_tmp;
-    output_reduced(j).mu = mu_tmp;
-    output_reduced(j).s_sq = s_sq_tmp;
-    
-    output_reduced(j).w_estimate = alpha_tmp.*mu_tmp;
-    output_reduced(j).cell_list = selected_cells{j};
-end
-output_warm= output_reduced;
 
 %% Calculate and save the innner products of weight matrix w
 % The responsive cells might not cover the full space
 % Hence, we can further save some computation by considering only the
 % locations that are relevant (with total firing probability > 0.1)
-cell_list = unique([output_reduced.cell_list]);
-weights_mat_full = pi_kr_grid(cell_list, :);
+weights_mat_full = pi_kr_grid;
 
 % Calculate the inner product of the induced probability
 inner_products = weights_mat_full'*weights_mat_full;
@@ -130,28 +129,30 @@ trace_new = zeros(ND, data_params.T);
 amp_related_count_trials_new = ones(ND,num_threshold-1);
 
 % initialize alpha, mu, and s_sq to the estimates from the reduced model
-output_greedy = output_reduced;
+output_greedy = output;
 
 obj_function = @joint_sparsity_weight_entropy; %
 tic
 locations_record = [];
 time_record = zeros(ND,1);
 for t = 1:ND
-    fprintf('trial %d of %d\n', t, ND);
+    fprintf('Batch %d of %d\n', t, ND);
     %--------------------------------------------------%
     % Part I: evaluate the entropies
-     delta_H = zeros(params.K,1);
+    delta_H = zeros(K_z,1);
     for j = 1:size(amp_related_count_trials,2)
         % compute current objective function value
-        H_current = per_neuron_joint_entropy(output_greedy(j).alpha(2:end), output_greedy(j).mu(2:end), output_greedy(j).s_sq(2:end));
+        H_current = per_neuron_joint_entropy(output_greedy(j).alpha(2:end), ...
+            output_greedy(j).mu(2:end), output_greedy(j).s_sq(2:end));
         % for each neuron, calculate the expected change in the objective function
         hyperparam_sigma_n = std(amp_related_count_trials(:,j));
         
-        H_expected = approximate_expected_joint_entropy_single_neuron(output_greedy(j).alpha(2:end), output_greedy(j).mu(2:end), ...
+        H_expected = approximate_expected_joint_entropy_single_neuron(...
+            output_greedy(j).alpha(2:end), output_greedy(j).mu(2:end), ...
             output_greedy(j).s_sq(2:end), hyperparam_sigma_n, num_samples);
-        delta_H(output_reduced(j).cell_list) = delta_H(output_reduced(j).cell_list) + H_current-H_expected;
+        delta_H = delta_H + H_current-H_expected;
     end
-    entropy_locations = weights_mat_full'*delta_H(cell_list);
+    entropy_locations = weights_mat_full'*delta_H;
     
     idx = [];
     for i = 1:num_peaks
@@ -243,55 +244,39 @@ for t = 1:ND
     % Note: if there is no events at all, the algorithm will report a
     % warning
     output_warm = output_greedy;
-    fprintf('Sum of sq %d \n', sum(output_warm(1).s_sq));
-    
+    X_temp = X_g((t-1)*num_trials_batch+(1:num_trials_batch),:);
+    X_temp = [ones(size(X_temp,1),1) X_temp];
+      
     for j = 1:size(Y_g,2)
-       % fprintf('%d',j);
-        n_selected_cells=size(output_greedy(j).cell_list,2);
+        %fprintf('%d',j);
         Y_n = Y_g((t-1)*num_trials_batch+(1:num_trials_batch),j);
         if  sum(Y_n)==0 
         hyperparam_sigma_n = 1;
         else
         hyperparam_sigma_n = std(Y_n);
-            
         end
         
         hyperparam_p_connected = [output_warm(j).alpha];
         
-        % Prior distribution for mu:
-        hyperparam_eta =  [output_warm(j).mu];
+        hyperparam_eta =  output_warm(j).mu;
         hyperparam_sigma_s = sqrt(output_warm(j).s_sq);
         
-        % fprintf('Sum of mu %d \n', sum(output_warm(j).mu));
-        alphas = zeros(n_selected_cells+1,1); %ones(params.K, 1) * alpha_0;
-        mu = zeros(n_selected_cells+1, 1);
-        s_sq = zeros(n_selected_cells+1,1);
+       
         options = struct();
         options.alpha =  output_warm(j).alpha;
         options.mu= output_warm(j).mu;
         options.verbose= false;
         options.center= 0;
-        
-        
-        % Drop the sampling step, run regression on the probability instead
-        %for sample = 1:n_varbvs_samples
-        %X_temp = X_g(:,output_greedy(j).cell_list)>rand(params.N+t*num_trials_batch, n_selected_cells);
-        X_temp = X_g((t-1)*num_trials_batch+(1:num_trials_batch),output_greedy(j).cell_list);
-        X_temp = [ones(size(X_temp,1),1) X_temp];
-        
-        [alpha_tmp, mu_tmp, s_sq_tmp] = run_varbvs_general(X_temp, Y_n, hyperparam_sigma_n, hyperparam_sigma_s, hyperparam_p_connected, hyperparam_eta, options);
-        alphas = alphas+alpha_tmp/n_varbvs_samples;
-        mu = mu+mu_tmp/n_varbvs_samples;
-        s_sq = s_sq+s_sq_tmp/n_varbvs_samples;
-        %end
-        
-        output_greedy(j).alpha = alphas;
-        output_greedy(j).mu = mu;
-        output_greedy(j).s_sq = s_sq;
-        output_greedy(j).w_estimate = alphas.*mu;
-        
+        [alpha_tmp, mu_tmp, s_sq_tmp] = run_varbvs_general(X_temp, Y_n, ...
+            hyperparam_sigma_n, hyperparam_sigma_s, hyperparam_p_connected, ...
+            hyperparam_eta, options);
+        output_greedy(j).alpha = alpha_tmp;
+        output_greedy(j).mu = mu_tmp;
+        output_greedy(j).s_sq = s_sq_tmp;
+        output_greedy(j).w_estimate = alpha_tmp.*mu_tmp;
     end
-    
     %-------------------------------------------%
     time_record(t) = toc;
 end
+
+
