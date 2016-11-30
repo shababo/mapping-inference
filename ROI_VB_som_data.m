@@ -1,106 +1,156 @@
 %% ROI detection: Stage I
 %  Directly Stimulating cell somas 
-%% Calculate summary statistics 
 
-% Use only the amplitudes in the related regions 
-related_mpp = mpp;
-unrelated_mpp = mpp;
+function output = ROI_VB_som_data(these_maps,cell_type)
 
-% only consider a small time window for events of interest
-for i = 1:size(trial_locations_on_grid,1)
-    if size(mpp(i).event_times,2) > 0
-        indices = mpp(i).event_times>evoked_params.stim_start  & mpp(i).event_times< (400+evoked_params.stim_start);
-        related_mpp(i).amplitudes = mpp(i).amplitudes(indices);
-        related_mpp(i).event_times = mpp(i).event_times(indices);
-        unrelated_mpp(i).amplitudes = mpp(i).amplitudes(~indices);
-        unrelated_mpp(i).event_times = mpp(i).event_times(~indices);
-    end 
-end
-
-
-
-covariates = zeros(size(trial_locations_on_grid,1), size(Z,1));
-for i = 1:N
-	covariates(i, trial_locations_on_grid(i,:)) = 1;    
-end
-
-% With intercept, it is rank deficient. 
-% covariates_intercept = [ones(N,1) covariates];
-% rank(covariates)
-% size(covariates)
-
-
-%% Dividing the events by their amplitudes
-% Now divide the events by quantiles of the amplitudes 
-% We use overlapped regions to avoid separation due to 
-num_threshold=20;
-amplitude_threshold = quantile([related_mpp.amplitudes], (1/num_threshold)*[0:num_threshold]);
-amp_related_count_trials = ones(size(trial_locations_on_grid,1),num_threshold-1);
-for j = 1:(num_threshold-1)
-    for i = 1:size(amp_related_count_trials,1)
-        amp_related_count_trials(i,j) = sum(related_mpp(i).amplitudes>amplitude_threshold(j) & related_mpp(i).amplitudes<(amplitude_threshold(j+2)+0.01));
-    end
-end
-
-%% The VB inference
-
-% params.A = A
-params = struct;
-params.A=A;
-params.coords=Z(:,1:3);
-params.K = size(Z,1); % num targets/cells
-params.N=N; % num trials
-
-data=struct;
-data.stims = trial_locations_on_grid;
-
-% Unknows: 
-params.eta = zeros(params.K,1);
-params.sigma_s = ones(params.K,1);
-params.sigma_n = 1;
-
-params.t = 1:1:data_params.T;
-params.tau = 10;
-params.g = 1;
-alpha_sum = sum(alpha_synapse(params.t,0,params.tau,-params.g));
-
-
-pi_kr = exp(-0.5*squareform(pdist(params.coords,'mahalanobis',params.A)).^2);
-
-pi_nk = zeros(params.N,params.K);
-for n = 1:params.N
-    pi_nk(n,:) = min(1,sum(pi_kr(:,data.stims(n,:)),2)');
-end
+%% build mpp
 output= struct([]);
-for j = 1:size(amp_related_count_trials,2)
-    
-    Y_n = amp_related_count_trials(:,j);
-    hyperparam_sigma_n = sqrt(length(params.t))*params.sigma_n/abs(alpha_sum);
-    
-    hyperparam_p_connected = .1*ones(params.K,1);
-    
-    alphas = zeros(params.K,1); %ones(params.K, 1) * alpha_0;
-    mu = zeros(params.K, 1);
-    s_sq = zeros(params.K,1);
-    n_varbvs_samples = 5;
-        options= struct();
-    options.verbose= false;
-    options.center= 0;
+for map_i = 1:length(these_maps{1}{1})
+    map_i
+    this_map = these_maps{1}{1}{map_i};
+    mpp = struct;
+    trial_locations_on_grid = [];
+    n = 1;
+    loc_id = 1;
+    Z = [];
+    for i = 1:size(this_map,1)
+        for j = 1:size(this_map,2)
 
-    for sample = 1:n_varbvs_samples
-        [alpha_tmp, mu_tmp, s_sq_tmp] = run_varbvs_general(pi_nk>rand(params.N,params.K), Y_n, hyperparam_sigma_n, params.sigma_s(1), hyperparam_p_connected(1), params.eta,options);
-        alphas = alphas+alpha_tmp/n_varbvs_samples;
-        mu = mu+mu_tmp/n_varbvs_samples;
-        s_sq = s_sq+s_sq_tmp/n_varbvs_samples;
+            this_loc = this_map{i,j};
+            Z(loc_id,:) = [(i-1)*20-200 (j-1)*20-200 0];
+            for k = 1:length(this_loc)
+                mpp(n).event_times = this_loc{k}.times;
+                mpp(n).amplitudes = this_loc{k}.amp;
+                trial_locations_on_grid(n) = loc_id;
+
+                n = n + 1;
+            end
+            loc_id = loc_id + 1;
+        end
+    end
+
+    if numel(trial_locations_on_grid) == length(trial_locations_on_grid)
+        trial_locations_on_grid = trial_locations_on_grid';
+    end
+
+    %% params
+    evoked_params.stim_start = 100;
+    params.N = n-1;
+    
+
+
+    %% Calculate summary statistics 
+
+    % Use only the amplitudes in the related regions 
+    related_mpp = mpp;
+    unrelated_mpp = mpp;
+
+
+
+    % only consider a small time window for events of interest
+    for i = 1:size(trial_locations_on_grid,1)
+        if size(mpp(i).event_times,2) > 0
+            indices = mpp(i).event_times>evoked_params.stim_start  & mpp(i).event_times< (400+evoked_params.stim_start);
+            related_mpp(i).amplitudes = mpp(i).amplitudes(indices);
+            related_mpp(i).event_times = mpp(i).event_times(indices);
+            unrelated_mpp(i).amplitudes = mpp(i).amplitudes(~indices);
+            unrelated_mpp(i).event_times = mpp(i).event_times(~indices);
+        end 
+    end
+
+
+
+    covariates = zeros(size(trial_locations_on_grid,1), size(Z,1));
+    for i = 1:params.N
+        covariates(i, trial_locations_on_grid(i)) = 1;    
+    end
+
+    % With intercept, it is rank deficient. 
+    covariates_intercept = [ones(params.N,1) covariates];
+    % rank(covariates)
+    % size(covariates)
+
+
+    %% Dividing the events by their amplitudes
+    % Now divide the events by quantiles of the amplitudes 
+    % We use overlapped regions to avoid separation due to 
+    num_threshold=2;
+    amplitude_threshold = quantile([related_mpp.event_times], (1/num_threshold)*[0:num_threshold]);
+    amp_related_count_trials = ones(size(trial_locations_on_grid,1),num_threshold-1);
+    for j = 1:(num_threshold-1)
+        for i = 1:size(amp_related_count_trials,1)
+            amp_related_count_trials(i,j) = sqrt(sum(related_mpp(i).event_times>amplitude_threshold(j) & related_mpp(i).event_times<(amplitude_threshold(j+2)+0.01)));
+        end
+    end
+
+    %% The VB inference
+
+    % params.A = A
+    % params = struct;
+    % params.A=A;
+    params.coords=Z(:,1:3);
+    params.K = size(Z,1); % num targets/cells
+    % params.N=N; % num trials
+
+    data=struct;
+    data.stims = trial_locations_on_grid;
+
+    % Unknows: 
+    params.eta = 25 * zeros(params.K,1);
+    params.sigma_s = 20*ones(params.K,1);
+    if cell_type(map_i)
+%         params.sigma_n = sqrt(2);
+        params.A = [50 0 0 ; 0 50 0; 0 0 150]*1;
+        hyperparam_p_connected = .1*ones(params.K,1);
+    else
+%         params.sigma_n = sqrt(.75);
+        params.A = [50 0 0 ; 0 50 0; 0 0 150]*1;
+        hyperparam_p_connected = .0005*ones(params.K,1);
     end
     
-    output(j).alpha = alphas;
-    output(j).mu = mu;
-    output(j).s_sq = s_sq;
-  
-    output(j).w_estimate = alphas.*mu;
-end
+%     params.t = 1:1:data_params.T;
+    params.tau = 10;
+    params.g = 1;
+%     alpha_sum = sum(alpha_synapse(params.t,0,params.tau,-params.g));
 
+
+    pi_kr = exp(-0.5*squareform(pdist(params.coords,'mahalanobis',params.A)).^2);
+
+    pi_nk = zeros(params.N,params.K);
+    for n = 1:params.N
+        pi_nk(n,:) = min(1,sum(pi_kr(:,data.stims(n,:)),2)');
+    end
+    
+    for j = 1:size(amp_related_count_trials,2)
+
+        Y_n = amp_related_count_trials(:,j);
+        resp_sorted = amp_related_count_trials(:,j);
+        hyperparam_sigma_n = std(resp_sorted(1:ceil(length(resp_sorted*.75))));%sqrt(length(params.t))*params.sigma_n/abs(alpha_sum);
+
+        
+
+        alphas = zeros(params.K,1); %ones(params.K, 1) * alpha_0;
+        mu = zeros(params.K, 1);
+        s_sq = zeros(params.K,1);
+        n_varbvs_samples = 5;
+            options= struct();
+        options.verbose= false;
+        options.center= 1;
+
+        for sample = 1:n_varbvs_samples
+            [alpha_tmp, mu_tmp, s_sq_tmp] = run_varbvs_general(pi_nk>rand(params.N,params.K), Y_n, hyperparam_sigma_n, params.sigma_s(1), hyperparam_p_connected(1), params.eta,options);
+            alphas = alphas+alpha_tmp/n_varbvs_samples;
+            mu = mu+mu_tmp/n_varbvs_samples;
+            s_sq = s_sq+s_sq_tmp/n_varbvs_samples;
+        end
+
+        output(map_i).sub_vb(j).alpha = alphas;
+        output(map_i).sub_vb(j).mu = mu;
+        output(map_i).sub_vb(j).s_sq = s_sq;
+
+        output(map_i).sub_vb(j).w_estimate = alphas.*mu;
+    end
+end
 %------------------------End of first stage-------------------------------------%
 
 %% Visualize the Bayes estimates:
@@ -131,7 +181,7 @@ end
 % %     alpha(potential_neuron_grid,0.2);
 % 
 % for j = 1:size(amp_related_count_trials,2)
-%     coef = output(j).alpha;
+%     coef = output(map_i).ch1(j).alpha;
 %     coef_thres = quantile(coef,0.98);
 %     potential_neuron_grid = scatter(Z(coef>coef_thres,1), -Z(coef>coef_thres,2), amplitude_threshold(j+1)*25,'filled','o');
 %     set(potential_neuron_grid,'MarkerFaceColor','r');
@@ -151,9 +201,9 @@ end
 % mu_merge = [];
 % alpha_merge = [];
 % for j = 1:size(amp_related_count_trials,2)
-%     w_estimate_merge = [w_estimate_merge output(j).w_estimate];
-%     mu_merge = [mu_merge output(j).mu];
-%     alpha_merge = [alpha_merge output(j).alpha];
+%     w_estimate_merge = [w_estimate_merge output(map_i).ch1(j).w_estimate];
+%     mu_merge = [mu_merge output(map_i).ch1(j).mu];
+%     alpha_merge = [alpha_merge output(map_i).ch1(j).alpha];
 % end
 % 
 % %% Obtain true amplitudes of the related neurons
