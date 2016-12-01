@@ -1,4 +1,4 @@
-function [glm_out, response_map] = run_glm_num_events_spatial_mapest(map_est,time_window)
+function [glm_out, response_map] = run_glm_num_events_spatial_mapest(map_est,time_window,resp_only)
 
 num_locations = numel(map_est);
 
@@ -39,9 +39,13 @@ for i = 1:size(map_est,1)
     end
 end
 
-% [~, ~, glm_out] = glmfit(stim_mat,response,'poisson');
-options.alpha = 1.0;
-options.nfolds = 3;
-glm_out = cvglmnet(stim_mat,response,'poisson',options);
-figure;
-imagesc(response_map)
+if ~resp_only
+    % [~, ~, glm_out] = glmfit(stim_mat,response,'poisson');
+    options.alpha = 1.0;
+    options.nfolds = 3;
+    glm_out = cvglmnet(stim_mat,response,'poisson',options);
+else
+    glm_out = 0;
+end
+% figure;
+% imagesc(response_map)

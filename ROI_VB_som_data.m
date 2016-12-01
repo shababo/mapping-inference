@@ -50,7 +50,7 @@ for map_i = 1:length(these_maps{1}{1})
     % only consider a small time window for events of interest
     for i = 1:size(trial_locations_on_grid,1)
         if size(mpp(i).event_times,2) > 0
-            indices = mpp(i).event_times>evoked_params.stim_start  & mpp(i).event_times< (400+evoked_params.stim_start);
+            indices = mpp(i).event_times>evoked_params.stim_start & mpp(i).amplitudes > 15;
             related_mpp(i).amplitudes = mpp(i).amplitudes(indices);
             related_mpp(i).event_times = mpp(i).event_times(indices);
             unrelated_mpp(i).amplitudes = mpp(i).amplitudes(~indices);
@@ -66,7 +66,7 @@ for map_i = 1:length(these_maps{1}{1})
     end
 
     % With intercept, it is rank deficient. 
-    covariates_intercept = [ones(params.N,1) covariates];
+%     covariates_intercept = [ones(params.N,1) covariates];
     % rank(covariates)
     % size(covariates)
 
@@ -96,16 +96,16 @@ for map_i = 1:length(these_maps{1}{1})
     data.stims = trial_locations_on_grid;
 
     % Unknows: 
-    params.eta = 25 * zeros(params.K,1);
-    params.sigma_s = 20*ones(params.K,1);
+    params.eta = 1.5 * zeros(params.K,1);
+    params.sigma_s = 1*ones(params.K,1);
     if cell_type(map_i)
 %         params.sigma_n = sqrt(2);
-        params.A = [50 0 0 ; 0 50 0; 0 0 150]*1;
+        params.A = [100 0 0 ; 0 100 0; 0 0 100]*.25;
         hyperparam_p_connected = .1*ones(params.K,1);
     else
 %         params.sigma_n = sqrt(.75);
-        params.A = [50 0 0 ; 0 50 0; 0 0 150]*1;
-        hyperparam_p_connected = .0005*ones(params.K,1);
+        params.A = [100 0 0 ; 0 100 0; 0 0 100]*.25;
+        hyperparam_p_connected = .1*ones(params.K,1);
     end
     
 %     params.t = 1:1:data_params.T;
@@ -121,18 +121,20 @@ for map_i = 1:length(these_maps{1}{1})
         pi_nk(n,:) = min(1,sum(pi_kr(:,data.stims(n,:)),2)');
     end
     
+    assignin('base','pi_nk',pi_nk)
+
     for j = 1:size(amp_related_count_trials,2)
 
         Y_n = amp_related_count_trials(:,j);
         resp_sorted = amp_related_count_trials(:,j);
-        hyperparam_sigma_n = std(resp_sorted(1:ceil(length(resp_sorted*.75))));%sqrt(length(params.t))*params.sigma_n/abs(alpha_sum);
+        hyperparam_sigma_n = std(resp_sorted(1:ceil(length(resp_sorted*.50))));%sqrt(length(params.t))*params.sigma_n/abs(alpha_sum);
 
         
 
         alphas = zeros(params.K,1); %ones(params.K, 1) * alpha_0;
         mu = zeros(params.K, 1);
         s_sq = zeros(params.K,1);
-        n_varbvs_samples = 5;
+        n_varbvs_samples = 10;
             options= struct();
         options.verbose= false;
         options.center= 1;
