@@ -1,23 +1,15 @@
 %% Generate data from circuit mapping model with multi-cell stimuli
-% NOTE: the locations of neurons are assumed to be known
 %% build layers
-
 % set priors on layer boundaries (from Lefort et al 2009)
 num_layers = 7;
 layer_names = {'L1','L2','L3','L4','L5A','L5B','L6'};
 layer_bottom_means = [0 128 269 418 588 708 890 1154];
 layer_bottom_sds = [0 18 36 44 44 62 80 116]/10;
-
 % draw layer boundaries
 layer_boundaries = normrnd(layer_bottom_means,layer_bottom_sds);
 while any(diff(layer_boundaries) < 20)
     layer_boundaries = normrnd(layer_bottom_means,layer_bottom_sds);
 end
-
-% plot layers
-% figure(1234)
-% plot([0 1],-bsxfun(@times,[ones(num_layers + 1,2)],[layer_boundaries]'))
-
 %% draw number of cells per layer
 % set priors (from Lefort et al 2009)
 exc_neurons_per_layer_mean = [0 546 1145 1656 454 641 1288]/3;
@@ -30,6 +22,8 @@ end
 % size of region containing neurons (or region we can stim)
 barrel_width = 600;
 slide_width = 100;
+
+
 
 % how many neurons are excitatory (for now we will only consider a
 % homogenous population of excitatory neurons - in the future we may
@@ -117,8 +111,6 @@ bg_params.firing_rate = 20; %spike/sec
 
 %% stim paramters
 
-% covariance of point spread function
-A = diag([200, 200, 750]);
 
 evoked_params.stim_tau_rise = .0015*20000; % values for chr2 from lin et al 2009 (biophysics)
 evoked_params.stim_tau_fall = .013*20000;
@@ -148,4 +140,50 @@ d_sigma0 = .002;
 d_mean_coef = .005;
 d_sigma_coef = .050;
 
+%% Connectivity and amplitudes
+% 
+region_width = 500;
+region_height = 500;
+
+% all_neuron_locations record locations of the neurons and their layer info
+all_neuron_locations =zeros(0,4);
+for i = 1:num_layers
+    all_neuron_locations = [all_neuron_locations; [neuron_locations{i}(:,1:3) i*ones(size(neuron_locations{i},1),1) ]];
+end
+epsilon = 0.01; % To avoid ties
+x_low = postsyn_position(1) - region_width/2-epsilon;
+x_upp = postsyn_position(1) + region_width/2;
+y_low = postsyn_position(2) - region_height/2-epsilon;
+y_upp = postsyn_position(2) + region_height/2;
+
+% Identify neurons within this location:
+neuron_in_region = zeros(size(all_neuron_locations,1),1); 
+for i = 1:size(all_neuron_locations,1)
+    if all_neuron_locations(i,1) > x_low & all_neuron_locations(i,1) < x_upp
+        if all_neuron_locations(i,2) > y_low & all_neuron_locations(i,2) < y_upp
+            neuron_in_region(i)=1;
+        end
+    end
+end
+
+Z = zeros(sum(neuron_in_region),3); % Stimulus locations
+count = 1;
+for i = 1:size(all_neuron_locations,1)
+    if neuron_in_region(i) > 0
+        Z(count,:) = [all_neuron_locations(i,1:2) postsyn_position(3)];
+        count = count + 1;
+    end 
+end
+
+K_z = size(Z,1); % Number of neurons in the region
+ 
+local_neuron_amplitudes = zeros(K_z,1); % Amplitudes of neurons in this region
+
+count = 1;
+for i = 1:size(all_amplitudes,1)
+    if neuron_in_region(i) > 0
+        local_neuron_amplitudes(count) = all_amplitudes(i);
+        count = count + 1;
+    end 
+end
 
