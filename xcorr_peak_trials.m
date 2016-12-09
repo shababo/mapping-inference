@@ -1,5 +1,12 @@
 function [xcorr_peaks, test_stat] = xcorr_peak_trials(traces1,traces2,t_bounds,null)
 
+size(traces1)
+size(traces2)
+
+% xcorr_peaks = 0;
+% test_stat = 0;
+% return
+
 if ~isempty(t_bounds)
     if null
         order = randperm(size(traces1,1));
@@ -15,7 +22,7 @@ end
 
 [this_xcorr,lags] = xcorr(traces1(:),traces2(:));
 % figure; plot(lags,this_xcorr)
-this_xcorr = this_xcorr(lags > -20 & lags < 20);
+this_xcorr = this_xcorr(lags > -5 & lags < 5);
 [xcorr_peaks, i] = max(this_xcorr);
 assignin('base','lags',lags)
 num_lags = length(this_xcorr);

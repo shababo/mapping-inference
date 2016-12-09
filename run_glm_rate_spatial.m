@@ -29,4 +29,5 @@ end
 
 % [~, ~, glm_out] = glmfit(stim_mat,response,'poisson');
 glm_out = cvglmnet(stim_mat,response,'gaussian');
+% glm_out = [];
 figure; imagesc(response_map)

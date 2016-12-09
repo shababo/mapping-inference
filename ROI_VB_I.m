@@ -163,6 +163,7 @@ end
 
 related_mpp = mpp;
 
+% only consider a small time window for events of interest
 for i = 1:size(trial_locations_on_grid,1)
     if size(mpp(i).event_times,2) > 0
         indices = mpp(i).event_times>evoked_params.stim_start  & mpp(i).event_times< (400+evoked_params.stim_start);
@@ -193,7 +194,7 @@ end
 
 %% Fit a rough model on data from Stage I
 
-% params.A = A
+
 
 K_z = size(Z,1);
 
