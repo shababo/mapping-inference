@@ -1,0 +1,5 @@
+- Optimal_design.m is the main script for running the toy simulation
+- Parameters related to the data generating mechanism and experiments are in Parameter_setup_experiment.m and Parameter_setup_ground_truth.m
+- Experiment_full.m contains code for simulating the design & data collection for a few batches
+- Experiment_evaluate.m is a short script for evaluating the performance
+- Simulation_summary.m summarizes the results. 

@@ -1,5 +1,5 @@
 function H_k = per_neuron_joint_entropy(alpha, mu, s_squared)
-
+% Modify to emphasize the role of s_squared
 log_alpha = log(alpha);
 log_alpha_less_1 = log(1-alpha);
 
