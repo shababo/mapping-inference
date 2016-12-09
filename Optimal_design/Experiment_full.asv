@@ -1,9 +1,20 @@
 %% Run Batches t_start to t_end
-% Need to turn this into a function
+% Need to turn this into a function 
 % Inputs: output, t_start, t_end, pi_dense_all, num_trials_first, num_trials_batch
-% pi_dense_local, num_sources, num_this_batch, num_peaks, amplitude_threshold
-% evoked_params, d_mean_nk, d_mean0, d_mean_coef, d_sigma_nk, d_sigma0, d_sigma_coef
+% pi_dense_local
 
+num_sources*num_this_batch/num_peaks
+
+evoked_params
+
+amplitude_threshold
+
+
+d_mean_nk = d_mean0 + (1.5 - X_next_all)*d_mean_coef;
+    d_sigma_nk = d_sigma0 + (1 - X_next_all)*d_sigma_coef;
+    
+    
+    
 grid_index = 1:size(pi_dense_all,2);
 K_z = size(pi_dense_local,1);
 
@@ -24,7 +35,6 @@ for t = t_start:t_end
         
         for l = 1:num_this_batch
             locations_next = randsample(grid_index, num_sources);
-            locations_trials(start_this_batch+l,:)=locations_next;
             X_next(:,l) = min(.95,sum(pi_dense_local(:, locations_next) ,2));
             X_next_all(:,l) = min(.95,sum(pi_dense_all(:,locations_next),2));
         end
@@ -46,7 +56,8 @@ for t = t_start:t_end
             for j = 1:(num_threshold)
                 H_current = per_neuron_joint_entropy(output(j).alpha, ...
                     output(j).mu, output(j).s_sq);
-                Y_n = Y_g(1:start_this_batch,j);
+                
+                Y_n = Y_g(1:max(index_this_batch),j);
                 
                 if sqrt_transform
                     % Variance stablization transformation
@@ -57,7 +68,7 @@ for t = t_start:t_end
                 else
                     hyperparam_sigma_n = std(Y_n);
                 end
-                
+        
                 H_expected = approximate_expected_joint_entropy_single_neuron_poisson(...
                     output(j).alpha, output(j).mu, ...
                     output(j).s_sq, hyperparam_sigma_n, num_samples);
@@ -85,7 +96,6 @@ for t = t_start:t_end
         X_next_all = zeros(size(pi_dense_all,1), num_this_batch);
         for l = 1:num_this_batch
             locations_next = idx_seq((l-1)*num_sources + (1:num_sources));
-            locations_trials(start_this_batch+l,:)=locations_next;
             X_next(:,l) = min(.95,sum(pi_dense_local(:, locations_next) ,2));
             X_next_all(:,l) = min(.95,sum(pi_dense_all(:,locations_next),2));
         end
@@ -93,7 +103,7 @@ for t = t_start:t_end
     
     
     %--------------------------------------
-    % Draw mew samples
+    % Draw mew sa,[;es
     pi_k_spike = X_next_all;
     
     % firing delay means and variances
@@ -190,8 +200,14 @@ for t = t_start:t_end
     %-------------------------------------------%
     time_end = toc;
     time_batch = time_end - time_start;
-    
-    
-    X_g(index_this_batch,:) =X_next';
-    time_record(t) = time_batch;
+  
 end
+locations_next;    
+X_next'    
+
+amplitude_threshold
+
+% Save them into:
+
+locations_trials(start_this_batch+l,:)
+X_g(index_this_batch,:)

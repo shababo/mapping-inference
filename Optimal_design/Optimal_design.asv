@@ -30,11 +30,11 @@ mark = 0; % 0: amplitude; 1: latency.
 obj_function = @joint_sparsity_weight_entropy; %
 
 %%
-num_sim = 10;
+num_sim 
 %% Random design
 design = 0; % 0: random design; 1: optimal design
 
-for randomseed = 1:num_sim    
+for randomseed = 1:10    
     rng(randomseed,'twister');
 
     flnm=strcat('../../Data/sim-results/A', num2str(Aval), 'Design', num2str(design),...
@@ -92,7 +92,7 @@ end
 
 design = 1;
 
-for randomseed = 1:num_sim
+for randomseed = 1:10
     rng(randomseed,'twister');
 
     flnm=strcat('../../Data/sim-results/A', num2str(Aval), 'Design', num2str(design),...

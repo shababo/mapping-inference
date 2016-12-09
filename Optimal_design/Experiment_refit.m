@@ -1,5 +1,4 @@
-%% Option II:
-% Fit a "full" model for evaluation
+%% Waste code
 %%
 % initialize alpha, mu, and s_sq to the estimates from the reduced model
 fprintf('Evaluate Batch %d of %d\n', t, N);
