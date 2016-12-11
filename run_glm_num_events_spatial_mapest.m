@@ -26,7 +26,7 @@ for i = 1:size(map_est,1)
 %                 truncate_samples(results_grid{i,j}(k),[map_ind map_ind]);
             this_map_est = these_map_ests{k};
             
-            response(trial_i) = sum(this_map_est.times >= time_window(1) & this_map_est.times <= time_window(2) & this_map_est.amp >= 15);
+            response(trial_i) = sum(this_map_est.times >= time_window(1) & this_map_est.times <= time_window(2) & this_map_est.amp >= 0);
 %             if response(trial_i) > 5
 %                 response(trial_i) = 5;
 %             end
@@ -35,7 +35,7 @@ for i = 1:size(map_est,1)
             
             
         end
-        response_map(i,j) = response_map(i,j)/length(map_est{i,j});
+%         response_map(i,j) = response_map(i,j)/length(map_est{i,j});
     end
 end
 
