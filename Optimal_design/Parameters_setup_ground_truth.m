@@ -187,3 +187,11 @@ for i = 1:size(all_amplitudes,1)
     end 
 end
 
+local_neuron_latencies = zeros(K_z,1); % Amplitudes of neurons in this region
+count = 1;
+for i = 1:size(all_amplitudes,1)
+    if neuron_in_region(i) > 0
+        local_neuron_latencies(count) = all_tau_rise(i);
+        count = count + 1;
+    end 
+end

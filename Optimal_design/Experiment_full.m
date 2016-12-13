@@ -1,7 +1,7 @@
 %% Run Batches t_start to t_end
 % Need to turn this into a function
 % Inputs: output, t_start, t_end, pi_dense_all, num_trials_first, num_trials_batch
-% pi_dense_local, num_sources, num_this_batch, num_peaks, amplitude_threshold
+% pi_dense_local, num_sources, num_this_batch, num_peaks, threshold
 % evoked_params, d_mean_nk, d_mean0, d_mean_coef, d_sigma_nk, d_sigma0, d_sigma_coef
 
 grid_index = 1:size(pi_dense_all,2);
@@ -128,9 +128,7 @@ for t = t_start:t_end
     end
     
     % Create amplitude/latency bins
-    if t == 1
-        amplitude_threshold=  quantile([mpp_new.amplitudes], (1/num_threshold)*[0:num_threshold]);
-    end
+    
     
     % Count the events in each amplitude bins:
     related_mpp_n=struct();
@@ -139,13 +137,28 @@ for t = t_start:t_end
             indices = mpp_new(start_this_batch+l).event_times>evoked_params.stim_start ...
                 & mpp_new( start_this_batch+l  ).event_times< (400+evoked_params.stim_start);
             related_mpp_n(l).amplitudes = mpp_new( start_this_batch+l  ).amplitudes(indices);
-            related_mpp_n(l).event_times = mpp_new(start_this_batch+l  ).event_times(indices);
+            related_mpp_n(l).event_times = mpp_new(start_this_batch+l  ).event_times(indices)-evoked_params.stim_start;
         else
             related_mpp_n(l).amplitudes = [];
             related_mpp_n(l).event_times = [];
         end
+    end
+    if t == 1
+        if mark == 0
+            threshold=  quantile([related_mpp_n.amplitudes], (1/num_threshold)*[0:num_threshold]);
+        elseif mark == 1
+            threshold=  quantile([related_mpp_n.event_times], (1/num_threshold)*[0:num_threshold]);
+        end
+    end
+    for l = 1:num_this_batch
         for j = 1:num_threshold
-            Y_g(start_this_batch+l,j) = sum(related_mpp_n(l).amplitudes>amplitude_threshold(j) & related_mpp_n(l).amplitudes<(amplitude_threshold(j+1)+0.01));
+            if mark == 0
+                Y_g(start_this_batch+l,j) = sum(related_mpp_n(l).amplitudes>threshold(j) & related_mpp_n(l).amplitudes<(threshold(j+1)+0.01));
+            elseif mark==1
+                Y_g(start_this_batch+l,j) = sum(related_mpp_n(l).event_times >threshold(j) & related_mpp_n(l).event_times <(threshold(j+1)+0.01));
+                
+            end
+            
         end
     end
     
