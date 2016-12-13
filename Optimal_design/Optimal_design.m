@@ -26,11 +26,11 @@ num_peaks = 20;
 
 sqrt_transform = false; % whether to use squared transformation
 num_threshold=10; % number of bins to use
-mark = 0; % 0: amplitude; 1: latency.
+mark = 1; % 0: amplitude; 1: latency.
 obj_function = @joint_sparsity_weight_entropy; %
 
 %%
-num_sim = 10;
+num_sim = 2;
 %% Random design
 design = 0; % 0: random design; 1: optimal design
 
@@ -38,7 +38,7 @@ for randomseed = 1:num_sim
     rng(randomseed,'twister');
 
     flnm=strcat('../../Data/sim-results/A', num2str(Aval), 'Design', num2str(design),...
-        'Seed',num2str(randomseed),'.mat'); 
+        'Mark', num2str(mark), 'Seed',num2str(randomseed),'.mat'); 
     % Run analysis and design
     
     % Initialize starting values
@@ -77,12 +77,12 @@ for randomseed = 1:num_sim
     run('Experiment_evaluate.m')
     
     NRE_conn_random = NRE_conn;
-    NRE_amp_random = NRE_amp;
+    NRE_mark_random = NRE_mark;
     AUC_conn_random = AUC_conn;
 
     save(flnm, 'output_random','X_random',...
         'location_random','mpp_random','time_record_random',...
-        'NRE_conn_random','NRE_amp_random','AUC_conn_random')
+        'NRE_conn_random','NRE_mark_random','AUC_conn_random')
 end
 
 
@@ -96,7 +96,7 @@ for randomseed = 1:num_sim
     rng(randomseed,'twister');
 
     flnm=strcat('../../Data/sim-results/A', num2str(Aval), 'Design', num2str(design),...
-        'Seed',num2str(randomseed),'.mat');
+        'Mark', num2str(mark),'Seed',num2str(randomseed),'.mat');
     % Initialize starting values
     output= struct([]);
     for j = 1:num_threshold
@@ -134,11 +134,11 @@ for randomseed = 1:num_sim
     run('Experiment_evaluate.m')
     
     NRE_conn_optimal = NRE_conn;
-    NRE_amp_optimal = NRE_amp;
+    NRE_mark_optimal = NRE_mark;
     AUC_conn_optimal = AUC_conn;
     
     save(flnm, 'output_optimal','X_optimal',...
         'location_optimal','mpp_optimal','time_record_optimal',...
-        'NRE_conn_optimal','NRE_amp_optimal','AUC_conn_optimal')
+        'NRE_conn_optimal','NRE_mark_optimal','AUC_conn_optimal')
     
 end

@@ -2,40 +2,40 @@ clear;
 %%
 N=200;
 Aval = 20;
-num_sim = 10;
-
+num_sim = 2;
+mark=0;
 dt_optimal_sum = zeros(200,num_sim);
 NRE_conn_optimal_sum = zeros(N/10,num_sim);
-NRE_amp_optimal_sum = zeros(N/10,num_sim);
+NRE_mark_optimal_sum = zeros(N/10,num_sim);
 AUC_conn_optimal_sum = zeros(N/10,num_sim);
 
 dt_random_sum = zeros(200,num_sim);
 NRE_conn_random_sum = zeros(N/10,num_sim);
-NRE_amp_random_sum = zeros(N/10,num_sim);
+NRE_mark_random_sum = zeros(N/10,num_sim);
 AUC_conn_random_sum = zeros(N/10,num_sim);
 
 
-for randomseed = 1:10
+for randomseed = 1:num_sim
     
     design=0;
     flnm=strcat('../../Data/sim-results/A', num2str(Aval), 'Design', num2str(design),...
-        'Seed',num2str(randomseed),'.mat');
+       'Mark', num2str(mark),  'Seed',num2str(randomseed),'.mat');
     
     load(flnm)
     dt_random_sum(:,randomseed) = time_record_random;
     
     NRE_conn_random_sum(:,randomseed) = NRE_conn_random;
-    NRE_amp_random_sum(:,randomseed) = NRE_amp_random;
+    NRE_mark_random_sum(:,randomseed) = NRE_mark_random;
     AUC_conn_random_sum(:,randomseed) = AUC_conn_random;
     
     
     design=1;
     flnm=strcat('../../Data/sim-results/A', num2str(Aval), 'Design', num2str(design),...
-        'Seed',num2str(randomseed),'.mat');
+        'Mark', num2str(mark), 'Seed',num2str(randomseed),'.mat');
     load(flnm)
     dt_optimal_sum(:,randomseed) = time_record_optimal;
     NRE_conn_optimal_sum(:,randomseed) = NRE_conn_optimal;
-    NRE_amp_optimal_sum(:,randomseed) = NRE_amp_optimal;
+    NRE_mark_optimal_sum(:,randomseed) = NRE_mark_optimal;
     AUC_conn_optimal_sum(:,randomseed) = AUC_conn_optimal;
     
     
@@ -84,20 +84,20 @@ hold off;
 
 
 figure(3)
-plot(1:(N/10), mean(NRE_amp_random_sum,2) ,'col',[1,0,0,1],'Linewidth',4);
+plot(1:(N/10), mean(NRE_mark_random_sum,2) ,'col',[1,0,0,1],'Linewidth',4);
 hold on;
-plot(1:(N/10), mean(NRE_amp_optimal_sum,2) ,'col',[0,0,1,1],'Linewidth',4);
+plot(1:(N/10), mean(NRE_mark_optimal_sum,2) ,'col',[0,0,1,1],'Linewidth',4);
 xlim([0,N/10+1]);
 ylim([0.3,2]);
 
 for i = 1:num_sim
-    plot(1:(N/10), NRE_amp_random_sum(:,i),'col',[1,0,0,0.1],'Linewidth',1);
-    plot(1:(N/10), NRE_amp_optimal_sum(:,i),'col',[0,0,1,0.1],'Linewidth',1);
+    plot(1:(N/10), NRE_mark_random_sum(:,i),'col',[1,0,0,0.1],'Linewidth',1);
+    plot(1:(N/10), NRE_mark_optimal_sum(:,i),'col',[0,0,1,0.1],'Linewidth',1);
 end
 hold off;
 
 xlabel('Number of batches');
-ylabel('NRE of amplitudes');
+ylabel('NRE of marks');
 
 xticks([0 5 10 15 20])
 xticklabels({'0', '50', '100', '150', '200'})
@@ -128,7 +128,7 @@ hold off;
 
 %saveas(2,strcat(outflnm,'NRE_conn','.jpg'));
 
-%saveas(3,strcat(outflnm,'NRE_amp','.jpg'));
+%saveas(3,strcat(outflnm,'NRE_mark','.jpg'));
 
 %saveas(4,strcat(outflnm,'AUC_conn','.jpg'));
 
