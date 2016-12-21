@@ -1,8 +1,8 @@
 clear;
 %%
 N=200;
-Aval = 20;
-num_sim = 2;
+Aval = 400;
+num_sim = 10;
 mark=0;
 dt_optimal_sum = zeros(200,num_sim);
 NRE_conn_optimal_sum = zeros(N/10,num_sim);
@@ -18,7 +18,7 @@ AUC_conn_random_sum = zeros(N/10,num_sim);
 for randomseed = 1:num_sim
     
     design=0;
-    flnm=strcat('../../Data/sim-results/A', num2str(Aval), 'Design', num2str(design),...
+    flnm=strcat('../../Data/sim-results/LIFA', num2str(Aval), 'Design', num2str(design),...
        'Mark', num2str(mark),  'Seed',num2str(randomseed),'.mat');
     
     load(flnm)
@@ -41,14 +41,14 @@ for randomseed = 1:num_sim
     
 end
 
-outflnm = strcat('../Figures/Simulation-optimal/A', num2str(Aval));
+outflnm = strcat('../../Figures/Simulation-optimal/LIFA', num2str(Aval));
 
 %% Plotting
 figure(1)
 plot(1:N, mean(dt_random_sum,2) ,'col',[1,0,0,1],'Linewidth',4);
 hold on;
 plot(1:N, mean(dt_optimal_sum,2) ,'col',[0,0,1,1],'Linewidth',4);
-ylim([0,12]);
+ylim([0,8]);
 xlim([0,N]);
 for i = 1:num_sim
     plot(1:N, dt_random_sum(:,i),'col',[1,0,0,0.1],'Linewidth',1);
@@ -97,7 +97,7 @@ end
 hold off;
 
 xlabel('Number of batches');
-ylabel('NRE of marks');
+ylabel('NRE of event sizes');
 
 xticks([0 5 10 15 20])
 xticklabels({'0', '50', '100', '150', '200'})
@@ -124,13 +124,13 @@ xticks([0 5 10 15 20])
 xticklabels({'0', '50', '100', '150', '200'})
 hold off;
 
-%saveas(1,strcat(outflnm,'Time','.jpg'));
+saveas(1,strcat(outflnm,'Time','.jpg'));
 
-%saveas(2,strcat(outflnm,'NRE_conn','.jpg'));
+saveas(2,strcat(outflnm,'NRE_conn','.jpg'));
 
-%saveas(3,strcat(outflnm,'NRE_mark','.jpg'));
+saveas(3,strcat(outflnm,'NRE_mark','.jpg'));
 
-%saveas(4,strcat(outflnm,'AUC_conn','.jpg'));
+saveas(4,strcat(outflnm,'AUC_conn','.jpg'));
 
 %------------------------------------------------------------------%
 %% Other plots

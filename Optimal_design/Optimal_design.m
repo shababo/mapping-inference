@@ -5,11 +5,12 @@ addpath(genpath('../../psc-detection'),genpath('../../mapping-inference'),genpat
 rng(12242,'twister');
 
 % load parameters for the model
-run('./Parameters_setup_ground_truth.m')
+% run('./Parameters_setup_ground_truth.m')
+run('./Parameters_setup_LIF.m')
 
 num_dense=40; % Number of grids
-Aval = 20;
-A = diag([Aval, Aval, 750]); %<--- 
+Aval = 400;
+A = diag([Aval, Aval, 1500]); %<--- 
 
 run('Parameters_setup_experiment.m')
 
@@ -26,18 +27,21 @@ num_peaks = 20;
 
 sqrt_transform = false; % whether to use squared transformation
 num_threshold=10; % number of bins to use
-mark = 1; % 0: amplitude; 1: latency.
+mark = 0; % 0: amplitude; 1: latency.
 obj_function = @joint_sparsity_weight_entropy; %
 
+% Fix the stimulation to be 100 for now
+num_I_Stim=1; % set the stimulus to be a constant value, e.g., 100
+% 1: 100; 6: 50; 11: 25;    
 %%
-num_sim = 2;
+num_sim = 10;
 %% Random design
 design = 0; % 0: random design; 1: optimal design
 
 for randomseed = 1:num_sim    
     rng(randomseed,'twister');
 
-    flnm=strcat('../../Data/sim-results/A', num2str(Aval), 'Design', num2str(design),...
+    flnm=strcat('../../Data/sim-results/LIFA', num2str(Aval), 'Design', num2str(design),...
         'Mark', num2str(mark), 'Seed',num2str(randomseed),'.mat'); 
     % Run analysis and design
     
@@ -61,7 +65,8 @@ for randomseed = 1:num_sim
     for outer_i = 1:(N/10)
         t_start = (outer_i-1)*10+1;
         t_end = outer_i*10;
-        run('Experiment_full.m');
+        %run('Experiment_full.m');
+        run('Experiment_LIF.m');
         output_random{outer_i}=output;
     end
     X_random = X_g;
@@ -95,7 +100,7 @@ design = 1;
 for randomseed = 1:num_sim
     rng(randomseed,'twister');
 
-    flnm=strcat('../../Data/sim-results/A', num2str(Aval), 'Design', num2str(design),...
+    flnm=strcat('../../Data/sim-results/LIFA', num2str(Aval), 'Design', num2str(design),...
         'Mark', num2str(mark),'Seed',num2str(randomseed),'.mat');
     % Initialize starting values
     output= struct([]);
@@ -118,7 +123,9 @@ for randomseed = 1:num_sim
     for outer_i = 1:(N/10)
         t_start = (outer_i-1)*10+1;
         t_end = outer_i*10;
-        run('Experiment_full.m');
+        %run('Experiment_full.m');
+        run('Experiment_LIF.m');
+        
         output_optimal{outer_i}=output;
     end
     X_optimal= X_g;
