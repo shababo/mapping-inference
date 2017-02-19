@@ -25,12 +25,12 @@ for i = 1:size(map_est,1)
 %             map_sample = ...
 %                 truncate_samples(results_grid{i,j}(k),[map_ind map_ind]);
             this_map_est = these_map_ests{k};
-            [this_map_est.times, sort_inds] = sort(this_map_est.times);
-            this_map_est.amp = this_map_est.amp(sort_inds);
-            this_map_est.amp(find(diff(this_map_est.times) < 60) + 1) = [];
-            this_map_est.times(find(diff(this_map_est.times) < 60) + 1) = [];
+%             [this_map_est.times, sort_inds] = sort(this_map_est.times);
+%             this_map_est.amp = this_map_est.amp(sort_inds);
+%             this_map_est.amp(find(diff(this_map_est.times) < 60) + 1) = [];
+%             this_map_est.times(find(diff(this_map_est.times) < 60) + 1) = [];
             
-            response(trial_i) = sum(this_map_est.times >= time_window(1) & this_map_est.times <= time_window(2) & this_map_est.amp >= 0);
+            response(trial_i) = sum(this_map_est.times >= time_window(1) & this_map_est.times <= time_window(2));% & this_map_est.amp >= 0);
 %             if response(trial_i) > 5
 %                 response(trial_i) = 5;
 %             end
