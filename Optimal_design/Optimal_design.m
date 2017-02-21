@@ -33,6 +33,10 @@ obj_function = @joint_sparsity_weight_entropy; %
 % Fix the stimulation to be 100 for now
 num_I_Stim=1; % set the stimulus to be a constant value, e.g., 100
 % 1: 100; 6: 50; 11: 25;    
+
+%%
+ run('Experiment_LIF.m');
+       
 %%
 num_sim = 10;
 %% Random design
