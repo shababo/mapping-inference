@@ -67,9 +67,8 @@ while i_sample < n_gibbs_sample
     evoked_cell_batch = evoked_cell_batch(2:end);
     
     n_cell_evoked = length(evoked_cell_batch);
+    
     % Draw assignments
-    
-    
     % Pick a few trials
     chosen_trials_index = randsample(n_trial, n_trial_update);
     for i_trial_index = 1:n_trial_update
@@ -200,7 +199,8 @@ while i_sample < n_gibbs_sample
             soft_assignments_samples{i_sample}  = soft_assignments_current;  
         fprintf('%d\n',i_sample);
         end
-        
+    else
+        fprintf('burnin %d\n',i_counter);
     end
     
 end
