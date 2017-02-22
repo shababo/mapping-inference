@@ -99,7 +99,7 @@ for i = 1:num_layers
     
 end
 
-%% condense all cells into single arrays
+%% condense all cells into single arrays (for data generation)
 all_locations = [];
 all_amplitudes = [];
 all_rheobase = [];
@@ -165,7 +165,7 @@ x_upp = postsyn_position(1) + region_width/2;
 y_low = postsyn_position(2) - region_height/2-epsilon;
 y_upp = postsyn_position(2) + region_height/2;
 
-% Identify neurons within this location:
+% Identify neurons within this region:
 neuron_in_region = zeros(size(all_neuron_locations,1),1); 
 for i = 1:size(all_neuron_locations,1)
     if all_neuron_locations(i,1) > x_low & all_neuron_locations(i,1) < x_upp
@@ -175,7 +175,7 @@ for i = 1:size(all_neuron_locations,1)
     end
 end
 
-Z = zeros(sum(neuron_in_region),3); % Stimulus locations
+Z = zeros(sum(neuron_in_region),3);
 count = 1;
 for i = 1:size(all_neuron_locations,1)
     if neuron_in_region(i) > 0
@@ -193,3 +193,23 @@ for i = 1:size(all_amplitudes,1)
         count = count + 1;
     end 
 end
+
+%% Save info of the local neurons (for inference)
+local_locations = [];
+local_amplitudes = [];
+local_V_th = [];
+local_V_reset = [];
+local_E_L = [];
+
+for i = 1:n_cell
+     if neuron_in_region(i) > 0
+   
+    local_locations = [local_locations; all_locations(i,:)];
+    local_amplitudes = [local_amplitudes; all_amplitudes(i)];
+    local_V_th = [local_V_th; all_V_th(i)];
+    local_V_reset = [local_V_reset; all_V_reset(i)];
+    local_E_L = [local_E_L; all_E_L(i)];
+
+     end
+end
+local_connected = local_amplitudes>0;

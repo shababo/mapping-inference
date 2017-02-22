@@ -105,7 +105,7 @@ end
       t_delta = tend-tstart;
    
     flnm=strcat('../../Data/Full_sim/Full_minibatch_int.mat');
-    save(flnm,'t_delta','sigma_samples','gamma_samples','mu_samples', ...
+    save(flnm,'t_delta','mpp_new','sigma_samples','gamma_samples','mu_samples','all_connected', 'all_amplitudes', ...
     'soft_assignments_samples');
    
     %%

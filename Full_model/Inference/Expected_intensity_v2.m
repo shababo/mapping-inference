@@ -12,19 +12,22 @@ else
     M_grid_intensity = cell(n_cell,n_stimuli_grid);
     % marginal expectation
     M_intensity=cell(n_trial, n_cell);
+    
     n_grid_voltage = 200;
     n_grid_time = length(t_vect);
     t_grid=t_vect;
+    
     t_factor = 1; 
     V_max = 0;
-    v_grid =  (V_max - all_V_reset(i_cell))*(0: (n_grid_voltage-1) )/(n_grid_voltage-1) +all_V_reset(i_cell);
-    [~, index_reset] = min(abs(v_grid-all_V_reset(i_cell)));
-    [~, index_rest] = min(abs(v_grid-all_E_L(i_cell)));
+    v_grid =  (V_max -V_resets(i_cell))*(0: (n_grid_voltage-1) )/(n_grid_voltage-1) +V_resets(i_cell);
+    [~, index_reset] = min(abs(v_grid-V_resets(i_cell)));
+    [~, index_rest] = min(abs(v_grid-E_Ls(i_cell)));
     % Prepare data:
-    t_grid_upp = t_grid+data_params.dt/2;
-    t_grid_low = t_grid-data_params.dt/2;
+    t_grid_upp = t_grid+dt/2;
+    t_grid_low = t_grid-dt/2;
     pL_given_V = zeros([2 n_grid_voltage]);
-    pL_given_V(2,:) = min(1,t_factor*max(v_grid - all_V_th(i_cell),0));
+    
+    pL_given_V(2,:) = min(1,t_factor*max(v_grid - V_thresholds(i_cell),0));
     pL_given_V(1,:) = 1-pL_given_V(2,:);
     
     pVL_given_I = zeros([n_grid_time n_grid_voltage 2]);
