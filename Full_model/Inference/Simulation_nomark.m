@@ -1,4 +1,4 @@
-gamma_ini = 0.5;
+%gamma_ini = 0.5;
 gamma_current = overall_connectivity;
 
 mu_current = overall_mark;
@@ -21,14 +21,13 @@ if exact_crossing == 1
 else 
     estimated_intensity = M_intensity;
 end
-
 %% Precalculation:
 expected_all = zeros(i_trial,i_cell);
 for i_trial = 1:n_trial
     for i_cell = 1:n_cell_local
         expected_all(i_trial,i_cell)=sum(estimated_intensity{i_trial, i_cell} );
     end
-end        
+end
 %% 
 mini_factor = n_trial/n_trial_update;
         
@@ -88,8 +87,8 @@ while i_sample < n_gibbs_sample
             end
             
             % Draw assignments given the estimated rates
-            chances = firing_rates.*size_rates;
-            %chances = firing_rates;
+            %chances = firing_rates.*size_rates;
+            chances = firing_rates;
             if sum(chances)==0
                chances(1) = 1; 
             end

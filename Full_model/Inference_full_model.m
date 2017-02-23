@@ -67,7 +67,20 @@ end
      tend=toc;
       t_delta = tend-tstart;
    
-    flnm=strcat('../../Data/Full_sim/Full_minibatch_int.mat');
+    flnm=strcat('./Data/Full_minibatch_int.mat');
+    save(flnm,'t_delta','sigma_samples','gamma_samples','mu_samples', ...
+    'soft_assignments_samples');
+   
+%%
+   tic
+    n_trial_update = 800;
+    sigma_unknown=0;
+    tstart=toc;
+    run('./Inference/Simulation_nomark.m');
+     tend=toc;
+      t_delta = tend-tstart;
+   
+    flnm=strcat('./Data/Full_minibatch_nomark.mat');
     save(flnm,'t_delta','sigma_samples','gamma_samples','mu_samples', ...
     'soft_assignments_samples');
    

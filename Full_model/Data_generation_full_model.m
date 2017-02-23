@@ -1,5 +1,4 @@
 %% Loading functions and Data generation
-clear;
 addpath(genpath('../../psc-detection'),genpath('../../mapping-inference'),genpath('../../mapping-core'));
 %% Parameters for the data generating mechanism
 rng(12242,'twister');
@@ -13,7 +12,7 @@ A = diag([Aval, Aval, 1500]); %<---
 run('./Data_generation/Parameters_setup_experiment.m')
 num_I_Stim=1; % set the stimulus to be a constant value, e.g., 100
 % 
-n_trial = 8000;
+n_trial = 8;
 k_basic = 0.1;
 n_cell = length(all_amplitudes);
 num_sources = 4;  % Number of locations to stimulate in each trial
@@ -45,5 +44,5 @@ exact_crossing = 0;
 %%
  run('./Data_generation/Experiment_LIF.m');
  
- flnm=strcat('./Data/example1.mat');
-save(flnm,'mpp_new','stimuli_size','stimuli_size_local');
+% flnm=strcat('./Data/example1.mat');
+%save(flnm,'mpp_new','stimuli_size','stimuli_size_local');

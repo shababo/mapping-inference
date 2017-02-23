@@ -19,22 +19,22 @@ else
     
     t_factor = 1; 
     V_max = 0;
-    v_grid =  (V_max -V_resets(i_cell))*(0: (n_grid_voltage-1) )/(n_grid_voltage-1) +V_resets(i_cell);
-    [~, index_reset] = min(abs(v_grid-V_resets(i_cell)));
-    [~, index_rest] = min(abs(v_grid-E_Ls(i_cell)));
+    v_grid =  (V_max -min(V_resets))*(0: (n_grid_voltage-1) )/(n_grid_voltage-1) +min(V_resets);
     % Prepare data:
     t_grid_upp = t_grid+dt/2;
     t_grid_low = t_grid-dt/2;
     pL_given_V = zeros([2 n_grid_voltage]);
     
-    pL_given_V(2,:) = min(1,t_factor*max(v_grid - V_thresholds(i_cell),0));
     pL_given_V(1,:) = 1-pL_given_V(2,:);
     
     pVL_given_I = zeros([n_grid_time n_grid_voltage 2]);
     pVL_given_I(1,index_rest,1)=1;
     
     for i_cell = 1:n_cell_local
-        
+        [~, index_reset] = min(abs(v_grid-V_resets(i_cell)));
+    [~, index_rest] = min(abs(v_grid-E_Ls(i_cell)));
+    pL_given_V(2,:) = min(1,t_factor*max(v_grid - V_thresholds(i_cell),0));
+    
         % Obtain stimuli information on this cell
         if sum(stimuli_size_local(:,i_cell)>0.01) > 5
             
