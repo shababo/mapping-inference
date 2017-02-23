@@ -23,6 +23,7 @@ else
 end
 
 %% Precalculation:
+
 expected_all = zeros(i_trial,i_cell);
 for i_trial = 1:n_trial
     for i_cell = 1:n_cell_local
@@ -46,6 +47,7 @@ i_counter = 0;
 while i_sample < n_gibbs_sample
     % Gibbs sampler
     
+    
     %events_precell = cell(n_cell,1);
     events_precell = cell(n_cell_local,1);
     for i_cell = 1:n_cell_local
@@ -60,18 +62,21 @@ while i_sample < n_gibbs_sample
         evoked_cell_batch = [evoked_cell_batch evoked_cell{i_trial}];
     end
     evoked_cell_batch = unique(evoked_cell_batch);
-    evoked_cell_batch = evoked_cell_batch(2:end); % Dropping the spontaneous events
+    evoked_cell_batch = evoked_cell_batch(2:end);
     
     n_cell_evoked = length(evoked_cell_batch);
     
     % Draw assignments
     % Pick a few trials
+    chosen_trials_index = randsample(n_trial, n_trial_update);
     for i_trial_index = 1:n_trial_update
         i_trial = chosen_trials_index(i_trial_index);
         n_events = length(mpp_new(i_trial).event_times);
         evoked_cell_index = evoked_cell{i_trial};
         firing_rates = zeros(length(evoked_cell_index),1);
         size_rates = zeros(length(evoked_cell_index),1);
+        
+        
         soft_assignments_current{i_trial_index}  = ones(n_events, length(evoked_cell_index))/length(evoked_cell_index);
         
         for i_event = 1:n_events
@@ -99,12 +104,15 @@ while i_sample < n_gibbs_sample
             end
             chances = chances/sum(chances);
             %fprintf('%d', sum(chances));
-            soft_assignments_current{i_trial_index}(i_event,:) = chances; 
+            soft_assignments_current{i_trial_index}(i_event,:) = chances;
+            
         end
+        
         for i_index = 2:length(evoked_cell_index)
                 i_cell = evoked_cell_index(i_index);
                 events_precell{i_cell} = [events_precell{i_cell} [mpp_new(i_trial).amplitudes; soft_assignments_current{i_trial_index}(:,i_index)']];
-        end 
+        end
+            
     end
     
     %-------------------------------------------------------%
@@ -156,10 +164,13 @@ while i_sample < n_gibbs_sample
             if isnan( gamma_current(i_cell))
                 fprintf('Wrong')
                 fprintf('%d\n', i_cell)
+                
                 break
             end
+            
         else
-            expected_events = sum( expected_all(chosen_trials_index,i_cell));
+            
+             expected_events = sum( expected_all(chosen_trials_index,i_cell));
             post_alpha = gamma_alpha(i_cell)+0;
             post_beta = gamma_beta(i_cell) + mini_factor*expected_events-0;
             % Draw gamma:
@@ -168,7 +179,9 @@ while i_sample < n_gibbs_sample
             else
                 gamma_current(i_cell) = betarnd(post_alpha,post_beta);
             end
-            end        
+           
+        end
+        
     end
     
     %----------------------------------------------%
