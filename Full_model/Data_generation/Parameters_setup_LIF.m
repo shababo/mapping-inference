@@ -92,7 +92,7 @@ for i = 1:num_layers
         [num_neurons_layer 1]);
     
     % New features needed in the LIF model
-    neuron_features(i).E_L = neuron_features(i).V_th - cell_features_priors.dE_L(i);
+    neuron_features(i).E_L = neuron_features(i).V_th + cell_features_priors.dE_L(i);
     neuron_features(i).V_reset = normrnd(cell_feature_priors.Vreset_mean(i),...
         cell_feature_priors.Vreset_std(i),...
         [num_neurons_layer 1]);

@@ -25,6 +25,11 @@ num_I_Stim=1;
 I_e_vect=[0;I_e(:,num_I_Stim)];
 I_stimuli = I_e_vect;
 
+% Stochastic components of voltages 
+stoc_mu=0;stoc_sigma=0.3;
+g=0.1; %membrane time constant [ms]
+
+
 
 T=75;
 dt=1;
@@ -33,7 +38,6 @@ t_vect=0:dt:T;
 V_thresholds = local_V_th;
 V_resets = local_V_reset;
 E_Ls = local_E_L;
-
 
         n_stimuli_grid=10;
     

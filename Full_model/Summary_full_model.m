@@ -10,8 +10,6 @@ local_connected =local_neuron_amplitudes>0;
 n_connected = sum(local_connected);
 n_disconnected = n_cell_local - n_connected;
 
-
-
  flnm=strcat('./Data/Full_minibatch_nomark.mat');
  load(flnm)
 mean_gamma_known_mini_nomark = mean(gamma_samples,1);

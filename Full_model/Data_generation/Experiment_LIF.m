@@ -76,10 +76,11 @@ background_events = cell(n_trial,1);
 mu_bg = 1000/bg_params.firing_rate;
 for i_trial = 1:n_trial
     background_events{i_trial}=[];
+    current_time = 0;
     T_remain =data_params.T;
     R = exprnd(mu_bg);
     while R < T_remain
-        background_events{i_trial}=[background_events{i_trial} R];
+        background_events{i_trial}=[background_events{i_trial} current_time+R];
         T_remain = T_remain - R;
         R = exprnd(mu_bg);
     end
