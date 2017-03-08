@@ -54,7 +54,7 @@ cell_coords = zeros(max_x*max_y,3);
     % only consider a small time window for events of interest
     for i = 1:size(trial_locations,1)
         if size(mpp(i).times,2) > 0
-            indices = mpp(i).times>evoked_params.stim_start & mpp(i).amp >= 7.5;
+            indices = mpp(i).times>evoked_params.stim_start & mpp(i).amp >= 0;
             related_mpp(i).amp = mpp(i).amp(indices);
             related_mpp(i).times = mpp(i).times(indices);
             unrelated_mpp(i).amp = mpp(i).amp(~indices);
@@ -100,9 +100,13 @@ cell_coords = zeros(max_x*max_y,3);
     % Unknows: 
     params.eta = 1000 * ones(params.K,1);
     params.sigma_s = 1000*ones(params.K,1);
+    if isempty(raw_traces)
+        params.eta = ones(params.K,1);
+        params.sigma_s = ones(params.K,1);
+    end
 %     if cell_type(map_i)
 %         params.sigma_n = sqrt(2);
-        params.A = [75 0 0 ; 0 75 0; 0 0 150]*2.5;
+        params.A = [500 0 0 ; 0 500 0; 0 0 750];
         hyperparam_p_connected = .05*ones(params.K,1);
 %     else
 % %         params.sigma_n = sqrt(.75);
@@ -128,9 +132,11 @@ cell_coords = zeros(max_x*max_y,3);
     for j = 1:size(amp_related_count_trials,2)
 
         Y_n = amp_related_count_trials(:,j);
-        raw_traces_cent = bsxfun(@minus,raw_traces,median(raw_traces,2));
-        Y_n = sum(raw_traces_cent(:,100:800),2);
-        size(Y_n)
+        if ~isempty(raw_traces)
+            raw_traces_cent = bsxfun(@minus,raw_traces,median(raw_traces,2));
+            Y_n = sum(raw_traces_cent(:,100:800),2);
+            size(Y_n)
+        end
         resp_sorted = sort(Y_n);%amp_related_count_trials(:,j);
         hyperparam_sigma_n = std(resp_sorted(1:ceil(length(resp_sorted*.80))));%sqrt(length(params.t))*params.sigma_n/abs(alpha_sum);
         assignin('base','Y_n',Y_n)
