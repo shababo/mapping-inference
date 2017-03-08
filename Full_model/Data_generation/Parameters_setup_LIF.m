@@ -5,7 +5,6 @@ I_eg_100mV=abs(norm_average_current(1:20:20*75).*100);
 I_eg_50mV=abs(norm_average_current(1:20:20*75).*50);
 I_eg_25mV=abs(norm_average_current(1:20:20*75).*25);
 I_e=[repmat(I_eg_100mV',1,5) repmat(I_eg_50mV',1,5) repmat(I_eg_25mV',1,5)];
-
 %% New parameters 
 %
 % Stochastic components of voltages 
@@ -52,8 +51,8 @@ end
 
 % layer based priors on featues
 cell_feature_priors.connection_prob = [0 .095 .057 .116 .191 .017 .006]; % bernoulli
-cell_feature_priors.connection_strength_mean = [0 .8 .6 .8 2.0 .4 .1]; % log-normal
-cell_feature_priors.connection_strength_stddev = ones(num_layers,1); % log-normal
+cell_feature_priors.connection_strength_mean = exp([0 .8 .6 .8 2.0 .4 .1]); % log-normal
+cell_feature_priors.connection_strength_stddev = 0.5*ones(num_layers,1); % log-normal
 
 cell_feature_priors.rheobase_mean = [0 126 132 56 68 98 76]/126; % gaussian
 cell_feature_priors.rheobase_std = 5 * ones(num_layers,1); % gaussian
@@ -77,9 +76,9 @@ for i = 1:num_layers
     neuron_features(i).connected = ...
         rand(num_neurons_layer,1) < cell_feature_priors.connection_prob(i);
     
-    neuron_features(i).amplitude = lognrnd(cell_feature_priors.connection_strength_mean(i),...
+    neuron_features(i).amplitude = abs(normrnd(cell_feature_priors.connection_strength_mean(i),...
         cell_feature_priors.connection_strength_stddev(i),...
-        [num_neurons_layer 1]);
+        [num_neurons_layer 1]));
     neuron_features(i).amplitude = neuron_features(i).amplitude .* neuron_features(i).connected;
     
     neuron_features(i).rheobase = normrnd(cell_feature_priors.rheobase_mean(i),...
@@ -138,7 +137,7 @@ evoked_params.stim_duration = .010*1000/data_params.dt;
 
 evoked_params.stim_amp = 0;
 
-evoked_params.sigma_a = 0.2;
+evoked_params.sigma_a = 1;
 evoked_params.failure_prob = 0.2;
 %% select a postsyanptic cell
 cell_layer = 5; % 5A
@@ -200,10 +199,11 @@ local_amplitudes = [];
 local_V_th = [];
 local_V_reset = [];
 local_E_L = [];
-
+local_index = [];
 for i = 1:n_cell
      if neuron_in_region(i) > 0
-   
+   local_index = [local_index; i];
+    
     local_locations = [local_locations; all_locations(i,:)];
     local_amplitudes = [local_amplitudes; all_amplitudes(i)];
     local_V_th = [local_V_th; all_V_th(i)];
