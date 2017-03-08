@@ -35,9 +35,9 @@ else
         E_L=E_Ls(i_cell); %resting membrane potential [mV]
         
         % Obtain stimuli information on this cell
-        if sum(stimuli_size_local(:,i_cell)>0.01) > 5
+        if sum(stimuli_size_local(:,i_cell)> (k_basic/10) ) > 5
             
-            stim_seq =stimuli_size_local(stimuli_size_local(:,i_cell)>0.01,i_cell);
+            stim_seq =stimuli_size_local(stimuli_size_local(:,i_cell)> k_basic/10,i_cell);
             gap_stimuli=range(stim_seq)/n_stimuli_grid;
             stimuli_bins{i_cell} = min(stim_seq):gap_stimuli:max(stim_seq);
             mid_points = (stimuli_bins{i_cell}(2:end)+stimuli_bins{i_cell}(1:(n_stimuli_grid)))/2;
@@ -52,7 +52,6 @@ else
 
             pVL_given_I(1,index_rest,1)=1;
        
-                if k_temp > 0.01
                     for i_t = 2:n_grid_time
                         pVnext_given_V_L = zeros([n_grid_voltage n_grid_voltage 2]);
                         pVnext_given_V_L(index_reset,:,2) = 1;
@@ -76,36 +75,40 @@ else
                         end
                     end
                     
-                    
-                end
                 M_grid_intensity{i_cell, i_stimuli} = sum(pVL_given_I(:,:,2),2);
                 
             end
             for i_trial = 1:n_trial
+                
                 % Initialize the storage
                 % Simulated traces for marginal intensity
                 k = stimuli_size_local(i_trial, i_cell);
-                if k > 0.01
+                if k > (k_basic/10)
                     [~, ind_seq] = min(abs(k-mid_points));
                     M_intensity{i_trial,i_cell} = M_grid_intensity{i_cell, ind_seq};
                 else
-                    M_intensity{i_trial,i_cell} = zeros([n_grid_time 1]);
+                     M_intensity{i_trial,i_cell} = zeros([length(t_vect) 1]);
                 end
             end
         else % stimulated in fewer than 5 trials
             
             for i_trial = 1:n_trial
-                 pL_given_V = zeros([2 n_grid_voltage]);
-        pL_given_V(1,:) = 1-pL_given_V(2,:);
-        pVL_given_I = zeros([n_grid_time n_grid_voltage 2]);
-        
-       
-        pL_given_V(2,:) = min(1,t_factor*max(v_grid - V_thresholds(i_cell),0));
-        pVL_given_I(1,index_rest,1)=1;
+                
+                
+                pL_given_V = zeros([2 n_grid_voltage]);
+                pL_given_V(2,:) = min(1,t_factor*max(v_grid - V_thresholds(i_cell),0));
+                pL_given_V(1,:) = 1-pL_given_V(2,:);
+                pVL_given_I = zeros([n_grid_time n_grid_voltage 2]);
+                
+                
+                pVL_given_I(1,index_rest,1)=1;
+                
+                
+                
        
                 M_intensity{i_trial,i_cell} = zeros([n_grid_time 1]);
                 k = stimuli_size_local(i_trial, i_cell);
-                if k > 0.01
+                if k > k_basic/10
                     for i_t = 2:n_grid_time
                         pVnext_given_V_L = zeros([n_grid_voltage n_grid_voltage 2]);
                         pVnext_given_V_L(index_reset,:,2) = 1;

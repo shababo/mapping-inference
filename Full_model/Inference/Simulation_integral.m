@@ -1,9 +1,8 @@
-gamma_ini = 0.5;
 gamma_current = overall_connectivity;
 
 mu_current = overall_mark;
-%sigma_current = evoked_params.sigma_a*ones(n_cell,1);
-sigma_current = 1*ones(n_cell_local,1);
+sigma_current =sigma_size*ones(n_cell_local,1);
+%sigma_current = 1*ones(n_cell_local,1);
 
 mu_m_hyper =overall_mark;
 mu_v_hyper = ones(n_cell_local,1); % inverse of prior variance 
@@ -106,7 +105,34 @@ while i_sample < n_gibbs_sample
     %-------------------------------------------------------%
     % Draw mu and sigma 
     if sigma_unknown == 1
-        %Not available...
+        for i = 1:n_cell_evoked
+            i_cell= evoked_cell_batch(i);
+            % Sum of the weights:
+            if  sum(size(events_precell{i_cell}))> 1
+            weighted_sum = sum(events_precell{i_cell},2);
+            weighted_sum(1) = sum(events_precell{i_cell}(1,:).*events_precell{i_cell}(2,:));
+            if weighted_sum(2) > 0
+                post_mean = (mu_m_hyper(i_cell)*mu_v_hyper(i_cell)+mini_factor*weighted_sum(1))/...
+                    (mu_v_hyper(i_cell)+ mini_factor*weighted_sum(2));
+                post_v = mu_v_hyper(i_cell)+mini_factor*weighted_sum(2);
+                post_sigma_alpha = sigma_alpha(i_cell)+mini_factor*weighted_sum(2)/2;
+                weighted_mean = weighted_sum(1)/weighted_sum(2);
+                
+                weighted_sigma = sum(events_precell{i_cell}(2,:).*((events_precell{i_cell}(1,:)-weighted_mean).^2));
+                post_sigma_beta = sigma_beta(i_cell)+ mini_factor*(weighted_sigma)/2+...
+                    ((weighted_mean-mu_m_hyper(i_cell))^2/2)*(mini_factor*weighted_sum(2)*mu_v_hyper(i_cell))/(mini_factor*weighted_sum(2)+mu_v_hyper(i_cell));
+            else
+                post_mean = mu_m_hyper(i_cell);
+                post_v = mu_v_hyper(i_cell);
+                post_sigma_alpha = sigma_alpha(i_cell);
+                post_sigma_beta = sigma_beta(i_cell);
+            end
+            sigma_current(i_cell) = 1/gamrnd(post_sigma_alpha, 1/post_sigma_beta);
+            mu_current(i_cell) = normrnd(post_mean,sigma_current(i_cell)/sqrt(post_v) );
+            else
+                % Do nothing
+            end
+        end
     else
         for i = 1:n_cell_evoked
             i_cell= evoked_cell_batch(i);

@@ -23,7 +23,7 @@ for i_cell = 1:n_cell
         presynaptic_events{i_trial, i_cell} = [];
         presynaptic_amplitudes{i_trial,i_cell} = [];
         k = stimuli_size(i_trial, i_cell);
-        if k > 0.01
+        if k > 0.001
             %%%DEFINE INITIAL VALUES AND VECTORS TO HOLD RESULTS
             t_vect=0:data_params.dt:data_params.T;
             V_vect=zeros(1,length(t_vect));
@@ -43,7 +43,8 @@ for i_cell = 1:n_cell
                     if (V_vect(i+1)>V_th) %cell spiked
                         V_vect(i+1)=V_reset; %set voltage back to V_reset
                         presynaptic_events{i_trial, i_cell} = [presynaptic_events{i_trial, i_cell} t_vect(i)];
-                        presynaptic_amplitudes{i_trial, i_cell} = [presynaptic_amplitudes{i_trial, i_cell} normrnd(all_amplitudes(i_cell),evoked_params.sigma_a)];
+                        presynaptic_amplitudes{i_trial, i_cell} = [presynaptic_amplitudes{i_trial, i_cell} ...
+                            abs(normrnd(all_amplitudes(i_cell),evoked_params.sigma_a))];
                         %t
                     end  
                 else
