@@ -1,11 +1,4 @@
-%% Run Batches t_start to t_end
-% Need to turn this into a function
-% Inputs: output, t_start, t_end, pi_dense_all, num_trials_first, num_trials_batch
-% pi_dense_local, num_sources, num_this_batch, num_peaks, threshold
-% evoked_params, d_mean_nk, d_mean0, d_mean_coef, d_sigma_nk, d_sigma0, d_sigma_coef
-
 % Generate data using the LIF model 
-
 
 presynaptic_events = cell(n_trial, n_cell);
 presynaptic_amplitudes = cell(n_trial, n_cell);
@@ -13,8 +6,6 @@ voltage_traces = cell(n_trial, n_cell);
     
 % One cell:
 for i_cell = 1:n_cell
-    
-    
     V_th = all_V_th(i_cell);
     V_reset = all_V_reset(i_cell);
     E_L=all_E_L(i_cell); %resting membrane potential [mV]
@@ -23,7 +14,7 @@ for i_cell = 1:n_cell
         presynaptic_events{i_trial, i_cell} = [];
         presynaptic_amplitudes{i_trial,i_cell} = [];
         k = stimuli_size(i_trial, i_cell);
-        if k > 0.01
+        if k > k_minimum
             %%%DEFINE INITIAL VALUES AND VECTORS TO HOLD RESULTS
             t_vect=0:data_params.dt:data_params.T;
             V_vect=zeros(1,length(t_vect));
@@ -43,7 +34,8 @@ for i_cell = 1:n_cell
                     if (V_vect(i+1)>V_th) %cell spiked
                         V_vect(i+1)=V_reset; %set voltage back to V_reset
                         presynaptic_events{i_trial, i_cell} = [presynaptic_events{i_trial, i_cell} t_vect(i)];
-                        presynaptic_amplitudes{i_trial, i_cell} = [presynaptic_amplitudes{i_trial, i_cell} normrnd(all_amplitudes(i_cell),evoked_params.sigma_a)];
+                        presynaptic_amplitudes{i_trial, i_cell} = [presynaptic_amplitudes{i_trial, i_cell} ...
+                            abs(normrnd(all_amplitudes(i_cell),evoked_params.sigma_a))];
                         %t
                     end  
                 else
