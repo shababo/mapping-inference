@@ -37,7 +37,8 @@ n_cell_local = size(stimuli_size_local,2);
 k_minimum = 0.001; % minimum stimulus intensity to consider
 flnm = strcat('./Data/truth.mat');
 save(flnm,'bg_params','stimuli_size','stimuli_size_local','neuron_features','neuron_locations', 'k_minimum',...
-'local_locations','local_amplitudes','local_V_th','local_V_reset','local_E_L');
+'local_locations','local_amplitudes','evoked_params', 'local_V_th','local_V_reset','local_E_L', ...
+'Z');
 %% Generate data using the LIF-GLM model 
 % Note: 1 means using the LIF model.
 exact_crossing = 0;
