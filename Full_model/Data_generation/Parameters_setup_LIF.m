@@ -8,9 +8,8 @@ I_e=[repmat(I_eg_100mV',1,5) repmat(I_eg_50mV',1,5) repmat(I_eg_25mV',1,5)];
 %% New parameters 
 %
 % Stochastic components of voltages 
-stoc_mu=0;stoc_sigma=0.3;
+stoc_mu=0;stoc_sigma=0.5;
 g=0.1; %membrane time constant [ms]
-k_offset = 0.004; % From the simulation
 load('../Environments/fits_old.mat'); %
 %% Generate data from circuit mapping model with multi-cell stimuli
 %% build layers
@@ -174,25 +173,6 @@ for i = 1:size(all_neuron_locations,1)
     end
 end
 
-Z = zeros(sum(neuron_in_region),3);
-count = 1;
-for i = 1:size(all_neuron_locations,1)
-    if neuron_in_region(i) > 0
-        Z(count,:) = [all_neuron_locations(i,1:2) postsyn_position(3)];
-        count = count + 1;
-    end 
-end
-
-n_cell_local = size(Z,1); % Number of neurons in the region
-local_neuron_amplitudes = zeros(n_cell_local,1); % Amplitudes of neurons in this region
-count = 1;
-for i = 1:size(all_amplitudes,1)
-    if neuron_in_region(i) > 0
-        local_neuron_amplitudes(count) = all_amplitudes(i);
-        count = count + 1;
-    end 
-end
-
 %% Save info of the local neurons (for inference)
 local_locations = [];
 local_amplitudes = [];
@@ -213,3 +193,17 @@ for i = 1:n_cell
      end
 end
 local_connected = local_amplitudes>0;
+
+%%
+Z = all_locations (local_index,:); % assuming that we can get the layer info
+%Z(:,3) = postsyn_position(3);
+
+n_cell_local = size(Z,1); % Number of neurons in the region
+local_neuron_amplitudes = zeros(n_cell_local,1); % Amplitudes of neurons in this region
+count = 1;
+for i = 1:size(all_amplitudes,1)
+    if neuron_in_region(i) > 0
+        local_neuron_amplitudes(count) = all_amplitudes(i);
+        count = count + 1;
+    end 
+end

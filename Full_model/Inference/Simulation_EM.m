@@ -4,7 +4,11 @@ mu_old = overall_mark;
 sigma_old = 1*ones(n_cell_local,1);
 
 f_background = bg_params.firing_rate/1000; 
-w_background = 1/(bg_params.a_max -bg_params.a_min); % size distribution for background events
+%w_background = 1/(bg_params.a_max -bg_params.a_min); % size distribution for background events
+% we set the size distribution of the background events to be the full
+% range of observed events to prevent errors in the code
+w_background = 1/range([mpp_new.amplitudes]);
+
 %% 
 if exact_crossing == 1 
     estimated_intensity = E_intensity;
@@ -33,8 +37,10 @@ while (normalized_change > convergence_epsilon) & (num_iter < maxit)
     % The E-step:
     %events_precell = cell(n_cell,1);
     events_precell = cell(n_cell_local,1);
+    trials_precell = cell(n_cell_local,1);
     for i_cell = 1:n_cell_local
         events_precell{i_cell} = [];
+        trials_precell{i_cell}=[];
     end
     % Obtain the list of stimulated cells 
     evoked_cell_batch = [];
@@ -50,6 +56,7 @@ while (normalized_change > convergence_epsilon) & (num_iter < maxit)
     
     % Draw assignments
     % Pick a few trials
+     temp_ind = 0;
     for i_trial_index = 1:n_trial_update
         i_trial = chosen_trials_index(i_trial_index);
         n_events = length(mpp_new(i_trial).event_times);
@@ -67,8 +74,7 @@ while (normalized_change > convergence_epsilon) & (num_iter < maxit)
                  i_cell=evoked_cell_index(i_index);
                 if i_cell== 0
                     firing_rates(i_index)  = f_background;
-                    size_rates(i_index) = w_background*(this_event_size>bg_params.a_min)*...
-                        (this_event_size<bg_params.a_max); 
+                    size_rates(i_index) = w_background; 
                 else 
                      firing_rates(i_index)  = gamma_old(i_cell)*estimated_intensity{i_trial,i_cell}(i_t);
                     size_rates(i_index) = normpdf(this_event_size,mu_old(i_cell),sigma_old(i_cell));
@@ -76,20 +82,32 @@ while (normalized_change > convergence_epsilon) & (num_iter < maxit)
             end
             
             % Draw assignments given the estimated rates
-            %chances = firing_rates.*size_rates;
-            chances = firing_rates;
+            chances = firing_rates.*size_rates;
             if sum(chances)==0
                chances(1) = 1; 
             end
             chances = chances/sum(chances);
             %fprintf('%d', sum(chances));
             soft_assignments{i_trial_index}(i_event,:) = chances; 
+            if isnan( chances(1))
+                fprintf('Wrong')
+                fprintf('%d\n', i_cell)
+                temp_ind = 1;
+                break
+            end
+        end
+        if temp_ind == 1
+            break
         end
         for i_index = 2:length(evoked_cell_index)
                 i_cell = evoked_cell_index(i_index);
                 events_precell{i_cell} = [events_precell{i_cell} [mpp_new(i_trial).amplitudes; soft_assignments{i_trial_index}(:,i_index)']];
+                trials_precell{i_cell} = [trials_precell{i_cell} i_trial];
         end 
     end
+        if temp_ind == 1
+            break
+        end
     
     
     % The M-step:
@@ -104,13 +122,15 @@ while (normalized_change > convergence_epsilon) & (num_iter < maxit)
         % Sum of the weights:
         if  sum(size(events_precell{i_cell}))> 1
             weighted_sum = sum(events_precell{i_cell},2);
-            if weighted_sum(2) > 0
+            if weighted_sum(2) > 1
                 weighted_sum(1) = sum(events_precell{i_cell}(1,:).*events_precell{i_cell}(2,:));
                 mu_current(i_cell) = weighted_sum(1)/weighted_sum(2);
                 if sigma_unknown == 1
                     
                     weighted_sigma = sum(events_precell{i_cell}(2,:).*((events_precell{i_cell}(1,:)-mu_current(i_cell)).^2));
                     sigma_current(i_cell) = sqrt(weighted_sigma/weighted_sum(2));
+                    
+                    
                 else
                     % Do nothing since sigma is fixed
                 end
@@ -127,7 +147,7 @@ while (normalized_change > convergence_epsilon) & (num_iter < maxit)
         i_cell= evoked_cell_batch(i);
         if sum(size(events_precell{i_cell}))> 1
             weighted_sum = sum(events_precell{i_cell},2);
-            expected_events = sum( expected_all(chosen_trials_index,i_cell));
+            expected_events = sum( expected_all(trials_precell{i_cell},i_cell));
             gamma_current(i_cell) = weighted_sum(2)/expected_events;
             if isnan( gamma_current(i_cell))
                 fprintf('Wrong')
@@ -165,8 +185,4 @@ while (normalized_change > convergence_epsilon) & (num_iter < maxit)
     
     fprintf('Iteration: %d, normalized changes %d\n',num_iter, normalized_change);
 end
-
-
-
-
 

@@ -32,7 +32,7 @@ I_e_vect=[0;I_e(:,num_I_Stim)];
 I_stimuli = I_e_vect;
 
 % Stochastic components of voltages 
-stoc_mu=0;stoc_sigma=0.3;
+stoc_mu=0;stoc_sigma=0.5;
 g=0.1; %membrane time constant [ms]
 
 T=75;
@@ -43,19 +43,14 @@ V_thresholds = local_V_th;
 V_resets = local_V_reset;
 E_Ls = local_E_L;
 
-        n_stimuli_grid=10;
-    
-        k_basic = 0.04;
-        exact_crossing = 0;
+n_stimuli_grid=40;
+k_basic = 0.04;
+exact_crossing = 0;
     run('./Inference/Expected_intensity_v2.m');
     flnm=strcat('./Data/estimated_intensity.mat');
     save(flnm,'M_intensity');
    
-%% 1. Run Gibbs sampler (with soft assignments)
-n_gibbs_sample = 200;
-n_burnin = 400;
-n_skip = 10;
-% Initialize experiment conditions
+%% 
 exact_crossing = 0;
    
    %%
@@ -76,7 +71,7 @@ convergence_epsilon = 0.01;
 maxit = 100;
 
    tic
-    n_trial_update = 8000;
+    n_trial_update = 4000;
     sigma_unknown=1;
     tstart=toc;
     run('./Inference/Simulation_EM.m');
@@ -88,9 +83,14 @@ maxit = 100;
     'soft_assignments_samples');
    
 %%
+%% 1. Run Gibbs sampler (with soft assignments)
+n_gibbs_sample = 400;
+n_burnin = 800;
+n_skip = 20;
+
 
    tic
-    n_trial_update = 800;
+    n_trial_update = 1000;
     sigma_unknown=1;
     tstart=toc;
     run('./Inference/Simulation_integral.m');

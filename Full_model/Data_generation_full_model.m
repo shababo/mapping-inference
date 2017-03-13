@@ -6,13 +6,13 @@ rng(12242,'twister');
 % run('./Parameters_setup_ground_truth.m')
 run('./Data_generation/Parameters_setup_LIF.m')
 
-num_dense=40; % Number of grids
-Aval = 400;
+num_dense=100; % Number of grids
+Aval = 400; % Very high precision 64, standard 400;
 A = diag([Aval, Aval, 1500]); %<--- 
 run('./Data_generation/Parameters_setup_experiment.m')
 num_I_Stim=1; % set the stimulus to be a constant value, e.g., 100
 % 
-n_trial = 8000;
+n_trial = 4000;
 k_basic = 0.04;
 n_cell = length(all_amplitudes);
 num_sources = 4;  % Number of locations to stimulate in each trial
@@ -34,9 +34,9 @@ stimuli_size_local = k_basic*X_next';
 
 
 n_cell_local = size(stimuli_size_local,2);
-
+k_minimum = 0.001; % minimum stimulus intensity to consider
 flnm = strcat('./Data/truth.mat');
-save(flnm,'stimuli_size','stimuli_size_local','neuron_features','neuron_locations',...
+save(flnm,'bg_params','stimuli_size','stimuli_size_local','neuron_features','neuron_locations', 'k_minimum',...
 'local_locations','local_amplitudes','local_V_th','local_V_reset','local_E_L');
 %% Generate data using the LIF-GLM model 
 % Note: 1 means using the LIF model.
