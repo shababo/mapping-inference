@@ -19,6 +19,8 @@ mean_gamma_mini_gibbs =  mean(gamma_samples, 1);
 mean_mu_mini_gibbs =  mean(mu_samples, 1);
 mean_sigma_mini_gibbs =  mean(sigma_samples, 1);
 comptime_mini_gibbs = t_delta;
+
+mean_gamma_mini_gibbs(local_connected)
 %% Read the truth of the simulation
 flnm=strcat('./Data/truth.mat');
 load(flnm);
@@ -26,6 +28,21 @@ load(flnm);
 local_connected =local_neuron_amplitudes>0;
 n_connected = sum(local_connected);
 n_disconnected = n_cell_local - n_connected;
+%% Calculate summary statistics:
+% Normalized reconstruction error of connectivity
+true_gamma =(local_neuron_amplitudes>0)*(1-evoked_params.failure_prob);
+NRE_conn = norm(true_gamma-mean_gamma_crude)/norm(true_gamma);
+NRE_conn_mini_gibbs=  norm(true_gamma-mean_gamma_mini_gibbs')/norm(true_gamma);
+NRE_conn_EM=  norm(true_gamma-mean_gamma_EM)/norm(true_gamma);
+
+[~,~,~,temp] = perfcurve(local_neuron_amplitudes>0,overall_connectivity ,1);
+AUC_conn = temp;
+
+
+true_mu = local_neuron_amplitudes(local_connected);
+NRE_mark = norm(true_mu -mean_mu_crude(local_connected)')/norm(true_mu);
+NRE_mark_mini_gibbs = norm(true_mu -mean_mu_mini_gibbs(local_connected)')/norm(true_mu);
+NRE_mark_EM = norm(true_mu -mean_mu_EM(local_connected))/norm(true_mu);
 
 %%
 % True mean amplitudes v.s. estimates
@@ -77,21 +94,6 @@ xlabel('True amplitudes');
 ylabel('Estimated synaptic success rate');
 hold off;
 saveas(3,strcat(flnm,'GammavsMu','.jpg'));
-%% Calculate summary statistics:
-% Normalized reconstruction error of connectivity
-true_gamma =(local_neuron_amplitudes>0)*(1-evoked_params.failure_prob);
-NRE_conn = norm(true_gamma-mean_gamma_crude)/norm(true_gamma);
-NRE_conn_mini_gibbs=  norm(true_gamma-mean_gamma_mini_gibbs')/norm(true_gamma);
-NRE_conn_EM=  norm(true_gamma-mean_gamma_EM)/norm(true_gamma);
-
-[~,~,~,temp] = perfcurve(local_neuron_amplitudes>0,overall_connectivity ,1);
-AUC_conn = temp;
-
-
-true_mu = local_neuron_amplitudes(local_connected);
-NRE_mark = norm(true_mu -mean_mu_crude(local_connected)')/norm(true_mu);
-NRE_mark_mini_gibbs = norm(true_mu -mean_mu_mini_gibbs(local_connected)')/norm(true_mu);
-NRE_mark_EM = norm(true_mu -mean_mu_EM(local_connected))/norm(true_mu);
 
     %%
      NRE_conn
