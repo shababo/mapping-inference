@@ -1,14 +1,3 @@
-function []=Cluster_submission(arg1)
-% arg 1 controls the random seed
-%
-if isnumeric(arg1)
-    
-else
-    arg1 = str2num(arg1);
-end
-rng(arg1,'twister');
-
-
 % Loading functions and Data generation
 addpath(genpath('../../psc-detection'),genpath('../../mapping-inference'),genpath('../../mapping-core'));
 
@@ -99,7 +88,7 @@ t_vect=0:dt:T;
 
 V_thresholds = local_V_th;
 V_resets = local_V_reset;
-E_Ls = local_E_L;
+E_Ls = local_E_L; % need to know this a priori 
 
 n_stimuli_grid=40;
 k_basic = 0.04;
@@ -156,6 +145,4 @@ flnm=strcat('./Data/Full_minibatch_int', num2str(arg1),'.mat');
 save(flnm,'t_delta','sigma_samples','gamma_samples','mu_samples', ...
     'soft_assignments_samples');
 
-
-end
 
