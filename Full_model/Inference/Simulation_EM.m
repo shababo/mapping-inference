@@ -38,9 +38,11 @@ while (normalized_change > convergence_epsilon) & (num_iter < maxit)
     %events_precell = cell(n_cell,1);
     events_precell = cell(n_cell_local,1);
     trials_precell = cell(n_cell_local,1);
+    times_precell = cell(n_cell_local,1);
     for i_cell = 1:n_cell_local
         events_precell{i_cell} = [];
         trials_precell{i_cell}=[];
+        times_precell{i_cell}=[];
     end
     % Obtain the list of stimulated cells 
     evoked_cell_batch = [];
@@ -103,6 +105,7 @@ while (normalized_change > convergence_epsilon) & (num_iter < maxit)
                 i_cell = evoked_cell_index(i_index);
                 events_precell{i_cell} = [events_precell{i_cell} [mpp_new(i_trial).amplitudes; soft_assignments{i_trial_index}(:,i_index)']];
                 trials_precell{i_cell} = [trials_precell{i_cell} i_trial];
+                times_precell{i_cell} = [times_precell{i_cell} [mpp_new(i_trial).event_times; i_trial.*ones(1,n_events)]];
         end 
     end
         if temp_ind == 1
@@ -114,7 +117,46 @@ while (normalized_change > convergence_epsilon) & (num_iter < maxit)
     gamma_current = gamma_old;
     mu_current = mu_old;
     sigma_current = sigma_old;
-
+    
+    
+    
+    % LIF-GLM updates
+    if lifglm_update == 1
+        n_grid_voltage = 200;
+        n_grid_time = length(t_vect);
+        t_grid=t_vect;
+        t_factor = 1;
+        % Prepare data:
+        t_grid_upp = t_grid+dt/2;
+        t_grid_low = t_grid-dt/2;
+        
+        
+        stimuli_bins = cell(n_cell_local,1);
+        M_grid_intensity = cell(n_cell_local,n_stimuli_grid);
+        % marginal expectation
+        M_intensity=estimated_intensity;
+        
+        link_function = 2;
+        %1: logit; 2: log.
+        for i = 1:n_cell_evoked
+            i_cell= evoked_cell_batch(i);
+            
+            run('./Inference/LIF_GLM_soft.m');
+            
+            
+        end
+         
+        
+        expected_all = zeros(i_trial,i_cell);
+        for i_trial = 1:n_trial
+            for i_cell = 1:n_cell_local
+                expected_all(i_trial,i_cell)=sum(M_intensity{i_trial, i_cell} );
+            end
+        end
+        
+    end
+    
+    
     %-------------------------------------------------------%
     % Update mu and sigma
     for i = 1:n_cell_evoked

@@ -10,7 +10,7 @@ ind1st_allLoc=[];
 ind_allLoc=zeros(size(spTrain,1)*size(spTrain,2),25);
 %%
 % Modify the indicator function to allow for more than two spikes..
-ii=1;
+ii=5;
 
 spTrain=spTrain_byLoc{ii};
 ind1st=zeros(size(spTrain));
@@ -61,4 +61,4 @@ ub(3:num_params) = 1e6;
 betahat_conv_allLoc = fmincon(obj_fun,x0,[],[],[],[],lb,ub,[],options);
 
 %%
-betahat_conv_allLoc
+betahat_conv_allLoc-85
