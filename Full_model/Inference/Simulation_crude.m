@@ -2,7 +2,6 @@
 
 %%
      
-    num_threshold = 10;
     % Count the events in each amplitude bins:
     related_mpp_n=struct();
     for l = 1:n_trial

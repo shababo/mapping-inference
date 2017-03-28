@@ -77,20 +77,13 @@ for i = 1:num_layers
 end
 
 %% generate cell features conditioned on location
+% Note: 
+
 
 % layer based priors on featues
 cell_feature_priors.connection_prob = [0 .095 .057 .116 .191 .017 .006]; % bernoulli
 cell_feature_priors.connection_strength_mean = [0 .8 .6 .8 2.0 .4 .1]; % log-normal
 cell_feature_priors.connection_strength_stddev = ones(num_layers,1); % log-normal
-
-% The following is no longer in use in the LIF model 
-%cell_feature_priors.connection_tau_rise_mean = [0 2.8 1.86 1.77 2.37 5.41 1.1]/1/1000; % gaussian
-%cell_feature_priors.connection_tau_rise_std = .0005*ones(num_layers,1)/2.5; % gaussian
-%cell_feature_priors.connection_tau_fall_mean = [0 73.2 37.2 61.7 74.4 36.8 27.2]/20/1000; % gaussian
-%cell_feature_priors.connection_tau_fall_std = .003*ones(num_layers,1)/10; % gaussian
-
-cell_feature_priors.rheobase_mean = [0 126 132 56 68 98 76]/126; % gaussian
-cell_feature_priors.rheobase_std = 5 * ones(num_layers,1); % gaussian
 
 % Using values in the simulations
 cell_feature_priors.Vthre_mean = [0  -25  -25  -25  -25  -25  -25]; % gaussian

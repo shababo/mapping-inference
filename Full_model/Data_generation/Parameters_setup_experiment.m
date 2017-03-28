@@ -1,6 +1,6 @@
 %% Parameters for the experiments
-%% Stimulus locations:
 
+%% Stimulus locations:
 % Define a num_dense by num_dense grid
 buffer=50;
 x_dense = (0:(num_dense-1))*(2*buffer+max(Z(:,1))-min(Z(:,1)))/(num_dense-1) + min(Z(:,1))-buffer;
@@ -12,11 +12,10 @@ for i = 1:num_dense
         Z_dense((i-1)*num_dense + l,:) = [x_dense(i) y_dense(l) postsyn_position(3)];
     end
 end
-
 % Merge the grid with the centers of neurons 
 Z_dense = [Z_dense; Z];
 
-%% Pre-calculate the induced firing probability 
+%% Pre-calculate the spatial marks
 
 % Calculate the probability of firing for ALL neurons
 % We will use it in simulating the real spikes

@@ -1,3 +1,4 @@
+% Note: the resting volrage is set to be 0 
 % Generate data using the LIF model 
 
 presynaptic_events = cell(n_trial, n_cell);
@@ -8,7 +9,8 @@ voltage_traces = cell(n_trial, n_cell);
 for i_cell = 1:n_cell
     V_th = all_V_th(i_cell);
     V_reset = all_V_reset(i_cell);
-    E_L=all_E_L(i_cell); %resting membrane potential [mV]
+    sigma=all_sigma(i_cell);
+    
     num_I_Stim=1;
     for i_trial = 1:n_trial
         presynaptic_events{i_trial, i_cell} = [];
@@ -21,21 +23,19 @@ for i_cell = 1:n_cell
             
             %spTrain=zeros(t_end,length(I_Stim_vect));% The output spike train
             i=1; %index denoting which element of V is being assigned
-            V_vect(i)=E_L; %first element of V, i.e. value of V at t=0
+            V_vect(i)=0; %first element of V, i.e. value of V at t=0
             %%%%chi-sq shape current
             I_e_vect=[0;I_e(:,num_I_Stim)];
             for ti=data_params.dt:data_params.dt:data_params.T %loop through values of t in steps of df ms
-                V_vect(i+1) = V_vect(i) + ((E_L-V_vect(i))*g + I_e_vect(i)*k)*data_params.dt + ...
+                V_vect(i+1) = V_vect(i) + ((0-V_vect(i))*g + I_e_vect(i)*k)*data_params.dt + ...
                     sqrt(data_params.dt)*normrnd(stoc_mu,stoc_sigma);
                 
                 if exact_crossing == 1
-                    % Modify the following statement to make sure that
-                    %if statement below says what to do if voltage crosses threshold
                     if (V_vect(i+1)>V_th) %cell spiked
                         V_vect(i+1)=V_reset; %set voltage back to V_reset
                         presynaptic_events{i_trial, i_cell} = [presynaptic_events{i_trial, i_cell} t_vect(i)];
                         presynaptic_amplitudes{i_trial, i_cell} = [presynaptic_amplitudes{i_trial, i_cell} ...
-                            abs(normrnd(all_amplitudes(i_cell),evoked_params.sigma_a))];
+                            abs(normrnd(all_amplitudes(i_cell),sigma))];
                         %t
                     end  
                 else
@@ -89,8 +89,8 @@ for l = 1:n_trial
     mpp_n = struct();
     if isempty(background_events{l}) ==  0
         mpp_n.event_times = background_events{l};
-        mpp_n.amplitudes = rand([1 length(background_events{l})])...
-            .*(bg_params.a_max -bg_params.a_min)+bg_params.a_min;
+        mpp_n.amplitudes = lognrnd(bg_params.mean,bg_params.sigma , ...
+            [1 length(background_events{l})]);
         mpp_n.assignments =  zeros(1,length(background_events{l}));
         
     else
@@ -103,7 +103,7 @@ for l = 1:n_trial
         if all_connected(i_cell) > 0
             if isempty(presynaptic_events{l,i_cell}) ==  0
                 for i = 1:length(presynaptic_events{l,i_cell})
-                    if rand(1) > evoked_params.failure_prob
+                    if rand(1) > all_gamma(i_cell)
                         mpp_n.event_times = [mpp_n.event_times presynaptic_events{l,i_cell}(i)];
                         mpp_n.amplitudes = [mpp_n.amplitudes presynaptic_amplitudes{l, i_cell}(i)];
                         mpp_n.assignments = [mpp_n.assignments i_cell];
