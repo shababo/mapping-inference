@@ -35,18 +35,15 @@ num_I_Stim=1; % set the stimulus to be a constant value, e.g., 100
 % 1: 100; 6: 50; 11: 25;    
 
 %%
- run('Experiment_LIF.m');
-       
-%%
-num_sim = 10;
+%num_sim = 10;
 %% Random design
 design = 0; % 0: random design; 1: optimal design
 
-for randomseed = 1:num_sim    
-    rng(randomseed,'twister');
-
-    flnm=strcat('../../Data/sim-results/LIFA', num2str(Aval), 'Design', num2str(design),...
-        'Mark', num2str(mark), 'Seed',num2str(randomseed),'.mat'); 
+%for randomseed = 1:num_sim    
+%    rng(randomseed,'twister');
+%
+%    flnm=strcat('../../Data/sim-results/LIFA', num2str(Aval), 'Design', num2str(design),...
+%        'Mark', num2str(mark), 'Seed',num2str(randomseed),'.mat'); 
     % Run analysis and design
     
     % Initialize starting values
@@ -99,13 +96,13 @@ end
 
 %% Optimal design
 
-design = 1;
+% design = 1;
+% 
+% for randomseed = 1:num_sim
+%     rng(randomseed,'twister');
 
-for randomseed = 1:num_sim
-    rng(randomseed,'twister');
-
-    flnm=strcat('../../Data/sim-results/LIFA', num2str(Aval), 'Design', num2str(design),...
-        'Mark', num2str(mark),'Seed',num2str(randomseed),'.mat');
+%     flnm=strcat('../../Data/sim-results/LIFA', num2str(Aval), 'Design', num2str(design),...
+%         'Mark', num2str(mark),'Seed',num2str(randomseed),'.mat');
     % Initialize starting values
     output= struct([]);
     for j = 1:num_threshold
@@ -152,4 +149,4 @@ for randomseed = 1:num_sim
         'location_optimal','mpp_optimal','time_record_optimal',...
         'NRE_conn_optimal','NRE_mark_optimal','AUC_conn_optimal')
     
-end
+% end

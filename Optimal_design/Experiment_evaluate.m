@@ -31,7 +31,7 @@ for outer_i = 1:(N/10)
         NRE_mark(outer_i) = norm(local_neuron_latencies/data_params.dt -overall_mark)/norm(local_neuron_amplitudes(:,1));
     end
     
-    [~,~,~,temp] = perfcurve(local_neuron_amplitudes>0,overall_connectivity_w ,1);
+    [~,~,~,temp] = perfcurve(local_neuron_amplitudes>0,overall_connectivity_w,1);
     AUC_conn(outer_i) = temp;
  
     

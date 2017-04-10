@@ -121,9 +121,9 @@ for i = 1:num_layers
     %                                            cell_feature_priors.connection_tau_fall_std(i),...
     %                                            [num_neurons_layer 1]);
     
-    neuron_features(i).rheobase = normrnd(cell_feature_priors.rheobase_mean(i),...
-                                           cell_feature_priors.rheobase_std(i),...
-                                           [num_neurons_layer 1]); 
+    %neuron_features(i).rheobase = normrnd(cell_feature_priors.rheobase_mean(i),...
+    %                                       cell_feature_priors.rheobase_std(i),...
+    %                                       [num_neurons_layer 1]); 
                                        
     % New features needed in the LIF model
     neuron_features(i).V_th = normrnd(cell_feature_priors.Vthre_mean(i),...
@@ -154,7 +154,7 @@ for i = 1:num_layers
     all_amplitudes = [all_amplitudes; neuron_features(i).amplitude];
     %all_tau_rise = [all_tau_rise; neuron_features(i).tau_rise];
     %all_tau_fall = [all_tau_fall; neuron_features(i).tau_fall];
-    all_rheobase = [all_rheobase; neuron_features(i).rheobase];
+    %all_rheobase = [all_rheobase; neuron_features(i).rheobase];
     all_V_th = [all_V_th; neuron_features(i).V_th];
     all_V_reset = [all_V_reset; neuron_features(i).V_reset];
     all_E_L = [all_E_L; neuron_features(i).E_L];

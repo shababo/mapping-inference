@@ -52,7 +52,7 @@ while i_sample < n_gibbs_sample
                  i_cell=evoked_cell_index(i_index);
                 if i_cell== 0
                     firing_rates(i_index)  = f_background;
-                    size_rates(i_index) = w_background; 
+                    size_rates(i_index) =  normpdf(log(this_event_size),mean_background,sigma_background); 
                 else 
                      firing_rates(i_index)  = gamma_old(i_cell)*estimated_intensity{i_trial,i_cell}(i_t);
                     size_rates(i_index) = normpdf(this_event_size,mu_old(i_cell),sigma_old(i_cell));
