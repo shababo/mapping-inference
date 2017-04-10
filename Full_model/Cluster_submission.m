@@ -27,8 +27,8 @@ X_next_all = zeros(size(pi_dense_all,1), n_trial);
 for l = 1:n_trial
     locations_next = randsample(grid_index, num_sources);
     locations_trials(l,:)=locations_next;
-    X_next(:,l) = min(.95,sum(pi_dense_local(:, locations_next) ,2));
-    X_next_all(:,l) = min(.95,sum(pi_dense_all(:,locations_next),2));
+    X_next(:,l) = sum(pi_dense_local(:, locations_next) ,2);
+    X_next_all(:,l) = sum(pi_dense_all(:,locations_next),2);
 end
 stimuli_size = k_basic*X_next_all';
 stimuli_size_local = k_basic*X_next';

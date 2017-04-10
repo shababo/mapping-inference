@@ -1,0 +1,259 @@
+
+Besides the observed events, we also know the stimuli intensity at location $x$ at time $t$, denoted as $I^i(x,t)$, from the experiment protocol.
+We can further calculate the stimulus intensity that each cell received from the stimulus at location $x$ as $c_j(x) I^i(x,t)$, where $c_j(x)$ is a spatial mark that controls how the stimulus affects the $j$th cell. 
+
+
+
+We assume that $w_j(\cdot)$ is the normal density function with mean $\mu_j$ and variance $\sigma_j^2$ for $1\leq j \leq p$. 
+The observed data in each trial,  $\mathcal{D}^i$ can be roughly seen a mixture of spontaneous events and presynaptic events. 
+Let $a_{i,k} \in \mathbb{R}^p$ be the latent assignment of the event $(t_{i,k}, s_{i,k})$ such that $a_{i,k,j}=1$ and $a_{i,k,-j} = {0}$ if the event $(t_{i,k},s_{i,k})$ is evoked by cell $j$. 
+If we further observe the set of hidden presynaptic events $\mathcal{H}^i_j$, we can write down the likelihood of the complete data 
+
+Note that the firing rate $f_j^i(\cdot; \mathcal{H}_{j}^i)$ depends on the history of the $j$th cell. 
+Although it is possible to estimate the unknown parameters in \eqref{eqn::full_likelihood} by inferring the latent events $\mathcal{H}_j^i$ and the latent assignments $\bm{a}$, the inference procedure quickly becomes computationally infeasible as the size of the data grows. 
+
+
+To avoid the inference of latent events, we approximate the conditional firing rate with the marginal firing rate $\tilde{f}_j^i$
+\begin{equation}\label{eqn::marginal_firing_rate}
+\tilde{f}_j^i(t; \bm{\phi}_j) = \mathbb{E}_{\mathcal{H}^i_j}[f_j^i(t; \mathcal{H}_{j}^i)],
+\end{equation}
+where $\bm{\phi}_j$ is a vector of parameters in $\tilde{f}_j^i$. 
+In \eqref{eqn::marginal_firing_rate}, we marginalize over the hidden presynaptic events $\mathcal{H}_{j}^i$. 
+We model $f_j^i(t; \mathcal{H}_{j}^i)$ using a combination of the leaky integrate-and-fire model and the generalized linear model (i.e., LIF-GLM).
+We will defer the details of the LIF-GLM and the estimation of the marginal firing rate to Section~\ref{sec::LIF-GLM}.
+
+
+
+
+
+Using the marginal firing rate, we can approximate the complete likelihood \eqref{eqn::full_likelihood} as 
+\begin{equation}\label{eqn::approx_likelihood}
+L(\bm{\theta}; \mathcal{H}, \bm{a}) = \prod_{i=1}^N \prod_{j=1}^p \left\{ \exp\left(- \gamma_j\int_0^T \tilde{f}_j^i(u; \bm{\phi}_j) \mathrm{d} u\right) \prod_{k=1}^{n_i} \big[\gamma_j \tilde{f}_j^i(t_{i,k}; \bm{\phi}_j)w_{j}(s_{i,k})\big]^{\mathds{1}_{[a_{i,k,j}=1]}}  \right\}.
+\end{equation}
+
+
+
+Taking the expectation of $\log L(\bm{\theta}; \mathcal{H}, \bm{a})$ with respect to the hidden assignments $\bm{a}$ yields 
+\begin{equation*}
+\begin{aligned}
+& \mathbb{E}_{\bm{a}} [\log L(\bm{\theta}; \mathcal{H}, \bm{a}) \mid \bm{\theta}^{\rm old}] \\
+=&  \sum_{i=1}^N \sum_{j=1}^p \left\{ - \gamma_j \int_0^T \tilde{f}_j^i(u; \bm{\phi}_j) \mathrm{d} u +  \sum_{k=1}^{n_i}  \mathbb{E}[\mathds{1}_{[a_{i,k,j}=1]} \mid \bm{\theta}^{\rm old}]\big[ \log \gamma_j + \log \tilde{f}_j^i(t_{i,k}; \bm{\phi}_j)+ \log w_{j}(s_{i,k})\big]  \right\} \\
+=&  \sum_{i=1}^N \sum_{j=1}^p \left\{ - \gamma_j\int_0^T \tilde{f}_j^i(u; \bm{\phi}_j) \mathrm{d} u +  \sum_{k=1}^{n_i}  \tilde{a}_{i,k,j} \big[ \log \gamma_j +  \log \tilde{f}_j^i(t_{i,k}; \bm{\phi}_j)+ \log w_{j}(s_{i,k})\big]  \right\},
+\end{aligned}
+\end{equation*}
+where $\tilde{a}_{i,k,j} \equiv  {\rm pr}(a_{i,k,j}= 1 \mid \bm{\theta}^{\rm old})$ is the conditional probability of the event $(t_{i,k},s_{i,k})$ is from the $j$th cell.
+We will refer to $\tilde{a}_{i,k,j}$ as the soft assignments.
+
+
+
+First observe that, given the latent assignments, the likelihood of the complete data is 
+\begin{equation}\label{eqn::full_likelihood}
+L(\bm{\theta}; \bm{a}) = \prod_{i=1}^N \prod_{j=1}^p \left\{ \exp\left(- \gamma_j \int_0^T f_j^i(u;\bm{\phi}_j) \mathrm{d} u\right) \prod_{k=1}^{n_i} 
+\big[ \gamma_j f_j^i(t_{i,k};\bm{\phi}_j) q_{j}(s_{i,k};\mu_j,\sigma_j)\big]^{\mathds{1}_{[a_{i,k,j}=1]}}
+  \right\},
+\end{equation}
+where $\bm{\theta}$ is the collection of unknown parameters, and $f_j^i(\cdot; \bm{\phi}_j)$ is the firing rate of the $j$th cell in the $i$th trial with $\bm{\phi}_j$ being the unknown parameters. 
+We model the firing rate $f_j^i$ using a combination of the leaky integrate-and-fire model and the generalized linear model.
+More details can be found in Appendix~\ref{sec::LIF-GLM}.
+
+%----------------------------------%
+Gibbs:
+
+
+\iffalse 
+{eqn::soft_assignment}
+
+We now discuss how to infer the connectivity status $\gamma_j$ and the size distribution $w_j$  for $j=1,\ldots, p$. 
+As mentioned before, we can estimate the parameters for the spontaneous events and the evoked firing rate of presynaptic cells from previous experiments. 
+In other words, we can obtain the estimates 
+\begin{equation}\label{eqn::estimates}
+\widehat{\lambda}_0(t,s) = \widehat{w}_0(s) \widehat{f}_0, \quad \widehat{\lambda}^i_j(t,s) = {w}_j(s) \widehat{f}_j^i(t),
+\end{equation}
+where we use the superscript $i$ in $\widehat{f}_j^i$ to denote the firing rate of the $j$th cell in the $i$th trial. 
+For $j=1,\ldots, p$, we assume that $w_j(s) = \mathcal{N}(\mu_j, \sigma_j^2)$ and let $p(\bm{\mu}, \bm{\sigma}, \bm{\gamma}; \bm{\theta})$ be the prior distribution of $\bm{\mu}$, $\bm{\sigma}$, and $\bm{\gamma}$ with $\bm{\theta}$ being hyperparameters.
+We assume that 
+\begin{equation}\label{eqn::prior}
+p(\bm{\mu}, \bm{\sigma}, \bm{\gamma}; \bm{\theta}) = \prod_{j=1}^p p(\mu_j, \sigma_j, \gamma_j; \bm{\theta}_j)= \prod_{j=1}^p p(\mu_j, \sigma_j; m_j,v_j, \alpha_{j}, \beta_{j} )p(\gamma_j; \alpha'_{j}, \beta'_{j}),
+\end{equation}
+where $p({\mu}_j, {\sigma}_j ; m_j, v_j, \alpha_{j}, \beta_{j})$ is a normal-inverse-Gamma distribution, and $p(\gamma_j ; \alpha'_{j}, \beta'_{j})$ is a  Beta distribution. 
+
+
+Let $\mathcal{D}_i$ denote the observed data in the $i$th trial, i.e., $\mathcal{D}_i \equiv \{ (t_{i,k}, s_{i,k}) \}_{k=1}^{n_i}$.
+However, the joint distribution of $\mathcal{D}_i$ and the parameters $(\bm{\mu}, \bm{\sigma}, \bm{\gamma})$ is intractable since the presynaptic events are unobserved. 
+To help the inference, we introduce a latent mark $a_{i,k} \in \{0, \ldots, p\}$ for every event $(t_{i,k},s_{i,k})$ to represent the \emph{source} of the corresponding postsynaptic event. 
+As a shorthand notation, we write $\bm{a}_i \equiv (a_{i,k})_{k=1}^p$.
+Then, we know that the conditional probability of the event $a_{i,k}=j$ is 
+\begin{equation}\label{eqn::assignment}
+p( a_{i,k} = j \mid \bm{\mu}, \bm{\sigma}, \bm{\gamma} ) = \gamma_j \widehat{f}^i_j(t_{i,k}) w_j(s_{i,k})/\widehat{\lambda}^i(t_{i,k},s_{i,k}),
+\end{equation}
+where $\widehat{\lambda}^i(t_{i,k},s_{i,k}) = \sum_{j=0}^p  \gamma_j \widehat{f}^i_j(t_{i,k}) w_j(s_{i,k})$. 
+We can now write down the Gibbs sampler for drawing samples from the posterior distribution of $\bm{a}$, $\bm{\mu}$, $\bm{\sigma}$, and $\bm{\gamma}$.
+In addition, we let $\mathcal{L}_j^i$ be the unobserved presynaptic events from cell $j$ in the $i$th trial. 
+We know that $\mathcal{L}_j^i$ follows an inhomogeneous Poisson process with intensity $f_j^i$. 
+Given $\mathcal{L}_j^i$ and $\bm{a}$, we know that 
+\begin{equation}\label{eqn::gamma}
+p(\gamma_j \mid \bm{a}, \mathcal{L}_j^1,\ldots, \mathcal{L}_j^N) \propto \gamma_j^{{\rm card}\big(\{ a_{i,k}=j \} \big)} (1-\gamma_j)^{\sum_{i=1}^N {\rm card}\big(\mathcal{L}_j^i\big)} p(\gamma_j ; \alpha'_{j}, \beta'_{j}). 
+\end{equation}
+Note that $p(\gamma_j \mid \bm{a}, \mathcal{L}_j^1,\ldots, \mathcal{L}_j^N)$ follows a Beta distribution since $p(\gamma_j ; \theta_j)$ follows a Beta distribution. 
+
+We use the Gibbs sampler to draw samples from the posterior distribution of $\bm{\mu}$ and $\bm{\gamma}$. 
+For every $j$, we choose a normal prior with mean $m_j$ and variance $\tau_j$ for $\mu_j$, and choose a beta prior with parameters $\alpha'_j$ and $\beta'_j$ for $\gamma_j$. 
+
+
+
+In each step of the Gibbs sampler, we first calculate the soft assignments $\{a_{i,k}: i=1,\ldots, N, k=1,\ldots, n_i\}$ as in \eqref{eqn::soft_assignment}. 
+We then draw a sample from the conditional distribution of $\mu_j$, which follows a normal distribution with mean $[\sigma^{-1} m_j+ C_j \bar{s}_j]/[\sigma_j^{-1}+C_j]$ and variance $\tau^2_j/(1+C_j)$, where 
+$$C_j \equiv \sum_{i,k} \tilde{a}_{i,k,j} \quad {\rm and} \quad \bar{s}_j = \sum_{i,k} a_{i,k,j} s_{i,k}/C_j.$$
+Next, we draw $\gamma_j$ from the conditional distribution given the soft assignments. 
+Suppose for now that we observe the hard assignments $a_{i,k}$ for each event and the hidden presynaptic events $N_j^i(\cdot)$. 
+Then, the conditional distribution of $\gamma_j$ follows that 
+\begin{equation}\label{eqn::gamma_hard}
+p(\gamma_j \mid \bm{a}) \propto  \gamma_j^{\alpha_j'} (1-\gamma_j)^{\beta_j'} \gamma_j^{\sum_{i,k} a_{i,k,j} }(1-\gamma_j)^{\sum_{i} N_j^i(T) -  \sum_{i,k} a_{i,k,j}},
+\end{equation}
+where $N_j^i(T)$ is the total number of presynaptic events in cell $j$ during the $i$th trial. 
+We know from basic calculus that \eqref{eqn::gamma_hard} is the density function of a beta distribution with parameter $(\alpha_j'+\sum_{i,k} a_{i,k,j}, \beta_j' +\sum_{i} N_j^i(T) -  \sum_{i,k} a_{i,k,j})$.
+As discussed earlier, inferring $N_j^i$ and $\{a_{i,k}: i=1,\ldots, N, k =1,\ldots, n_i\}$ are computationally intractable. 
+Therefore, we approximate the parameters in the  exact conditional distribution with $(\alpha'_{j}+\sum_{i,k} \tilde{a}_{i,k,j},  \beta'_j+ B_j - \sum_{i,k} \tilde{a}_{i,k,j})$, where $B_j =  \sum_{i } \int_0^T f_j^i(t) \mathrm{d} t$ is the expected number of events from cell $j$. 
+
+In practice, there might be hundreds of cells and thousands of trials. 
+To reduce the computational cost, we use a minibatch Gibbs sampler, where we use only a small batch of trials in each step of the Gibbs sampler. 
+The minibatch update significantly saves the computational cost while retaining statistical efficiency in our inference.
+The full algorithm is provided in \eqref{algm::gibbs}.
+
+\vspace{6mm}
+
+\mbox{
+\begin{algorithm}[H]
+\label{algm::gibbs}
+Set $i=0$ and $l=0$\; 
+\While{ $l < L$ }{
+Select an $M$-subset $\mathcal{M}$ from $\{1,\ldots, N\}$\; 
+    \For{$i \in \mathcal{M}$}{
+    	\For{$k=1,\ldots, n_i$}{
+        Calculate the soft assignment variable $\tilde{a}_{i,k}$  
+          \begin{equation}
+          \tilde{a}_{i,k,j} = \gamma_{j} w_{j}(s_{i,k}) f_j^i(t_{i,k})/c_{i,k}, \quad j = 0,\ldots, p,
+			\end{equation}
+where $c_{i,k} = \sum_{j=0}^p \gamma_{j} w_{j}(s_{i,k}) f_j^i(t_{i,k})$\;
+          }
+    }
+    \For{$j=1, \ldots,p$}{
+    	Calculate $C_j \equiv \sum_{i,k} \tilde{a}_{i,k,j}$ \;
+        Calculate the weighted average of $\{s_{i,k}: i \in \mathcal{M}, k=1,\ldots, n_i\}$ as $\bar{s}_j = \sum_{i,k} a_{i,k,j} s_{i,k}/C_j$\;
+        Draw $\mu_j$ from the normal distribution with mean $[\tau^{-1}_j m_j+ N C_j \bar{s}_j/M]/[\tau_j^{-1}+NC_j/M]$ and variance $\tau^2_j/(1+NC_j/M)$\;
+        Calculate the expected number of events based on the marginal firing rate \eqref{eqn::marginal_firing_rate} as $B_j = \sum_{i \in \mathcal{M}} \int_0^T f_j^i(t) \mathrm{d} t$\;
+        Draw $\gamma_j$ from the Beta distribution with parameters $(\alpha'_{j}+ NC_j/M,  \beta'_j+ NB_j/M - NC_j/M )$\;
+    }	
+    $i = i+1$\;
+    \If{$i > n_{\rm burnin}$}{
+    	\If{$ i \  {\rm mod} \  n_{\rm skip} =1$}{
+        	Save $\{\bm{a}, \bm{\mu}, \bm{\gamma}\}$ as a new sample\;
+            l = l+1\;
+        }
+    }
+}
+\caption{Gibbs sampler for the post-experiment inference}
+\end{algorithm}
+}
+\fi 
+
+
+%------------------------------------------%
+Variational bayes
+
+\iffalse 
+
+\subsection{Full joint distribution with latent variables}\label{sec::joint}
+Furthermore, denote the presynaptic events in cell $j$ during the $i$th trial as $\mathcal{L}_i^j$, i.e., $\mathcal{L}_i^j \equiv \{ (t_{i,k}^j, s_{i,k}^j) \}_{k=1}^{n_i^j}$.
+The likelihood of $\mathcal{L}_i^j$ is 
+\begin{equation}\label{eqn::lklh_j}
+p( \mathcal{L}_i^j \mid \mu_j, \sigma_j, \gamma_j) = \exp\left\{ - \int_0^T  f_j(t') \mathrm{d} t' \right\} \prod_{k=1}^{n^j_{i}} w_j(s_{i,k}) f_j(t_{i,k} \mid \mathcal{H}_j^{t_{i,k}} ).
+\end{equation}
+Given $\mathcal{L}_i^j$, the postsyanptic events follow a binomial distribution 
+\begin{equation}\label{eqn::lklh_post}
+p(\mathcal{D}_i \mid \bm{\gamma}, \bm{\mu}, \bm{a}_i, \mathcal{L}_i^0,\ldots, \mathcal{L}_i^p) = \prod_{j=1}^p \gamma_j^{m_{i}^j} (1-\gamma_j)^{n_{i}^j - m_{i}^j}, 
+\end{equation}
+where $m_i^j = \sum \bm{1}[a_{i,k}=j]$.
+
+
+
+Finally, the joint distribution is obtained by combining \eqref{eqn::lklh_j}, \eqref{eqn::lklh_post}, and \eqref{eqn::prior} 
+\begin{equation}\label{eqn::joint}
+p(\mathcal{D}, \bm{\mu}, \bm{\gamma},\bm{a} ) = p(\bm{\mu}, \bm{\gamma}; \bm{\theta})   \prod_{i=1}^N \left\{ p(\bm{a}_i) p\big( \mathcal{D}_i \mid \bm{\mu}, \bm{\gamma}, \bm{a}_i, \mathcal{L}_i^0,\ldots, \mathcal{L}_i^p \big) \prod_{j=1}^p p( \mathcal{L}_i^j \mid \mu_j, \gamma_j) \right\}.
+\end{equation}
+
+Recall that our goal is to obtain the posterior distribution of the unknown parameters given the observed data, i.e., $p(\bm{\mu}, \bm{\gamma} \mid \mathcal{D})$ from \eqref{eqn::joint}. 
+However, it is intractable to obtain an analytic expression of the posterior from the joint distribution \eqref{eqn::joint}. 
+We propose a Gibbs sampler for sampling from the posterior. 
+The Gibbs sampler consists of two main sampling steps: sampling from $p(\bm{\mu}, \bm{\gamma} \mid \mathcal{D}, \mathcal{L}, \bm{a})$ and sampling from $p(\mathcal{L}, \bm{a} \mid  \mathcal{D}, \bm{\mu}, \bm{\gamma})$. 
+
+Sampling from the conditional distribution of $\bm{\mu}$ and $\bm{\gamma}$ is fairly straight-forward, since we use conjugate priors for $\bm{\mu}$ and $\bm{\gamma}$. 
+Note that we can separately sample $p({\mu}_j \mid \mathcal{D}, \mathcal{L}, \bm{a})$ and $p( {\gamma}_j \mid \mathcal{D}, \mathcal{L}, \bm{a})$ for each $j=1,\ldots, p$.   
+
+Sampling from $p(\mathcal{L}, \bm{a} \mid  \mathcal{D}, \bm{\mu}, \bm{\gamma})$ is more involved. 
+First note that the conditional distribution is the product of conditional distributions of all $N$ trials, i.e., 
+$$p(\mathcal{L}, \bm{a} \mid  \mathcal{D}, \bm{\mu}, \bm{\gamma})  = \prod_{i=1}^N p(\mathcal{L}_i, \bm{a}_i \mid  \mathcal{D}_i, \bm{\mu}, \bm{\gamma}).$$
+We can further break down the sampling from $p(\mathcal{L}_i, \bm{a}_i \mid  \mathcal{D}_i, \bm{\mu}, \bm{\gamma})$ into two operations.
+The first operation draws the latent presynaptic processes from $p(\mathcal{L}_i^j  \mid \bm{a}_i, \mathcal{D}_i, \bm{\mu}, \bm{\gamma})$.
+Here $\mathcal{L}_i^j$ is a point process with partially observed events given by the assignments $\bm{a}_i$ and $\mathcal{D}_i$. 
+In fact, we would need to infer the conditional distribution of $V_j(t)$ given $\mathcal{D}_i^j$ in order to draw a sample from the latent process $\mathcal{L}_i^j$. 
+Briefly, we employ a forward-backward algorithm that exploits the Markovian property of $V_j(t)$. 
+Details of the forward-backward algorithm is given in Appendix~\ref{sec::forward-backward}. 
+The second operation reassign the assignment variable ${a}_{i,k}$.
+Notice that this operation will also change the latent events $\mathcal{L}_i^j$ if the corresponding event is assigned to or removed from the process. 
+The probability of $a_{i,k} = j$ is proportional to the joint distribution $p( (t_{i,k},s_{i,k}), \mathcal{L}^{j}_i \mid \mu_j, \gamma_j)$.
+
+\begin{enumerate}
+\item For $i = 1, \ldots, N$, do 
+\begin{enumerate}
+\item For $k=1,\ldots, n_i$, evaluate the firing rate $\hat{f}_j(t_{i,k}; \mathcal{H}_j^{t_{i,k}})$ given $\{ (t_{i,l}, s_{i,l}, a_{i,l}): a_{l,k} = j, l=1,\ldots, k-1\}$ for every $j$; then draw the assignment variable $a_{i,k}$ from the discrete distribution  
+\begin{equation}
+\begin{aligned}
+& {\rm pr}(a_{i,k}=0 \mid t_{i,k}, s_{i,k}, \bm{\xi}, \bm{\mu}, \bm{\sigma}) = \frac{\hat{f}_0 (t_{i,k})\hat{w}_0(s)}{ \lambda\big( t_{i,k},s_{i,k} \big)},  \\
+& {\rm pr}(a_{i,k}=j \mid t_{i,k}, s_{i,k}, \bm{\xi}, \bm{\mu}, \bm{\sigma}) = \frac{ \gamma_j w_j(s) \hat{f}_j(t_{i,k}; \mathcal{H}_j^{t_{i,k}})}{ \lambda\big( t_{i,k},s_{i,k} \big)}, \quad j=1,\ldots, p.
+\end{aligned}
+\end{equation}
+\end{enumerate}
+\item For each $j$, let $\{ (t_{i,k}, s_{i,k}): a_{i,k}=j\} $ be the collection of marked events that are assigned to cell $j$. 
+\begin{enumerate}
+\item We can draw $\mu_j$ and $\sigma_j$ from ${\rm pr}(\{s_{i,k}: a_{i,k}=j\}  \mid \mu_j, \sigma_j  ) p(\mu_j) p(\sigma_j)/p_0$, where ${\rm pr}(\{s_{i,k}: a_{i,k}=j\}  \mid \mu_j, \sigma_j  )$ is the log-normal  (or multinomial)  density and $p_0$ is the normalizing constant.
+\item We can draw $\gamma_j$ from ${\rm Bernoulli}(\tilde{\xi}_j)$ with $\tilde{\xi}_j = {\rm pr}( \{ (t_{i,k}^j, s_{i,k}^j): a_{i,k}=j\} \mid \gamma_j=1,  \mu_j, \sigma_j  ) p(\gamma_j)/p_0$, where $p_0$ is the normalizing constant.
+\end{enumerate}
+\end{enumerate}
+\fi 
+
+\iffalse 
+\subsection{Variational Inference}
+
+\textcolor{red}{Placeholder.}
+
+\subsection{Synaptic delays}
+
+\textcolor{red}{Outdated.}
+
+In this section, we consider the case when a presynaptic event might fail to induce a postsynaptic event (synaptic failures) or induce a delayed postsynaptic event (synaptic delays).
+We model the process of postsynaptic events as 
+\begin{equation}\label{eqn::postsynaptic_failure}
+\mathrm{d} N(t,s) = \sum_{j=0}^p \gamma_j \int_0^{t} \bm{1}[\Delta_j(t') = t-t']\mathrm{d} N_j(t',s), 
+\end{equation}
+where $\Delta_j(t')$ is the delay variable with density 
+\begin{equation}\label{eqn::delay_distribution}
+p\big(\Delta_j(t') = x \big) = p(x;\tau_{j}) (1- \xi_j) + \xi_j \delta(1/x).
+\end{equation}
+Here $xi_j$ is the probability of synaptic failure and $\tau_j$ is a parameter that controls the  delay distribution. 
+It is important to note that, in \eqref{eqn::postsynaptic_failure}, the postsynaptic events are stochastic given the presynaptic events $N_j$ and the connectivity status $\gamma_j$, $j=1,\ldots,p$. 
+In contrast, in \eqref{eqn::postsynaptic}, the postsynaptic events are deterministic given $N_j$ and $\gamma_j$, $j=1,\ldots,p$. 
+
+We need to introduce another set of latent variables $\mathcal{D}^{j}_i$ to denote the partially-observed presynaptic events, i.e.,
+$$\mathcal{D}^j_i \equiv \{ (t^j_{i,k}, s^j_{i,k}) \}_{k=1}^{n_i^j}.$$
+The distribution of the presynaptic events is 
+\begin{equation}
+p(\mathcal{D}^j_i \mid \bm{\mu},\bm{\sigma}) = \prod_{k=1}^{n_i^j} \exp\left[ - \int_{t^j_{i,k-1}}^{t^j_{i,k}} \hat{f}_j(t' \mid \mathcal{H}^{t'}_{j}) \mathrm{d} t' \right] w_j(s^j_{i,k})  \hat{f}_j(t^j_{i,k} \mid \mathcal{H}^{t^j_{i,k}}_{j}).
+\end{equation}
+Each presynaptic event is associated with a delay variable $\Delta_j(t^j_{i,k})$ \eqref{eqn::delay_distribution}.
+
+\textcolor{red}{The latent assignments are different from the ones defined in the previous section. Here each postsynaptic event is assigned to a presynaptic event, rather than the presynaptic cell. In this case, the categories of the assignments depend on the presynaptic events, which is a random variable. Not sure how variational inference applies here.}
+
+\fi 
+
+

@@ -77,20 +77,13 @@ for i = 1:num_layers
 end
 
 %% generate cell features conditioned on location
+% Note: 
+
 
 % layer based priors on featues
 cell_feature_priors.connection_prob = [0 .095 .057 .116 .191 .017 .006]; % bernoulli
 cell_feature_priors.connection_strength_mean = [0 .8 .6 .8 2.0 .4 .1]; % log-normal
 cell_feature_priors.connection_strength_stddev = ones(num_layers,1); % log-normal
-
-% The following is no longer in use in the LIF model 
-%cell_feature_priors.connection_tau_rise_mean = [0 2.8 1.86 1.77 2.37 5.41 1.1]/1/1000; % gaussian
-%cell_feature_priors.connection_tau_rise_std = .0005*ones(num_layers,1)/2.5; % gaussian
-%cell_feature_priors.connection_tau_fall_mean = [0 73.2 37.2 61.7 74.4 36.8 27.2]/20/1000; % gaussian
-%cell_feature_priors.connection_tau_fall_std = .003*ones(num_layers,1)/10; % gaussian
-
-cell_feature_priors.rheobase_mean = [0 126 132 56 68 98 76]/126; % gaussian
-cell_feature_priors.rheobase_std = 5 * ones(num_layers,1); % gaussian
 
 % Using values in the simulations
 cell_feature_priors.Vthre_mean = [0  -25  -25  -25  -25  -25  -25]; % gaussian
@@ -128,9 +121,9 @@ for i = 1:num_layers
     %                                            cell_feature_priors.connection_tau_fall_std(i),...
     %                                            [num_neurons_layer 1]);
     
-    neuron_features(i).rheobase = normrnd(cell_feature_priors.rheobase_mean(i),...
-                                           cell_feature_priors.rheobase_std(i),...
-                                           [num_neurons_layer 1]); 
+    %neuron_features(i).rheobase = normrnd(cell_feature_priors.rheobase_mean(i),...
+    %                                       cell_feature_priors.rheobase_std(i),...
+    %                                       [num_neurons_layer 1]); 
                                        
     % New features needed in the LIF model
     neuron_features(i).V_th = normrnd(cell_feature_priors.Vthre_mean(i),...
@@ -161,7 +154,7 @@ for i = 1:num_layers
     all_amplitudes = [all_amplitudes; neuron_features(i).amplitude];
     %all_tau_rise = [all_tau_rise; neuron_features(i).tau_rise];
     %all_tau_fall = [all_tau_fall; neuron_features(i).tau_fall];
-    all_rheobase = [all_rheobase; neuron_features(i).rheobase];
+    %all_rheobase = [all_rheobase; neuron_features(i).rheobase];
     all_V_th = [all_V_th; neuron_features(i).V_th];
     all_V_reset = [all_V_reset; neuron_features(i).V_reset];
     all_E_L = [all_E_L; neuron_features(i).E_L];
