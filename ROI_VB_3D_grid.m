@@ -25,7 +25,7 @@ cell_coords = zeros(max_x*max_y,3);
         for j = 1:max_y
             for k = 1:length(unique_depths)
                 cell_coords(sub2ind([max_x,max_y,length(unique_depths)],i,j,k),:)...
-                    = [(i-1)*20-160 (j-1)*20-160 unique_depths(k)];
+                    = [(i-1)*10-160 (j-1)*10-160 unique_depths(k)];
             end
         end
     end
