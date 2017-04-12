@@ -1,4 +1,4 @@
-function [ gain_vec ] = LIFglmnn( sptrain_byLoc, Ie_byLoc, Vm_byLoc, linkID )
+function [ betahat_conv_allLoc ] = LIFglmnn( sptrain_byLoc, Ie_byLoc, Vm_byLoc, linkID )
 %%%%Ben:
 % basically a function that takes in 
 % spike times, stim info (power, location, current template), and some params.
@@ -43,7 +43,7 @@ for iloc=loc_vec
     ind1st_allLoc{iloc}=ind1st0;ind1st=[ind1st ind1st0];
 end
 
-%%%% truncate v-clamp voltage uptill first spike time
+%%%% truncate v-clamp current uptill first spike time
 nii=size(sptrain,1)*size(sptrain,2);
 Ie_loc0=zeros(size(trainM(:),1),nloc);
 Ie_loc0_trunc=Ie_loc0;
@@ -96,6 +96,12 @@ elseif (linkID==2 | linkID==3 |linkID==4) %% glm non-negative, convolve
     lb(3:num_params) = -1e-6;
     ub(3:num_params) = 1e6;
 end
+
+% assignin('base','ind1st',ind1st)
+% assignin('base','design',design)
+% assignin('base','Y',Y)
+
+return
 
 obj_fun = @(x) logL_LIFglmnn( x, design, Y, linkID);
 options = optimset('Algorithm','interior-point','Display','iter','GradObj','on','Diagnostics','on','UseParallel','always'); %
