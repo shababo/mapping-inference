@@ -1,14 +1,14 @@
-load('data/current_template.mat')
+load('current_template.mat')
 
 rng(1234)
 
 %% build stimuli and set some params
 
-trial_length = 1500;
-downres_rate = 20;
+trial_length = 2000;
+downres_rate = 1;
 trial_length_downres = trial_length/downres_rate;
 
-stims_t_norm = -1.0*norm_average_current(1:trial_length);
+stims_t_norm = 1.0*template(1:trial_length);
 stims_t_norm_downres = downsample(stims_t_norm,downres_rate);
 num_spatial_pos = 121;
 powers = [25 50 100];
@@ -59,7 +59,7 @@ spatial_filt_true(end,:) = 0;
 spatial_filt_true(:,1) = 0;
 spatial_filt_true(:,end) = 0;
 
-V_th_true = 5; V_reset_true = -150; g_true = 0.05;
+V_th_true = 100; V_reset_true = -500; g_true = 0.01;
 sf_gain = .5;
 spatial_filt_true = spatial_filt_true*sf_gain;
 spatial_filt_true = spatial_filt_true(:);
@@ -72,7 +72,7 @@ title('True Spatial Filt')
 
 %%%DEFINE PARAMETERS
 dt=1; %time step ms
-t_end=75; %total run time ms
+t_end=2000; %total run time ms
 V_spike=70; %value to draw a spike to, when cell spikes
 
 %%%DEFINE INITIAL VALUES AND VECTORS TO HOLD RESULTS
@@ -151,9 +151,11 @@ for i = 1:3
     end
 end
 
-figure;compare_trace_stack_grid(spikes_grids,5,1,[],0,{'raw','detected events'})
+%%
 
+% figure;compare_trace_stack_grid(voltages_grids,5,1,[],0,{'raw','detected events'})
 
+%%
 
 spikes_per_location_true = cell(3,1);
 first_spike_latency_true = cell(3,1);

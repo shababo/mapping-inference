@@ -1,0 +1,19 @@
+going back through emails to catch myself up:
+
+9/21/16
+from liam:
+technical note - glmfit packages typically use a newton method for optimizing the LL.  in our problem the hessian of the LL is very highly structured - basically, the spatial weights c_x only interact with each other indirectly, through V_reset and V_th.  more precisely, the hessian has a lot of zeros in it - all cross-terms w.r.t. c_x and c_y are zero for two different locations x and y.  this implies that the newton steps should be computed in O(N) time, where N is the number of different locations for which you're estimating c_x.  but i'm not sure that glmfit is exploiting the hessian structure automatically here - i kind of doubt it, actuall
+
+
+On huge V_reset when cells only spike once
+ok, so this is basically the same overfitting issue we were seeing before - if there is no spike after the reset then V_reset will be pushed off to -infty to enforce this.
+
+will think more about how to deal with this...
+
+
+Numerical issues with soft rectifier link function or hard rectifier
+
+we can check this with simulated data - 1) generate from the hard-threshold model (with params chosen by hand to look like the real data, with the nice spatial dependence in the latency) and then 2) fit with the soft-threshold model and see what happens.  do we have this working yet?  (apologies if i've lost track.)  if we can't do (1) then we need to add some spike history...
+
+we could do this, but we had to scale up the params...
+
