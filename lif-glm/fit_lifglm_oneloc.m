@@ -7,8 +7,10 @@ function [betahat_glm,betahat_fmin,stats_conv,ll_fmin] = fit_lifglm_oneloc(respo
 % [num_trials, num_samps] = size(responses);
 
 covs = gconv(stims',stims_ind,responses',in_params.g);
-covs = permute(covs,[3 2 1]);
-params.dt = 1/20000;
+% covs = permute(covs,[3 2 1]);
+assignin('base','covs_tmp',covs)
+
+% params.dt = 1/20000;
 
 % params.link = @(mu) log(exp(mu)-1);  %link = @(mu) mu + log(1-exp(-mu));
 % params.dlink = @(mu) exp(mu)./(exp(mu)-1);
@@ -41,10 +43,10 @@ lb = -Inf*ones(size(x0));
 lb([1 3:end]) = 0;
 covs_1trial = zeros(length(responses(:)),length(x0));
 for i = 1:length(x0)
-    covs_1trial_this_param = squeeze(covs(:,i,:));
+    covs_1trial_this_param = squeeze(covs(:,i,:))';
     covs_1trial(:,i) = covs_1trial_this_param(:)';
 end
-
+assignin('base','covs_1trial_tmp',covs_1trial)
 [betahat_glm,dev,stats_conv]=glmfit(covs_1trial,responses(:),'poisson','link',F,'constant','off');
 stats_conv.dev = dev;
 % betahat_glm = []; stats_conv = [];

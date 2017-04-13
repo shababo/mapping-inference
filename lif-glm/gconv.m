@@ -21,6 +21,7 @@ function covs = gconv(I_eg,stims_ind,trainM,g)
         elseif isempty(find(trainM(:,tr)))==0
             te0=find(trainM(:,tr));
             te1=[0;te0;ntime];
+            
             for i=1:length(te0)+1
                 if i ~= 1
                     t_elapse=1:(te1(i+1)-te1(i));
