@@ -7,7 +7,7 @@ function [V_vect, spikes] = lif_glm_sim(stim,params,funcs)
 
 last_spike = 1;
 dt = 1;
-t_end = 2001;
+t_end = size(stim,2);
 t_vect=0:dt:t_end;
 V_spike = 70;  
 spikes = zeros(size(t_vect));
