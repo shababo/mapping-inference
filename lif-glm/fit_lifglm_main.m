@@ -40,7 +40,7 @@ clc
 clear glm_out
 clear fmin_out
 % g = [.009 .01 .03 .05 .07];
-g = .05*downsamp;
+g = [.05]*downsamp;
 devs = zeros(size(g));
 for i = 1:length(g)
     g(i)
@@ -63,6 +63,7 @@ params_sim.g = g(g_choice);
 funcs.invlink = @invlink_test;%@(resp) log(1 + exp(resp));%@(x) exp(x);
 spike_count_means_glmfit_sim = zeros(9,5);
 spike_time_means_glmfit_sim = zeros(9,5);
+spike_time_std_glmfit_sim = zeros(9,5);
 for k = [1:10]%1:length(cells(1).spike_data)
 %     if k ~= 1
 %         k = k -1;
@@ -81,7 +82,7 @@ for k = [1:10]%1:length(cells(1).spike_data)
         end
         spike_count_means_glmfit_sim(k,j) = length(spike_times)/num_sim_trials;
         spike_time_means_glmfit_sim(k,j) = mean(spike_times);
-        
+        spike_time_std_glmfit_sim(k,j) = std(spike_times);
     end    
 end
 
@@ -116,7 +117,7 @@ end
 % end
 %%
 figure
-for i = 1:9
+for i = 1:10
     
     subplot(9,2,(i-1)*2+1)
     plot(powers,spike_count_means(i,:))
@@ -133,9 +134,9 @@ for i = 1:9
     hold on
 %     plot(powers,spike_time_means_fmin_sim(i,:),'--')
     hold on
-    plot(powers,spike_time_means_glmfit_sim(i,:),'--')
+    errorbar(powers,spike_time_means_glmfit_sim(i,:),spike_time_std_glmfit_sim(i,:),'--')
     xlim([0 175])
-    ylim([0 25]*20/downsamp)
+%     ylim([0 25]*20/downsamp)
 %     subplot(9,3,i*3)
 %     plot(powers,spike_count_means_fmin_sim(i,:))
 %     hold on

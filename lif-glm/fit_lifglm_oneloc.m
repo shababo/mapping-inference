@@ -47,7 +47,8 @@ for i = 1:length(x0)
     covs_1trial(:,i) = covs_1trial_this_param(:)';
 end
 assignin('base','covs_1trial_tmp',covs_1trial)
-[betahat_glm,dev,stats_conv]=glmfit(covs_1trial,responses(:),'poisson','link',F,'constant','off');
+[betahat_glm,dev,stats_conv]=glmfit(covs_1trial(:,[1 2 3:end]),responses(:),...
+    'poisson','link',F,'constant','off');%,'offset',-1e8*covs_1trial(:,2));
 stats_conv.dev = dev;
 % betahat_glm = []; stats_conv = [];
 % [betahat_fmin, ll_fmin] = fmincon(obj_fun,x0,[],[],[],[],lb,ub,[],options);
