@@ -1,4 +1,4 @@
-function [betahat_glm,betahat_fmin,stats_conv,ll_fmin] = fit_lifglm(responses,stims,stims_ind,in_params)
+function [stats_conv] = fit_lifglm(responses,stims,stims_ind,in_params)
 
 % in_params.link_type
 % in_params.fit_init
