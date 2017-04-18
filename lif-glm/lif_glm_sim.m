@@ -8,7 +8,7 @@ function [V_vect, spikes] = lif_glm_sim(stim,params,funcs)
 last_spike = 1;
 dt = 1;
 t_end = size(stim,2);
-t_vect=0:dt:t_end;
+t_vect=0:dt:t_end-1;
 V_spike = 70;  
 spikes = zeros(size(t_vect));
 V_vect=zeros(1,length(t_vect));
@@ -23,7 +23,7 @@ tao=exprnd(1);
 %     lambda(i)=log(exp(V_vect(i)-V_th_sim)+1);
 lambda(i) = exp(V_vect(i)-params.V_th);
 
-for t=dt:dt:t_end %loop through values of t in steps of df ms        
+for t=dt:dt:t_end-1 %loop through values of t in steps of df ms        
     %V_inf = E_L + I_e_vect(i)*R_m;
 
     V_vect(i+1) = V_vect(i) + ...

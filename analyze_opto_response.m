@@ -53,7 +53,7 @@ for k = 1:num_spike_locs
     end    
 end
 
-g = [.007 .03 .09 .15 .21]*downsamp;
+g = [.01 .03 .05 .07 .09 .11 .13]*downsamp;
 cell.glm_params.g = g;
 cell.glm_params.downsamp = downsamp;
 
@@ -66,3 +66,50 @@ for i = 1:length(g)
     cell.glm_out(i).dev = cell.glm_out(i).glm_result.dev;
 end
 
+[min_dev, min_ind] = min([cell.glm_out.dev]);
+cell.g = cell.glm_params.g(min_ind);
+this_glm_out = cell.glm_out(min_ind).glm_result;
+cell.v_th = this_glm_out.beta(1);
+cell.v_reset = this_glm_out.beta(2);
+cell.gain = this_glm_out.beta(3);
+cell.th_gain_ratio = this_glm_out.beta(1)/this_glm_out.beta(3);
+
+sim_scale = 1;
+params_sim.V_th = cell.v_th*sim_scale;
+params_sim.V_reset = cell.v_reset*sim_scale;
+num_sim_trials = 50;
+params_sim.g = cell.g;
+funcs.invlink = @invlink_test;
+num_locs = length(cell.spike_data(k));
+num_powers = length(cell.spike_data(1).powers);
+spike_count_means_glmfit_sim = zeros(num_locs,num_powers);
+spike_time_means_glmfit_sim = zeros(num_locs,num_powers);
+spike_time_std_glmfit_sim = zeros(num_locs,num_powers);
+
+
+for k = 1:num_locs
+
+    k
+
+    powers = cell.spike_data(k).powers;
+    params_sim.gain = ...
+        cell.glm_out(min_ind).glm_result.beta(k+2)*sim_scale;
+    for j = 1:length(powers)
+        spike_times = [];
+        sim_whole_cell = zeros(num_sim_trials,size(stims,2));
+        for i = 1:num_sim_trials
+    
+            [V_vect, spikes] = lif_glm_sim(stims((j-1)*5+1,:),params_sim,funcs);
+            sim_whole_cell(i,:) = V_vect;
+            spike_times = [spike_times find(spikes,1,'first')];
+        end
+        cell.glm_sim(k).sim_whole_cell = sim_whole_cell;
+        spike_count_means_glmfit_sim(k,j) = length(spike_times)/num_sim_trials;
+        spike_time_means_glmfit_sim(k,j) = mean(spike_times);
+        spike_time_std_glmfit_sim(k,j) = std(spike_times);
+        
+    end    
+end
+cell.glm_sim(k).spike_count_means = spike_count_means_glmfit_sim;
+cell.glm_sim(k).spike_time_means = spike_time_means_glmfit_sim;
+cell.glm_sim(k).spike_time_std = spike_time_std_glmfit_sim;

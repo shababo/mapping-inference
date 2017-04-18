@@ -26,15 +26,41 @@ this_cell = 4;
 cell(this_cell) = base_cell;
 cell(this_cell).filename = '4_2_slice2_cell2.mat';
 cell(this_cell).spike_thresh = 24;
+
+this_cell = 5;
+cell(this_cell) = base_cell;
+cell(this_cell).filename = '4_2_slice2_cell3.mat';
+cell(this_cell).spike_thresh = 20;
+
+this_cell = 6; % doublets
+cell(this_cell) = base_cell;
+cell(this_cell).filename = '4_2_slice3_cell1.mat';
 %%
-cell_to_run = [1:4];
-for i = 1:length(cell_to_run)
-    this_cell = cell_to_run(i);
+cell_to_run = [1:6];
+cell_analyzed_bu = cell_analyzed;
+clear cell_analyzed
+for ii = 1:length(cell_to_run)
+    this_cell = cell_to_run(ii)
     cell_analyzed(this_cell) = analyze_opto_response(cell(this_cell));
-    [min_dev, min_ind] = min([cell_analyzed(this_cell).glm_out.dev]);
-    cell_fits(this_cell).g = cell_analyzed(this_cell).glm_params.g(min_ind);
-    this_glm_out = cell_analyzed(this_cell).glm_out(min_ind).glm_result;
-    cell_fits(this_cell).v_th = this_glm_out.beta(1);
-    cell_fits(this_cell).v_reset = this_glm_out.beta(2);
-    cell_fits(this_cell).gain = this_glm_out.beta(3);
+    
 end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
