@@ -29,5 +29,12 @@ cell(this_cell).spike_thresh = 24;
 %%
 cell_to_run = [1:4];
 for i = 1:length(cell_to_run)
-    cell_analyzed(cell_to_run(i)) = analyze_opto_response(cell(cell_to_run(i)));
+    this_cell = cell_to_run(i);
+    cell_analyzed(this_cell) = analyze_opto_response(cell(this_cell));
+    [min_dev, min_ind] = min([cell_analyzed(this_cell).glm_out.dev]);
+    cell_fits(this_cell).g = cell_analyzed(this_cell).glm_params.g(min_ind);
+    this_glm_out = cell_analyzed(this_cell).glm_out(min_ind).glm_result;
+    cell_fits(this_cell).v_th = this_glm_out.beta(1);
+    cell_fits(this_cell).v_reset = this_glm_out.beta(2);
+    cell_fits(this_cell).gain = this_glm_out.beta(3);
 end

@@ -38,6 +38,7 @@ for k = 1:num_spike_locs
     spike_times = cell.spike_data(k).spike_times;
     powers = cell.spike_data(k).powers;
     distances(k) = norm(cell.spike_data(k).location);
+    cell.spike_data(k).distance = distances(k);
     for i = 1:length(spike_times)
 
         for j = 1:length(spike_times{i})
