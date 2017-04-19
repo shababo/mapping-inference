@@ -20,8 +20,12 @@ do_hpf = cell.hpass_filt
     num_spike_locs,do_cc,do_vc,stim_start,cell_pos);
 
 % do instrinsics
-% cell.intrinsics = analyze_fi_curve(data,cells.fi_trial);
-
+% cell.intrinsics = analyze_fi_curve(data,cells.fi_trial); NOT IMPLEMENTED
+% at least get V_rest
+if isfield(cell,'instrinsics')
+    cell.intrinsics.v_rest = median(cell.intrinsics.data(1:2*20000));
+end
+    
 % run lif-glm
 downsamp = 1;
 distances = zeros(num_spike_locs,1);
