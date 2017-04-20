@@ -15,54 +15,63 @@ this_cell = 1;
 cell(this_cell) = base_cell;
 cell(this_cell).filename = '4_2_slice1_cell1.mat';
 base_cell.exclude_trials = [1 2 3];
-this_cell = 2;
+
+this_cell = 2; % not great location choices
 cell(this_cell) = base_cell;
 cell(this_cell).filename = '4_2_slice1_cell2.mat';
-cell(this_cell).spike_thresh = 12;
+base_cell.exclude_trials = [1 4];
 
 this_cell = 3;
 cell(this_cell) = base_cell;
 cell(this_cell).filename = '4_2_slice2_cell1.mat';
 cell(this_cell).do_vc = 0;
+base_cell.exclude_trials = [1 3];
 
 this_cell = 4;
-cell(this_cell) = base_cell;
+cell(this_cell) = base_cell;% really only looking at first spikes here
 cell(this_cell).filename = '4_2_slice2_cell2.mat';
-cell(this_cell).spike_thresh = 24;
+cell(this_cell).spike_thresh = 10;
+base_cell.exclude_trials = [1 2 3 4 5];
 
-this_cell = 5;
+this_cell = 5; % really only looking at first spikes here
 cell(this_cell) = base_cell;
 cell(this_cell).filename = '4_2_slice2_cell3.mat';
-cell(this_cell).spike_thresh = 20;
+cell(this_cell).spike_thresh = 9;
+base_cell.exclude_trials = [];
 
 this_cell = 6; % doublets
 cell(this_cell) = base_cell;
 cell(this_cell).filename = '4_2_slice3_cell1.mat';
+base_cell.exclude_trials = [1 4 5];
 
-
-
-this_cell = 15; 
+this_cell = 7; % doublets
 cell(this_cell) = base_cell;
-cell(this_cell).filename = '4_3_slice3_cell2.mat';
-cell(this_cell).type = 'l5pyr';
-cell(this_cell).spike_thresh = 20;
+cell(this_cell).filename = '4_2_slice3_cell1.mat';
+% base_cell.exclude_trials = [1 4 5];
 
-this_cell = 16; 
-cell(this_cell) = base_cell;
-cell(this_cell).filename = '4_3_slice4_cell3.mat';
-cell(this_cell).type = 'l5pyr';
-
-this_cell = 17; 
-cell(this_cell) = base_cell;
-cell(this_cell).filename = '4_3_slice4_cell3.mat';
-cell(this_cell).type = 'l5pyr';
-cell(this_cell).spike_thresh = 12;
-
-this_cell = 16; 
-cell(this_cell) = base_cell;
-cell(this_cell).filename = '4_6_slice4_cell3.mat';
-cell(this_cell).type = 'l5pyr';
-cell(this_cell).hpass_filt = 1;
+% 
+% this_cell = 15; 
+% cell(this_cell) = base_cell;
+% cell(this_cell).filename = '4_3_slice3_cell2.mat';
+% cell(this_cell).type = 'l5pyr';
+% cell(this_cell).spike_thresh = 20;
+% 
+% this_cell = 16; 
+% cell(this_cell) = base_cell;
+% cell(this_cell).filename = '4_3_slice4_cell3.mat';
+% cell(this_cell).type = 'l5pyr';
+% 
+% this_cell = 17; 
+% cell(this_cell) = base_cell;
+% cell(this_cell).filename = '4_3_slice4_cell3.mat';
+% cell(this_cell).type = 'l5pyr';
+% cell(this_cell).spike_thresh = 12;
+% 
+% this_cell = 16; 
+% cell(this_cell) = base_cell;
+% cell(this_cell).filename = '4_6_slice4_cell3.mat';
+% cell(this_cell).type = 'l5pyr';
+% cell(this_cell).hpass_filt = 1;
 
 
 

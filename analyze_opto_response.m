@@ -34,7 +34,7 @@ if isfield(cell.current_data,'current_shape')
     current_template = cell.current_data.current_shape;
 else
     load('chrome-template-3ms.mat','template');
-    current_template = template;
+    current_template = template(1:1001);
 end
 
 count = 1;
@@ -44,7 +44,7 @@ for k = 1:num_spike_locs
     powers = cell.spike_data(k).powers;
     distances(k) = norm(cell.spike_data(k).location);
     cell.spike_data(k).distance = distances(k);
-    for i = 1:length(spike_times)
+    for i = 1:length(powers)%-1 % don't do highest power - never useful
 
         for j = 1:length(spike_times{i})
             responses(count,:) = zeros(1,length(current_template(1:downsamp:end)));
