@@ -5,7 +5,7 @@ mini_factor = n_trial_temp/n_trial_update;
 gamma_samples = zeros(n_gibbs_sample, n_cell_local);
 mu_samples = zeros(n_gibbs_sample, n_cell_local);
 sigma_samples = zeros(n_gibbs_sample, n_cell_local);
-soft_assignments_samples = cell(n_gibbs_sample,1);
+%soft_assignments_samples = cell(n_gibbs_sample,1);
 soft_assignments_current = cell(n_trial_update,1);
 i_sample = 0;
 i_counter = 0;
@@ -185,7 +185,7 @@ while i_sample < n_gibbs_sample
             mu_samples(i_sample,:) = mu_current;
             sigma_samples(i_sample,:) = sigma_current;
             
-            soft_assignments_samples{i_sample}  = soft_assignments_current;  
+            %soft_assignments_samples{i_sample}  = soft_assignments_current;  
         fprintf('%d\n',i_sample);
         end
     else

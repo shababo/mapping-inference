@@ -1,10 +1,9 @@
 %%Estimate the intensity for batch data
 %% Parameters:
-%
-
 n_trial_temp = size(stimuli_temp,1);
 stimuli_bins = cell(size(stimuli_temp,2),1);
 M_grid_intensity = cell(size(stimuli_temp,2),n_stimuli_grid);
+
 % marginal expectation
 M_intensity=cell(size(stimuli_temp));
 n_cell_local = size(stimuli_temp,2);
@@ -36,8 +35,6 @@ for i_cell = 1:n_cell_local
         pL_given_V = zeros([2 n_grid_voltage]);
         pVL_given_I = zeros([n_grid_time n_grid_voltage 2]);
         pVnext_given_V_L = zeros([n_grid_voltage n_grid_voltage 2]);
-        
-        
         for i_stimuli = 1:n_stimuli_grid
             k_temp = mid_points(i_stimuli);
             pL_given_V(:,:)=0;
@@ -54,50 +51,20 @@ for i_cell = 1:n_cell_local
                 % each time
                 for i_v = 1:n_grid_voltage
                     v_noise = v_grid-v_grid(i_v)-((E_L-v_grid(i_v))*g + I_stimuli(i_t)*k_temp)*dt;
-                    relevant_index = (v_noise > (stoc_mu-2*stoc_sigma)) & (v_noise < (stoc_mu+2*stoc_sigma));
-                    
+                    relevant_index = (v_noise > (stoc_mu-3*stoc_sigma)) & (v_noise < (stoc_mu+3*stoc_sigma));
+                    %relevant_index = 1:length(v_noise);
                     % faster than the normpdf()..
                     pVnext_given_V_L(relevant_index ,i_v,1) = exp(-(v_noise(relevant_index)-stoc_mu).^2/(2*stoc_sigma^2))*normconstant*(v_grid(2)-v_grid(1));
-                    
                     %normpdf(v_noise(relevant_index),stoc_mu,stoc_sigma)
-                    
                 end
-                
-                %pVnext_given_VL(v,vp,ip)
-                %pL_given_V(i,v)
-                %pVL_given_I(i_t-1,vp,ip)
-                
-                %index_nonzero = find(pVL_given_I(i_t-1,:,1));
                 for i_v = 1:n_grid_voltage
-                    %temp_II_and_III = sum(sum(pVnext_given_V_L(i_v,:,:).*pVL_given_I(i_t-1,:,:)));
-                    
-                    % Using the fact that pV_vl is zero for l=1 if i_v is
-                    % not reset
                     temp_II_and_III = pVnext_given_V_L(i_v,:,1)*pVL_given_I(i_t-1,:,1)';
-                    %                % The plain vanilla version is faster than the sparse
-                    %                version
-                    %                     if i_v == index_reset
-                    %                         index_2= find(pVL_given_I(i_t-1,:,2));
-                    %                         index_1 = intersect(find(pVnext_given_V_L(i_v,:,1)), index_nonzero);
-                    %                         temp_II_and_III =  pVnext_given_V_L(i_v,index_2,2)*pVL_given_I(i_t-1,index_2,2)'+...
-                    %                             pVnext_given_V_L(i_v,index_1,1)*pVL_given_I(i_t-1,index_1,1)';
-                    %                     else
-                    %                         index_1 = intersect(find(pVnext_given_V_L(i_v,:,1)), index_nonzero);
-                    %                         temp_II_and_III = pVnext_given_V_L(i_v,index_1,1)*pVL_given_I(i_t-1,index_1,1)';
-                    %                     end
-                    
-                    %for i = 1:2
-                        pVL_given_I(i_t, i_v, :)=pL_given_V(:,i_v)*temp_II_and_III;
-                    %end
+                    pVL_given_I(i_t, i_v, :)=pL_given_V(:,i_v)*temp_II_and_III;
                 end
+                % Fixing the reset probability:
+                pVL_given_I(i_t, index_reset, 1)=pVL_given_I(i_t, index_reset, 1)+...
+                        pL_given_V(1,index_reset)*(pVnext_given_V_L(index_reset,:,2)*pVL_given_I(i_t-1,:,2)');
             end
-            
-            % Fixing the reset probability:
-            for i = 1:2
-                pVL_given_I(i_t, index_reset, i)=pVL_given_I(i_t, index_reset, i)+...
-                    pL_given_V(i,index_reset)*(pVnext_given_V_L(index_reset,:,2)*pVL_given_I(i_t-1,:,2)');
-            end
-            
             M_grid_intensity{i_cell, i_stimuli} = sum(pVL_given_I(:,:,2),2);
         end
         
