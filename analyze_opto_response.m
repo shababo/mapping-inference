@@ -18,7 +18,7 @@ do_hpf = this_cell.hpass_filt
 [this_cell.spike_data, this_cell.voltage_data, this_cell.current_data, this_cell.intrinsics] = ...
     preprocess_opto_response(data,start_trial,spike_thresh,...
     num_spike_locs,do_cc,do_vc,stim_start,cell_pos);
-
+return
 % do instrinsics
 % this_cell.intrinsics = analyze_fi_curve(data,cells.fi_trial); NOT IMPLEMENTED
 % at least get V_rest
@@ -51,12 +51,15 @@ for k = 1:num_spike_locs
             stims(count,:) = powers(i)*current_template(1:downsamp:end);
             stims_ind(count) = k;
             if ~isempty(spike_times{i}{j})
-                responses(count,floor(spike_times{i}{j}/downsamp)) = 1;
+                % FITTING ONLY FIRST SPIKE!!!
+                responses(count,floor(spike_times{i}{j}(1)/downsamp)) = 1;
             end
             count = count + 1;
         end
     end    
 end
+
+assignin('base','responses',responses)
 
 g = [.01 .03 .05 .07 .09 .11 .13]*downsamp;
 this_cell.glm_params.g = g;
@@ -85,7 +88,7 @@ params_sim.V_reset = this_cell.v_reset*sim_scale;
 num_sim_trials = 50;
 params_sim.g = this_cell.g;
 funcs.invlink = @invlink_test;
-num_locs = length(this_cell.spike_data(k));
+num_locs = length(this_cell.spike_data);
 num_powers = length(this_cell.spike_data(1).powers);
 spike_count_means_glmfit_sim = zeros(num_locs,num_powers);
 spike_time_means_glmfit_sim = zeros(num_locs,num_powers);

@@ -119,17 +119,25 @@ end
 figure
 for i = 1:10
     
-    subplot(9,2,(i-1)*2+1)
+    if any(i == [2 3 4])
+        continue
+    elseif i > 1
+        ii = i - 3;
+    else
+        ii = 1;
+    end
+    
+    subplot(7,2,(ii-1)*2+1)
     plot(powers,spike_count_means(i,:))
     hold on
 %     plot(powers,spike_count_means_fmin_sim(i,:),'--')
     hold on
     plot(powers,spike_count_means_glmfit_sim(i,:),'--')
-    if i == 1
-        legend({'data','fmin','glmfit'})
-    end
+%     if i == 1
+%         legend({'data','fmin','glmfit'})
+%     end
     xlim([0 175])
-    subplot(9,2,i*2)
+    subplot(7,2,ii*2)
     plot(powers,spike_time_means(i,:))
     hold on
 %     plot(powers,spike_time_means_fmin_sim(i,:),'--')
