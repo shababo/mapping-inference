@@ -21,7 +21,7 @@ bg_params.firing_rate = 10; %spike/sec
 %% Generate data from circuit mapping model with multi-cell stimuli
 %% build layers
 % set priors on layer boundaries (from Lefort et al 2009)
-num_layers = 7;
+
 layer_names = {'L1','L2','L3','L4','L5A','L5B','L6'};
 layer_bottom_means = [0 128 269 418 588 708 890 1154];
 layer_bottom_sds = [0 18 36 44 44 62 80 116]/10;
@@ -34,8 +34,8 @@ end
 % set priors (from Lefort et al 2009)
 % exc_neurons_per_layer_mean = [0 546 1145 1656 454 641 1288]/3;
 % exc_neurons_per_layer_sd = [0 120 323 203 112 122 205]/3;
-exc_neurons_per_layer_mean = [0 546 1145 1656 454 641 1288]/9;
-exc_neurons_per_layer_sd = [0 120 323 203 112 122 205]/9;
+exc_neurons_per_layer_mean = [0 546 1145 1656 454 641 1288]/6;
+exc_neurons_per_layer_sd = [0 120 323 203 112 122 205]/6;
 K_layers = ceil(normrnd(exc_neurons_per_layer_mean,exc_neurons_per_layer_sd));
 while any(K_layers < 0)
     K_layers = ceil(normrnd(exc_neurons_per_layer_mean,exc_neurons_per_layer_sd));
@@ -58,13 +58,9 @@ end
 % The synaptic success rates and amplitude distributions 
 cell_feature_priors.connection_prob = [0 .095 .057 .116 .191 .017 .006]; % bernoulli
 cell_feature_priors.connection_strength_mean = exp([0 .8 .6 .8 2.0 .4 .1]); % log-normal
+%cell_feature_priors.connection_strength_mean = exp([0 .8 .6 .8 1.2 .4 .1]+1.2); % log-normal
 cell_feature_priors.connection_strength_stddev = 0.5*ones(num_layers,1); % log-normal
 % Spiking thresholds
-cell_feature_priors.Vthre_mean = [0  5  5  5  5  5 5]; % gaussian
-cell_feature_priors.Vthre_std = 1* ones(num_layers,1); % gaussian
-% Reseting voltage
-cell_feature_priors.Vreset_mean = [0  -50  -50  -50  -50  -50  -50]; % gaussian
-cell_feature_priors.Vreset_std =  4* ones(num_layers,1); % gaussian
 
 % draw features for each neuron
 neuron_features = struct();
@@ -78,7 +74,14 @@ for i = 1:num_layers
         cell_feature_priors.connection_strength_stddev(i),...
         [num_neurons_layer 1]));
     neuron_features(i).amplitude = neuron_features(i).amplitude .* neuron_features(i).connected;
-    neuron_features(i).sigma_a = 1*ones(num_neurons_layer,1);
+    
+    if trials_specific_variance == 1
+    neuron_features(i).sigma_across = sqrt(0.5)*ones(num_neurons_layer,1);
+    neuron_features(i).sigma_within = sqrt(0.5)*ones(num_neurons_layer,1);
+    else
+    neuron_features(i).sigma_across = 0*ones(num_neurons_layer,1);
+    neuron_features(i).sigma_within = 1*ones(num_neurons_layer,1);
+    end
     % Successful probability: positively propotional to the mean amplitude
     neuron_features(i).success_prob = neuron_features(i).connected.*...
         exp(neuron_features(i).amplitude/2)./(exp(neuron_features(i).amplitude/2)+1);
@@ -90,20 +93,29 @@ for i = 1:num_layers
     neuron_features(i).V_reset = normrnd(cell_feature_priors.Vreset_mean(i),...
         cell_feature_priors.Vreset_std(i),...
         [num_neurons_layer 1]);
+    neuron_features(i).V_th_layer = cell_feature_priors.Vthre_mean(i)*ones(num_neurons_layer,1);
+    neuron_features(i).V_reset_layer = cell_feature_priors.Vreset_mean(i)*ones(num_neurons_layer,1);
 end
 %% condense all cells into single arrays (for data generation)
 all_locations = [];
 all_amplitudes = [];
-all_sigma = [];
+all_sigma_within = [];
+all_sigma_across = [];
 all_V_th = [];
 all_V_reset = [];
+all_V_th_layer = [];
+all_V_reset_layer = [];
 all_gamma = [];
 for i = 1:num_layers
     all_locations = [all_locations; neuron_locations{i}];
     all_amplitudes = [all_amplitudes; neuron_features(i).amplitude];
-    all_sigma = [all_sigma; neuron_features(i).sigma_a];
+    all_sigma_within = [all_sigma_within; neuron_features(i).sigma_within];
+    all_sigma_across = [all_sigma_across; neuron_features(i).sigma_across];
+    
     all_V_th = [all_V_th; neuron_features(i).V_th];
     all_V_reset = [all_V_reset; neuron_features(i).V_reset];
+    all_V_th_layer = [all_V_th_layer; neuron_features(i).V_th_layer];
+    all_V_reset_layer = [all_V_reset_layer; neuron_features(i).V_reset_layer];
     all_gamma = [all_gamma; neuron_features(i).success_prob];
 end
 all_connected = all_amplitudes>0;
@@ -144,10 +156,13 @@ end
 local_locations = [];
 local_amplitudes = [];
 local_V_th = [];
-local_sigma= [];
+local_sigma_within= [];
+local_sigma_across= [];
 local_V_reset = [];
 local_gamma = [];
 local_index = [];
+local_V_th_layer = [];
+local_V_reset_layer = [];
 for i = 1:n_cell
      if neuron_in_region(i) > 0
    local_index = [local_index; i];
@@ -155,7 +170,10 @@ for i = 1:n_cell
     local_amplitudes = [local_amplitudes; all_amplitudes(i)];
     local_V_th = [local_V_th; all_V_th(i)];
     local_V_reset = [local_V_reset; all_V_reset(i)];
-    local_sigma = [local_sigma; all_sigma(i)];
+     local_V_th_layer = [local_V_th_layer; all_V_th_layer(i)];
+    local_V_reset_layer = [local_V_reset_layer; all_V_reset_layer(i)];
+    local_sigma_within = [local_sigma_within; all_sigma_within(i)];
+    local_sigma_across = [local_sigma_across; all_sigma_across(i)];
     local_gamma = [local_gamma; all_gamma(i)];
      end
 end

@@ -1,20 +1,28 @@
-%%Estimate the intensity for batch data
-%% Parameters:
-n_trial_temp = size(stimuli_temp,1);
-stimuli_bins = cell(size(stimuli_temp,2),1);
-M_grid_intensity = cell(size(stimuli_temp,2),n_stimuli_grid);
+function [M_intensity] = Intensity(stimuli_size, n_stimuli_grid,n_grid_voltage,...
+        t_grid,t_factor,V_thresholds,V_resets,k_minimum,g,...
+        I_stimuli, stoc_mu, stoc_sigma)
+
+
+%n_grid_voltage = 100;
+%t_grid
+%t_factor = 1;
+
+n_trial_temp = size(stimuli_size,1);
+stimuli_bins = cell(size(stimuli_size,2),1);
+M_grid_intensity = cell(size(stimuli_size,2),n_stimuli_grid);
 
 % marginal expectation
-M_intensity=cell(size(stimuli_temp));
-n_cell_local = size(stimuli_temp,2);
+M_intensity=cell(size(stimuli_size));
+n_cell_local = size(stimuli_size,2);
 
-n_grid_voltage = 100;
-n_grid_time = length(t_vect);
-t_grid=t_vect;
-t_factor = 1;
+n_grid_time = length(t_grid);
+
+
 % Prepare data:
+dt = t_grid(2)-t_grid(1);
 t_grid_upp = t_grid+dt/2;
 t_grid_low = t_grid-dt/2;
+
 for i_cell = 1:n_cell_local
     V_th = V_thresholds(i_cell);
     V_reset = V_resets(i_cell);
@@ -26,9 +34,9 @@ for i_cell = 1:n_cell_local
     [~, index_reset] = min(abs(v_grid-V_reset));
     [~, index_rest] = min(abs(v_grid-E_L));
     
-    stim_seq =stimuli_temp(stimuli_temp(:,i_cell)> k_minimum,i_cell);
+    stim_seq =stimuli_size(stimuli_size(:,i_cell)> k_minimum,i_cell);
     % Obtain stimuli information on this cell
-    if sum(stimuli_temp(:,i_cell)> k_minimum ) > 5 & length(unique(stim_seq)) >n_stimuli_grid
+    if sum(stimuli_size(:,i_cell)> k_minimum ) > 5 & length(unique(stim_seq)) >n_stimuli_grid
         gap_stimuli=range(stim_seq)/n_stimuli_grid;
         stimuli_bins{i_cell} = min(stim_seq):gap_stimuli:max(stim_seq);
         mid_points = (stimuli_bins{i_cell}(2:end)+stimuli_bins{i_cell}(1:(n_stimuli_grid)))/2;
@@ -55,7 +63,6 @@ for i_cell = 1:n_cell_local
                     %relevant_index = 1:length(v_noise);
                     % faster than the normpdf()..
                     pVnext_given_V_L(relevant_index ,i_v,1) = exp(-(v_noise(relevant_index)-stoc_mu).^2/(2*stoc_sigma^2))*normconstant*(v_grid(2)-v_grid(1));
-                    %normpdf(v_noise(relevant_index),stoc_mu,stoc_sigma)
                 end
                 for i_v = 1:n_grid_voltage
                     temp_II_and_III = pVnext_given_V_L(i_v,:,1)*pVL_given_I(i_t-1,:,1)';
@@ -71,8 +78,8 @@ for i_cell = 1:n_cell_local
         for i_trial = 1:n_trial_temp
             % Initialize the storage
             % Simulated traces for marginal intensity
-            k = stimuli_temp(i_trial, i_cell);
-            M_intensity{i_trial,i_cell} = zeros([length(t_vect) 1]);
+            k = stimuli_size(i_trial, i_cell);
+            M_intensity{i_trial,i_cell} = zeros([length(t_grid) 1]);
             if k > k_minimum
                 [~, ind_seq] = min(abs(k-mid_points));
                 M_intensity{i_trial,i_cell} = M_grid_intensity{i_cell, ind_seq};
@@ -82,7 +89,7 @@ for i_cell = 1:n_cell_local
         
         for i_trial = 1:n_trial_temp
             M_intensity{i_trial,i_cell} = zeros([n_grid_time 1]);
-            k = stimuli_temp(i_trial, i_cell);
+            k = stimuli_size(i_trial, i_cell);
             if k > k_minimum
                 pL_given_V = zeros([2 n_grid_voltage]);
                 pL_given_V(2,:) = min(1,t_factor*max(v_grid - V_thresholds(i_cell),0));

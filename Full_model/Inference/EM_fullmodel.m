@@ -6,12 +6,17 @@
 % sigma_background: standard deviation of background events
 % sparsity: indicator for whether to encourage sparsity in the estimates
 % gamma_threshold: thresholds for sparse estimates
-function [gamma_samples, mu_samples, sigma_samples] = EM_fullmodel(mpp, estimated_intensity, evoked_cell, ...
-    convergence_epsilon, mean_background, sigma_background, sparsity, gamma_threshold)
-
+function [gamma_path, mu_path, sigma_path, total_time] = EM_fullmodel(mpp, estimated_intensity, evoked_cell,expected_all, ...
+    n_cell_local, gamma_old, mu_old, sigma_old, ...
+    convergence_epsilon,f_background, mean_background, sigma_background, sparsity, gamma_threshold,maxit,t_vect)
+    tic;
+    tstart = toc;
+        
     gamma_path = gamma_old;
     mu_path = mu_old;
     sigma_path = sigma_old;
+    
+    n_trial =size(mpp,2);
     soft_assignments = cell(n_trial,1);
     chosen_trials_index = 1:n_trial;
 
@@ -142,12 +147,8 @@ function [gamma_samples, mu_samples, sigma_samples] = EM_fullmodel(mpp, estimate
                 if weighted_sum(2) > 1
                     weighted_sum(1) = sum(events_precell{i_cell}(1,:).*events_precell{i_cell}(2,:));
                     mu_current(i_cell) = weighted_sum(1)/weighted_sum(2);
-                    if sigma_unknown == 1
-                        weighted_sigma = sum(events_precell{i_cell}(2,:).*((events_precell{i_cell}(1,:)-mu_current(i_cell)).^2));
-                        sigma_current(i_cell) = sqrt(weighted_sigma/weighted_sum(2));
-                    else
-                        % Do nothing since sigma is fixed
-                    end
+                    weighted_sigma = sum(events_precell{i_cell}(2,:).*((events_precell{i_cell}(1,:)-mu_current(i_cell)).^2));
+                    sigma_current(i_cell) = sqrt(weighted_sigma/weighted_sum(2));
                 else
                     % Do nothing...not enough assigned events
                 end
@@ -162,7 +163,7 @@ function [gamma_samples, mu_samples, sigma_samples] = EM_fullmodel(mpp, estimate
                 weighted_sum = sum(events_precell{i_cell},2);
                 expected_events = sum( expected_all(trials_precell{i_cell},i_cell));
                 gamma_current(i_cell) = weighted_sum(2)/expected_events;
-                if sparsity == 1 % if we want to enforce the sparsity
+                if sparsity == 1 & num_iter >3 % if we want to enforce the sparsity
                     gamma_current(i_cell) = min(  gamma_current(i_cell) > gamma_threshold, gamma_current(i_cell));
                 end
             else
@@ -185,5 +186,8 @@ function [gamma_samples, mu_samples, sigma_samples] = EM_fullmodel(mpp, estimate
         sigma_path = [sigma_path sigma_current];
 
         fprintf('Iteration: %d, normalized changes %d\n',num_iter, normalized_change);
+        
+        tend=toc;
+        total_time = tend-tstart;
 end
 

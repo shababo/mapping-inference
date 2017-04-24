@@ -4,28 +4,33 @@ fprintf('Batch %d of %d\n', t, N);
 %tic
 % Designing trials
 if t == 1
-    
     num_this_batch = num_trials_first;
     index_this_batch = 1:num_trials_first;
     start_this_batch = 0;
     X_next = zeros(size(pi_dense_local,1), num_this_batch);
     X_next_all = zeros(size(pi_dense_all,1), num_this_batch);
-    counts_freq =  zeros(size(entropy_locations,1),1);
-    
+    counts_freq =  zeros(size(pi_dense_local,2),1);
+    ind_seq = zeros(0,1);
+     %num_sequence  = ceil(num_this_batch*num_sources/n_cell_local);
+    %temp_index = (length(grid_index)-n_cell_local+1) :length(grid_index);
+    num_sequence  = ceil(num_this_batch*num_sources/length(grid_index));
+   temp_index = 1:length(grid_index);
+   for i_seq = 1:num_sequence 
+        ind_seq = [ind_seq randsample(temp_index, length(temp_index),false)]; 
+    end
     for l = 1:num_this_batch
-        locations_next = randsample(grid_index, num_sources);
+        locations_next = ind_seq(  (1: (num_sources))+ (l-1)*(num_sources) );
         locations_trials(start_this_batch+l,:)=locations_next;
-        X_next(:,l) =  sum(pi_dense_local(:, locations_next) ,2);
+        X_next(:,l) =  sum(pi_dense_local(:, locations_next),2);
         X_next_all(:,l) = sum(pi_dense_all(:,locations_next),2);
         counts_freq(locations_next) = counts_freq(locations_next)+1;
     end
-        
-else
+else 
     num_this_batch = num_trials_batch;
     index_this_batch = num_trials_first + (t-2)*num_trials_batch + (1:num_trials_batch);
     start_this_batch = num_trials_first + (t-2)*num_trials_batch;
     
-    if design == 0
+    if design == 0 | t<num_random
         % Random design
         %entropy_locations = pi_dense_local'*ones(n_cell_local,1);
         idx = grid_index;
@@ -47,17 +52,14 @@ else
             else
                 hyperparam_sigma_n = std(Y_n);
             end
-            
             H_expected = approximate_expected_joint_entropy_single_neuron_poisson(...
                 output(j).alpha, output(j).mu, ...
                 output(j).s_sq, hyperparam_sigma_n, num_samples);
             delta_H = delta_H + H_current-H_expected;   
         end
         entropy_locations = pi_dense_local'*delta_H(2:end);
-        
         % Encourage stimulating rare locations (e.g. nearby cells)
-        weights_freq= 1.1-counts_freq/max(counts_freq); 
-        
+        weights_freq= freq_pen -counts_freq/max(counts_freq); 
         % use 1.1 so that the penalty will not be 0. 
         entropy_locations = weights_freq.*entropy_locations;
         idx = [];
@@ -67,7 +69,6 @@ else
             entropy_locations = entropy_locations - inner_normalized_products(:,temp_idx)*m_id;
         end
     end
-    
     % Find multiple treaments:
     % Permute the index vector
     num_rep = ceil(num_sources*num_this_batch/num_peaks);
@@ -75,6 +76,9 @@ else
     for l = 1:num_rep
         idx_seq((l-1)*num_peaks+(1:num_peaks)) = randsample(idx, num_peaks);
     end
+    % Replace a random subset of locations with random locations 
+    num_random_peaks = floor(random_prop*length(idx_seq));
+    idx_seq(randsample(1:length(idx_seq), num_random_peaks)) = randsample(grid_index, num_random_peaks);
     X_next = zeros(size(pi_dense_local,1), num_this_batch);
     X_next_all = zeros(size(pi_dense_all,1), num_this_batch);
     for l = 1:num_this_batch
@@ -96,7 +100,8 @@ for i_cell = 1:size(evoked_k,1)
     if all_amplitudes(i_cell) > 0
         V_th = all_V_th(i_cell);
         V_reset = all_V_reset(i_cell);
-        sigma=all_sigma(i_cell);
+        mean_amp_this_trial = abs(normrnd(all_amplitudes(i_cell),all_sigma_across(i_cell)));
+        sigma=all_sigma_within(i_cell);
         for i_trial = 1:size(evoked_k,2)
             k = evoked_k(i_cell,i_trial);
             presynaptic_events{i_trial, i_cell} = [];
@@ -117,7 +122,7 @@ for i_cell = 1:size(evoked_k,1)
                         V_vect(i+1)=V_reset; %set voltage back to V_reset
                         presynaptic_events{i_trial, i_cell} = [presynaptic_events{i_trial, i_cell} t_vect(i)];
                         presynaptic_amplitudes{i_trial, i_cell} = [presynaptic_amplitudes{i_trial, i_cell} ...
-                            abs(normrnd(all_amplitudes(i_cell),sigma))];
+                            abs(normrnd(mean_amp_this_trial,sigma))];
                     end
                     i=i+1; %add 1 to index,corresponding to moving forward 1 time step
                 end
@@ -162,7 +167,13 @@ for l = 1:num_this_batch
         if all_amplitudes(i_cell) > 0
             if isempty(presynaptic_events{l,i_cell}) ==  0
                 for i = 1:length(presynaptic_events{l,i_cell})
-                    if rand(1) < all_gamma(i_cell)
+                    if trials_specific_variance == 1
+                        gamma_this_event = exp(presynaptic_amplitudes{l, i_cell}(i)/2)./...
+                            (exp(presynaptic_amplitudes{l, i_cell}(i)/2)+1);
+                    else
+                        gamma_this_event = all_gamma(i_cell);
+                    end
+                    if rand(1) < gamma_this_event
                         mpp_n.event_times = [mpp_n.event_times presynaptic_events{l,i_cell}(i)];
                         mpp_n.amplitudes = [mpp_n.amplitudes presynaptic_amplitudes{l, i_cell}(i)];
                         mpp_n.assignments = [mpp_n.assignments i_cell];
@@ -171,7 +182,6 @@ for l = 1:num_this_batch
             end
         end
     end
-    
     if (t == 1) && (l==1)
         mpp_new = mpp_n;
     else
@@ -185,9 +195,10 @@ end
 % Count the events in each amplitude bins:
 related_mpp_n=struct();
 for l = 1:num_this_batch
-    if size(mpp_new( start_this_batch+l  ).event_times,2) > 0
+    if size(mpp_new( start_this_batch+l).event_times,2) > 0
         indices = mpp_new(start_this_batch+l).event_times>evoked_params.stim_start & ...
             mpp_new(start_this_batch+l).event_times< evoked_params.stim_end;
+            %(20+evoked_params.stim_start);
         related_mpp_n(l).amplitudes = mpp_new( start_this_batch+l  ).amplitudes(indices);
         related_mpp_n(l).event_times = mpp_new(start_this_batch+l  ).event_times(indices)-evoked_params.stim_start;
     else
@@ -243,10 +254,12 @@ for j = 1:size(Y_g,2)
         hyperparam_sigma_n = std(Y_n);
     end
     
-    hyperparam_p_connected = output_ini(j).alpha; % No initial values for alpha
-    hyperparam_eta =  output_ini(j).mu;
-    hyperparam_sigma_s = ones(n_cell_local+1,1);
-    %sqrt(output_warm(j).s_sq);
+    
+    hyperparam_p_connected = output_warm(j).alpha; % No initial values for alpha
+    hyperparam_eta =  output_warm(j).mu;
+    hyperparam_sigma_s = sqrt(output_warm(j).s_sq);
+    %ones(n_cell_local+1,1);
+    %
     %
     options = struct();
     options.alpha =  output_warm(j).alpha;
