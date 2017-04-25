@@ -13,7 +13,7 @@ do_cc = this_cell.do_cc;
 do_vc = this_cell.do_vc;
 stim_start = this_cell.stim_start;
 cell_pos = this_cell.cell_pos;
-do_hpf = this_cell.hpass_filt
+do_hpf = this_cell.hpass_filt;
 
 [this_cell.spike_data, this_cell.voltage_data, this_cell.current_data, this_cell.intrinsics] = ...
     preprocess_opto_response(data,start_trial,spike_thresh,...

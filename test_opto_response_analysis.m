@@ -126,47 +126,58 @@ l23_cells(this_cell).filename = '4_6_slice1_cell1next.mat';
 l23_cells(this_cell).spike_thresh = 15;
 l23_cells(this_cell).do_vc = 0;
 l23_cells(this_cell).start_trial = 3;
+l23_cells(this_cell).fluor = 3004-2788;
 
 this_cell = 20; 
 l23_cells(this_cell) = base_cell;
 l23_cells(this_cell).filename = '4_6_slice1_cell2.mat';
 l23_cells(this_cell).spike_thresh = 15;
 l23_cells(this_cell).start_trial = 2;
+l23_cells(this_cell).fluor = 292-189;
 
 this_cell = 21; % NOT A LOT OF SPIKES
 l23_cells(this_cell) = base_cell;
 l23_cells(this_cell).filename = '4_6_slice1_cell3.mat';
 l23_cells(this_cell).spike_thresh = 8;
 l23_cells(this_cell).start_trial = 2;
+l23_cells(this_cell).fluor = 261-202;
 
-this_cell = 22; 
+this_cell = 22; % START FLUOR HERE??
 l23_cells(this_cell) = base_cell;
 l23_cells(this_cell).filename = '4_6_slice2_cell1next.mat';
 l23_cells(this_cell).spike_thresh = 8;
 l23_cells(this_cell).start_trial = 3;
+l23_cells(this_cell).fluor = 590-220;
 
 this_cell = 23; 
 l23_cells(this_cell) = base_cell;
 l23_cells(this_cell).filename = '4_6_slice2_cell2.mat';
 l23_cells(this_cell).spike_thresh = 15;
 l23_cells(this_cell).start_trial = 2;
+l23_cells(this_cell).fluor = 720-223;
 
 this_cell = 24; 
 l23_cells(this_cell) = base_cell;
 l23_cells(this_cell).filename = '4_6_slice3_cell1next.mat';
 l23_cells(this_cell).do_vc = 0;
+l23_cells(this_cell).fluor = 878-197;
 
 this_cell = 25; 
 l23_cells(this_cell) = base_cell;
 l23_cells(this_cell).filename = '4_6_slice3_cell2next.mat';
 l23_cells(this_cell).start_trial = 2;
+l23_cells(this_cell).fluor = 857-217;
+
+this_cell = 26;
+l23_cells(this_cell) = base_cell;
+l23_cells(this_cell).filename = '4_6_slice3_cell2next.mat';
 
 
 
 %%
 cell_to_run = [1:25];
 % cell_analyzed_bu = cell_analyzed;
-% clear cell_analyzed
+clear l23_cell_analyzed3
 for ii = 1:length(cell_to_run)
     this_cell = cell_to_run(ii)
     l23_cell_analyzed3(this_cell) = analyze_opto_response(l23_cells(this_cell));
@@ -314,7 +325,16 @@ end
 
 figure
 cells_to_plot = find([l23_cells.do_vc]);
+cells_to_plot = setdiff(cells_to_plot,5);
 avg_template = [];
+colors = parula(100);
+svals = zeros(length(cells_to_plot),1);
+for i = 1:length(cells_to_plot)
+    ii = cells_to_plot(i);
+    svals(i) = l23_cell_analyzed3(ii).current_data.current_shape_sv;
+end
+% svals = floor(svals/max(svals)*100);
+svals = floor(svals*100);
 for i = 1:length(cells_to_plot)
     ii = cells_to_plot(i);
     if i == 1
@@ -323,7 +343,7 @@ for i = 1:length(cells_to_plot)
         avg_template = avg_template + l23_cell_analyzed3(ii).current_data.current_shape;
     end
     plot((1:length(l23_cell_analyzed3(ii).current_data.current_shape))/20000,...
-        l23_cell_analyzed3(ii).current_data.current_shape,'color',[.6 .6 .6])
+        l23_cell_analyzed3(ii).current_data.current_shape,'color',colors(svals(i),:))
     hold on
 end
 avg_template = avg_template/length(cells_to_plot);
