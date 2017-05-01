@@ -8,26 +8,36 @@ load(this_cell.filename)
 % package up and preprocess raw data
 start_trial = this_cell.start_trial;
 spike_thresh = this_cell.spike_thresh;
-num_spike_locs = this_cell.num_spike_locs;
+ca_num_spike_locs = this_cell.ca_num_spike_locs;
+ca_spike_thresh = this_cell.ca_spike_thresh;
 do_cc = this_cell.do_cc;
+cc_num_spike_locs = this_cell.cc_num_spike_locs;
 do_vc = this_cell.do_vc;
 stim_start = this_cell.stim_start;
 cell_pos = this_cell.cell_pos;
 do_hpf = this_cell.hpass_filt;
+first_spike_only = this_cell.first_spike;
 
 [this_cell.spike_data, this_cell.voltage_data, this_cell.current_data, this_cell.intrinsics] = ...
     preprocess_opto_response(data,start_trial,spike_thresh,...
-    num_spike_locs,do_cc,do_vc,stim_start,cell_pos);
-return
+    ca_num_spike_locs,ca_spike_thresh,do_cc,cc_num_spike_locs,do_vc,stim_start,cell_pos,first_spike_only);
+
 % do instrinsics
 % this_cell.intrinsics = analyze_fi_curve(data,cells.fi_trial); NOT IMPLEMENTED
 % at least get V_rest
 if isfield(this_cell.intrinsics,'data')
     this_cell.intrinsics.v_rest = median(this_cell.intrinsics.data(1:2*20000));
 end
-    
+% return
 % run lif-glm
 downsamp = 1;
+if do_cc
+    num_spike_locs = cc_num_spike_locs;
+    spikes = this_cell.voltage_data;
+else
+    num_spike_locs = ca_num_spike_locs;
+    spikes = this_cell.spike_data;
+end
 distances = zeros(num_spike_locs,1);
 
 if isfield(this_cell.current_data,'current_shape')
@@ -40,10 +50,16 @@ end
 count = 1;
 for k = 1:num_spike_locs
 
-    spike_times = this_cell.spike_data(k).spike_times;
-    powers = this_cell.spike_data(k).powers;
-    distances(k) = norm(this_cell.spike_data(k).location);
-    this_cell.spike_data(k).distance = distances(k);
+
+    spike_times = spikes(k).spike_times;
+    powers = spikes(k).powers;
+    powers = powers(1:end-1)
+    distances(k) = norm(spikes(k).location);
+    if do_cc
+        this_cell.voltage_data(k).distance = distances(k);
+    else
+        this_cell.spike_data(k).distance = distances(k);
+    end
     for i = 1:length(powers)%-1 % don't do highest power - never useful
 
         for j = 1:length(spike_times{i})
@@ -52,7 +68,7 @@ for k = 1:num_spike_locs
             stims_ind(count) = k;
             if ~isempty(spike_times{i}{j})
                 % FITTING ONLY FIRST SPIKE!!!
-                responses(count,floor(spike_times{i}{j}(1)/downsamp)) = 1;
+                responses(count,floor(spike_times{i}{j}/downsamp)) = 1;
             end
             count = count + 1;
         end
@@ -61,7 +77,12 @@ end
 
 assignin('base','responses',responses)
 
-g = [.01 .03 .05 .07 .09 .11 .13]*downsamp;
+% g = [.01 .03 .05 .07 .09 .11 .13]*downsamp;
+% g = [.0001 .0005 .001 .005 .01 .05 .1]*downsamp;
+% g = [.000001 .000005 .00001 .0005 .0001]*downsamp;
+% g = [.001 .002 .003 .004 .005]*downsamp;
+% g = [.5 1 5]*downsamp;
+g = [.001 .010 .020 .030 .040 .050 .060 .070 .080]*downsamp;
 this_cell.glm_params.g = g;
 this_cell.glm_params.downsamp = downsamp;
 
@@ -88,36 +109,41 @@ params_sim.V_reset = this_cell.v_reset*sim_scale;
 num_sim_trials = 50;
 params_sim.g = this_cell.g;
 funcs.invlink = @invlink_test;
-num_locs = length(this_cell.spike_data);
-num_powers = length(this_cell.spike_data(1).powers);
-spike_count_means_glmfit_sim = zeros(num_locs,num_powers);
-spike_time_means_glmfit_sim = zeros(num_locs,num_powers);
-spike_time_std_glmfit_sim = zeros(num_locs,num_powers);
+num_powers = length(powers);
+spike_count_means_glmfit_sim = zeros(num_spike_locs,num_powers);
+spike_time_means_glmfit_sim = zeros(num_spike_locs,num_powers);
+spike_time_std_glmfit_sim = zeros(num_spike_locs,num_powers);
 
-
-for k = 1:num_locs
+this_cell.glm_sim.sim_spike_times = cell(num_spike_locs,1);
+this_cell.glm_sim.sim_whole_cell = cell(num_spike_locs,1);
+% return
+for k = 1:num_spike_locs
 
     k
-
-    powers = this_cell.spike_data(k).powers;
+    this_cell.glm_sim.sim_spike_times{k} = cell(length(powers),1);
+    this_cell.glm_sim.sim_whole_cell{k} = cell(length(powers),1);
+%     powers = powers;
     params_sim.gain = ...
         this_cell.glm_out(min_ind).glm_result.beta(k+2)*sim_scale;
     for j = 1:length(powers)
+        this_cell.glm_sim.sim_spike_times{k}{j} = cell(num_sim_trials,1);
         spike_times = [];
+        spike_times_first = [];
         sim_whole_cell = zeros(num_sim_trials,size(stims,2));
         for i = 1:num_sim_trials
-    
             [V_vect, spikes] = lif_glm_sim(stims((j-1)*5+1,:),params_sim,funcs);
             sim_whole_cell(i,:) = V_vect;
-            spike_times = [spike_times find(spikes,1,'first')];
+            spike_times = [spike_times find(spikes)];
+            spike_times_first = [spike_times_first find(spikes,1,'first')];
+            this_cell.glm_sim.sim_spike_times{k}{j}{i} = find(spikes);
         end
-        this_cell.glm_sim(k).sim_whole_cell = sim_whole_cell;
+        this_cell.glm_sim.sim_whole_cell{k}{j} = sim_whole_cell;
         spike_count_means_glmfit_sim(k,j) = length(spike_times)/num_sim_trials;
-        spike_time_means_glmfit_sim(k,j) = mean(spike_times);
-        spike_time_std_glmfit_sim(k,j) = std(spike_times);
+        spike_time_means_glmfit_sim(k,j) = mean(spike_times_first);
+        spike_time_std_glmfit_sim(k,j) = std(spike_times_first);
         
     end    
 end
-this_cell.glm_sim(k).spike_count_means = spike_count_means_glmfit_sim;
-this_cell.glm_sim(k).spike_time_means = spike_time_means_glmfit_sim;
-this_cell.glm_sim(k).spike_time_std = spike_time_std_glmfit_sim;
+this_cell.glm_sim.spike_count_means = spike_count_means_glmfit_sim;
+this_cell.glm_sim.spike_time_means = spike_time_means_glmfit_sim;
+this_cell.glm_sim.spike_time_std = spike_time_std_glmfit_sim;
