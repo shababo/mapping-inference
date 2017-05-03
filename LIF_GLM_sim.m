@@ -1,14 +1,14 @@
-load('data/current_template.mat')
+load('current_template.mat')
 
 rng(1234)
 
 %% build stimuli and set some params
 
-trial_length = 1500;
-downres_rate = 20;
+trial_length = 2000;
+downres_rate = 1;
 trial_length_downres = trial_length/downres_rate;
 
-stims_t_norm = -1.0*norm_average_current(1:trial_length);
+stims_t_norm = 1.0*template(1:trial_length);
 stims_t_norm_downres = downsample(stims_t_norm,downres_rate);
 num_spatial_pos = 121;
 powers = [25 50 100];
@@ -46,7 +46,7 @@ end
 
 mu = [0 0];
 
-Sigma = [1 0; 0 1];
+Sigma = [2 0; 0 2];
 
 x1 = -5:1:5; x2 = -5:1:5;
 [X1,X2] = meshgrid(x1,x2);
@@ -59,8 +59,8 @@ spatial_filt_true(end,:) = 0;
 spatial_filt_true(:,1) = 0;
 spatial_filt_true(:,end) = 0;
 
-V_th_true = 5; V_reset_true = -150; g_true = 0.05;
-sf_gain = .5;
+V_th_true = 75; V_reset_true = -2000; g_true = 0.01;
+sf_gain = .35;
 spatial_filt_true = spatial_filt_true*sf_gain;
 spatial_filt_true = spatial_filt_true(:);
 
@@ -72,7 +72,7 @@ title('True Spatial Filt')
 
 %%%DEFINE PARAMETERS
 dt=1; %time step ms
-t_end=75; %total run time ms
+t_end=2000; %total run time ms
 V_spike=70; %value to draw a spike to, when cell spikes
 
 %%%DEFINE INITIAL VALUES AND VECTORS TO HOLD RESULTS
@@ -151,9 +151,11 @@ for i = 1:3
     end
 end
 
-figure;compare_trace_stack_grid(spikes_grids,5,1,[],0,{'raw','detected events'})
+%%
 
+% figure;compare_trace_stack_grid(voltages_grids,5,1,[],0,{'raw','detected events'})
 
+%%
 
 spikes_per_location_true = cell(3,1);
 first_spike_latency_true = cell(3,1);
@@ -195,7 +197,7 @@ for m = 1:3
     pcolor([first_spike_latency_true{m} nan(11,1); nan(1,11+1)]);
     shading flat;
     set(gca, 'ydir', 'reverse');
-    caxis([0 30])
+    caxis([0 400])
     colorbar
     title(['First Spike Time Mean'])
 end
@@ -204,7 +206,7 @@ colormap hot
 
 %% fit this data
 
-g_vals = [.01:.01:.1];
+g_vals = .01;%[.01:.01:.1];
 g_likelihoods = zeros([length(g_vals) 1]);
 num_params = 2 + num_spatial_pos;
 fits = zeros(length(g_vals),num_params);
@@ -255,6 +257,11 @@ stims_t_downres_trunc(bad_trials,:) = [];
 spikes_trunc(:,bad_trials) = [];
 stims_x_trunc = stims_x;
 stims_x_trunc(bad_trials,:) = [];
+stims_x_trunc_offset = stims_x_trunc(:,1);
+for i = 1:length(spike_locs)
+    stims_x_trunc_offset(stims_x_trunc_offset == spike_locs(i)) = i;
+end
+
 
 % link = @(mu) log(exp(mu)-1);  %link = @(mu) mu + log(1-exp(-mu));
 % derlink = @(mu) exp(mu)./(exp(mu)-1);
@@ -263,12 +270,18 @@ link = @link_test;  %link = @(mu) mu + log(1-exp(-mu));
 derlink = @derlink_test;
 invlink = @invlink_test;
 
-for g_i = 1:length(g_vals)
+% for g_i = 1:length(g_vals)
 
         g_tmp = g_vals(g_i)
         
         [expg_hyperpol,expg_rheo,expg_stim]=gconv_multidim(stims_t_downres_trunc',spikes_trunc,g_tmp);
-
+        covs = gconv(stims_t_downres_trunc',stims_x_trunc_offset,spikes_trunc,g_tmp);
+%         covs = permute(covs,[3 2 1]);
+        covs_1trial = zeros(length(spikes_trunc(:)),length(spike_locs) + 2);
+        for i = 1:length(spike_locs) + 2
+            covs_1trial_this_param = squeeze(covs(:,i,:));
+            covs_1trial(:,i) = covs_1trial_this_param(:)';
+        end
         full_stim_mat = zeros(trial_length_downres*num_trials_good,num_spatial_pos);
 
         for i = 1:num_trials_good
@@ -284,7 +297,7 @@ for g_i = 1:length(g_vals)
 
         F = {link, derlink, invlink};
 
-        [betahat_conv,~,stats_conv]=glmfit([expg_hyperpol(:) full_stim_mat_trunc],spikes_trunc(:),'poisson','link',F);
+        [betahat_conv,~,stats_conv]=glmfit(covs_1trial(:,2:end),spikes_trunc(:),'poisson','link',F);
 
         disp(['Threshold: ' num2str(-1.0*betahat_conv(1))])
         disp(['Reset: ' num2str(betahat_conv(2))])
@@ -306,7 +319,7 @@ for g_i = 1:length(g_vals)
         [expg_hyperpol,expg_rheo,expg_stim]=gconv_multidim(stims_t_downres',spikes,g_tmp);
         full_stim_mat = zeros(trial_length_downres*num_trials,num_spatial_pos);
 
-        for i = 1:num_trials_good
+        for i = 1:num_trials
             full_stim_mat(1+(i-1)*trial_length_downres:i*trial_length_downres,stims_x(i,1))...
                 = expg_stim(:,i); 
         end
@@ -323,7 +336,7 @@ for g_i = 1:length(g_vals)
 %         figure; imagesc(reshape(spatial_filt_fit,sqrt(num_spatial_pos),sqrt(num_spatial_pos))')
 %         title(['g = ' num2str(g_tmp) ': Spatial Filter, V_{th} = ' num2str(-1.0*betahat_conv(1)) ', V_{res} = ' num2str(betahat_conv(2))])
         
-end
+% end
 
 figure; plot(g_vals,g_likelihoods)
 %% re-output spikes
@@ -333,7 +346,7 @@ g_test = g_vals(g_mle_i)
 betahat_conv = fits(g_mle_i,:);
 
 %%%DEFINE PARAMETERS
-V_reset_sim = betahxat_conv(2);
+V_reset_sim = betahat_conv(2);
 V_th_sim = -betahat_conv(1);
 % spatial_filt_sim = zeros(num_spatial_pos,1);
 % count = 1;
@@ -475,7 +488,7 @@ for m = 1:3
     pcolor([first_spike_latency_sim{m} nan(11,1); nan(1,11+1)]);
     shading flat;
     set(gca, 'ydir', 'reverse');
-%     caxis([0 30])
+    caxis([0 400])
     colorbar
     title(['First Spike Time Mean'])
 end

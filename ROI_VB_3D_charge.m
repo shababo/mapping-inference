@@ -1,58 +1,52 @@
 %% ROI detection: Stage I
 %  Directly Stimulating cell somas 
 
-function output = ROI_VB_som_data(these_maps,stim_indices,cell_type)
+function output = ROI_VB_3D_charge(stim_indices,depths,raw_traces)
 
 %% build mpp
-output= struct([]);
-for map_i = 1:length(these_maps)
-    
-    map_i
-    
-    mpp = these_maps{map_i};
 
+output= struct([]);
+
+max_x = max(max(stim_indices(:,1,:)));
+max_y = max(max(stim_indices(:,2,:)));
+cell_coords = zeros(max_x*max_y,3);
+
+    
+% for map_i = 1:length(depth_data)
+    
+%     map_i
+    
+    num_trials = size(raw_traces,1);
 
     %MAKE cell_coords
-    max_x = max(max(stim_indices(:,1,:)));
-    max_y = max(max(stim_indices(:,2,:)));
-    cell_coords = zeros(max_x*max_y,3);
+    unique_depths = unique(depths);
     for i = 1:max_x
         for j = 1:max_y
-            cell_coords(sub2ind([max_x,max_y],i,j),:) = [(i-1)*20-160 (j-1)*20-160 0];
+            for k = 1:length(unique_depths)
+                cell_coords(sub2ind([max_x,max_y,length(unique_depths)],i,j,k),:)...
+                    = [(i-1)*10-160 (j-1)*10-160 unique_depths(k)];
+            end
         end
     end
     
-    trial_locations = zeros(1,size(stim_indices,1));
-    for i = 1:length(mpp)
-        
-        i
-
-
-        trial_locations(i,:) = sub2ind([max_x,max_y],stim_indices(:,1,i),stim_indices(:,2,i));
+    num_targets = size(stim_indices,3);
+    
+    trial_locations = zeros(num_trials,num_targets);
+    for i = 1:num_trials
+            
+%         i
+        trial_locations(i,:) = sub2ind([max_x,max_y,length(unique_depths)],squeeze(stim_indices(i,1,:)),squeeze(stim_indices(i,2,:)),ones(num_targets,1)*find(unique_depths == depths(i)));
 
     end
+    assignin('base','trial_locs',trial_locations)
     %% params
     evoked_params.stim_start = 100;
-    params.N = length(mpp);
+    params.N = num_trials;
 
 
 
     %% Calculate summary statistics 
 
-    % Use only the amp in the related regions 
-    related_mpp = mpp;
-    unrelated_mpp = mpp;
-
-    % only consider a small time window for events of interest
-    for i = 1:size(trial_locations,1)
-        if size(mpp(i).times,2) > 0
-            indices = mpp(i).times>evoked_params.stim_start & mpp(i).amp >= 7.5;
-            related_mpp(i).amp = mpp(i).amp(indices);
-            related_mpp(i).times = mpp(i).times(indices);
-            unrelated_mpp(i).amp = mpp(i).amp(~indices);
-            unrelated_mpp(i).times = mpp(i).times(~indices);
-        end 
-    end
 
     covariates = zeros(size(trial_locations,1), size(cell_coords,1));
     for i = 1:params.N
@@ -65,17 +59,6 @@ for map_i = 1:length(these_maps)
     % size(covariates)
 
 
-    %% Dividing the events by their amp
-    % Now divide the events by quantiles of the amp 
-    % We use overlapped regions to avoid separation due to 
-    num_threshold=2;
-    amplitude_threshold = quantile([related_mpp.amp], (1/num_threshold)*[0:num_threshold]);
-    amp_related_count_trials = ones(size(trial_locations,1),num_threshold-1);
-    for j = 1:(num_threshold-1)
-        for i = 1:size(amp_related_count_trials,1)
-            amp_related_count_trials(i,j) = sqrt(sum(related_mpp(i).amp>amplitude_threshold(j) & related_mpp(i).amp<(amplitude_threshold(j+2)+0.01)));
-        end
-    end
 
     %% The VB inference
 
@@ -90,17 +73,21 @@ for map_i = 1:length(these_maps)
     data.stims = trial_locations;
 
     % Unknows: 
-    params.eta = 1.5 * zeros(params.K,1);
-    params.sigma_s = 1*ones(params.K,1);
-    if cell_type(map_i)
-%         params.sigma_n = sqrt(2);
-        params.A = [100 0 0 ; 0 100 0; 0 0 100]*1;
-        hyperparam_p_connected = .01*ones(params.K,1);
-    else
-%         params.sigma_n = sqrt(.75);
-        params.A = [100 0 0 ; 0 100 0; 0 0 100]*1;
-        hyperparam_p_connected = .01*ones(params.K,1);
+    params.eta = 8000 * ones(params.K,1);
+    params.sigma_s = 500*ones(params.K,1);
+    if isempty(raw_traces)
+        params.eta = ones(params.K,1);
+        params.sigma_s = ones(params.K,1);
     end
+%     if cell_type(map_i)
+%         params.sigma_n = sqrt(2);
+        params.A = [10 0 0 ; 0 10 0; 0 0 30]*1.5;
+        hyperparam_p_connected = .000000000000000000002*ones(params.K,1);
+%     else
+% %         params.sigma_n = sqrt(.75);
+%         params.A = [100 0 0 ; 0 100 0; 0 0 100]*1;
+%         hyperparam_p_connected = .01*ones(params.K,1);
+%     end
 
 %     params.t = 1:1:data_params.T;
     params.tau = 10;
@@ -117,36 +104,38 @@ for map_i = 1:length(these_maps)
 
     assignin('base','pi_nk',pi_nk)
 
-    for j = 1:size(amp_related_count_trials,2)
-
-        Y_n = amp_related_count_trials(:,j);
-        resp_sorted = amp_related_count_trials(:,j);
-        hyperparam_sigma_n = std(resp_sorted(1:ceil(length(resp_sorted*.50))));%sqrt(length(params.t))*params.sigma_n/abs(alpha_sum);
 
 
+    raw_traces_cent = bsxfun(@minus,raw_traces,median(raw_traces,2));
+    Y_n = sum(raw_traces_cent(:,140:800),2);
 
-        alphas = zeros(params.K,1); %ones(params.K, 1) * alpha_0;
-        mu = zeros(params.K, 1);
-        s_sq = zeros(params.K,1);
-        n_varbvs_samples = 10;
-            options= struct();
-        options.verbose= false;
-        options.center= 1;
+    resp_sorted = sort(Y_n);%amp_related_count_trials(:,j);
+    hyperparam_sigma_n = std(resp_sorted(1:ceil(length(resp_sorted)*.75)));%sqrt(length(params.t))*params.sigma_n/abs(alpha_sum);
+    assignin('base','Y_n',Y_n)
 
-        for sample = 1:n_varbvs_samples
-            [alpha_tmp, mu_tmp, s_sq_tmp] = run_varbvs_general(pi_nk>rand(params.N,params.K), Y_n, hyperparam_sigma_n, params.sigma_s(1), hyperparam_p_connected(1), params.eta,options);
-            alphas = alphas+alpha_tmp/n_varbvs_samples;
-            mu = mu+mu_tmp/n_varbvs_samples;
-            s_sq = s_sq+s_sq_tmp/n_varbvs_samples;
-        end
 
-        output(map_i).sub_vb(j).alpha = alphas;
-        output(map_i).sub_vb(j).mu = mu;
-        output(map_i).sub_vb(j).s_sq = s_sq;
+    alphas = zeros(params.K,1); %ones(params.K, 1) * alpha_0;
+    mu = zeros(params.K, 1);
+    s_sq = zeros(params.K,1);
+    n_varbvs_samples = 1;
+        options= struct();
+    options.verbose= false;
+    options.center= 1;
+    options.mu = params.eta;
 
-        output(map_i).sub_vb(j).w_estimate = alphas.*mu;
+    for sample = 1:n_varbvs_samples
+        [alpha_tmp, mu_tmp, s_sq_tmp] = run_varbvs_general(pi_nk>rand(params.N,params.K), Y_n, hyperparam_sigma_n, params.sigma_s(1), hyperparam_p_connected(1), params.eta,options);
+        alphas = alphas+alpha_tmp/n_varbvs_samples;
+        mu = mu+mu_tmp/n_varbvs_samples;
+        s_sq = s_sq+s_sq_tmp/n_varbvs_samples;
     end
-end
+    output = struct();
+    output.alpha = alphas;
+    output.mu = mu;
+    output.s_sq = s_sq;
+
+    output.w_estimate = alphas.*mu;
+% end
 %------------------------End of first stage-------------------------------------%
 
 %% Visualize the Bayes estimates:
