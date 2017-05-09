@@ -288,13 +288,13 @@ l23_cells(this_cell).spike_thresh = 20;
 
 
 %%
-cell_to_run = [27:38];
+cell_to_run = [1];
 % cell_analyzed_bu = cell_analyzed;
-% clear l23_cell_analyzed13
+% clear l23_cell_analyzed13`
 
 for ii = 1:length(cell_to_run)
     this_cell = cell_to_run(ii)
-    l23_cell_analyzed13(this_cell) = analyze_opto_response(l23_cells(this_cell));
+    l23_cell_analyzed(this_cell) = analyze_opto_response(l23_cells(this_cell));
     
 end
 
