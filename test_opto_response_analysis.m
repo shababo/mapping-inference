@@ -290,6 +290,7 @@ l23_cells(this_cell).spike_thresh = 20;
 
 
 %%
+
 cell_to_run = [26:38];
 % cell_analyzed_bu = cell_analyzed;
 % clear l23_cell_analyzed13 <-- multispike, 14 is one spike
@@ -297,6 +298,7 @@ cell_to_run = [26:38];
 for ii = 1:length(cell_to_run)
     this_cell = cell_to_run(ii)
     l23_cell_analyzed_fulldata_longer(this_cell) = analyze_opto_response(l23_cells(this_cell));
+
     
 end
 
