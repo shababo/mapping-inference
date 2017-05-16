@@ -2,7 +2,9 @@ going back through emails to catch myself up:
 
 9/21/16
 from liam:
+
 technical note - glmfit packages typically use a newton method for optimizing the LL.  in our problem the hessian of the LL is very highly structured - basically, the spatial weights c_x only interact with each other indirectly, through V_reset and V_th.  more precisely, the hessian has a lot of zeros in it - all cross-terms w.r.t. c_x and c_y are zero for two different locations x and y.  this implies that the newton steps should be computed in O(N) time, where N is the number of different locations for which you're estimating c_x.  but i'm not sure that glmfit is exploiting the hessian structure automatically here - i kind of doubt it, actually
+
 
 
 On huge V_reset when cells only spike once
@@ -49,3 +51,4 @@ Compared to early work by Shababo et al. (2013), our proposal better utilizes th
 
 We first illustrate the performance of our models and algorithms on realistic, simulated data. 
 Then we show their application on real two-photon, multi-spot mapping data. 
+

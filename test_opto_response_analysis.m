@@ -14,6 +14,7 @@ base_cell.filename = '';
 base_cell.type = 'l23pyr';
 base_cell.fluor = NaN;
 base_cell.first_spike = 0;
+
 base_cell.glm_sim_scale = 1;
 base_cell.trial_dur = .030*20000;
 
@@ -289,8 +290,6 @@ l23_cells(this_cell).do_vc = 0;
 l23_cells(this_cell).spike_thresh = 20;
 
 
-%%
-
 cell_to_run = [26:38];
 % cell_analyzed_bu = cell_analyzed;
 % clear l23_cell_analyzed13 <-- multispike, 14 is one spike
@@ -298,7 +297,6 @@ cell_to_run = [26:38];
 for ii = 1:length(cell_to_run)
     this_cell = cell_to_run(ii)
     l23_cell_analyzed_fulldata_longer(this_cell) = analyze_opto_response(l23_cells(this_cell));
-
     
 end
 
@@ -406,6 +404,7 @@ cells_to_plot = find([l23_cells.do_vc]);
 cells_to_plot = setdiff(cells_to_plot,[5 6 27:30]);
 z_slices = size(l23_cell_analyzed_preprocessonly(1).current_data.shape_max,3);
 l23_average_shape = zeros(9,9,7);
+
 z_depths = {'-90','-50','-20','0','20','50','90'};
 count = 1;
 for i = 1:length(cells_to_plot)
@@ -413,6 +412,7 @@ for i = 1:length(cells_to_plot)
     this_shape = l23_cell_analyzed_preprocessonly(cell_i).current_data.shape_max;
     this_shape = this_shape/max(this_shape(:));
     l23_average_shape = l23_average_shape + this_shape;
+
     for j = 1:z_slices
         subplot(z_slices,length(cells_to_plot)+1,(j-1)*(length(cells_to_plot)+1) + i + 1)
         imagesc(this_shape(:,:,j))
@@ -421,11 +421,12 @@ for i = 1:length(cells_to_plot)
         count = count + 1;
         if j == 1
             title(['cell ' num2str(cell_i)])
+
         end
     end
 end
-
 l23_average_shape = l23_average_shape/max(l23_average_shape(:));
+
 for j = 1:z_slices
     subplot(z_slices,length(cells_to_plot)+1,(j-1)*(length(cells_to_plot)+1) + 1)
     imagesc(l23_average_shape(:,:,j))
@@ -486,6 +487,7 @@ for i = 1:length(cell_select)
     
     this_cell = cell_select(i);
     op_rheobase(i) = l23_cell_analyzed_fulldata_longer(this_cell).th_gain_ratio;
+
     mean_time(i) = l23_cell_analyzed6(this_cell).voltage_data(1).spike_times_means(end);
     
 end
@@ -498,12 +500,14 @@ figure; plot(mean_time)
 
 figure;
 cell_select = [26:38];
+
 g = [.0001 .0005 .001 .005 .01 .05 .1];
 g = [1.000000000000000e-03,0.002000000000000,0.003000000000000,0.004000000000000,0.005000000000000];
 colors = parula(length(cell_select));
 for i = 1:length(cell_select)
     
     this_cell = cell_select(i);
+
 %     semilogx(g,[l23_cell_analyzed5(this_cell).glm_out.dev l23_cell_analyzed_fulldata_longer(this_cell).glm_out.dev l23_cell_analyzed6(this_cell).glm_out.dev],'color',colors(i,:))
 plot(l23_cell_analyzed_fulldata_longer(this_cell).glm_params.g,[l23_cell_analyzed_fulldata_longer(this_cell).glm_out.dev],'color',colors(i,:))
     hold on
@@ -617,6 +621,7 @@ subplot(155)
 plot([l23_cell_analyzed17(cell_select).th_gain_ratio; l23_cell_analyzed18(cell_select).th_gain_ratio])
 title('rheobase')
 ylim([0 5000])
+
         
 %% predict spikes from spatial model
 
@@ -673,9 +678,6 @@ end
 current_shape = current_shape - current_shape(1);
 ccurrent_shape = current_shape/max(current_shape);
 current_shape_sv = s(1)/sum(diag(s));
-
-
-
 
 figure; plot(current_shape)
 
