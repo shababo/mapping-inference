@@ -1,5 +1,6 @@
-function [locations_trials,counts_freq] = optimal_design(...
+function [locations_trials,powers_trials,counts_freq] = optimal_design(...
     i_batch, num_sources,num_peaks,num_trials_first,num_trials_batch, output, Y_g, ...
+    num_power_level,...
     random_prop, counts_freq, pi_dense_local, inner_normalized_products,grid_index, freq_pen, num_samples)
 fprintf('Batch %d\n', i_batch);
 % Designing trials
@@ -8,6 +9,8 @@ if i_batch  == 1
     counts_freq =  zeros(size(pi_dense_local,2),1);
     ind_seq = zeros(0,1);
     locations_trials = zeros(num_this_batch ,num_sources);
+    
+    powers_trials= zeros(num_this_batch ,num_sources);
     num_sequence  = ceil(num_this_batch*num_sources/length(grid_index));
     temp_index = 1:length(grid_index);
     for i_seq = 1:num_sequence 
@@ -16,11 +19,13 @@ if i_batch  == 1
     for l = 1:num_this_batch
         locations_next = ind_seq(  (1: (num_sources))+ (l-1)*(num_sources) );
         locations_trials(l,:)=locations_next;
+        powers_trials(l,:)= randsample(1:num_power_level, num_sources);
         counts_freq(locations_next) = counts_freq(locations_next)+1;
     end
 else 
     num_this_batch = num_trials_batch;
     locations_trials = zeros(num_this_batch ,num_sources);
+    powers_trials = zeros(num_this_batch ,num_sources);
     
     % Optiml design
     if random_prop < 1
@@ -45,6 +50,7 @@ else
                 output(j).s_sq, hyperparam_sigma_n, num_samples);
             delta_H = delta_H + H_current-H_expected;
         end
+        
         entropy_locations = pi_dense_local'*delta_H(2:end);
         % Encourage stimulating rare locations (e.g. nearby cells)
         weights_freq= freq_pen -counts_freq/max(counts_freq);
@@ -59,6 +65,7 @@ else
             idx = [idx temp_idx];
             entropy_locations = entropy_locations - inner_normalized_products(:,temp_idx)*m_id;
         end
+        
     end
     
     %----------------------------------------------------------%
@@ -76,6 +83,7 @@ else
     for l = 1:num_this_batch
         locations_next = idx_seq((l-1)*num_sources + (1:num_sources));
         locations_trials(l,:)=locations_next;
+        powers_trials(l,:) = randsample(1:num_power_level, num_sources);
         counts_freq(locations_next) = counts_freq(locations_next)+1;
     end
 end

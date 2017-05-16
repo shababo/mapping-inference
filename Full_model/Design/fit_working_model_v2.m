@@ -1,4 +1,5 @@
-function [output, Y_g,X_g] = fit_working_model(...
+% Enable power selection
+function [output, Y_g,X_g] = fit_working_model_v2(...
     i_batch,locations_this_batch,powers_this_batch,mpp_new,Y_g,X_g,...
     output_old,num_threshold,evoked_params,length_memory,k_offset,...
     power_level,mark,pi_dense_local)
@@ -6,6 +7,8 @@ function [output, Y_g,X_g] = fit_working_model(...
 %total_events = [mpp_new.assignments];
 %precells = local_index(local_connected);
 
+num_power_level = length(power_level);
+n_cell_local = size(pi_dense_local,1);
 % Count the events in each amplitude bins:
 num_this_batch = size(mpp_new,2);
 related_mpp_n=struct();
@@ -49,14 +52,20 @@ end
 
 Y_g = [Y_g; Y_new];
 
-X_next = zeros(size(pi_dense_local,1), num_this_batch);
+X_next = zeros(n_cell_local*num_power_level, num_this_batch);
  for l = 1:num_this_batch
-      for m = 1:size(locations_this_batch,2)
-        X_next(:,l) = X_next(:,l)+ pi_dense_local(:,locations_this_batch(l,m)).*power_level(powers_this_batch(l,m));
+     X_temp = pi_dense_local(:,locations_this_batch(l,1)).*power_level(powers_this_batch(l,1));
+      for m = 2:size(locations_this_batch,2)
+        X_temp = X_temp + pi_dense_local(:,locations_this_batch(l,m)).*power_level(powers_this_batch(l,m));
+      end
+      for k = 1:n_cell_local
+          ind_power_bin = (X_temp(k) <= power_level) & (X_temp(k)> [0 power_level(1:end-1)]);
+        X_next( (k-1)*num_power_level +(1:num_power_level) ,l) =ind_power_bin*X_temp(k);
       end
  end
-    
-X_g =[X_g; X_next'];
+ 
+ 
+ X_g =[X_g; X_next'];
 
 %---------------------------------------------------------%
 % Fit the VB model to update the parameters:
@@ -74,15 +83,12 @@ for j = 1:size(Y_g,2)
     %fprintf('%d',j);
    Y_n = Y_g(ind_samples,j);
     
-   
     if  sum(Y_n)==0 % prevent zero standard deviation
         hyperparam_sigma_n = 1;
     else
         hyperparam_sigma_n = std(Y_n);
     end
-    
-    
-    hyperparam_p_connected = output_warm(j).alpha; % No initial values for alpha
+       hyperparam_p_connected = output_warm(j).alpha; % No initial values for alpha
     hyperparam_eta =  output_warm(j).mu;
     hyperparam_sigma_s = sqrt(output_warm(j).s_sq);
     %ones(n_cell_local+1,1);
