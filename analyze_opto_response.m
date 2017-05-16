@@ -17,6 +17,7 @@ stim_start = this_cell.stim_start;
 cell_pos = this_cell.cell_pos;
 do_hpf = this_cell.hpass_filt;
 first_spike_only = this_cell.first_spike;
+
 trial_dur = this_cell.trial_dur;
 
 [this_cell.spike_data, this_cell.voltage_data, this_cell.current_data, this_cell.intrinsics] = ...
@@ -35,6 +36,7 @@ end
 downsamp = 1;
 if do_cc
     num_spike_locs = cc_num_spike_locs;
+
     these_spikes = this_cell.voltage_data;
 else
     num_spike_locs = ca_num_spike_locs;
@@ -91,11 +93,13 @@ for kk = 1:num_fit_locs
     powers = these_spikes(k).powers;
     powers = powers(1:end-1);%-1 % don't do highest power - never useful
     distances(k) = norm(these_spikes(k).location);
+
     if do_cc
         this_cell.voltage_data(k).distance = distances(k);
     else
         this_cell.spike_data(k).distance = distances(k);
     end
+
     
     if this_cell.use_shape
         if k == 1
@@ -113,9 +117,12 @@ for kk = 1:num_fit_locs
     end
     for i = 1:length(powers)
 
+
         for j = 1:length(data_spike_times{i})
             responses(count,:) = zeros(1,length(current_template(1:downsamp:end)));
+
             stims(count,:) = powers(i)*current_template(1:downsamp:end)*location_gain;
+
             if this_cell.use_shape
                 stims_ind(count) = 1;
             else
@@ -123,6 +130,7 @@ for kk = 1:num_fit_locs
             end
             if ~isempty(data_spike_times{i}{j})
                 responses(count,floor(data_spike_times{i}{j}/downsamp)) = 1;
+
             end
             count = count + 1;
         end
@@ -135,9 +143,11 @@ assignin('base','stims',stims)
 % g = [.01 .03 .05 .07 .09 .11 .13]*downsamp;
 % g = [.0001 .0005 .001 .005 .01 .05 .1]*downsamp;
 % g = [.000001 .000005 .00001 .0005 .0001]*downsamp;
+
 g = [.001 .002 .003 .004 .005]*downsamp;
 % g = [.025]*downsamp;
 % g = [.005 .010 .015 .020 .025 .03]*downsamp; % MAIN ONE
+
 this_cell.glm_params.g = g;
 this_cell.glm_params.downsamp = downsamp;
 
@@ -158,12 +168,15 @@ end
 [min_dev, min_ind] = min([this_cell.glm_out.dev]);
 this_cell.g = this_cell.glm_params.g(min_ind);
 this_glm_out = this_cell.glm_out(min_ind).glm_result;
+
 this_cell.v_th = this_glm_out.beta(1);
 this_cell.v_reset = this_glm_out.beta(2);
 this_cell.gain = this_glm_out.beta(3:end);
 this_cell.th_gain_ratio = this_cell.v_th/this_cell.gain(1);
 
+
 sim_scale = this_cell.glm_sim_scale;
+
 params_sim.V_th = this_cell.v_th*sim_scale;
 params_sim.V_reset = this_cell.v_reset*sim_scale;
 num_sim_trials = 50;
@@ -206,6 +219,7 @@ for k = 1:num_spike_locs
         location_gain = 1;
     end
 %     these_stims = stims((k-1)*5*num_powers+(1:5*num_powers),:);
+
     for j = 1:length(powers)
         this_cell.glm_sim.sim_spike_times{k}{j} = cell(num_sim_trials,1);
         sim_spike_times = [];

@@ -1,7 +1,7 @@
-function [mpp_new, presynaptic_events, background_events] = generate_data(...
-    locations_this_batch,powers_this_batch,pi_dense_all,k_offset,k_minimum,all_V_th,all_V_reset,all_gamma,...
-    all_amplitudes,all_sigma_across,all_sigma_within, power_level,...
-    I_e_vect,g,stoc_mu,stoc_sigma, data_params,bg_params,trials_specific_variance)
+function [mpp_new, presynaptic_events, background_events] = generate_data_v2(...
+    locations_this_batch,powers_this_batch,pi_dense_all,k_minimum,...
+    cell_params, shape_template, power_level,...
+    I_e_vect,stoc_params, data_params,bg_params,trials_specific_variance)
 
 num_this_batch = size(locations_this_batch,1);
 % Include power here:
@@ -17,14 +17,14 @@ presynaptic_amplitudes = cell(size(evoked_k,2),size(evoked_k,1));
 t_vect=0:data_params.dt:data_params.T-1;
     
 for i_cell = 1:size(evoked_k,1)
-    if all_amplitudes(i_cell) > 0
-        mean_amp_this_trial = abs(normrnd(all_amplitudes(i_cell),all_sigma_across(i_cell)));
-        sigma=all_sigma_within(i_cell);
+    if cell_params.amplitudes(i_cell) > 0
+        mean_amp_this_trial = abs(normrnd(cell_params.amplitudes(i_cell),cell_params.sigma_across(i_cell)));
+        sigma=cell_params.sigma_within(i_cell);
         
-        params_sim.V_th= all_V_th(i_cell);
-        params_sim.V_reset = all_V_reset(i_cell);
-        params_sim.g = g;
-        params_sim.gain = k_offset;
+        params_sim.V_th= cell_params.V_th(i_cell);
+        params_sim.V_reset = cell_params.V_reset(i_cell);
+        params_sim.g = shape_template( cell_params.shape_gain(i_cell)).g;
+        params_sim.gain = shape_template( cell_params.shape_gain(i_cell)).optical_gain;
         funcs.invlink = @invlink_test;%@(resp) log(1 + exp(resp));%@(x) exp(x);
         
         for i_trial = 1:size(evoked_k,2)
@@ -32,11 +32,9 @@ for i_cell = 1:size(evoked_k,1)
             stim = I_e_vect*k;
             presynaptic_events{i_trial, i_cell} = [];
             if max(stim)*params_sim.gain > k_minimum
-            
-            [V_vect, spikes]  = lif_glm_sim(stim,params_sim,funcs);
+            [V_vect, spikes]  = lif_glm_sim_v2(stim,params_sim,funcs,stoc_params);
             presynaptic_events{i_trial, i_cell} = t_vect(find(spikes));
             presynaptic_amplitudes{i_trial, i_cell} = abs(normrnd(mean_amp_this_trial,sigma,sum(spikes)));
-            
             end
         end
     end
@@ -76,14 +74,14 @@ for l = 1:num_this_batch
         mpp_n.assignments=[];
     end
     for i_cell = 1:size(evoked_k,1)
-        if all_amplitudes(i_cell) > 0
+        if cell_params.amplitudes(i_cell) > 0
             if isempty(presynaptic_events{l,i_cell}) ==  0
                 for i = 1:length(presynaptic_events{l,i_cell})
                     if trials_specific_variance == 1
                         gamma_this_event = exp(presynaptic_amplitudes{l, i_cell}(i)/2)./...
                             (exp(presynaptic_amplitudes{l, i_cell}(i)/2)+1);
                     else
-                        gamma_this_event = all_gamma(i_cell);
+                        gamma_this_event = cell_params.gamma(i_cell);
                     end
                     if rand(1) < gamma_this_event
                         mpp_n.event_times = [mpp_n.event_times presynaptic_events{l,i_cell}(i)];

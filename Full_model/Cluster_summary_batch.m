@@ -95,26 +95,27 @@ for i_setting = 1:length(num_trials_batch_grid )
 end
 %
 %% Debugging:
-%  n_cell_local = size(output.true_gamma,1);
-%  jittered_gamma = output.true_gamma + normrnd(0,0.1,[n_cell_local 1]);
-%
-%
-%  for ind_t = [1 2 3 10 12]
-%
-%      figure(ind_t)
+ n_cell_local = size(output.true_gamma,1);
+ jittered_gamma = output.true_gamma + normrnd(0,0.1,[n_cell_local 1]);
+t_seq =[1 2 3 4 5*(1: N/5)];
+   
+
+ for ind_t = [1 2 3 10 12]
+
+     figure(ind_t)
 %      plot(jittered_gamma,output.EM{ind_t}.mean_gamma,'.','col',[0,1,0,1], 'markersize', 10);
 %      hold on;
-% %      plot(jittered_gamma,output.working{ind_t}.mean_gamma,'.','col',[0,0,1,1], 'markersize', 10);
-% %      hold on;
-%
-%      plot(jittered_gamma,output.crude{t_seq(ind_t)}.mean_gamma,'.','col',[1,0,0,1], 'markersize', 10);
+%      plot(jittered_gamma,output.working{ind_t}.mean_gamma,'.','col',[0,0,1,1], 'markersize', 10);
 %      hold on;
-%
-%      line([0 1],[0 1]);
-%
-%      xlim([-0.1,1.1]);
-%      ylim([-0.1,1.1]);
-%  end
+
+     plot(jittered_gamma,output.crude{t_seq(ind_t)}.mean_gamma,'.','col',[1,0,0,1], 'markersize', 10);
+     hold on;
+
+     line([0 1],[0 1]);
+
+     xlim([-0.1,1.1]);
+     ylim([-0.1,1.1]);
+ end
 %
 %
 %%
