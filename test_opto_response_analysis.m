@@ -15,6 +15,9 @@ base_cell.type = 'l23pyr';
 base_cell.fluor = NaN;
 base_cell.first_spike = 0;
 
+base_cell.glm_sim_scale = 1;
+base_cell.trial_dur = .030*20000;
+
 this_cell = 1;
 l23_cells(this_cell) = base_cell;
 l23_cells(this_cell).filename = '4_2_slice1_cell1.mat';
@@ -287,14 +290,13 @@ l23_cells(this_cell).do_vc = 0;
 l23_cells(this_cell).spike_thresh = 20;
 
 
-%%
-cell_to_run = [27:38];
+cell_to_run = [26:38];
 % cell_analyzed_bu = cell_analyzed;
-% clear l23_cell_analyzed13
+% clear l23_cell_analyzed13 <-- multispike, 14 is one spike
 
 for ii = 1:length(cell_to_run)
     this_cell = cell_to_run(ii)
-    l23_cell_analyzed13(this_cell) = analyze_opto_response(l23_cells(this_cell));
+    l23_cell_analyzed_fulldata_longer(this_cell) = analyze_opto_response(l23_cells(this_cell));
     
 end
 
@@ -398,16 +400,19 @@ set(gca,'xticklabels',{'l23pyr','l5pyr'})
 
 %% shapes
 figure
-cells_to_plot = find([l5_cells.do_vc]);
-z_slices = size(l5_cell_analyzed_shape(1).current_data.shape_max,3);
-l5_average_shape = zeros(9,9,7);
+cells_to_plot = find([l23_cells.do_vc]);
+cells_to_plot = setdiff(cells_to_plot,[5 6 27:30]);
+z_slices = size(l23_cell_analyzed_preprocessonly(1).current_data.shape_max,3);
+l23_average_shape = zeros(9,9,7);
+
 z_depths = {'-90','-50','-20','0','20','50','90'};
 count = 1;
 for i = 1:length(cells_to_plot)
     cell_i = cells_to_plot(i);
-    this_shape = l5_cell_analyzed_shape(cell_i).current_data.shape_max;
+    this_shape = l23_cell_analyzed_preprocessonly(cell_i).current_data.shape_max;
     this_shape = this_shape/max(this_shape(:));
-    l5_average_shape = l5_average_shape + this_shape;
+    l23_average_shape = l23_average_shape + this_shape;
+
     for j = 1:z_slices
         subplot(z_slices,length(cells_to_plot)+1,(j-1)*(length(cells_to_plot)+1) + i + 1)
         imagesc(this_shape(:,:,j))
@@ -415,12 +420,13 @@ for i = 1:length(cells_to_plot)
         axis off
         count = count + 1;
         if j == 1
-            title(['cell ' num2str(i)])
+            title(['cell ' num2str(cell_i)])
+
         end
     end
 end
+l23_average_shape = l23_average_shape/max(l23_average_shape(:));
 
-l5_average_shape = l5_average_shape/length(cells_to_plot);
 for j = 1:z_slices
     subplot(z_slices,length(cells_to_plot)+1,(j-1)*(length(cells_to_plot)+1) + 1)
     imagesc(l23_average_shape(:,:,j))
@@ -471,7 +477,7 @@ xlim([0 .05])
 
 %%
 
-% analyzed_cells = l23_cell_analyzed;
+% analyzed_cells = l23_cell_analyzed_fulldata_longer;
 cell_select = 26:38;
 
 opt_rheobase = zeros(size(cell_select));
@@ -480,7 +486,8 @@ mean_time = zeros(size(cell_select));
 for i = 1:length(cell_select)
     
     this_cell = cell_select(i);
-    op_rheobase(i) = l23_cell_analyzed(this_cell).th_gain_ratio;
+    op_rheobase(i) = l23_cell_analyzed_fulldata_longer(this_cell).th_gain_ratio;
+
     mean_time(i) = l23_cell_analyzed6(this_cell).voltage_data(1).spike_times_means(end);
     
 end
@@ -492,15 +499,17 @@ figure; plot(mean_time)
 %% devs
 
 figure;
-cell_select = [26];
+cell_select = [26:38];
+
 g = [.0001 .0005 .001 .005 .01 .05 .1];
 g = [1.000000000000000e-03,0.002000000000000,0.003000000000000,0.004000000000000,0.005000000000000];
 colors = parula(length(cell_select));
 for i = 1:length(cell_select)
     
     this_cell = cell_select(i);
-%     semilogx(g,[l23_cell_analyzed5(this_cell).glm_out.dev l23_cell_analyzed(this_cell).glm_out.dev l23_cell_analyzed6(this_cell).glm_out.dev],'color',colors(i,:))
-plot(l23_cell_analyzed13(this_cell).glm_params.g,[l23_cell_analyzed13(this_cell).glm_out.dev],'color',colors(i,:))
+
+%     semilogx(g,[l23_cell_analyzed5(this_cell).glm_out.dev l23_cell_analyzed_fulldata_longer(this_cell).glm_out.dev l23_cell_analyzed6(this_cell).glm_out.dev],'color',colors(i,:))
+plot(l23_cell_analyzed_fulldata_longer(this_cell).glm_params.g,[l23_cell_analyzed_fulldata_longer(this_cell).glm_out.dev],'color',colors(i,:))
     hold on
     
 end
@@ -510,18 +519,109 @@ end
 
 figure;
 cell_select = 26:38;
+cell_select = setdiff(cell_select,[29 31 32]);
 colors = parula(length(cell_select));
+count = 1;
 for i = 1:length(cell_select)
     this_cell = cell_select(i);
-    subplot(ceil(length(cell_select)/2),2,i)
-    for j = 1:1%length(l23_cell_analyzed5(this_cell).voltage_data)
-        plot([10 25 50 100 150],l23_cell_analyzed5(this_cell).voltage_data(j).num_spike_means)
-        hold on
+%     subplot(ceil(length(cell_select)/4),4,i)
+    if l23_cells(this_cell).do_cc
+        for j = 1:length(l23_cell_analyzed_fulldata_longer(this_cell).voltage_data)
+            subplot(length(cell_select),10,(i-1)*10 + j)
+            plot(l23_cell_analyzed_fulldata_longer(this_cell).voltage_data(j).powers(1:size(l23_cell_analyzed_fulldata_longer(this_cell).glm_sim.spike_count_means,2)),...
+                l23_cell_analyzed_fulldata_longer(this_cell).voltage_data(j).num_spike_means(1:size(l23_cell_analyzed_fulldata_longer(this_cell).glm_sim.spike_count_means,2)),'k.-')
+
+            hold on
+            plot(l23_cell_analyzed_fulldata_longer(this_cell).voltage_data(j).powers(1:size(l23_cell_analyzed_fulldata_longer(this_cell).glm_sim.spike_count_means,2)),...
+                l23_cell_analyzed_fulldata_longer(this_cell).glm_sim.spike_count_means(j,:),'bo-')
+%             hold on
+%              plot(l23_cell_analyzed21(this_cell).voltage_data(j).powers(1:size(l23_cell_analyzed21(this_cell).glm_sim.spike_count_means,2)),...
+%                 l23_cell_analyzed21(this_cell).glm_sim.spike_count_means(j,:),'m')
+            
+            count = count + 1;
+            title(mat2str(l23_cell_analyzed_fulldata_longer(this_cell).voltage_data(j).location))
+            ylim([0 3.0])
+            xlim([0 110])
+            if j == 1
+                ylabel(['cell ' num2str(this_cell)])
+            end
+        end
+%         g_vals(i) = l23_cell_analyzed17(this_cell).g;
+    else
+        for j = 1:1%length(l23_cell_analyzed16(this_cell).spike_data)
+        
+
+                plot([10 25 50 100 150],l23_cell_analyzed16(this_cell).spike_data(j).num_spike_means)
+
+            hold on
+        end
     end
-    title(num2str(this_cell))
-    ylim([0 3])
-    xlim([0 110])
+    
 end
+
+
+%% spike timing
+figure;
+% cell_select = 26:38;
+% cell_select = setdiff(cell_select,[29 31 32]);
+% colors = parula(length(cell_select));
+count = 1;
+for i = 1:length(cell_select)
+    this_cell = cell_select(i);
+%     subplot(ceil(length(cell_select)/4),4,i)
+    if l23_cells(this_cell).do_cc
+        for j = 1:length(l23_cell_analyzed_fulldata_longer(this_cell).voltage_data)
+            subplot(length(cell_select),10,(i-1)*10 + j)
+            plot(l23_cell_analyzed_fulldata_longer(this_cell).voltage_data(j).powers(1:size(l23_cell_analyzed_fulldata_longer(this_cell).glm_sim.spike_time_means,2)),...
+                l23_cell_analyzed_fulldata_longer(this_cell).voltage_data(j).spike_times_means(1:size(l23_cell_analyzed_fulldata_longer(this_cell).glm_sim.spike_time_means,2))/20,'k.-')
+
+            hold on
+            plot(l23_cell_analyzed_fulldata_longer(this_cell).voltage_data(j).powers(1:size(l23_cell_analyzed_fulldata_longer(this_cell).glm_sim.spike_time_means,2)),...
+                l23_cell_analyzed_fulldata_longer(this_cell).glm_sim.spike_time_means(j,:)/20,'bo-')
+%             hold on
+%              plot(l23_cell_analyzed21(this_cell).voltage_data(j).powers(1:size(l23_cell_analyzed21(this_cell).glm_sim.spike_count_means,2)),...
+%                 l23_cell_analyzed21(this_cell).glm_sim.spike_count_means(j,:),'m')
+            
+            count = count + 1;
+            title(mat2str(l23_cell_analyzed_fulldata_longer(this_cell).voltage_data(j).location))
+            ylim([0 400]/20)
+            xlim([0 110])
+            if j == 1
+                ylabel(['cell ' num2str(this_cell)])
+            end
+        end
+%         g_vals(i) = l23_cell_analyzed17(this_cell).g;
+    else
+        for j = 1:1%length(l23_cell_analyzed16(this_cell).spike_data)
+        
+
+                plot([10 25 50 100 150],l23_cell_analyzed24(this_cell).spike_data(j).num_spike_means)
+
+            hold on
+        end
+    end
+    
+end
+%%
+figure;
+
+subplot(151)
+plot([l23_cell_analyzed17(cell_select).g; l23_cell_analyzed18(cell_select).g])
+title('g')
+subplot(152)
+plot([l23_cell_analyzed17(cell_select).v_th; l23_cell_analyzed18(cell_select).v_th])
+title('v-th')
+subplot(153)
+plot([l23_cell_analyzed17(cell_select).v_reset; l23_cell_analyzed18(cell_select).v_reset])
+title('v-reset')
+subplot(154)
+plot([l23_cell_analyzed17(cell_select).gain; l23_cell_analyzed18(cell_select).gain])
+title('gain')
+subplot(155)
+plot([l23_cell_analyzed17(cell_select).th_gain_ratio; l23_cell_analyzed18(cell_select).th_gain_ratio])
+title('rheobase')
+ylim([0 5000])
+
         
 %% predict spikes from spatial model
 
@@ -551,12 +651,52 @@ end
 l5_average_shape = l5_average_shape/length(cells_to_plot);
 % get shape or mean shape
 
+%% get voltage shape from cell 26
 
+voltage_data = l23_cell_analyzed17(26).voltage_data;
 
+no_spike_trials = [];
+for i = 1:length(voltage_data)
+    for j = 1:length(voltage_data(i).num_spike_means)
+        if voltage_data(i).num_spike_means(j) == 0
+            if isempty(no_spike_trials)
+                no_spike_trials = voltage_data(i).data{j};
+            else
+                no_spike_trials = [no_spike_trials; voltage_data(i).data{j}];
+            end
+        end
+    end
+end
 
+[u,s,v] = svd(bsxfun(@minus,no_spike_trials,no_spike_trials(:,1)));
+if mean(v(:,1)) < 0
+    current_shape = -v(:,1);
+else
+    current_shape = v(:,1);
+end
 
+current_shape = current_shape - current_shape(1);
+ccurrent_shape = current_shape/max(current_shape);
+current_shape_sv = s(1)/sum(diag(s));
 
+figure; plot(current_shape)
 
+%% check spikes
+
+% cell_select = 26:38;
+cell_select = 33:35
+for i = 1:length(cell_select)
+    
+    ii = cell_select(i);
+    v_data = l23_cell_analyzed20(ii).voltage_data;
+    for j = 1:length(v_data)
+        h = figure;
+        plot_trace_stack_grid(v_data(j).data,Inf,1,0,[],[],[],v_data(j).spike_times);
+        title(['cell ' num2str(ii) ', loc: ' mat2str(v_data(j).location)])
+        set(gcf,'Position',[675 0 500 975])
+    end
+    waitfor(h)
+end
 
 
 
