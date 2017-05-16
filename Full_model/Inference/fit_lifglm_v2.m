@@ -1,4 +1,5 @@
-function [stats_conv] = fit_lifglm(responses,stims,stims_ind,in_params)
+% independent copy of the fit_lifglm.m in ../lif-glm
+function [stats_conv] = fit_lifglm_v2(responses,stims,stims_ind,in_params)
 
 % responses is an N x T binary matrix of spike times where we have N trials
 % stims is an N x T matrix of the stimulus timeseries which is scaled by power - if using a shape to
@@ -14,7 +15,7 @@ function [stats_conv] = fit_lifglm(responses,stims,stims_ind,in_params)
 
 % [num_trials, num_samps] = size(responses);
 
-covs = gconv(stims',stims_ind,responses',in_params.g);
+covs = gconv_v2(stims',stims_ind,responses',in_params.g);
 % covs = permute(covs,[3 2 1]);
 assignin('base','covs_tmp',covs)
 
