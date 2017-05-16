@@ -1,3 +1,4 @@
+% independent copy of the fit_lifglm.m in ../lif-glm
 function [stats_conv] = fit_lifglm(responses,stims,stims_ind,in_params)
 
 % responses is an N x T binary matrix of spike times where we have N trials
