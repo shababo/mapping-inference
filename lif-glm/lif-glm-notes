@@ -2,7 +2,9 @@ going back through emails to catch myself up:
 
 9/21/16
 from liam:
-technical note - glmfit packages typically use a newton method for optimizing the LL.  in our problem the hessian of the LL is very highly structured - basically, the spatial weights c_x only interact with each other indirectly, through V_reset and V_th.  more precisely, the hessian has a lot of zeros in it - all cross-terms w.r.t. c_x and c_y are zero for two different locations x and y.  this implies that the newton steps should be computed in O(N) time, where N is the number of different locations for which you're estimating c_x.  but i'm not sure that glmfit is exploiting the hessian structure automatically here - i kind of doubt it, actuall
+
+technical note - glmfit packages typically use a newton method for optimizing the LL.  in our problem the hessian of the LL is very highly structured - basically, the spatial weights c_x only interact with each other indirectly, through V_reset and V_th.  more precisely, the hessian has a lot of zeros in it - all cross-terms w.r.t. c_x and c_y are zero for two different locations x and y.  this implies that the newton steps should be computed in O(N) time, where N is the number of different locations for which you're estimating c_x.  but i'm not sure that glmfit is exploiting the hessian structure automatically here - i kind of doubt it, actually
+
 
 
 On huge V_reset when cells only spike once
@@ -11,9 +13,42 @@ ok, so this is basically the same overfitting issue we were seeing before - if t
 will think more about how to deal with this...
 
 
-Numerical issues with soft rectifier link function or hard rectifier
 
-we can check this with simulated data - 1) generate from the hard-threshold model (with params chosen by hand to look like the real data, with the nice spatial dependence in the latency) and then 2) fit with the soft-threshold model and see what happens.  do we have this working yet?  (apologies if i've lost track.)  if we can't do (1) then we need to add some spike history...
+We present a novel method for mapping large portions of local circuits. This method combines whole-cell electrophysiology, two-photon holographic optogenetics, and statistical modelling to infer the unitary synaptic weights of hundreds to thousands of connections in a single circuit. We demonstrate our method by mapping all six layers of cortex across three barrels in mouse somatosensory cortex.
 
-we could do this, but we had to scale up the params...
+ two challenges remain to fully realize this type of experiments.
+First, the limitations of the spatial resolution of the optical stimulation, the biological variability in the response of individual neurons to optical stimulations, and the variability in the postsynaptic features (e.g. amplitudes) of individual connections make confident inference of unitary monosynaptic inputs challenging.
+Second, the neural circuits must be learned with limited data,  because often times the preparations are short-lived and in general the amount of data one can collect is paltry compared to the extent of neural circuits. 
+
+
+we model the stimulus-induced spiking in each presynaptic cell using a combination of a leaky integrate-and-fire model and a generalized linear model (i.e., LIF-GLM). 
+We further assume that each presynaptic cell induces postsynaptic events with a fixed amplitude distribution. 
+Using a novel expectation-maximization algorithm, we can estimate the parameters in the LIF-GLM model, the amplitude distribution and the synaptic success rate for each connected presynaptic. 
+
+
+
+
+
+
+Recent advancements in the optical stimulation of sets of neurons now enable mapping the fine-scale synaptic properties of large-portions of neural circuits in a single animal.
+Specifically, we consider circuit mapping experiments where the subthreshold, postsynaptic responses of a small number of neurons are recorded using whole-cell patch clamp, and optogenetics is used to stimulate a set (1 to 10) of putative presynaptic neurons per trial within a target volume of roughly 1000 um x 600 um x 300 um.
+From these data, one can infer which presynaptic neurons are connected to the patched neurons.
+However, two challenges remain to fully realize this type of experiments.
+First, the limitations of the spatial resolution of the optical stimulation, the biological variability in the response of individual neurons to optical stimulations, and the variability in the postsynaptic features (e.g. amplitudes) of individual connections make confident inference of unitary monosynaptic inputs challenging.
+Second, the neural circuits must be learned with limited data,  because often times the preparations are short-lived and in general the amount of data one can collect is paltry compared to the extent of neural circuits. 
+
+In this project, we propose two methods that address the challenges in data analysis and data collection, respectively: 
+i) We develop a novel model and an inference procedure that can reliably reconstruct the neural microcircuits.
+A major challenge in this problem is that the spiking of the potential presynaptic neurons is unobserved. 
+Our model overcomes this challenge by exploiting the variability of postsynaptic features induced by different presynaptic cells and through a prior characterization of the presynaptic populations spiking response to optical stimulation. 
+In detail, we model the stimulus-induced spiking in each presynaptic cell using a combination of a leaky integrate-and-fire model and a generalized linear model (i.e., LIF-GLM). 
+We further assume that each presynaptic cell induces postsynaptic events with a fixed amplitude distribution. 
+Using a novel expectation-maximization algorithm, we can estimate the parameters in the LIF-GLM model, the amplitude distribution and the synaptic success rate for each connected presynaptic. 
+ii) We propose an optimal experimental design procedure that can provide instant guidance on which locations to stimulate during the experiment to optimize the collected data.
+To be specific, we identify future stimulation spots that lead to maximal increase in the mutual information between the data and the parameters of interests (e.g. synaptic features). 
+Towards this end, we simplify the proposed model and exploit the sparsity of synaptic connections to reduce the computational cost. 
+Compared to early work by Shababo et al. (2013), our proposal better utilizes the variability in the postsynaptic features to refine the estimation of the mutual information, and importantly we optimize stimulation locations over the full volume of tissue as opposed to just the locations of neurons.
+
+We first illustrate the performance of our models and algorithms on realistic, simulated data. 
+Then we show their application on real two-photon, multi-spot mapping data. 
 
