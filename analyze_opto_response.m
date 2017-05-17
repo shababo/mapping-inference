@@ -42,8 +42,8 @@ else
     num_spike_locs = ca_num_spike_locs;
     these_spikes = this_cell.spike_data;
 end
-
-
+% 
+% 
 % if isfield(this_cell.current_data,'current_shape')
 %     current_template = this_cell.current_data.current_shape;
 % else
@@ -54,9 +54,9 @@ end
 current_template = template(1:trial_dur);
 count = 1;
 if this_cell.use_shape
-    if this_cell.do_vc
+    if 0 && this_cell.do_vc
         l23_average_shape_norm = ...
-            this_cell.current_data.upres_shape;
+            this_cell.current_data.upres_shape/max(this_cell.current_data.upres_shape(:));
         upres_x_locs = this_cell.current_data.upres_x_locs;
         upres_y_locs = this_cell.current_data.upres_y_locs;
         upres_z_locs = this_cell.current_data.upres_z_locs;
@@ -77,7 +77,7 @@ if this_cell.use_shape
 %         l23_average_shape_norm = l23_gauss_cell_shape;
     end
 end
-% l23_average_shape_norm = l23_average_shape_norm + .2;
+l23_average_shape_norm = l23_average_shape_norm/max(l23_average_shape_norm(:));
 if this_cell.use_shape && ~isempty(this_cell.fit_locs)
     fit_locs = this_cell.fit_locs;
 else
@@ -144,13 +144,13 @@ assignin('base','stims',stims)
 % g = [.0001 .0005 .001 .005 .01 .05 .1]*downsamp;
 % g = [.000001 .000005 .00001 .0005 .0001]*downsamp;
 
-g = [.001 .002 .003 .004 .005]*downsamp;
-% g = [.025]*downsamp;
+% g = [.001 .002 .003 .004 .005]*downsamp;
+g = [.025]*downsamp;
 % g = [.005 .010 .015 .020 .025 .03]*downsamp; % MAIN ONE
 
 this_cell.glm_params.g = g;
 this_cell.glm_params.downsamp = downsamp;
-
+% this_cell = rmfield(this_cell,'glm_out')
 devs = zeros(size(g));
 for i = 1:length(g)
 %     k
@@ -160,7 +160,7 @@ for i = 1:length(g)
         fit_lifglm(responses,stims,stims_ind,params);
     size(this_cell.glm_out(i).glm_result.beta)
     if this_cell.use_shape
-        this_cell.glm_out(i).glm_result.beta(4:num_spike_locs+2) = this_cell.glm_out(i).glm_result.beta(3);
+        this_cell.glm_out(i).glm_result.beta(3:num_spike_locs+2) = this_cell.glm_out(i).glm_result.beta(3);
     end
     this_cell.glm_out(i).dev = this_cell.glm_out(i).glm_result.dev;
 end
@@ -182,6 +182,9 @@ params_sim.V_reset = this_cell.v_reset*sim_scale;
 num_sim_trials = 50;
 params_sim.g = this_cell.g;
 funcs.invlink = @invlink_test;
+
+powers = [10 25 50 100]; % delete this!
+
 num_powers = length(powers);
 spike_count_means_glmfit_sim = zeros(num_spike_locs,num_powers);
 spike_time_means_glmfit_sim = zeros(num_spike_locs,num_powers);
@@ -191,9 +194,10 @@ this_cell.glm_sim.sim_spike_times = cell(num_spike_locs,1);
 this_cell.glm_sim.sim_whole_cell = cell(num_spike_locs,1);
 this_cell.glm_sim.lambda = cell(num_spike_locs,1);
 % return
-lambda = zeros(size(responses));
-trial_dur = size(responses,2);
+% lambda = zeros(size(responses));
+% trial_dur = size(responses,2);
 count = 1;
+
 for k = 1:num_spike_locs
 
     k
@@ -227,8 +231,10 @@ for k = 1:num_spike_locs
         this_stim  = powers(j)*current_template(1:downsamp:end)*location_gain;
         sim_whole_cell = zeros(num_sim_trials,size(this_stim,2));
         for i = 1:length(data_spike_times{j})
-            this_response = responses(count,:);
+            this_response = zeros(1,trial_dur);
+            this_response(floor(data_spike_times{j}{i}/downsamp)) = 1;
             [~, ~, lambda(count,:)] = lif_glm_sim(this_stim,params_sim,funcs,this_response);
+            count = count + 1;
 %             lambda((count-1)*trial_dur+1:count*trial_dur) = this_lambda;
         end
         for i = 1:num_sim_trials

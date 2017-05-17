@@ -14,10 +14,10 @@ base_cell.filename = '';
 base_cell.type = 'l23pyr';
 base_cell.fluor = NaN;
 base_cell.first_spike = 0;
-
+base_cell.fit_cc = 0;
 base_cell.glm_sim_scale = 1;
 base_cell.trial_dur = .010*20000;
-base_cell.use_shape = 0;
+base_cell.use_shape = 1;
 base_cell.fit_locs = [];
 
 this_cell = 1;
@@ -26,12 +26,14 @@ l23_cells(this_cell).filename = '4_2_slice1_cell1.mat';
 l23_cells(this_cell).exclude_trials = [1 2 3];
 l23_cells(this_cell).fluor = 4488-3768;
 
+
 this_cell = 2; % not great location choices
 l23_cells(this_cell) = base_cell;
 l23_cells(this_cell).filename = '4_2_slice1_cell2.mat';
 % l23_cells(this_cell).cc_spike_thresh = 10;
 l23_cells(this_cell).exclude_trials = [1 4];
 l23_cells(this_cell).fluor = 2548-2284;
+
 
 this_cell = 3;
 l23_cells(this_cell) = base_cell;
@@ -300,26 +302,24 @@ l23_cells(this_cell).do_vc = 0;
 l23_cells(this_cell).cc_spike_thresh = 20;
 
 
-<<<<<<< HEAD
+
 %%
 
-cell_to_run = find([l23_cells.do_vc]);%:38;%cell_select;%[26:38];
-% cell_to_run = setdiff(cell_to_run,[16]);
+cell_to_run = 1:38;%cell_select;%[26:38];
+cell_to_run = setdiff(cell_to_run,[16]);
 % cell_to_run = 26:30;
-=======
-cell_to_run = [26:38];
->>>>>>> 8fa681ca7c1635443a1b7acaeda14a9cb52e7590
+
+
 % cell_analyzed_bu = cell_analyzed;
 % clear l23_cell_analyzed13 <-- multispike, 14 is one spike
-clear l23_cell_analyzed_10ms_fulldata_noshape_vthfit
-for ii = 1:length(cell_to_run)
+% clear l23_cell_analyzed_10ms_fulldata_noshape
+for i = 1:length(cell_to_run)
     
-    this_cell = cell_to_run(ii)
-<<<<<<< HEAD
-    l23_cell_analyzed_10ms_fulldata_noshape_vthfit(this_cell) = analyze_opto_response(l23_cells(this_cell));
-=======
-    l23_cell_analyzed_fulldata_longer(this_cell) = analyze_opto_response(l23_cells(this_cell));
->>>>>>> 8fa681ca7c1635443a1b7acaeda14a9cb52e7590
+    this_cell = cell_to_run(i)
+    l23_cell_analyzed_10ms_fulldata_centavgshape_constg_fitvth(this_cell) = ...
+        analyze_opto_response(l23_cells(this_cell));
+
+
     
 end
 
@@ -424,18 +424,13 @@ set(gca,'xticklabels',{'l23pyr','l5pyr'})
 %% shapes
 figure
 cells_to_plot = find([l23_cells.do_vc]);
-<<<<<<< HEAD
+
 cells_to_plot = setdiff(cells_to_plot,[5 27:30]);
 this_analysis = l23_cell_analyzed_preprocessonly_shapefix;
 % cells_to_plot = 27:30;
 z_slices = size(this_analysis(cells_to_plot(1)).current_data.shape_max,3);
 l23_average_shape = zeros(9,9,z_slices);
-=======
-cells_to_plot = setdiff(cells_to_plot,[5 6 27:30]);
-z_slices = size(l23_cell_analyzed_preprocessonly(1).current_data.shape_max,3);
-l23_average_shape = zeros(9,9,7);
 
->>>>>>> 8fa681ca7c1635443a1b7acaeda14a9cb52e7590
 z_depths = {'-90','-50','-20','0','20','50','90'};
 % z_depths = {'-60','-40','-20', '-10', '0', '10', '20','40','60'};
 count = 1;
@@ -457,11 +452,7 @@ for i = 1:length(cells_to_plot)
         end
     end
 end
-<<<<<<< HEAD
 
-
-=======
->>>>>>> 8fa681ca7c1635443a1b7acaeda14a9cb52e7590
 l23_average_shape = l23_average_shape/max(l23_average_shape(:));
 
 for j = 1:z_slices
@@ -523,12 +514,10 @@ mean_time = zeros(size(cell_select));
 for i = 1:length(cell_select)
     
     this_cell = cell_select(i);
-<<<<<<< HEAD
-    op_rheobase(i) = these_cells_analyzed(this_cell).th_gain_ratio;
-=======
-    op_rheobase(i) = l23_cell_analyzed_fulldata_longer(this_cell).th_gain_ratio;
 
->>>>>>> 8fa681ca7c1635443a1b7acaeda14a9cb52e7590
+    op_rheobase(i) = these_cells_analyzed(this_cell).th_gain_ratio;
+
+
     mean_time(i) = l23_cell_analyzed6(this_cell).voltage_data(1).spike_times_means(end);
     
 end
@@ -548,14 +537,12 @@ colors = parula(length(cell_select));
 for i = 1:length(cell_select)
     
     this_cell = cell_select(i);
-<<<<<<< HEAD
+
 %     semilogx(g,[l23_cell_analyzed5(this_cell).glm_out.dev these_cells_analyzed(this_cell).glm_out.dev l23_cell_analyzed6(this_cell).glm_out.dev],'color',colors(i,:))
 plot(these_cells_analyzed(this_cell).glm_params.g,[these_cells_analyzed(this_cell).glm_out.dev],'color',colors(i,:))
-=======
+
 
 %     semilogx(g,[l23_cell_analyzed5(this_cell).glm_out.dev l23_cell_analyzed_fulldata_longer(this_cell).glm_out.dev l23_cell_analyzed6(this_cell).glm_out.dev],'color',colors(i,:))
-plot(l23_cell_analyzed_fulldata_longer(this_cell).glm_params.g,[l23_cell_analyzed_fulldata_longer(this_cell).glm_out.dev],'color',colors(i,:))
->>>>>>> 8fa681ca7c1635443a1b7acaeda14a9cb52e7590
     hold on
     
 end
@@ -565,7 +552,7 @@ end
 
 figure;
 % cell_select = 1:38;
-cell_select = find([l23_cells.do_vc]);
+cell_select = find(~[l23_cells.do_cc]);
 % cell_select = setdiff(cell_select,[29 31 32]);
 % cell_select = cell_select([1 2 5 6]);
 colors = parula(length(cell_select));
@@ -955,7 +942,7 @@ gains = [];
 shape_scale = [];
 cell_id = [];
 
-fulldata_struct = l23_cell_analyzed_10ms_fulldata_noshape_gca_vthfit;
+fulldata_struct = l23_cell_analyzed_10ms_fulldata_noshape;
 upres_struct = l23_cell_analyzed_10ms_preprocess_only_raw_shape;
 figure
 colors = hsv(ceil(length(cells_to_plot)*1.75));
@@ -1045,9 +1032,95 @@ hold on
 ylabel('lif-glm location gain (avg. shape)')
 xlabel('v-clamp shape gain')
 
+%% ks test on neurons
+
+analysis_to_run = {l23_cell_analyzed_10ms_fulldata_noshape_fitvth,...
+    l23_cell_analyzed_10ms_fulldata_noshape,...
+    l23_cell_analyzed_10ms_fulldata_noshape_fitvth_constg,...
+    l23_cell_analyzed_10ms_fulldata_noshape_constg,...
+    l23_cell_analyzed_10ms_fulldata_centavgshape_constg_fitvth,...
+    l23_cell_analyzed_10ms_fulldata_centavgshape_constg};
+% this_analysis = l23_cell_analyzed_10ms_fulldata_centavgshape_constg_fitvth;
+glm_type = {'full model','const g','const vth','const g and vth','template shape const g',...
+    'template shape const g const vth'};
+% cells_to_do = setdiff(1:38,[16]);
+cells_to_do = find(~[l23_cells.do_cc]);
+figure
+the_handles = [];
+colors = lines(length(analysis_to_run));
+for jj = 1: length(analysis_to_run)
+    this_analysis = analysis_to_run{jj};
+    all_z = [];
+    for ii = 1:length(cells_to_do);
+
+        cell_i = cells_to_do(ii);
+        this_lambda = this_analysis(cell_i).lambda';
+        responses = zeros(size(this_lambda));
+    %     this_lambda = this_lambda(:);
+        if this_analysis(cell_i).do_cc
+            num_spike_locs = this_analysis(cell_i).cc_num_spike_locs;
+
+            these_spikes = this_analysis(cell_i).voltage_data;
+        else
+            num_spike_locs = this_analysis(cell_i).ca_num_spike_locs;
+            these_spikes = this_analysis(cell_i).spike_data;
+        end
+        count = 1;
+        for k = 1:num_spike_locs
+
+    %         k = fit_locs(kk);
+            data_spike_times = these_spikes(k).spike_times;
+            powers = these_spikes(k).powers;
+            powers = powers(1:end-1);%-1 % don't do highest power - never useful
+
+            for i = 1:length(powers)
 
 
+                for j = 1:length(data_spike_times{i})
+    %                 responses(:,count) = zeros(1,length(current_template(1:1:end)));
 
+                    if ~isempty(data_spike_times{i}{j})
+                        responses(floor(data_spike_times{i}{j}/1),count) = 1;
+
+                    end
+                    count = count + 1;
+                end
+            end    
+        end
+
+    %     responses = responses(:);
+
+        this_lambda_cum = cumsum(this_lambda,1);
+        tau = [];
+        for j = 1:size(responses,2);
+            this_tau = diff(this_lambda_cum([1 find(responses(:,j)')],j))';
+            tau = [tau this_tau];
+        end
+        z = 1 - exp(-tau);
+        all_z = [all_z z];
+    %     if ~isempty(z)
+    %         return
+    %     end
+
+    end
+
+    [z_trans_sorted z_sort_ind] = sort(all_z);
+
+    b = ((1:length(all_z)) - 0.5)/length(all_z);
+
+%     figure
+    h = plot(z_trans_sorted,b,'color',colors(jj,:));
+    the_handles = [the_handles h];
+    hold on;
+%     plot(z_trans_sorted,b-1.36/sqrt(length(all_z)),'--',...
+%                                     z_trans_sorted,b+1.36/sqrt(length(all_z)),'--','Color',colors(jj,:))
+end
+hold on
+x = 0:.1:1;
+plot(x,x,'r')
+title(['KS Test For LIF-GLM Version w/ bounds'])
+% legend('Emperical CDF','CI Bound','CI Bound','Uniform CDF')
+legend(the_handles,glm_type); 
 
 
 
