@@ -23,8 +23,10 @@ end
 % set priors (from Lefort et al 2009)
 % exc_neurons_per_layer_mean = [0 546 1145 1656 454 641 1288]/3;
 % exc_neurons_per_layer_sd = [0 120 323 203 112 122 205]/3;
-exc_neurons_per_layer_mean = [0 546 1145 1656 454 641 1288]/9;
-exc_neurons_per_layer_sd = [0 120 323 203 112 122 205]/9;
+exc_neurons_per_layer_mean = [0 546 1145 1656 454 641 1288]/12;
+exc_neurons_per_layer_sd = [0 120 323 203 112 122 205]/12;
+%exc_neurons_per_layer_mean = [1 3 3 1 1 1 1];
+% exc_neurons_per_layer_sd = [0 0 0 0 0 0 0]/12;
 K_layers = ceil(normrnd(exc_neurons_per_layer_mean,exc_neurons_per_layer_sd));
 while any(K_layers < 0)
     K_layers = ceil(normrnd(exc_neurons_per_layer_mean,exc_neurons_per_layer_sd));
@@ -46,7 +48,9 @@ end
 % Note: We should set the prioirs for Vthres and Vreset according to our
 % experiments
 % The synaptic success rates and amplitude distributions 
-cell_feature_priors.connection_prob = [0 .095 .057 .116 .191 .017 .006]; % bernoulli
+%cell_feature_priors.connection_prob = [0 .095 .057 .116 .191 .017 .006]; % bernoulli
+
+cell_feature_priors.connection_prob = [0 0.2 0.3 .03 .05 .017 .006]; % bernoulli
 cell_feature_priors.connection_strength_mean = exp([0 .8 .6 .8 2.0 .4 .1]); % log-normal
 %cell_feature_priors.connection_strength_mean = exp([0 .8 .6 .8 1.2 .4 .1]+1.2); % log-normal
 cell_feature_priors.connection_strength_stddev = 0.5*ones(num_layers,1); % log-normal
