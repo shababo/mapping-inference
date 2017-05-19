@@ -247,9 +247,26 @@ gamma_current= gamma_path(:,end);
 sigma_current = sigma_path(:,end);
 mu_current = mu_path(:,end);
 %gain_current = median(gains_sample,2);
+%% Add labels to the soft assignments
+labeled_soft_assignments = soft_assignments;
+for i_trial = 1:n_trial
+    labeled_soft_assignments{i_trial} = [[0 local_index(evoked_cell{i_trial}(2:end))']; labeled_soft_assignments{i_trial}];
+end
+
+%----End of the initial estimates----%
+
+%% Gather more data using optimal design
+
+
+%----End of the optimal design------%
+
+%% Refine the estimates with iterative updates of the lif-glm parameters 
+
+
 %%
-gamma_current
-mpp.assignments
+i_trial = 25;
+labeled_soft_assignments{i_trial}
+mpp(i_trial).assignments
 %% Remove the disconnected cells 
 connected_threshold = 1e-4;
 connected_cells = gamma_current > connected_threshold;
@@ -375,7 +392,12 @@ while (normalized_change_outer > convergence_epsilon_outer) & (num_iter < maxit)
                 stims_ind = ones(size(cell_data{i_cell}.stims,1),1);
                 % LIF-GLM fits
                 %-------------------------------------%
-                [stats_conv] = fit_lifglm_v2( cell_data{i_cell}.responses, cell_data{i_cell}.stims,stims_ind,in_params);
+                responses=cell_data{i_cell}.responses;
+                
+                stims=cell_data{i_cell}.stims
+                
+                [stats_conv] = fit_lifglm_v2( cell_data{i_cell}.responses, ...
+                    cell_data{i_cell}.stims,stims_ind,in_params);
                 %-------------------------------------%
                 lif_glm_gains(i_cell)=stats_conv.beta(2);
             else
@@ -402,9 +424,9 @@ while (normalized_change_outer > convergence_epsilon_outer) & (num_iter < maxit)
     
     fprintf('Changes %d\n', normalized_change_outer);
     % Update the intensities
-cell_params.V_th = local_V_th(connected_cells);
-cell_params.V_reset = local_V_reset(connected_cells);
-cell_params.locations = local_locations;
+    cell_params.V_th = local_V_th(connected_cells);
+    cell_params.V_reset = local_V_reset(connected_cells);
+    cell_params.locations = local_locations;
     % The local gains: update gains based on the lif-glm fits
     cell_params.gain = gain_current;
     [estimated_intensity]=Intensity_v4(stimuli_size_temp, n_stimuli_grid,n_grid_voltage,...
@@ -417,7 +439,7 @@ cell_params.locations = local_locations;
         for i_cell = 1:n_cell_temp
             expected_all(i_trial,i_cell)=sum(estimated_intensity{i_trial, i_cell} );
         end
-    end     
+    end
 end
 %%
 gam_est =gamma_path(:,end);

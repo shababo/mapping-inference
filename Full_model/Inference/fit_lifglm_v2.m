@@ -1,6 +1,4 @@
-% independent copy of the fit_lifglm.m in ../lif-glm
-function [stats_conv] = fit_lifglm_v2(responses,stims,stims_ind,in_params)
-
+function [stats_conv] = fit_lifglm_v2(responses,stims,in_params)
 % responses is an N x T binary matrix of spike times where we have N trials
 % stims is an N x T matrix of the stimulus timeseries which is scaled by power - if using a shape to
 % fit the lif-glm then these should be scaled by the shape as well.
@@ -8,16 +6,15 @@ function [stats_conv] = fit_lifglm_v2(responses,stims,stims_ind,in_params)
 % each location independently, if using ashape set all to 1
 % in_params is struct with the field g which is 1/tau for this neuron
 
-
 % in_params.link_type
 % in_params.fit_init
 % in_params.g
 
 % [num_trials, num_samps] = size(responses);
 
-covs = gconv_v2(stims',stims_ind,responses',in_params.g);
+[cov_resting, cov_reset, cov_current]  = gconv_v3(stims',responses',in_params.g);
 % covs = permute(covs,[3 2 1]);
-assignin('base','covs_tmp',covs)
+%assignin('base','covs_tmp',covs)
 
 % params.dt = 1/20000;
 
@@ -39,27 +36,14 @@ F = {params.link, params.dlink, params.invlink};
 %  = @(x) exp(x);
 %  = @(x) exp(x);
 
-x0 = [10 -100 1*ones(1,max(stims_ind))];
-obj_fun = @(x) glm_lif_loglikelihood_oneloc(x, responses, permute(covs,[3 2 1]), params);
-options = optimoptions('fmincon','Algorithm','interior-point',...
-                                'Display','iter',...'GradObj','on',...
-                                'Diagnostics','on',...
-                                'UseParallel',true); 
-                            
-ub = Inf*ones(size(x0));
-ub(2) = 0;
-lb = -Inf*ones(size(x0));
-lb([1 3:end]) = 0;
-covs_1trial = zeros(length(responses(:)),length(x0));
-for i = 1:length(x0)
-    covs_1trial_this_param = squeeze(covs(:,i,:))';
-    covs_1trial(:,i) = covs_1trial_this_param(:)';
-end
-assignin('base','covs_1trial_tmp',covs_1trial)
-
+covs_1trial = zeros(length(responses(:)),3); 
+covs_1trial(:,1) = cov_reset(:);
+covs_1trial(:,2) = cov_current(:);
+covs_1trial(:,3) = cov_resting(:); % not fitting resting 
+r_temp = responses';
 % this sets v_th at 15
-[betahat_glm,dev,stats_conv]=glmfit(covs_1trial(:,[2 3:end]),responses(:),...
-    'poisson','link',F,'constant','off','offset',15*covs_1trial(:,1));
+[betahat_glm,dev,stats_conv]=glmfit(covs_1trial(:,1:2),r_temp(:),...
+    'poisson','link',F,'constant','off','offset',-15*ones(length(responses(:)),1));
 
 % this fits v_th
 % [betahat_glm,dev,stats_conv]=glmfit(covs_1trial(:,[1 2 3:end]),responses(:),...
