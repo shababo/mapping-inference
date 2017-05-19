@@ -175,6 +175,7 @@ sparsity, gamma_threshold,maxit,t_vect)
                 % Do nothing since not stimulated enough times
             end
         end
+        
         % Evaluate the convergence
         normalized_change = norm(gamma_current - gamma_old)/(norm(gamma_old)+1) + norm(mu_current - mu_old)/(norm(mu_old)+1)+...
             norm(sigma_current - sigma_old)/(norm(sigma_old)+1);

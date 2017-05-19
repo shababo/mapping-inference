@@ -1,4 +1,4 @@
-function covs = gconv(I_eg,trainM,g)
+function covs = gconv_v2(I_eg,trainM,g)
 
     ntime=size(I_eg,1);ntrial=size(I_eg,2);
 
@@ -15,7 +15,7 @@ function covs = gconv(I_eg,trainM,g)
         if isempty(find(trainM(:,tr)))==1
             t_elapse=1:ntime;
             for t=1:ntime
-                covs(t,2+stims_ind(tr),tr)=exp(-g.*(t-[1:t]))*I_eg(1:t,tr);
+                covs(t,2,tr)=exp(-g.*(t-[1:t]))*I_eg(1:t,tr);
             end
         % spikes    
         elseif isempty(find(trainM(:,tr)))==0
@@ -28,7 +28,7 @@ function covs = gconv(I_eg,trainM,g)
                     covs(te1(i)+1:te1(i+1),2,tr)=exp(-g.*t_elapse);
                 end
                 for t=te1(i)+1:te1(i+1)
-                    covs(t,2+stims_ind(tr),tr)=exp(-g.*(t-[te1(i)+1:t]))*I_eg(te1(i)+1:t,tr);
+                    covs(t,2,tr)=exp(-g.*(t-[te1(i)+1:t]))*I_eg(te1(i)+1:t,tr);
                 end
             end
         end
