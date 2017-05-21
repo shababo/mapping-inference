@@ -1,8 +1,8 @@
 % Exploit the fact that V_th, V_reset, and g are set to be the same:
-function [M_intensity] = Intensity_v4(stimuli_size, n_stimuli_grid,n_grid_voltage,...
+function [M_intensity] = Intensity_v5(stimuli_size, n_stimuli_grid,n_grid_voltage,...
         t_grid,t_factor,k_minimum,...
          cell_params, funcs,...
-        I_stimuli, stoc_mu, stoc_sigma)
+        I_stimuli,sd_range)
 
 n_trial_temp = size(stimuli_size,1);
 stimuli_bins = cell(size(stimuli_size,2),1);
@@ -60,7 +60,6 @@ v_gap = [v_gap v_gap(end)];
             pL_given_V(1,:) = 1-pL_given_V(2,:);
             pVL_given_I(1,index_rest,1)=1;
             
-            normconstant = 1/(sqrt(2*pi)*stoc_sigma);
             for i_t = 2:n_grid_time
                 pVnext_given_V_L(:,:,:)=0;
                 pVnext_given_V_L(index_reset,:,2) = 1;
@@ -69,11 +68,11 @@ v_gap = [v_gap v_gap(end)];
                 for i_v = 1:n_grid_voltage
                     v_noise = v_grid-v_grid(i_v)-((E_L-v_grid(i_v))*g +...
                         I_stimuli(i_t)*k_temp)*dt;
-                    relevant_index = (v_noise > (stoc_mu-3*stoc_sigma)) & (v_noise < (stoc_mu+3*stoc_sigma));
+                    
+                    [~, relevant_index] = min(abs(v_noise));
                     %relevant_index = 1:length(v_noise);
                     % faster than the normpdf()..
-                    pVnext_given_V_L(relevant_index ,i_v,1) = ...
-                      exp(-(v_noise(relevant_index)-stoc_mu).^2/(2*stoc_sigma^2)).*v_gap(relevant_index)*normconstant;
+                    pVnext_given_V_L(relevant_index ,i_v,1) = 1;
                 end
                 for i_v = 1:n_grid_voltage
                     temp_II_and_III = pVnext_given_V_L(i_v,:,1)*pVL_given_I(i_t-1,:,1)';
@@ -94,12 +93,21 @@ v_gap = [v_gap v_gap(end)];
             for i_trial = 1:n_trial_temp
                 % Initialize the storage
                 % Simulated traces for marginal intensity
-                k = stimuli_size(i_trial, i_cell)*cell_params.gain(i_cell);
+                k_up = stimuli_size(i_trial, i_cell)*(cell_params.gain(i_cell)+sd_range*cell_params.gain_sd(i_cell));
+                k_low = stimuli_size(i_trial, i_cell)*(cell_params.gain(i_cell)-sd_range*cell_params.gain_sd(i_cell));
+                
                 M_intensity{i_trial,i_cell} = zeros([length(t_grid) 1]);
-                if k > k_minimum
-                    [~, ind_seq] = min(abs(k-mid_points));
-                    M_intensity{i_trial,i_cell} = M_grid_intensity{ind_seq};
-                end
+                   index_seq = (k_low<mid_points &  k_up>mid_points);
+                   if sum(index_seq)>0
+                   for i_grid = 1:length(mid_points)
+                       if index_seq(i_grid)>0
+                    M_intensity{i_trial,i_cell}= M_intensity{i_trial,i_cell}+M_grid_intensity{i_grid};
+                       end
+                       
+                   end
+                   
+               M_intensity{i_trial,i_cell}=M_intensity{i_trial,i_cell}/sum(index_seq);
+                   end
             end
             fprintf('%d\n', i_cell);
         end

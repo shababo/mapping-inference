@@ -134,9 +134,19 @@ for i_t = 2:n_grid_time
 end
 M_intensity = sum(pVL_given_I(:,:,2),2);
 
-
+%%
+k_minimum=0.001;
+cell_params=params_sim;
+M_intensity_func = Intensity_v5(stimuli_seq, 5,n_grid_voltage,...
+        t_grid,t_factor,k_minimum,...
+         cell_params, funcs,...
+        I_stimuli);
+%%
 %
 plot(t_grid,M_intensity,'col','r')
 hold on;
 plot(avg_spikes,'col','b')
+hold on;
+plot(t_grid,M_intensity_func{1,1},'col','k')
+
 hold off;
