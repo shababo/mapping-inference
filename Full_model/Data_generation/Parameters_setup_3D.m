@@ -6,7 +6,7 @@ stoc_mu=0;stoc_sigma=0.5; % so that we can allow for a coarse grid..
 %% voltage-clamp parameters (daq stuff, bg psc parameters)
 bg_params.mean = 0;
 bg_params.sigma = 1.5;
-bg_params.firing_rate = 10; %spike/sec 
+bg_params.firing_rate = 0; %spike/sec 
 %% Generate data from circuit mapping model with multi-cell stimuli
 %% build layers
 % set priors on layer boundaries (from Lefort et al 2009)

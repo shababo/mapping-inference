@@ -53,7 +53,7 @@ N=4000/num_trials_batch; % Number of batches
 cell_feature_priors=struct();
 num_layers = 7;
 cell_feature_priors.Vthre_mean = [0  15  15  15  15  15 15]; % gaussian
-cell_feature_priors.Vreset_mean = [0  -1e3  -1e3  -1e3  -1e3  -1e3  -1e3]; % gaussian
+cell_feature_priors.Vreset_mean = [0  -4e3  -4e3  -4e3  -4e3  -4e3  -4e3]; % gaussian
 cell_feature_priors.Vthre_std = 0* ones(num_layers,1); % same
 cell_feature_priors.Vreset_std =  0* ones(num_layers,1);
 %%
@@ -78,7 +78,7 @@ shape_template = l23_cells_for_sim;
 %% Loading the current template using new template
 load('./Environments/chrome-template-3ms.mat');
 downsamp=1;
-power_level=[20 30 40 50 60];% arbitrary numbers to make it work
+power_level=[25 50 100];% arbitrary numbers to make it work
 num_power_level=length(power_level);
 current_template=template(1:downsamp:200);
 I_e_vect=current_template;
@@ -88,7 +88,7 @@ data_params.T = length(I_e_vect); % total time at 20k Hz
 data_params.dt = 1; % 1/20 ms
 %% Setting stimulus parameters:
 % Stimulation:
-num_sources = 4;  % Number of locations to stimulate in each trial
+num_sources = 1;  % Number of locations to stimulate in each trial
 grid_index = 1:size(pi_dense_all,2);
 
 % Parameters
@@ -156,7 +156,7 @@ I_stimuli = I_e_vect;
 T=length(I_e_vect); % total time at 20k Hz
 dt=1;
 t_vect= dt:dt:T;
-
+sd_range=1.5;
 stimuli_size_local=zeros(length(mpp),n_cell_local);
 for l = 1:length(mpp)
     for m = 1:size(locations_trials,2)
@@ -164,7 +164,7 @@ for l = 1:length(mpp)
     end
 end
 
-n_stimuli_grid=10;
+n_stimuli_grid=20;
 n_grid_voltage=400;
 t_factor=1;
 
@@ -195,6 +195,7 @@ cell_params.gain = zeros(n_cell_local,1);
 for i_cell = 1 : n_cell_local
     %cell_params.gain(i_cell) = l23_cells_for_sim(local_shape_gain(i_cell)).optical_gain;
     cell_params.gain(i_cell) = mean([l23_cells_for_sim.optical_gain]);
+    cell_params.gain_sd(i_cell)= std([l23_cells_for_sim.optical_gain]);
 end
 
 % The local g:
@@ -202,12 +203,13 @@ cell_params.g = zeros(n_cell_local,1);
 for i_cell = 1 : n_cell_local
     %cell_params.g(i_cell) = l23_cells_for_sim(local_shape_gain(i_cell)).g;
     cell_params.g(i_cell) =  mean([l23_cells_for_sim.g]);
+    
 end
 %%
-[estimated_intensity]=Intensity_v4(stimuli_size_local, n_stimuli_grid,n_grid_voltage,...
+[estimated_intensity]=Intensity_v5(stimuli_size_local,  n_stimuli_grid,n_grid_voltage,...
     t_vect,t_factor,k_minimum,...
     cell_params, funcs,...
-    I_stimuli, stoc_mu, stoc_sigma);
+    I_stimuli,sd_range);
 
 expected_all = zeros(n_trial,n_cell_local);
 for i_trial = 1:n_trial
@@ -250,28 +252,33 @@ mu_current = mu_path(:,end);
 %% Add labels to the soft assignments
 labeled_soft_assignments = soft_assignments;
 for i_trial = 1:n_trial
-    labeled_soft_assignments{i_trial} = [[0 local_index(evoked_cell{i_trial}(2:end))']; labeled_soft_assignments{i_trial}];
+    labeled_soft_assignments{i_trial} = [[0 local_index(evoked_cell{i_trial}(2:end))']; ...
+      [mpp(i_trial).assignments'  labeled_soft_assignments{i_trial}(:,2:end)]];
 end
 
 %----End of the initial estimates----%
 
 %% Gather more data using optimal design
-
+check_trial = [];
+for i_trial = 1:n_trial
+   if length(mpp(i_trial).event_times) >0
+       check_trial = [check_trial i_trial];
+   end
+end
 
 %----End of the optimal design------%
 
-%% Refine the estimates with iterative updates of the lif-glm parameters 
+%% Refine the estimates with iterative updates of the lif-glm parameters
 
+%i_trial = 1380;
+labeled_soft_assignments{check_trial}
 
-%%
-i_trial = 25;
-labeled_soft_assignments{i_trial}
-mpp(i_trial).assignments
-%% Remove the disconnected cells 
+%% Remove the disconnected cells
 connected_threshold = 1e-4;
-connected_cells = gamma_current > connected_threshold;
+connected_cells = ones(n_cell_local,1)>0;
 
-%% 
+%gamma_current > connected_threshold;
+%%
 stimuli_size_temp = stimuli_size_local(:,connected_cells);
 n_cell_temp = sum(connected_cells);
 
@@ -283,6 +290,7 @@ cell_params.gain = zeros(n_cell_temp,1);
 for i_cell = 1 : n_cell_temp
     %cell_params.gain(i_cell) = l23_cells_for_sim(local_shape_gain(i_cell)).optical_gain;
     cell_params.gain(i_cell) = mean([l23_cells_for_sim.optical_gain]);
+    cell_params.gain_sd(i_cell)= std([l23_cells_for_sim.optical_gain]);
 end
 
 % The local g:
@@ -292,10 +300,11 @@ for i_cell = 1 : n_cell_temp
     cell_params.g(i_cell) =  mean([l23_cells_for_sim.g]);
 end
 %
-[estimated_intensity]=Intensity_v4(stimuli_size_temp, n_stimuli_grid,n_grid_voltage,...
+[estimated_intensity]=Intensity_v5(stimuli_size_temp,  n_stimuli_grid,n_grid_voltage,...
     t_vect,t_factor,k_minimum,...
     cell_params, funcs,...
-    I_stimuli, stoc_mu, stoc_sigma);
+    I_stimuli,sd_range);
+
 
 expected_all = zeros(n_trial,n_cell_temp);
 for i_trial = 1:n_trial
@@ -324,84 +333,166 @@ gamma_old= 0.009*ones(n_cell_temp,1);
 mu_old = 2*ones(n_cell_temp,1);
 sigma_old = ones(n_cell_temp,1);
 
+expected_all = zeros(n_trial,n_cell_temp);
+for i_trial = 1:n_trial
+    for i_cell = 1:n_cell_temp
+        expected_all(i_trial,i_cell)=sum(estimated_intensity{i_trial, i_cell} );
+    end
+end
 %% Start of the iteration:
-normalized_change_outer = convergence_epsilon_outer + 1;
 num_iter = 0;
 convergence_epsilon_outer= 0.001;
-
+soft_threshold=0.3;
+normalized_change_outer = convergence_epsilon_outer + 1;
+ gain_sd_current = zeros(n_cell_temp,1);
 while (normalized_change_outer > convergence_epsilon_outer) & (num_iter < maxit)
     num_iter = num_iter+1;
     %----------------------------------------------%
     % EM
+    
     [gamma_path mu_path sigma_path total_time soft_assignments]= ...
-        EM_fullmodel_v2(mpp(1:n_trial), estimated_intensity(1:n_trial,:),evoked_cell_temp,expected_all, ...
-        n_cell_local, gamma_old, mu_old, sigma_old, ...
+        EM_fullmodel_v2(mpp, estimated_intensity,evoked_cell_temp,expected_all, ...
+        n_cell_temp, gamma_old, mu_old, sigma_old, ...
         convergence_epsilon,f_background, mean_background, sigma_background, sparsity, ...
         gamma_threshold,maxit,t_vect);
+    
     
     % lif-glm updates:
     % Use Monte-Carlo method to update lif-glm parameters based on soft
     % assignments
     % should be turned into a function
+    
+    % Reformat the soft assignments for each cell
+    
+    soft_assignments_by_cell = cell(n_cell_temp,1);
+    % record the trial, spike time, and soft assignments
+    for i_trial = 1:n_trial
+        n_event = length(mpp(i_trial).event_times);
+        cell_list = evoked_cell_temp{i_trial};
+        if n_event >0
+            if length(cell_list)>1 % at least one cell beside the background
+                for i_cell = 2:length(cell_list)
+                    if length(soft_assignments_by_cell{cell_list(i_cell)})==0
+                        %
+                        soft_assignments_by_cell{cell_list(i_cell)}=[i_trial*ones(1,n_event); mpp(i_trial).event_times;...
+                            soft_assignments{i_trial}(:,i_cell)'];
+                    else
+                        soft_assignments_by_cell{cell_list(i_cell)}=[soft_assignments_by_cell{cell_list(i_cell)}...
+                            [i_trial*ones(1,n_event); mpp(i_trial).event_times;soft_assignments{i_trial}(:,i_cell)']];
+                    end
+                end
+                
+            end
+        end
+    end
+    
+    
+    
     num_MC_lifglm = 20;
     
     gains_sample = zeros(n_cell_temp,num_MC_lifglm);
+     gains_sd_sample= zeros(n_cell_temp,num_MC_lifglm);
     for i_MC = 1:num_MC_lifglm
         
         % Draw hard assignments using the soft ones:
-        mpp_rand = mpp;
-        trials_evoked_cell = cell(n_cell_temp,1);
-        for i_trial = 1:n_trial
-            n_event = length(mpp_rand(i_trial).event_times);
-            cell_list = evoked_cell_temp{i_trial};
-            mpp_rand(i_trial).assignments(:)=0;
-            for i_event = 1:n_event
-                this_assignments = soft_assignments{i_trial}(i_event,:);
-                r_temp = rand(1);
-                i_cell = min(find(r_temp<cumsum(this_assignments)));
-                mpp_rand(i_trial).assignments(i_event) = cell_list(i_cell);
-                if cell_list(i_cell) ~=0
-                    trials_evoked_cell{cell_list(i_cell)} =  [trials_evoked_cell{cell_list(i_cell)} i_trial];
+        %         mpp_rand = mpp;
+        %         trials_evoked_cell = cell(n_cell_temp,1);
+        %         for i_trial = 1:n_trial
+        %             n_event = length(mpp_rand(i_trial).event_times);
+        %             cell_list = evoked_cell_temp{i_trial};
+        %             mpp_rand(i_trial).assignments(:)=0;
+        %             for i_event = 1:n_event
+        %                 this_assignments = soft_assignments{i_trial}(i_event,:);
+        %                 r_temp = rand(1);
+        %                 i_cell = min(find(r_temp<cumsum(this_assignments)));
+        %                 mpp_rand(i_trial).assignments(i_event) = cell_list(i_cell);
+        %                 if cell_list(i_cell) ~=0
+        %                     trials_evoked_cell{cell_list(i_cell)} =  [trials_evoked_cell{cell_list(i_cell)} i_trial];
+        %                 end
+        %             end
+        %         end
+        % Reformat the hard threshold for fitting lif glm
+%         cell_data = cell(n_cell_temp,1);
+%         for i_cell = 1:n_cell_temp
+%             trial_list = trials_evoked_cell{i_cell};
+%             N_cell = length(trial_list);
+%             if N_cell>0
+%                 cell_data{i_cell}=struct();
+%                 cell_data{i_cell}.responses = zeros(N_cell, length(I_e_vect));
+%                 cell_data{i_cell}.stims = zeros(N_cell, length(I_e_vect));
+%                 for idx_trial = 1:N_cell
+%                     i_trial = trial_list(idx_trial);
+%                     event_times = round(mpp_rand(i_trial).event_times(mpp_rand(i_trial).assignments == i_cell));
+%                     cell_data{i_cell}.responses(idx_trial,event_times) = 1;
+%                     cell_data{i_cell}.stims(idx_trial,:) =  I_e_vect*stimuli_size_temp(i_trial, i_cell);
+%                 end
+%             end
+%         end
+%         
+        
+        % Consider an alternative way
+        % Choosing only the most reliable ones for each cell:
+        cell_data = cell(n_cell_temp,1);
+        for i_cell = 1:n_cell_temp
+            soft_temp =soft_assignments_by_cell{i_cell};
+            if length(soft_temp)<1
+             cell_data{i_cell}=struct();
+               cell_data{i_cell}.responses = [];
+               cell_data{i_cell}.stims = [];
+                
+            else
+            trial_list=  unique(soft_temp(1,:));
+             cell_data{i_cell}=struct();
+               cell_data{i_cell}.responses = [];
+               cell_data{i_cell}.stims = [];
+               
+            for i_trial = 1:length(trial_list)
+                trial_idx= soft_temp(1,:)==trial_list(i_trial);
+                soft_this_trial = soft_temp(:,trial_idx);
+                n_event = sum(soft_this_trial(3,:)>0.3);
+                response_this_trial = zeros(1,length(I_e_vect));
+                if n_event > 0
+                    for i_event = 1:n_event
+                        if  rand(1) < soft_this_trial(3,i_event)
+                            response_this_trial(soft_this_trial(2,i_event))=1;
+                        end
+                    end
+                    if sum(response_this_trial)>0
+                        cell_data{i_cell}.responses = [cell_data{i_cell}.responses; response_this_trial];
+                        cell_data{i_cell}.stims =  [cell_data{i_cell}.stims; ...
+                            I_e_vect*stimuli_size_temp(trial_list(i_trial), i_cell)];
+                    end
                 end
+                
+                
+            end
             end
         end
         
-        % Reformat the hard threshold for fitting lif glm
-        cell_data = cell(n_cell_temp,1);
+        
+        
+        
+        lif_glm_gains= zeros(n_cell_temp,1);
         for i_cell = 1:n_cell_temp
-            trial_list = trials_evoked_cell{i_cell};
-            N_cell = length(trial_list);
-            if N_cell>0
-                cell_data{i_cell}=struct();
-                cell_data{i_cell}.responses = zeros(N_cell, length(I_e_vect));
-                cell_data{i_cell}.stims = zeros(N_cell, length(I_e_vect));
-                for idx_trial = 1:N_cell
-                    i_trial = trial_list(idx_trial);
-                    event_times = round(mpp_rand(i_trial).event_times(mpp_rand(i_trial).assignments == i_cell));
-                    cell_data{i_cell}.responses(idx_trial,event_times) = 1;
-                    cell_data{i_cell}.stims(idx_trial,:) =  I_e_vect*stimuli_size_temp(i_trial, i_cell); 
-                end
-            end
-        end
-         lif_glm_gains= zeros(n_cell_temp,1);
-        for i_cell = 1:n_cell_temp
-            trial_list = trials_evoked_cell{i_cell};
-            N_cell = length(trial_list);
+            
+            N_cell = length(cell_data{i_cell}.responses);
             in_params.g = cell_params.g(i_cell);
-            if N_cell>2
-                stims_ind = ones(size(cell_data{i_cell}.stims,1),1);
+            if (N_cell/length(I_e_vect))>0
                 % LIF-GLM fits
                 %-------------------------------------%
                 responses=cell_data{i_cell}.responses;
                 
-                stims=cell_data{i_cell}.stims
+                stims=cell_data{i_cell}.stims;
                 
-                [stats_conv] = fit_lifglm_v2( cell_data{i_cell}.responses, ...
-                    cell_data{i_cell}.stims,stims_ind,in_params);
+                [stats_conv] = fit_lifglm_v2(responses, ...
+                    stims,in_params);
                 %-------------------------------------%
-                lif_glm_gains(i_cell)=stats_conv.beta(2);
+                %lif_glm_gains(i_cell)=stats_conv.beta(2);
+                lif_glm_gains(i_cell)=stats_conv.beta;
+                
             else
                 lif_glm_gains(i_cell)=cell_params.gain(i_cell);
+                gains_sample(i_cell,i_MC)=cell_params.gain_sd(i_cell);
             end
         end
         
@@ -412,7 +503,15 @@ while (normalized_change_outer > convergence_epsilon_outer) & (num_iter < maxit)
     gamma_current= gamma_path(:,end);
     sigma_current = sigma_path(:,end);
     mu_current = mu_path(:,end);
-    gain_current = median(gains_sample,2);
+    gain_current = mean(gains_sample,2);
+    for i_cell = 1:n_cell_temp
+        gain_sd_current(i_cell) = std(gains_sd_sample(i_cell,:));
+        if gain_sd_current(i_cell)==0
+            gain_sd_current(i_cell)=cell_params.gain_sd(i_cell);
+        end
+    end
+     
+    
     
     normalized_change_outer = norm(gamma_current - gamma_old)/(norm(gamma_old)+1) + norm(mu_current - mu_old)/(norm(mu_old)+1)+...
         norm(sigma_current - sigma_old)/(norm(sigma_old)+1)+norm(gain_current-gain_old)/(norm(gain_old)+1);
@@ -429,10 +528,11 @@ while (normalized_change_outer > convergence_epsilon_outer) & (num_iter < maxit)
     cell_params.locations = local_locations;
     % The local gains: update gains based on the lif-glm fits
     cell_params.gain = gain_current;
-    [estimated_intensity]=Intensity_v4(stimuli_size_temp, n_stimuli_grid,n_grid_voltage,...
+    cell_params.gain_sd = gain_sd_current;
+    [estimated_intensity]=Intensity_v5(stimuli_size_temp,  n_stimuli_grid,n_grid_voltage,...
         t_vect,t_factor,k_minimum,...
         cell_params, funcs,...
-        I_stimuli, stoc_mu, stoc_sigma);
+        I_stimuli,sd_range);
     
     expected_all = zeros(n_trial,n_cell_temp);
     for i_trial = 1:n_trial
@@ -448,6 +548,13 @@ xlim([-0.1,1.1]);
 ylim([-0.1,1.1]);
 %%
 
-plot(sqrt(cell_params.gain(connected_cells))+normrnd(0,0.01,[n_cell_temp 1] ), gain_current,'.','markers',12)
-xlim([-0.05,0.2]);
-ylim([-0.05,0.2]);
+local_shape_gain
+gain_list = [l23_cells_for_sim.optical_gain];
+local_gain = gain_list(local_shape_gain);
+
+
+gain_current(local_connected)-local_gain(local_connected)'
+plot(local_gain(local_connected), gain_current(local_connected),'.','markers',12)
+xlim([0.0,0.03]);
+ylim([0.0,0.03]);
+line([0 1],[0 1])
