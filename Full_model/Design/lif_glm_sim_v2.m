@@ -1,4 +1,4 @@
-function [V_vect, spikes] = lif_glm_sim_v2(stim,params,funcs,stoc_params)
+function [V_vect, spikes] = lif_glm_sim_v2(stim,params,funcs)
 
 last_spike = 1;
 dt = 1;

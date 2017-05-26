@@ -1,5 +1,7 @@
 %rng(12242,'twister');
-i_rep = 400;
+addpath(genpath('../../psc-detection'),genpath('../../mapping-inference'),genpath('../../mapping-core'));
+
+i_rep = 100;
 factor=20;
 num_sample = 50;
 
@@ -15,9 +17,9 @@ end
 % 
 i_template = 1;
 
-%
+v_reset_known=-4000;
 params_sim.V_th= 15;
-params_sim.V_reset = -2000;
+params_sim.V_reset = -4000;
 params_sim.g =  l23_cells_for_sim(i_template).g;
 params_sim.gain =  l23_cells_for_sim(i_template).optical_gain*factor;
 funcs.invlink = @invlink_test;%@(resp) log(1 + exp(resp));%@(x) exp(x);
@@ -40,7 +42,7 @@ for i_trial = 1:num_sample
     k=stimuli_seq(i_trial);
     stim = I_e_vect*k;
     stims(i_trial,:) = stim;
-     [V_vect, spikes]  = lif_glm_sim_v2(stim,params_sim,funcs,stoc_params);
+     [V_vect, spikes]  = lif_glm_sim_v2(stim,params_sim,funcs);
     responses(i_trial,:)=spikes;
     sum(spikes)
 end
@@ -50,10 +52,9 @@ in_params.g =   l23_cells_for_sim(i_template).g;
 
 % LIF-GLM fits
 %-------------------------------------%
-[stats_conv] = fit_lifglm_v2(responses, stims,in_params);
+[stats_conv] = fit_lifglm_v2(responses, stims,in_params,v_reset_known);
 
 % Output:
 stats_conv.beta(1)
-stats_conv.beta(2)
 params_sim.gain
-(stats_conv.beta(2)-params_sim.gain)/params_sim.gain
+(stats_conv.beta-params_sim.gain)/params_sim.gain
