@@ -1,6 +1,11 @@
-function [V_vect, spikes] = lif_glm_sim(stim,params,funcs)
+function [V_vect, spikes, lambda] = lif_glm_sim(stim,params,funcs,varargin)
 
-
+if ~isempty(varargin) && ~isempty(varargin{1})
+    spikes = varargin{1};
+    obs_spikes = 1;
+else
+    obs_spikes = 0;
+end
 
 
 
@@ -10,7 +15,9 @@ dt = 1;
 t_end = size(stim,2);
 t_vect=0:dt:t_end-1;
 V_spike = 70;  
-spikes = zeros(size(t_vect));
+if ~obs_spikes
+    spikes = zeros(size(t_vect));
+end
 V_vect=zeros(1,length(t_vect));
 V_plot_vect=zeros(1,length(t_vect));
 lambda = zeros(1,length(t_vect));
@@ -30,9 +37,10 @@ for t=dt:dt:t_end-1 %loop through values of t in steps of df ms
         -params.g*V_vect(i) + stim(i)*params.gain; %Euler's method
 %         lambda(i+1)=log(exp(V_vect(i+1)-V_th_sim)+1);
     lambda(i+1) = funcs.invlink(V_vect(i)-params.V_th);
-
+    
     %if statement below says what to do if voltage crosses threshold
-    if sum(lambda(last_spike+1:i+1))>tao %cell spiked
+    if (~obs_spikes && sum(lambda(last_spike+1:i+1))>tao) || ...
+            (obs_spikes && spikes(i) == 1)
 %         if rand < lambda(i+1)
         V_vect(i+1)=params.V_reset; %set voltage back to V_reset_sim
         V_plot_vect(i+1)=V_spike; %set vector that will be plotted to show a spike here
@@ -45,6 +53,7 @@ for t=dt:dt:t_end-1 %loop through values of t in steps of df ms
         end
         last_spike = i+1;
         tao=exprnd(1);
+        
 %             lambda(1:i)=0;
 %             lambda(i+1)=log(exp(V_vect(i+1)-V_th_sim)+1);
     else %voltage didn't cross threshold so cell does not spike

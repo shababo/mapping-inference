@@ -10,7 +10,7 @@ for i_cell = 1:n_cell
     center_idx=(size(this_cell_shape)+1)/2;
     % Relative location to the cell 
     relative_dist = Z_dense-ones(size(Z_dense,1),1)*cell_params.locations(i_cell,:);
-    relative_idx = round(relative_dist + center_idx);
+    relative_idx = round(bsxfun(@plus,relative_dist,center_idx));
     
     
     for i_loc = 1:size(relative_idx,1)
