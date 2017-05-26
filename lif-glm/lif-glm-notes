@@ -27,9 +27,6 @@ Using a novel expectation-maximization algorithm, we can estimate the parameters
 
 
 
-
-
-
 Recent advancements in the optical stimulation of sets of neurons now enable mapping the fine-scale synaptic properties of large-portions of neural circuits in a single animal.
 Specifically, we consider circuit mapping experiments where the subthreshold, postsynaptic responses of a small number of neurons are recorded using whole-cell patch clamp, and optogenetics is used to stimulate a set (1 to 10) of putative presynaptic neurons per trial within a target volume of roughly 1000 um x 600 um x 300 um.
 From these data, one can infer which presynaptic neurons are connected to the patched neurons.

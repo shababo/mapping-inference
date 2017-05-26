@@ -57,12 +57,12 @@ end
 assignin('base','covs_1trial_tmp',covs_1trial)
 
 % this sets v_th at 15
-[betahat_glm,dev,stats_conv]=glmfit(covs_1trial(:,[2 3:end]),responses(:),...
-    'poisson','link',F,'constant','off','offset',15*covs_1trial(:,1));
+% [betahat_glm,dev,stats_conv]=glmfit(covs_1trial(:,[2 3:end]),responses(:),...
+%     'poisson','link',F,'constant','off','offset',15*covs_1trial(:,1));
 
 % this fits v_th
-% [betahat_glm,dev,stats_conv]=glmfit(covs_1trial(:,[1 2 3:end]),responses(:),...
-%     'poisson','link',F,'constant','off');%
+[betahat_glm,dev,stats_conv]=glmfit(covs_1trial(:,[1 2 3:end]),responses(:),...
+    'poisson','link',F,'constant','off');%
 
 stats_conv.dev = dev;
 % betahat_glm = []; stats_conv = [];

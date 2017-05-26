@@ -30,7 +30,7 @@ sparsity, gamma_threshold,maxit,t_vect)
     count_events = zeros(n_cell_local,1);
     for i_trial_index = 1:n_trial
         i_trial = chosen_trials_index(i_trial_index);
-        n_events= length( mpp(i_trial).amplitudes);
+        n_events= length( mpp(i_trial).amp);
         if length(evoked_cell{i_trial})>1
             count_trials(evoked_cell{i_trial}(2:end)) = count_trials(evoked_cell{i_trial}(2:end))+1;
             count_events(evoked_cell{i_trial}(2:end))  = count_events(evoked_cell{i_trial}(2:end)) +...
@@ -55,8 +55,8 @@ sparsity, gamma_threshold,maxit,t_vect)
         i_trial = chosen_trials_index(i_trial_index);
         evoked_cell_index = evoked_cell{i_trial};
 
-        this_trial_time = mpp(i_trial).event_times;
-        this_trial_amps = mpp(i_trial).amplitudes;
+        this_trial_time = mpp(i_trial).times;
+        this_trial_amps = mpp(i_trial).amp;
         n_events=length(this_trial_time);
         if length(evoked_cell_index)>1
             for i_index = 2:length(evoked_cell_index)
@@ -82,13 +82,13 @@ sparsity, gamma_threshold,maxit,t_vect)
 
         for i_trial_index = 1:n_trial
             i_trial = chosen_trials_index(i_trial_index);
-            n_events = length(mpp(i_trial).event_times);
+            n_events = length(mpp(i_trial).times);
             evoked_cell_index = evoked_cell{i_trial};
             firing_rates = zeros(length(evoked_cell_index),1);
             size_rates = zeros(length(evoked_cell_index),1);
 
-            this_trial_time = mpp(i_trial).event_times;
-            this_trial_amps = mpp(i_trial).amplitudes;
+            this_trial_time = mpp(i_trial).times;
+            this_trial_amps = mpp(i_trial).amp;
             for i_event = 1:n_events
                 this_event_time =this_trial_time(i_event);
                 this_event_size =this_trial_amps(i_event);

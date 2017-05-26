@@ -1,5 +1,8 @@
-
+%%
 addpath(genpath('../../psc-detection'),genpath('../../mapping-inference'),genpath('../../mapping-core'));
+
+% for iiii = 1:100
+
 %% Paramters in the simulations
 num_dense_grid          = [40];
 freq_pen_grid           = [1];
@@ -48,33 +51,35 @@ gamma_threshold = 0.1; % For the sparse EM algorithm
 
 num_samples=50; % Number of samples to estimate the expected entropies
 num_sources = 4;  % Number of locations to stimulate in each trial
-N=1000/num_trials_batch; % Number of batches
+N=4000/num_trials_batch; % Number of batches
 
 cell_feature_priors=struct();
 num_layers = 7;
 cell_feature_priors.Vthre_mean = [0  15  15  15  15  15 15]; % gaussian
-cell_feature_priors.Vreset_mean = [0  -1e4  -1e4  -1e4  -1e4  -1e4  -1e4]; % gaussian
+cell_feature_priors.Vreset_mean = [0  -4e3  -4e3  -4e3  -4e3  -4e3  -4e3]; % gaussian
 cell_feature_priors.Vthre_std = 0* ones(num_layers,1); % same
 cell_feature_priors.Vreset_std =  0* ones(num_layers,1);
-
-v_reset_known=-1e4;
 %%
 %---------------------------------------------------------------------%
 % Parameters for the data generating mechanism
 rng(12242,'twister');
 % load parameters for the model
-run('./Data_generation/Parameters_setup_3D.m')
+% run('./Data_generation/Parameters_setup_3D.m')
+
+% load real data
+load('./Environments/05082017_s3c1_t345_mpp_stim_data.mat')
 %% Pre-calculation
 % Note: use the standard template for inference when testing robustness
-cell_params.locations = local_locations;
+cell_params.locations = nuc_locs;
+n_cell_local = size(nuc_locs,1);
 cell_params.shape_gain = ones(n_cell_local,1);
 shape_template = struct();
 shape_template.shape= l23_average_shape;
-
+Z_dense = unique(stim_locs,'rows');
 [pi_dense_local, inner_normalized_products] = get_weights_v2(cell_params, shape_template,Z_dense);
 %%
-cell_params.locations = all_locations;
-cell_params.shape_gain = all_shape_gain;
+% cell_params.locations = all_locations;
+% cell_params.shape_gain = all_shape_gain;
 shape_template = l23_cells_for_sim;
 [pi_dense_all, ~] = get_weights_v2(cell_params, shape_template,Z_dense);
 %% Loading the current template using new template
@@ -90,7 +95,7 @@ data_params.T = length(I_e_vect); % total time at 20k Hz
 data_params.dt = 1; % 1/20 ms
 %% Setting stimulus parameters:
 % Stimulation:
-num_sources = 4;  % Number of locations to stimulate in each trial
+num_sources = 1;  % Number of locations to stimulate in each trial
 grid_index = 1:size(pi_dense_all,2);
 
 % Parameters
@@ -105,51 +110,51 @@ k_minimum = 0.001; % minimum stimulus intensity to consider
 %---------------------------------------------------------------------%
 % Design stage
 % initialization
-output= struct([]);
-for j = 1:num_threshold
-    output(j).alpha = .1*ones(n_cell_local*num_power_level+1,1);
-    output(j).mu = zeros(n_cell_local*num_power_level+1,1);
-    output(j).s_sq = ones(n_cell_local*num_power_level+1,1);
-    output(j).threshold = [];
-end
-X_g = zeros(0,n_cell_local*num_power_level);
-locations_trials = zeros(0,num_sources);
-powers_trials= zeros(0,num_sources);
-Y_g = zeros(0,num_threshold);
-counts_freq = zeros(size(Z_dense,1)*num_power_level,1);
-%%
-cell_params.V_th = all_V_th;
-cell_params.V_reset = all_V_reset;
-cell_params.gamma = all_gamma;
-cell_params.amplitudes = all_amplitudes;
-cell_params.sigma_across = all_sigma_across;
-cell_params.sigma_within = all_sigma_within;
-cell_params.locations = all_locations;
-cell_params.shape_gain = all_shape_gain;
-
-stoc_params.mu=stoc_mu;
-stoc_params.sigma=stoc_sigma;
-%%
-for i_batch= 1:N
-    tic
-    tstart=toc;
-    output_old=output;
-    [locations_this_batch, powers_this_batch,counts_freq] = optimal_design_v2(i_batch, num_sources,num_peaks,num_trials_first,num_trials_batch, output, Y_g, ...
-        num_power_level,random_prop, counts_freq, pi_dense_local,inner_normalized_products, grid_index, freq_pen, num_samples);
-    
-    locations_trials = [locations_trials; locations_this_batch];
-    powers_trials = [powers_trials; powers_this_batch];
-    
-    [mpp_temp, ~, ~] = generate_data_v2(...
-        locations_this_batch,powers_this_batch,pi_dense_all,k_minimum,cell_params, shape_template, power_level,...
-        I_e_vect,stoc_params, data_params,bg_params,trials_specific_variance);
-    
-    if i_batch == 1
-        mpp= mpp_temp;
-    else
-        mpp( ((i_batch-2)*num_trials_batch + num_trials_first) + (1:num_trials_batch)) =mpp_temp;
-    end
-end
+% output= struct([]);
+% for j = 1:num_threshold
+%     output(j).alpha = .1*ones(n_cell_local*num_power_level+1,1);
+%     output(j).mu = zeros(n_cell_local*num_power_level+1,1);
+%     output(j).s_sq = ones(n_cell_local*num_power_level+1,1);
+%     output(j).threshold = [];
+% end
+% X_g = zeros(0,n_cell_local*num_power_level);
+% locations_trials = zeros(0,num_sources);
+% powers_trials= zeros(0,num_sources);
+% Y_g = zeros(0,num_threshold);
+% counts_freq = zeros(size(Z_dense,1)*num_power_level,1);
+% %%
+% cell_params.V_th = all_V_th;
+% cell_params.V_reset = all_V_reset;
+% cell_params.gamma = all_gamma;
+% cell_params.amplitudes = all_amplitudes;
+% cell_params.sigma_across = all_sigma_across;
+% cell_params.sigma_within = all_sigma_within;
+% cell_params.locations = all_locations;
+% cell_params.shape_gain = all_shape_gain;
+% 
+% stoc_params.mu=stoc_mu;
+% stoc_params.sigma=stoc_sigma;
+% %%
+% for i_batch= 1:50
+%     tic
+%     tstart=toc;
+%     output_old=output;
+%     [locations_this_batch, powers_this_batch,counts_freq] = optimal_design_v2(i_batch, num_sources,num_peaks,num_trials_first,num_trials_batch, output, Y_g, ...
+%         num_power_level,random_prop, counts_freq, pi_dense_local,inner_normalized_products, grid_index, freq_pen, num_samples);
+%     
+%     locations_trials = [locations_trials; locations_this_batch];
+%     powers_trials = [powers_trials; powers_this_batch];
+%     
+%     [mpp_temp, ~, ~] = generate_data_v2(...
+%         locations_this_batch,powers_this_batch,pi_dense_all,k_minimum,cell_params, shape_template, power_level,...
+%         I_e_vect,stoc_params, data_params,bg_params,trials_specific_variance);
+%     
+%     if i_batch == 1
+%         mpp= mpp_temp;
+%     else
+%         mpp( ((i_batch-2)*num_trials_batch + num_trials_first) + (1:num_trials_batch)) =mpp_temp;
+%     end
+% end
 %%
 %------------------------------------%
 % Estimating the marginal firing rate
@@ -160,9 +165,19 @@ dt=1;
 t_vect= dt:dt:T;
 sd_range=1.5;
 stimuli_size_local=zeros(length(mpp),n_cell_local);
+powers_trials = stim_pow;
+% locations_trials = arrayfun(@(x) find(arrayfun(@(y) isequal(y,x),nuc_locs)),Z_dense);
+for i = 1:size(stim_locs,1)
+    for j = 1:size(Z_dense,1)
+        if isequal(round(stim_locs(i,[1 2])),round(Z_dense(j,[1 2])))
+            locations_trials(i) = j;
+        end
+    end
+end
+locations_trials  = locations_trials';
 for l = 1:length(mpp)
     for m = 1:size(locations_trials,2)
-        stimuli_size_local(l,:)  = stimuli_size_local(l,:)+( pi_dense_local(:,locations_trials(l,m)).*power_level(powers_trials(l,m)))';
+        stimuli_size_local(l,:)  = stimuli_size_local(l,:)+( pi_dense_local(:,locations_trials(l,m)).*powers_trials(l,m))';
     end
 end
 
@@ -188,9 +203,9 @@ end
 
 
 %%
-cell_params.V_th = local_V_th;
-cell_params.V_reset = local_V_reset;
-cell_params.locations = local_locations;
+cell_params.V_th = 15;
+cell_params.V_reset = -1e3;
+% cell_params.locations = local_locations;
 
 % The local gains:
 cell_params.gain = zeros(n_cell_local,1);
@@ -227,6 +242,9 @@ for i_cell = 1:n_cell_local
 end
 emp_all(local_connected)-sum(expected_all(:,local_connected),1)'
 %%
+bg_params.mean = 0;
+bg_params.sigma = 1.5;
+bg_params.firing_rate = 0;
 convergence_epsilon = 0.01;
 maxit = 100;
 n_gibbs_sample = 100;
@@ -264,17 +282,13 @@ end
 
 %% Gather more data using optimal design
 check_trial = [];
-n_trial = length(mpp);
 for i_trial = 1:n_trial
-   if length(mpp(i_trial).event_times) >0
+   if length(mpp(i_trial).times) >0
        check_trial = [check_trial i_trial];
    end
 end
 
 %----End of the optimal design------%
-%%
-mpp(check_trial).assignments
-%mpp(check_trial).event_times
 
 %% Refine the estimates with iterative updates of the lif-glm parameters
 
@@ -282,12 +296,10 @@ mpp(check_trial).assignments
 labeled_soft_assignments{check_trial}
 
 %% Remove the disconnected cells
-connected_threshold = 0.2;
-connected_cells = gamma_current > connected_threshold;
+connected_threshold = 1e-4;
+connected_cells = ones(n_cell_local,1)>0;
 
-%ones(n_cell_local,1)>0;
-
-
+%gamma_current > connected_threshold;
 %%
 stimuli_size_temp = stimuli_size_local(:,connected_cells);
 n_cell_temp = sum(connected_cells);
@@ -352,7 +364,7 @@ end
 %% Start of the iteration:
 num_iter = 0;
 convergence_epsilon_outer= 0.001;
-soft_threshold=0.2;
+soft_threshold=0.3;
 normalized_change_outer = convergence_epsilon_outer + 1;
  gain_sd_current = zeros(n_cell_temp,1);
 while (normalized_change_outer > convergence_epsilon_outer) & (num_iter < maxit)
@@ -442,7 +454,6 @@ while (normalized_change_outer > convergence_epsilon_outer) & (num_iter < maxit)
         
         % Consider an alternative way
         % Choosing only the most reliable ones for each cell:
-        % Also, drawing only one event per cell
         cell_data = cell(n_cell_temp,1);
         for i_cell = 1:n_cell_temp
             soft_temp =soft_assignments_by_cell{i_cell};
@@ -460,25 +471,14 @@ while (normalized_change_outer > convergence_epsilon_outer) & (num_iter < maxit)
             for i_trial = 1:length(trial_list)
                 trial_idx= soft_temp(1,:)==trial_list(i_trial);
                 soft_this_trial = soft_temp(:,trial_idx);
-               
-                prob_sum = sum(soft_this_trial(3,:));
-                
+                n_event = sum(soft_this_trial(3,:)>0.3);
                 response_this_trial = zeros(1,length(I_e_vect));
-                if prob_sum > soft_threshold
-                if prob_sum > 1
-                    prob_sample = soft_this_trial(3,:)/prob_sum;
-                else
-                     prob_sample=soft_this_trial(3,:);
-                end
-                  
-                prob_sample = [1- sum(prob_sample) prob_sample];
-                r_temp = rand(1);
-                i_event = min(find(r_temp<cumsum(prob_sample)));
-                if i_event > 1
-                response_this_trial(soft_this_trial(2,i_event-1))=1;
-                end
-                end
-                    
+                if n_event > 0
+                    for i_event = 1:n_event
+                        if  rand(1) < soft_this_trial(3,i_event)
+                            response_this_trial(soft_this_trial(2,i_event))=1;
+                        end
+                    end
                     if sum(response_this_trial)>0
                         cell_data{i_cell}.responses = [cell_data{i_cell}.responses; response_this_trial];
                         cell_data{i_cell}.stims =  [cell_data{i_cell}.stims; ...
@@ -489,6 +489,7 @@ while (normalized_change_outer > convergence_epsilon_outer) & (num_iter < maxit)
                 
             end
             end
+        end
         
         
         
@@ -506,7 +507,7 @@ while (normalized_change_outer > convergence_epsilon_outer) & (num_iter < maxit)
                 stims=cell_data{i_cell}.stims;
                 
                 [stats_conv] = fit_lifglm_v2(responses, ...
-                    stims,in_params,v_reset_known);
+                    stims,in_params);
                 %-------------------------------------%
                 %lif_glm_gains(i_cell)=stats_conv.beta(2);
                 lif_glm_gains(i_cell)=stats_conv.beta;
@@ -524,7 +525,7 @@ while (normalized_change_outer > convergence_epsilon_outer) & (num_iter < maxit)
     gamma_current= gamma_path(:,end);
     sigma_current = sigma_path(:,end);
     mu_current = mu_path(:,end);
-    gain_current = median(gains_sample,2);
+    gain_current = mean(gains_sample,2);
     for i_cell = 1:n_cell_temp
         gain_sd_current(i_cell) = std(gains_sd_sample(i_cell,:));
         if gain_sd_current(i_cell)==0
@@ -563,24 +564,19 @@ while (normalized_change_outer > convergence_epsilon_outer) & (num_iter < maxit)
     end
 end
 %%
-gam_est =zeros(n_cell_local,1);
-gam_est(connected_cells)=gamma_path(:,end);
-plot(local_gamma+normrnd(0,0.1,[n_cell_local 1] ), gam_est, '.','markers',12)
-xlim([-0.1,1.3]);
-ylim([-0.1,1.3]);
-line([0 1],[0 1])
+gam_est =gamma_path(:,end);
+plot(local_gamma+normrnd(0,0.1,[n_cell_local 1] ), gam_est,'.','markers',12)
+xlim([-0.1,1.1]);
+ylim([-0.1,1.1]);
 %%
 
-local_shape_gain;
+local_shape_gain
 gain_list = [l23_cells_for_sim.optical_gain];
 local_gain = gain_list(local_shape_gain);
 
 
-
-plot(local_gain(connected_cells), gain_current,'.','markers',12)
+gain_current(local_connected)-local_gain(local_connected)'
+plot(local_gain(local_connected), gain_current(local_connected),'.','markers',12)
 xlim([0.0,0.03]);
 ylim([0.0,0.03]);
 line([0 1],[0 1])
-xlabel('True gain');
-ylabel('Estimates');
-

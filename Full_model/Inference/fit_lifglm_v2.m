@@ -42,6 +42,7 @@ covs_1trial(:,2) = cov_current(:);
 covs_1trial(:,3) = cov_resting(:); % not fitting resting 
 r_temp = responses';
 % this sets v_th at 15
+
 %[betahat_glm,dev,stats_conv]=glmfit(covs_1trial(:,1:2),r_temp(:),...
 %    'poisson','link',F,'constant','off','offset',-15*ones(length(responses(:)),1));
 
