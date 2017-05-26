@@ -147,6 +147,6 @@ plot(t_grid,M_intensity,'col','r')
 hold on;
 plot(avg_spikes,'col','b')
 hold on;
-plot(t_grid,M_intensity_func{1,1},'col','k')
+%plot(t_grid,M_intensity_func{1,1},'col','k')
 
 hold off;

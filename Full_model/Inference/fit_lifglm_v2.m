@@ -1,4 +1,4 @@
-function [stats_conv] = fit_lifglm_v2(responses,stims,in_params)
+function [stats_conv] = fit_lifglm_v2(responses,stims,in_params,v_reset_known)
 % responses is an N x T binary matrix of spike times where we have N trials
 % stims is an N x T matrix of the stimulus timeseries which is scaled by power - if using a shape to
 % fit the lif-glm then these should be scaled by the shape as well.
@@ -49,7 +49,7 @@ r_temp = responses';
 
 
 [betahat_glm,dev,stats_conv]=glmfit(covs_1trial(:,2),r_temp(:),...
-    'poisson','link',F,'constant','off','offset',-4e3*covs_1trial(:,1)-15*ones(length(responses(:)),1));
+    'poisson','link',F,'constant','off','offset',v_reset_known*covs_1trial(:,1)-15*ones(length(responses(:)),1));
 
 
 % this fits v_th

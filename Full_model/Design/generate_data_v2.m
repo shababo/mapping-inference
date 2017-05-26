@@ -1,7 +1,7 @@
 function [mpp_new, presynaptic_events, background_events] = generate_data_v2(...
     locations_this_batch,powers_this_batch,pi_dense_all,k_minimum,...
     cell_params, shape_template, power_level,...
-    I_e_vect,stoc_params, data_params,bg_params,trials_specific_variance)
+    I_e_vect, data_params,bg_params,trials_specific_variance)
 
 num_this_batch = size(locations_this_batch,1);
 % Include power here:
@@ -32,7 +32,7 @@ for i_cell = 1:size(evoked_k,1)
             stim = I_e_vect*k;
             presynaptic_events{i_trial, i_cell} = [];
             if max(stim)*params_sim.gain > k_minimum
-            [V_vect, spikes]  = lif_glm_sim_v2(stim,params_sim,funcs,stoc_params);
+            [V_vect, spikes]  = lif_glm_sim_v2(stim,params_sim,funcs);
             presynaptic_events{i_trial, i_cell} = t_vect(find(spikes));
             presynaptic_amplitudes{i_trial, i_cell} = abs(normrnd(mean_amp_this_trial,sigma,sum(spikes)));
             end

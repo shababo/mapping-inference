@@ -7,24 +7,39 @@ fprintf('Batch %d\n', i_batch);
 if i_batch  == 1
     num_this_batch = num_trials_first;
     
-    ind_seq = zeros(0,1);
     locations_trials = zeros(num_this_batch ,num_sources);
-    
     powers_trials= zeros(num_this_batch ,num_sources);
     num_sequence  = ceil(num_this_batch*num_sources/length(grid_index));
-    temp_index = 1:length(grid_index);
-    for i_seq = 1:num_sequence 
-        ind_seq = [ind_seq randsample(temp_index, length(temp_index),false)]; 
+    
+      idx = [];
+        
+        entropy_locations = ones(length(grid_index),1);
+        for i = 1:num_peaks
+            if i==1
+                temp_idx = randsample(grid_index,1);
+                m_id = 1;
+            else
+                [m_id temp_idx] = max(entropy_locations);
+            end
+            idx = [idx temp_idx];
+            entropy_locations= entropy_locations- inner_normalized_products(:,temp_idx)*m_id;
+        end
+    
+    num_rep = ceil(num_sources*num_this_batch/num_peaks);
+    idx_seq = zeros(num_rep*num_peaks,1);
+    for l = 1:num_rep
+        idx_seq((l-1)*num_peaks +(1:num_peaks)) = randsample(idx, num_peaks);
     end
-    for l = 1:num_this_batch
-        locations_next = ind_seq(  (1: (num_sources))+ (l-1)*(num_sources) );
-        locations_trials(l,:)=locations_next;
-        powers_trials(l,:)= randsample(1:num_power_level, num_sources,true);
-        for m= 1:num_sources
+        for l = 1:num_this_batch
+            locations_next = idx_seq(  (1: (num_sources))+ (l-1)*(num_sources) );
+            locations_trials(l,:)=locations_next;
+            powers_trials(l,:)= randsample(1:num_power_level, num_sources,true);
+            for m= 1:num_sources
                 idx_vec = powers_trials(l,m)+ (locations_next(m)-1)*num_power_level;
                 counts_freq(idx_vec)=counts_freq(idx_vec)+1;
+            end
+        
         end
-    end
 else 
     num_this_batch = num_trials_batch;
     locations_trials = zeros(num_this_batch ,num_sources);
@@ -118,15 +133,28 @@ else
     
    
     else % random design 
-         ind_seq = zeros(0,1);
-   
-         num_sequence  = ceil(num_this_batch*num_sources/length(grid_index));
-    temp_index = 1:length(grid_index);
-    for i_seq = 1:num_sequence 
-        ind_seq = [ind_seq randsample(temp_index, length(temp_index),false)]; 
+        num_peaks = num_this_batch;
+        idx = [];
+       
+        entropy_locations = ones(length(grid_index),1);
+        for i = 1:num_peaks
+            if i==1
+                temp_idx = randsample(grid_index,1);
+                m_id = 1;
+            else
+                [m_id temp_idx] = max(entropy_locations);
+            end
+            idx = [idx temp_idx];
+            entropy_locations= entropy_locations- inner_normalized_products(:,temp_idx)*m_id;
+        end
+    
+    num_rep = ceil(num_sources*num_this_batch/num_peaks);
+    idx_seq = zeros(num_rep*num_peaks,1);
+    for l = 1:num_rep
+        idx_seq((l-1)*num_peaks +(1:num_peaks)) = randsample(idx, num_peaks);
     end
         for l = 1:num_this_batch
-            locations_next = ind_seq(  (1: (num_sources))+ (l-1)*(num_sources) );
+            locations_next = idx_seq(  (1: (num_sources))+ (l-1)*(num_sources) );
             locations_trials(l,:)=locations_next;
             powers_trials(l,:)= randsample(1:num_power_level, num_sources,true);
             for m= 1:num_sources

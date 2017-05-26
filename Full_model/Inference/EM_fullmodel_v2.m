@@ -167,7 +167,7 @@ sparsity, gamma_threshold,maxit,t_vect)
                 if expected_events == 0
                     expected_events = 1;
                 end
-                gamma_current(i_cell) = weighted_sum(2)/expected_events;
+                gamma_current(i_cell) = min(1,weighted_sum(2)/expected_events);
                 if sparsity == 1 & num_iter >3 % if we want to enforce the sparsity
                     gamma_current(i_cell) = min(  gamma_current(i_cell) > gamma_threshold, gamma_current(i_cell));
                 end
