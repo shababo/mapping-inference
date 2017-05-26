@@ -1,5 +1,5 @@
-%%
-addpath(genpath('../../psc-detection'),genpath('../../mapping-inference'),genpath('../../mapping-core'));
+% Loading functions and Data generation
+addpath(genpath('../psc-detection'),genpath('../mapping-inference'),genpath('../mapping-core'));
 %% Paramters in the simulations
 num_dense_grid          = [40];
 freq_pen_grid           = [1];
@@ -48,14 +48,16 @@ gamma_threshold = 0.1; % For the sparse EM algorithm
 
 num_samples=50; % Number of samples to estimate the expected entropies
 num_sources = 4;  % Number of locations to stimulate in each trial
-N=4000/num_trials_batch; % Number of batches
+N=1000/num_trials_batch; % Number of batches
 
 cell_feature_priors=struct();
 num_layers = 7;
 cell_feature_priors.Vthre_mean = [0  15  15  15  15  15 15]; % gaussian
-cell_feature_priors.Vreset_mean = [0  -4e3  -4e3  -4e3  -4e3  -4e3  -4e3]; % gaussian
+cell_feature_priors.Vreset_mean = [0  -1e4  -1e4  -1e4  -1e4  -1e4  -1e4]; % gaussian
 cell_feature_priors.Vthre_std = 0* ones(num_layers,1); % same
 cell_feature_priors.Vreset_std =  0* ones(num_layers,1);
+
+v_reset_known=-1e4;
 %%
 %---------------------------------------------------------------------%
 % Parameters for the data generating mechanism
@@ -88,7 +90,7 @@ data_params.T = length(I_e_vect); % total time at 20k Hz
 data_params.dt = 1; % 1/20 ms
 %% Setting stimulus parameters:
 % Stimulation:
-num_sources = 1;  % Number of locations to stimulate in each trial
+num_sources = 4;  % Number of locations to stimulate in each trial
 grid_index = 1:size(pi_dense_all,2);
 
 % Parameters
@@ -128,7 +130,7 @@ cell_params.shape_gain = all_shape_gain;
 stoc_params.mu=stoc_mu;
 stoc_params.sigma=stoc_sigma;
 %%
-for i_batch= 1:50
+for i_batch= 1:N
     tic
     tstart=toc;
     output_old=output;
@@ -260,6 +262,7 @@ end
 
 %% Gather more data using optimal design
 check_trial = [];
+n_trial = length(mpp);
 for i_trial = 1:n_trial
    if length(mpp(i_trial).event_times) >0
        check_trial = [check_trial i_trial];
@@ -267,6 +270,9 @@ for i_trial = 1:n_trial
 end
 
 %----End of the optimal design------%
+%%
+mpp(check_trial).assignments
+%mpp(check_trial).event_times
 
 %% Refine the estimates with iterative updates of the lif-glm parameters
 
@@ -274,10 +280,12 @@ end
 labeled_soft_assignments{check_trial}
 
 %% Remove the disconnected cells
-connected_threshold = 1e-4;
-connected_cells = ones(n_cell_local,1)>0;
+connected_threshold = 0.2;
+connected_cells = gamma_current > connected_threshold;
 
-%gamma_current > connected_threshold;
+%ones(n_cell_local,1)>0;
+
+
 %%
 stimuli_size_temp = stimuli_size_local(:,connected_cells);
 n_cell_temp = sum(connected_cells);
@@ -342,7 +350,7 @@ end
 %% Start of the iteration:
 num_iter = 0;
 convergence_epsilon_outer= 0.001;
-soft_threshold=0.3;
+soft_threshold=0.2;
 normalized_change_outer = convergence_epsilon_outer + 1;
  gain_sd_current = zeros(n_cell_temp,1);
 while (normalized_change_outer > convergence_epsilon_outer) & (num_iter < maxit)
@@ -432,6 +440,7 @@ while (normalized_change_outer > convergence_epsilon_outer) & (num_iter < maxit)
         
         % Consider an alternative way
         % Choosing only the most reliable ones for each cell:
+        % Also, drawing only one event per cell
         cell_data = cell(n_cell_temp,1);
         for i_cell = 1:n_cell_temp
             soft_temp =soft_assignments_by_cell{i_cell};
@@ -449,14 +458,25 @@ while (normalized_change_outer > convergence_epsilon_outer) & (num_iter < maxit)
             for i_trial = 1:length(trial_list)
                 trial_idx= soft_temp(1,:)==trial_list(i_trial);
                 soft_this_trial = soft_temp(:,trial_idx);
-                n_event = sum(soft_this_trial(3,:)>0.3);
+               
+                prob_sum = sum(soft_this_trial(3,:));
+                
                 response_this_trial = zeros(1,length(I_e_vect));
-                if n_event > 0
-                    for i_event = 1:n_event
-                        if  rand(1) < soft_this_trial(3,i_event)
-                            response_this_trial(soft_this_trial(2,i_event))=1;
-                        end
-                    end
+                if prob_sum > soft_threshold
+                if prob_sum > 1
+                    prob_sample = soft_this_trial(3,:)/prob_sum;
+                else
+                     prob_sample=soft_this_trial(3,:);
+                end
+                  
+                prob_sample = [1- sum(prob_sample) prob_sample];
+                r_temp = rand(1);
+                i_event = min(find(r_temp<cumsum(prob_sample)));
+                if i_event > 1
+                response_this_trial(soft_this_trial(2,i_event-1))=1;
+                end
+                end
+                    
                     if sum(response_this_trial)>0
                         cell_data{i_cell}.responses = [cell_data{i_cell}.responses; response_this_trial];
                         cell_data{i_cell}.stims =  [cell_data{i_cell}.stims; ...
@@ -467,7 +487,6 @@ while (normalized_change_outer > convergence_epsilon_outer) & (num_iter < maxit)
                 
             end
             end
-        end
         
         
         
@@ -485,7 +504,7 @@ while (normalized_change_outer > convergence_epsilon_outer) & (num_iter < maxit)
                 stims=cell_data{i_cell}.stims;
                 
                 [stats_conv] = fit_lifglm_v2(responses, ...
-                    stims,in_params);
+                    stims,in_params,v_reset_known);
                 %-------------------------------------%
                 %lif_glm_gains(i_cell)=stats_conv.beta(2);
                 lif_glm_gains(i_cell)=stats_conv.beta;
@@ -503,7 +522,7 @@ while (normalized_change_outer > convergence_epsilon_outer) & (num_iter < maxit)
     gamma_current= gamma_path(:,end);
     sigma_current = sigma_path(:,end);
     mu_current = mu_path(:,end);
-    gain_current = mean(gains_sample,2);
+    gain_current = median(gains_sample,2);
     for i_cell = 1:n_cell_temp
         gain_sd_current(i_cell) = std(gains_sd_sample(i_cell,:));
         if gain_sd_current(i_cell)==0
@@ -542,19 +561,24 @@ while (normalized_change_outer > convergence_epsilon_outer) & (num_iter < maxit)
     end
 end
 %%
-gam_est =gamma_path(:,end);
-plot(local_gamma+normrnd(0,0.1,[n_cell_local 1] ), gam_est,'.','markers',12)
-xlim([-0.1,1.1]);
-ylim([-0.1,1.1]);
+gam_est =zeros(n_cell_local,1);
+gam_est(connected_cells)=gamma_path(:,end);
+plot(local_gamma+normrnd(0,0.1,[n_cell_local 1] ), gam_est, '.','markers',12)
+xlim([-0.1,1.3]);
+ylim([-0.1,1.3]);
+line([0 1],[0 1])
 %%
 
-local_shape_gain
+local_shape_gain;
 gain_list = [l23_cells_for_sim.optical_gain];
 local_gain = gain_list(local_shape_gain);
 
 
-gain_current(local_connected)-local_gain(local_connected)'
-plot(local_gain(local_connected), gain_current(local_connected),'.','markers',12)
+
+plot(local_gain(connected_cells), gain_current,'.','markers',12)
 xlim([0.0,0.03]);
 ylim([0.0,0.03]);
 line([0 1],[0 1])
+xlabel('True gain');
+ylabel('Estimates');
+
