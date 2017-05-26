@@ -21,7 +21,7 @@ lambda(i) = exp(V_vect(i)-params.V_th);
 for t=dt:dt:t_end-1 %loop through values of t in steps of df ms        
     %V_inf = E_L + I_e_vect(i)*R_m;
 
-    V_vect(i+1) = V_vect(i) + normrnd(stoc_params.mu,stoc_params.sigma) +...
+    V_vect(i+1) = V_vect(i) + ...
         -params.g*V_vect(i) + stim(i)*params.gain;%Euler's method
 %fprintf('V %d, Stim %d\n', V_vect(i),stim(i));
 
@@ -30,6 +30,8 @@ for t=dt:dt:t_end-1 %loop through values of t in steps of df ms
 
     %if statement below says what to do if voltage crosses threshold
     if sum(lambda(last_spike+1:i+1))>tao %cell spiked
+     %if lambda(i+1) >rand(1) %cell spiked
+        
 %         if rand < lambda(i+1)
         V_vect(i+1)=params.V_reset; %set voltage back to V_reset_sim
         V_plot_vect(i+1)=V_spike; %set vector that will be plotted to show a spike here

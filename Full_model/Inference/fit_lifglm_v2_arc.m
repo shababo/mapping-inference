@@ -1,5 +1,5 @@
 % independent copy of the fit_lifglm.m in ../lif-glm
-function [stats_conv] = fit_lifglm(responses,stims,stims_ind,in_params)
+function [stats_conv] = fit_lifglm_v2(responses,stims,stims_ind,in_params)
 
 % responses is an N x T binary matrix of spike times where we have N trials
 % stims is an N x T matrix of the stimulus timeseries which is scaled by power - if using a shape to
@@ -15,7 +15,7 @@ function [stats_conv] = fit_lifglm(responses,stims,stims_ind,in_params)
 
 % [num_trials, num_samps] = size(responses);
 
-covs = gconv(stims',stims_ind,responses',in_params.g);
+covs = gconv_v2(stims',responses',in_params.g);
 % covs = permute(covs,[3 2 1]);
 assignin('base','covs_tmp',covs)
 
@@ -50,15 +50,16 @@ ub = Inf*ones(size(x0));
 ub(2) = 0;
 lb = -Inf*ones(size(x0));
 lb([1 3:end]) = 0;
-covs_1trial = zeros(length(responses(:)),length(x0));
-for i = 1:length(x0)
+
+covs_1trial = zeros(length(responses(:)),size(covs,2));
+for i = 1:size(covs,2)
     covs_1trial_this_param = squeeze(covs(:,i,:))';
     covs_1trial(:,i) = covs_1trial_this_param(:)';
 end
 assignin('base','covs_1trial_tmp',covs_1trial)
 
 % this sets v_th at 15
-[betahat_glm,dev,stats_conv]=glmfit(covs_1trial(:,[2 3:end]),responses(:),...
+[betahat_glm,dev,stats_conv]=glmfit(covs_1trial(:,2),responses(:),...
     'poisson','link',F,'constant','off','offset',15*covs_1trial(:,1));
 
 % this fits v_th

@@ -64,18 +64,22 @@ cell_feature_priors.Vreset_std =  0* ones(num_layers,1);
 % Parameters for the data generating mechanism
 rng(12242,'twister');
 % load parameters for the model
-run('./Data_generation/Parameters_setup_3D.m')
+% run('./Data_generation/Parameters_setup_3D.m')
+
+% load real data
+load('./Environments/05082017_s3c1_t345_mpp_stim_data.mat')
 %% Pre-calculation
 % Note: use the standard template for inference when testing robustness
-cell_params.locations = local_locations;
+cell_params.locations = nuc_locs;
+n_cell_local = size(nuc_locs,1);
 cell_params.shape_gain = ones(n_cell_local,1);
 shape_template = struct();
 shape_template.shape= l23_average_shape;
-
+Z_dense = unique(stim_locs,'rows');
 [pi_dense_local, inner_normalized_products] = get_weights_v2(cell_params, shape_template,Z_dense);
 %%
-cell_params.locations = all_locations;
-cell_params.shape_gain = all_shape_gain;
+% cell_params.locations = all_locations;
+% cell_params.shape_gain = all_shape_gain;
 shape_template = l23_cells_for_sim;
 [pi_dense_all, ~] = get_weights_v2(cell_params, shape_template,Z_dense);
 %% Loading the current template using new template
@@ -106,51 +110,51 @@ k_minimum = 0.001; % minimum stimulus intensity to consider
 %---------------------------------------------------------------------%
 % Design stage
 % initialization
-output= struct([]);
-for j = 1:num_threshold
-    output(j).alpha = .1*ones(n_cell_local*num_power_level+1,1);
-    output(j).mu = zeros(n_cell_local*num_power_level+1,1);
-    output(j).s_sq = ones(n_cell_local*num_power_level+1,1);
-    output(j).threshold = [];
-end
-X_g = zeros(0,n_cell_local*num_power_level);
-locations_trials = zeros(0,num_sources);
-powers_trials= zeros(0,num_sources);
-Y_g = zeros(0,num_threshold);
-counts_freq = zeros(size(Z_dense,1)*num_power_level,1);
-%%
-cell_params.V_th = all_V_th;
-cell_params.V_reset = all_V_reset;
-cell_params.gamma = all_gamma;
-cell_params.amplitudes = all_amplitudes;
-cell_params.sigma_across = all_sigma_across;
-cell_params.sigma_within = all_sigma_within;
-cell_params.locations = all_locations;
-cell_params.shape_gain = all_shape_gain;
-
-stoc_params.mu=stoc_mu;
-stoc_params.sigma=stoc_sigma;
-%%
-for i_batch= 1:50
-    tic
-    tstart=toc;
-    output_old=output;
-    [locations_this_batch, powers_this_batch,counts_freq] = optimal_design_v2(i_batch, num_sources,num_peaks,num_trials_first,num_trials_batch, output, Y_g, ...
-        num_power_level,random_prop, counts_freq, pi_dense_local,inner_normalized_products, grid_index, freq_pen, num_samples);
-    
-    locations_trials = [locations_trials; locations_this_batch];
-    powers_trials = [powers_trials; powers_this_batch];
-    
-    [mpp_temp, ~, ~] = generate_data_v2(...
-        locations_this_batch,powers_this_batch,pi_dense_all,k_minimum,cell_params, shape_template, power_level,...
-        I_e_vect,stoc_params, data_params,bg_params,trials_specific_variance);
-    
-    if i_batch == 1
-        mpp= mpp_temp;
-    else
-        mpp( ((i_batch-2)*num_trials_batch + num_trials_first) + (1:num_trials_batch)) =mpp_temp;
-    end
-end
+% output= struct([]);
+% for j = 1:num_threshold
+%     output(j).alpha = .1*ones(n_cell_local*num_power_level+1,1);
+%     output(j).mu = zeros(n_cell_local*num_power_level+1,1);
+%     output(j).s_sq = ones(n_cell_local*num_power_level+1,1);
+%     output(j).threshold = [];
+% end
+% X_g = zeros(0,n_cell_local*num_power_level);
+% locations_trials = zeros(0,num_sources);
+% powers_trials= zeros(0,num_sources);
+% Y_g = zeros(0,num_threshold);
+% counts_freq = zeros(size(Z_dense,1)*num_power_level,1);
+% %%
+% cell_params.V_th = all_V_th;
+% cell_params.V_reset = all_V_reset;
+% cell_params.gamma = all_gamma;
+% cell_params.amplitudes = all_amplitudes;
+% cell_params.sigma_across = all_sigma_across;
+% cell_params.sigma_within = all_sigma_within;
+% cell_params.locations = all_locations;
+% cell_params.shape_gain = all_shape_gain;
+% 
+% stoc_params.mu=stoc_mu;
+% stoc_params.sigma=stoc_sigma;
+% %%
+% for i_batch= 1:50
+%     tic
+%     tstart=toc;
+%     output_old=output;
+%     [locations_this_batch, powers_this_batch,counts_freq] = optimal_design_v2(i_batch, num_sources,num_peaks,num_trials_first,num_trials_batch, output, Y_g, ...
+%         num_power_level,random_prop, counts_freq, pi_dense_local,inner_normalized_products, grid_index, freq_pen, num_samples);
+%     
+%     locations_trials = [locations_trials; locations_this_batch];
+%     powers_trials = [powers_trials; powers_this_batch];
+%     
+%     [mpp_temp, ~, ~] = generate_data_v2(...
+%         locations_this_batch,powers_this_batch,pi_dense_all,k_minimum,cell_params, shape_template, power_level,...
+%         I_e_vect,stoc_params, data_params,bg_params,trials_specific_variance);
+%     
+%     if i_batch == 1
+%         mpp= mpp_temp;
+%     else
+%         mpp( ((i_batch-2)*num_trials_batch + num_trials_first) + (1:num_trials_batch)) =mpp_temp;
+%     end
+% end
 %%
 %------------------------------------%
 % Estimating the marginal firing rate
@@ -161,9 +165,19 @@ dt=1;
 t_vect= dt:dt:T;
 sd_range=1.5;
 stimuli_size_local=zeros(length(mpp),n_cell_local);
+powers_trials = stim_pow;
+% locations_trials = arrayfun(@(x) find(arrayfun(@(y) isequal(y,x),nuc_locs)),Z_dense);
+for i = 1:size(stim_locs,1)
+    for j = 1:size(Z_dense,1)
+        if isequal(round(stim_locs(i,[1 2])),round(Z_dense(j,[1 2])))
+            locations_trials(i) = j;
+        end
+    end
+end
+locations_trials  = locations_trials';
 for l = 1:length(mpp)
     for m = 1:size(locations_trials,2)
-        stimuli_size_local(l,:)  = stimuli_size_local(l,:)+( pi_dense_local(:,locations_trials(l,m)).*power_level(powers_trials(l,m)))';
+        stimuli_size_local(l,:)  = stimuli_size_local(l,:)+( pi_dense_local(:,locations_trials(l,m)).*powers_trials(l,m))';
     end
 end
 
@@ -189,9 +203,9 @@ end
 
 
 %%
-cell_params.V_th = local_V_th;
-cell_params.V_reset = local_V_reset;
-cell_params.locations = local_locations;
+cell_params.V_th = 15;
+cell_params.V_reset = -1e3;
+% cell_params.locations = local_locations;
 
 % The local gains:
 cell_params.gain = zeros(n_cell_local,1);
@@ -228,6 +242,9 @@ for i_cell = 1:n_cell_local
 end
 emp_all(local_connected)-sum(expected_all(:,local_connected),1)'
 %%
+bg_params.mean = 0;
+bg_params.sigma = 1.5;
+bg_params.firing_rate = 0;
 convergence_epsilon = 0.01;
 maxit = 100;
 n_gibbs_sample = 100;
@@ -266,7 +283,7 @@ end
 %% Gather more data using optimal design
 check_trial = [];
 for i_trial = 1:n_trial
-   if length(mpp(i_trial).event_times) >0
+   if length(mpp(i_trial).times) >0
        check_trial = [check_trial i_trial];
    end
 end
