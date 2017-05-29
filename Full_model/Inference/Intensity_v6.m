@@ -1,9 +1,13 @@
 % Exploit the fact that V_th, V_reset, and g are set to be the same:
 % allow for synaptic delay
-function [M_intensity] = Intensity_v5(stimuli_size, n_stimuli_grid,n_grid_voltage,...
+
+% Record the number of expected spikes, and the firing rate at the event
+% time
+function [event_rates,expected_all] = Intensity_v6(stimuli_size, n_stimuli_grid,n_grid_voltage,...
         t_grid,t_factor,k_minimum,...
          cell_params, funcs,...
-        I_stimuli,sd_range,delay_params)
+        I_stimuli,sd_range,delay_params,...
+        mpp)
 
     % delay parameter:
     n_delay_grid = 200;
@@ -118,27 +122,37 @@ v_gap = [v_gap v_gap(end)];
         fprintf('%d grid \n',i_stimuli);
         end
         
+        
+    expected_all = zeros(n_trial_temp,n_cell_local);
+    event_rates = cell(n_trial_temp,1);
+ for i_trial = 1:n_trial_temp
+            if length(mpp(i_trial).times)>0
+               event_rates{i_trial}=zeros(length(mpp(i_trial).times),n_cell_local); 
+            end
+                  
         for i_cell = 1:n_cell_local
-            
-            
-            for i_trial = 1:n_trial_temp
                 % Initialize the storage
                 % Simulated traces for marginal intensity
                 k_up = stimuli_size(i_trial, i_cell)*(cell_params.gain(i_cell)+sd_range*cell_params.gain_sd(i_cell));
                 k_low = stimuli_size(i_trial, i_cell)*(cell_params.gain(i_cell)-sd_range*cell_params.gain_sd(i_cell));
                 
-                M_intensity{i_trial,i_cell} = zeros([length(t_grid) 1]);
+                intensity_temp = zeros([length(t_grid) 1]);
                    index_seq = (k_low<mid_points &  k_up>mid_points);
                    if sum(index_seq)>0
                    for i_grid = 1:length(mid_points)
                        if index_seq(i_grid)>0
-                    M_intensity{i_trial,i_cell}= M_intensity{i_trial,i_cell}+M_grid_intensity{i_grid};
+                    intensity_temp= intensity_temp+M_grid_intensity{i_grid};
                        end
                        
                    end
+                   intensity_temp=intensity_temp/sum(index_seq);
+                   expected_all(i_trial,i_cell)=sum(intensity_temp);
+                   if length(mpp(i_trial).times)>0
+            
+                   event_rates{i_trial}(:,i_cell)=intensity_temp(round(mpp(i_trial).times) );
                    
-               M_intensity{i_trial,i_cell}=M_intensity{i_trial,i_cell}/sum(index_seq);
                    end
+                    end
             end
-            fprintf('%d\n', i_cell);
+            fprintf('%d\n', i_trial);
         end
