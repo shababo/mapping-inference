@@ -10,7 +10,7 @@ function [gamma_path, mu_path, sigma_path, total_time, soft_assignments, backgro
     event_rates, evoked_cell,expected_all, ...
     n_cell_local, gamma_old, mu_old, sigma_old, ...
     convergence_epsilon,f_background, mean_background, sigma_background,... 
-sparsity, gamma_threshold,maxit,t_vect,use_size)
+sparsity, gamma_threshold,maxit,t_vect,use_size,background_update)
     tic;
     tstart = toc;
         
@@ -186,7 +186,9 @@ sparsity, gamma_threshold,maxit,t_vect,use_size)
             end
         end
         % update the background rate:
+        if background_update ==1
         f_background = counts_bg/length(t_vect)/n_trial;
+        end
         
         % Evaluate the convergence
         normalized_change = norm(gamma_current - gamma_old)/(norm(gamma_old)+1) + norm(mu_current - mu_old)/(norm(mu_old)+1)+...

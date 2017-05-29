@@ -10,12 +10,11 @@ load('./Environments/l23_template_cell.mat');
 temp=l23_average_shape;
 temp_max = max(max(max(temp)));
 l23_average_shape = temp/temp_max;
-
 %% Set seed for reproducibility 
 rng(12242,'twister');
 % load real data
-% load('./Environments/05082017_s3c1_t345_mpp_stim_data.mat')
-load('./Environments/05082017_s3c1_t345_mpp_FIX.mat')
+load('./Environments/05082017_s3c1_t345_mpp_stim_data.mat') %for nuc_locs and stims 
+load('./Environments/05082017_s3c1_t345_mpp_FIX.mat') %for mpp
 
 %% Pre-calculation
 % Note: use the standard template for inference when testing robustness
@@ -38,29 +37,19 @@ data_params.dt = 1; % 1/20 ms
 k_minimum = 0.001; % minimum stimulus intensity to consider
 
 %%
+background_rate = 50/(0.5)/(16191/3)/20;
+
+%%
 %------------------------------------%
 % Estimating the marginal firing rate
 sigma_unknown=1;
 I_stimuli = I_e_vect;
 T=length(I_e_vect); % total time at 20k Hz
-dt=1;
-t_vect= dt:dt:T;
+dt=1;t_vect= dt:dt:T;
+
 sd_range=1.5;
-
-
 powers_trials = stim_pow;
 n_trial = size(stim_pow,1);
-% for i_trial = 1:n_trial
-%     if powers_trials(i_trial) == 50
-%        powers_trials(i_trial) = 25; 
-%     elseif powers_trials(i_trial) == 150
-%         powers_trials(i_trial) = 50;
-%     elseif powers_trials(i_trial) == 250
-%         powers_trials(i_trial) =100;
-%     end
-% end
-
-
 
 stimuli_size_local=zeros(n_trial,n_cell_local);
 % locations_trials = arrayfun(@(x) find(arrayfun(@(y) isequal(y,x),nuc_locs)),Z_dense);
@@ -83,12 +72,9 @@ end
 n_stimuli_grid=40;
 n_grid_voltage=400;
 t_factor=1;
-
-
 funcs.invlink = @invlink_test;%@(resp) log(1 + exp(resp));%@(x) exp(x);
 
-
-%%
+%% Removing cells that are rarely stimulated
 stim_threshold = 50;
 stimulated_cells = sum(stimuli_size_local>stim_threshold )>10;
 sum(stimulated_cells)
@@ -109,14 +95,11 @@ for i_trial = 1:n_trial
     evoked_cell_temp{i_trial} = evoked_cell_index;
 end
 
-
-%%
 v_reset_known = -4e3;
 v_th_known=15;
 % The local gains:
 cell_params.gain = zeros(n_cell_local,1);
 cell_params.g = zeros(n_cell_local,1);
-
 delay_params.mean=1.75*20;
 delay_params.std=2.7*20;
 
@@ -141,29 +124,31 @@ end
     I_stimuli,sd_range,delay_params,...
     mpp);
 
-%%
-sum(sum(expected_all))
-length([mpp.amp])/300/n_trial
 %---------------------------------------------------------------------%
 %%
 
-% assuming no bg events 
-f_background = 0.0004;
-mean_background = bg_params.mean;
-sigma_background  = bg_params.sigma;
+background_update=0;
 
+f_background = background_rate;
+
+
+mean_background = 0; %not actually used
+sigma_background  =1;%not actually used
 
 
 
 gain_old = 0.003*ones(n_cell_temp,1);
 gamma_old= 0.009*ones(n_cell_temp,1);
+
 mu_old = 2*ones(n_cell_temp,1);
 sigma_old = ones(n_cell_temp,1);
-sparsity =1;
+
+sparsity =0; %use sparsity or not 
 gamma_threshold = 0.1;
 use_size =0;
 convergence_epsilon = 0.01;
 maxit = 100;
+
 
 [gamma_path mu_path sigma_path total_time soft_assignments bg_rate]= ...
     EM_fullmodel_v3(mpp(1:n_trial), ...
@@ -171,7 +156,7 @@ maxit = 100;
     evoked_cell_temp,expected_all, ...
     n_cell_local, gamma_old, mu_old, sigma_old, ...
     convergence_epsilon,f_background, mean_background, sigma_background, ...
-    sparsity, gamma_threshold,maxit,t_vect,use_size );
+    sparsity, gamma_threshold,maxit,t_vect,use_size,background_update);
 
 gamma_ini= gamma_path(:,end);
 sigma_ini = sigma_path(:,end);
@@ -179,15 +164,7 @@ mu_ini = mu_path(:,end);
 %gain_current = median(gains_sample,2);
 
 %%
-bg_rate
-plot(gamma_ini,'.','MarkerSize',20)
-xlabel('Cell index')
-ylabel('Est. gammas')
-% sum(expected_all(:,gamma_ini>0.1))
-
-
-% sum(stimusli_size_local(:,gamma_ini>1))
-
+save('initial_fits_data.mat','gamma_ini');
 %% Select cells:
 connected_cells = gamma_ini>0.1;
 
@@ -261,7 +238,7 @@ while (normalized_change_outer > convergence_epsilon_outer) & (num_iter < maxit)
     evoked_cell,expected_all, ...
     n_cell_temp, gamma_old, mu_old, sigma_old, ...
     convergence_epsilon,f_background, mean_background, sigma_background, ...
-    sparsity, gamma_threshold,maxit,t_vect,use_size);
+    sparsity, gamma_threshold,maxit,t_vect,use_size,background_update);
 
 
     
@@ -422,4 +399,50 @@ while (normalized_change_outer > convergence_epsilon_outer) & (num_iter < maxit)
 end
 
 %%
-plot(gamma_current,'.')
+gamma_all=zeros(n_cell_local,1);
+gamma_all(connected_cells)=gamma_current;
+
+%%
+
+gain_all=zeros(n_cell_local,1);
+gain_all(connected_cells)=gain_current;
+
+%%
+save('final_fits_data.mat','gamma_all','gain_all');
+
+%%
+cell_params.locations = nuc_locs;
+local_locations=cell_params.locations(stimulated_cells,:);
+%%
+figure(4)
+
+temp2 = scatter(local_locations(gamma_all>0,2),local_locations(gamma_all>0,1),...
+    200*gamma_all(gamma_all>0));
+set(temp2,'MarkerFaceColor','r');
+alpha(temp2,0.5);
+
+set(gcf,'PaperUnits','inches','PaperPosition',[0 0 4 4])
+
+xlim([0,301]);
+ylim([0,301]);
+%axis off;
+outflnm =strcat('./');
+saveas(4,strcat(outflnm,'Gamma_final','.jpg'));
+
+%%
+figure(3)
+
+temp2 = scatter(local_locations(gamma_ini>0,2),local_locations(gamma_ini>0,1),...
+    200*gamma_ini(gamma_ini>0));
+set(temp2,'MarkerFaceColor','r');
+alpha(temp2,0.5);
+
+set(gcf,'PaperUnits','inches','PaperPosition',[0 0 4 4])
+
+xlim([0,301]);
+ylim([0,301]);
+axis off;
+outflnm =strcat('./');
+saveas(3,strcat(outflnm,'Gamma_initial','.jpg'));
+
+
