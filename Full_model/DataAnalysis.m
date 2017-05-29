@@ -1,5 +1,8 @@
+% Loading functions and Data generation
+addpath(genpath('../psc-detection'),genpath('../mapping-inference'),genpath('../mapping-core'));
+%% Load 
 
-addpath(genpath('../../psc-detection'),genpath('../../mapping-inference'),genpath('../../mapping-core'));
+
 %% Paramters in the simulations
 num_dense_grid          = [40];
 freq_pen_grid           = [1];
@@ -242,7 +245,6 @@ mu_old = 2*ones(n_cell_local,1);
 sigma_old = ones(n_cell_local,1);
 sparsity =0;
 
-
 [gamma_path mu_path sigma_path total_time soft_assignments]= ...
     EM_fullmodel_v2(mpp(1:n_trial), estimated_intensity(1:n_trial,:),evoked_cell,expected_all, ...
     n_cell_local, gamma_old, mu_old, sigma_old, ...
@@ -252,7 +254,6 @@ gamma_current= gamma_path(:,end);
 sigma_current = sigma_path(:,end);
 mu_current = mu_path(:,end);
 %gain_current = median(gains_sample,2);
-
 %% Add labels to the soft assignments
 labeled_soft_assignments = soft_assignments;
 for i_trial = 1:n_trial
@@ -260,6 +261,9 @@ for i_trial = 1:n_trial
       [mpp(i_trial).assignments'  labeled_soft_assignments{i_trial}(:,2:end)]];
 end
 
+%----End of the initial estimates----%
+
+%% Gather more data using optimal design
 check_trial = [];
 n_trial = length(mpp);
 for i_trial = 1:n_trial
@@ -267,6 +271,8 @@ for i_trial = 1:n_trial
        check_trial = [check_trial i_trial];
    end
 end
+
+%----End of the optimal design------%
 %%
 mpp(check_trial).assignments
 %mpp(check_trial).event_times
