@@ -308,15 +308,15 @@ l23_cells(this_cell).cc_spike_thresh = 20;
 cell_to_run = 1:38;%cell_select;%[26:38];
 cell_to_run = setdiff(cell_to_run,[16]);
 % cell_to_run = 26:30;
-
-
+cell_to_run = 27;
+cell_to_run = find([l23_cells.do_vc]);
 % cell_analyzed_bu = cell_analyzed;
 % clear l23_cell_analyzed13 <-- multispike, 14 is one spike
 % clear l23_cell_analyzed_10ms_fulldata_noshape
 for i = 1:length(cell_to_run)
     
     this_cell = cell_to_run(i)
-    l23_cell_analyzed_10ms_fulldata_centavgshape_constg_fitvth(this_cell) = ...
+    l23_cell_analyzed_10ms_fulldata_centavgshape(this_cell) = ...
         analyze_opto_response(l23_cells(this_cell));
 
 
@@ -426,10 +426,11 @@ figure
 cells_to_plot = find([l23_cells.do_vc]);
 
 cells_to_plot = setdiff(cells_to_plot,[5 27:30]);
-this_analysis = l23_cell_analyzed_preprocessonly_shapefix;
+% cells_to_plot = 25;
+this_analysis = l23_cell_analyzed_10ms_fulldata_noshape_constg;
 % cells_to_plot = 27:30;
 z_slices = size(this_analysis(cells_to_plot(1)).current_data.shape_max,3);
-l23_average_shape = zeros(9,9,z_slices);
+% l23_average_shape = zeros(9,9,z_slices);
 
 z_depths = {'-90','-50','-20','0','20','50','90'};
 % z_depths = {'-60','-40','-20', '-10', '0', '10', '20','40','60'};
@@ -438,7 +439,7 @@ for i = 1:length(cells_to_plot)
     cell_i = cells_to_plot(i);
     this_shape = this_analysis(cell_i).current_data.shape_max;
     this_shape = this_shape/max(this_shape(:));
-    l23_average_shape = l23_average_shape + this_shape;
+%     l23_average_shape = l23_average_shape + this_shape;
 
     for j = 1:z_slices
         subplot(z_slices,length(cells_to_plot)+1,(j-1)*(length(cells_to_plot)+1) + i + 1)
@@ -453,7 +454,7 @@ for i = 1:length(cells_to_plot)
     end
 end
 
-l23_average_shape = l23_average_shape/max(l23_average_shape(:));
+% l23_average_shape = l23_average_shape/max(l23_average_shape(:));
 
 for j = 1:z_slices
     subplot(z_slices,length(cells_to_plot)+1,(j-1)*(length(cells_to_plot)+1) + 1)
@@ -473,34 +474,36 @@ end
 
 figure
 cells_to_plot = find([l23_cells.do_vc]);
-cells_to_plot = setdiff(cells_to_plot,5);
+cells_to_plot = setdiff(cells_to_plot,[5 6 26 27 29 30 ]);
 avg_template = [];
 colors = parula(100);
 svals = zeros(length(cells_to_plot),1);
 for i = 1:length(cells_to_plot)
     ii = cells_to_plot(i);
-    svals(i) = l23_cell_analyzed3(ii).current_data.current_shape_sv;
+    svals(i) = l23_cell_analyzed_10ms_fulldata_noshape_constg(ii).current_data.current_shape_sv;
 end
 % svals = floor(svals/max(svals)*100);
 svals = floor(svals*100);
 for i = 1:length(cells_to_plot)
     ii = cells_to_plot(i);
     if i == 1
-        avg_template = l23_cell_analyzed3(ii).current_data.current_shape;
+        avg_template = l23_cell_analyzed_10ms_fulldata_noshape_constg(ii).current_data.current_shape;
     else
-        avg_template = avg_template + l23_cell_analyzed3(ii).current_data.current_shape;
+        avg_template = avg_template + l23_cell_analyzed_10ms_fulldata_noshape_constg(ii).current_data.current_shape;
     end
-    plot((1:length(l23_cell_analyzed3(ii).current_data.current_shape))/20000,...
-        l23_cell_analyzed3(ii).current_data.current_shape,'color',colors(svals(i),:))
+%     subplot(length(cells_to_plot),1,i)
+    plot((1:length(l23_cell_analyzed_10ms_fulldata_noshape_constg(ii).current_data.current_shape))/20000,...
+        -l23_cell_analyzed_10ms_fulldata_noshape_constg(ii).current_data.current_shape, 'Color',[.33 .33 .33])%colors(svals(i),:))
     hold on
 end
 avg_template = avg_template/length(cells_to_plot);
-plot((1:length(avg_template))/20000,avg_template,'k','linewidth',3)
+plot((1:length(avg_template))/20000,-avg_template,'k','linewidth',3)
 hold off
 xlabel('time (sec)')
 ylabel('current (a.u.)')
-title('est. chrome current shape - 3 msec pulse - l23pyr')
-xlim([0 .05])
+title('est. chrome current shape - 3 msec pulse - l23pyr (N = 17)')
+xlim([0 .04])
+axis off
 
 
 %%
@@ -942,10 +945,14 @@ gains = [];
 shape_scale = [];
 cell_id = [];
 
-fulldata_struct = l23_cell_analyzed_10ms_fulldata_noshape;
-upres_struct = l23_cell_analyzed_10ms_preprocess_only_raw_shape;
+fulldata_struct = l23_cell_analyzed_10ms_fulldata_centavgshape_constg;
+upres_struct = l23_cell_analyzed_10ms_fulldata_centavgshape_constg;
 figure
 colors = hsv(ceil(length(cells_to_plot)*1.75));
+avg_shape = l23_average_shape_norm;
+upres_x_locs = -40:1:40;
+upres_y_locs = -40:1:40;
+upres_z_locs = -90:1:90;
 for i = 1:length(cells_to_plot)
 %     h = figure
     cell_i = cells_to_plot(i);
@@ -958,10 +965,9 @@ for i = 1:length(cells_to_plot)
         these_spikes = this_cell.spike_data;
     end
     
-    this_shape = l23_average_shape_norm;%upres_struct(cell_i).current_data.upres_shape;
-    upres_x_locs = -40:1:40;
-    upres_y_locs = -40:1:40;
-    upres_z_locs = -90:1:90;
+    this_shape = upres_struct(cell_i).current_data.upres_shape;
+    this_shape = this_shape/max(this_shape(:));
+    
     
 %     this_shape = l23_average_shape_norm;
     location_gains = zeros(size(this_gain));
@@ -977,10 +983,12 @@ for i = 1:length(cells_to_plot)
                         find(this_loc(3) == upres_z_locs)];
                     
         location_gains(k) = ...
-            this_shape(location_ind(1),location_ind(2),location_ind(3));
+            this_shape(location_ind(1),location_ind(2),location_ind(3))*this_gain(1);
+        avg_loc_gain(k) = ...
+            avg_shape(location_ind(1),location_ind(2),location_ind(3));
     end
     
-    gains = [gains; this_gain];
+    gains = [gains; this_gain(1)*avg_loc_gain'];
     shape_scale = [shape_scale; location_gains];
     cell_id = [cell_id; cell_i*ones(size(this_gain))];
     
@@ -1009,7 +1017,7 @@ for i = 1:length(cells_to_plot)
     end
 %     waitfor(h)
 end
-u
+
 hold off
 gains_regres = gains;
 shape_scale_regres = shape_scale;
@@ -1025,7 +1033,7 @@ gains_regres(gains_regres < 0) = [];
 figure
 gscatter(shape_scale,gains,cell_id)
 hold on
-% plot(0:.1:1.2,(0:.1:1.2)+.2)
+plot(0:.001:0.02,(0:.001:0.02))
 % xlim([0 1.1])
 % ylim([0 1.1])
 
@@ -1124,16 +1132,152 @@ legend(the_handles,glm_type);
 
 
 
+%% plot intensity vs spiking stats for a single cell
+
+cell_ind = 27;
+cell_select = find(~[l23_cells.do_cc]);
+load('l23_centered_upres_cell.mat')
+upres_x_locs = -40:1:40;
+upres_y_locs = -40:1:40;
+upres_z_locs = -90:1:90;
+this_cell_shape = l23_average_shape_norm;
+figure
+x_counts = [];
+all_data_y_counts = [];
+all_preds_y_counts = [];
+
+x_times = [];
+all_data_y_times = [];
+all_preds_y_times = [];
+
+all_data_y_jitter = [];
+all_preds_y_jitter = [];
+
+do_sim = 0;
+for i = 1:length(cell_select)
+    cell_ind = cell_select(i);
+
+    this_cell_spike_data = l23_cell_analyzed_10ms_fulldata_centavgshape_constg(cell_ind).spike_data;
+    this_cell_sim_data = l23_cell_analyzed_10ms_fulldata_centavgshape_constg(cell_ind).glm_sim;
+%     this_cell_shape = l23_cell_analyzed_10ms_fulldata_centavgshape_constg(cell_ind).current_data.shape_svd;
+%     this_cell_shape = this_cell_shape/max(this_cell_shape(:));
+    
+%     upres_x_locs = -40:10:40;
+%     upres_y_locs = -40:10:40;
+%     upres_z_locs = [-90 -50 -20 0 20 50 90];
+    powers = [10 25 50 100];
+    
+    
 
 
+    for k = 1:length(this_cell_spike_data)
+
+        this_loc = round(this_cell_spike_data(k).location,-1);
+
+        location_ind = [find(this_loc(1) == upres_x_locs) ...
+                        find(this_loc(2) == upres_y_locs) ...
+                        find(this_loc(3) == upres_z_locs)];
+
+        if length(location_ind) < 3
+            continue
+        end
+        shape_gain = ...
+            this_cell_shape(location_ind(1),location_ind(2),location_ind(3));%*...
+            %l23_cell_analyzed_10ms_fulldata_centavgshape_constg(cell_ind).gain(1);
+        stim_intensity = shape_gain*powers;
+        stim_intensity(stim_intensity < 0) = 0;
+    %     for i = 1:length(powers)
+        subplot(311)
+        scatter(stim_intensity,this_cell_spike_data(k).num_spike_means(1:4),'b','filled', 'jitter','on', 'jitterAmount',0.5);
+        good_inds = this_cell_spike_data(k).num_spike_means(1:4) > .4;
+        hold on
+        subplot(312)
+        scatter(stim_intensity(good_inds),this_cell_spike_data(k).spike_times_means(good_inds)/20,'b','filled', 'jitter','on', 'jitterAmount',0.5);
+        hold on
+        subplot(313)
+        scatter(stim_intensity(good_inds),this_cell_spike_data(k).spike_times_std(good_inds)/20,'b','filled', 'jitter','on', 'jitterAmount',0.5);
+        hold on
+        
+        x_counts = [x_counts stim_intensity];
+        all_data_y_counts = [all_data_y_counts this_cell_spike_data(k).num_spike_means(1:4)];
+        x_times = [x_times stim_intensity(good_inds)];
+        all_data_y_times = [all_data_y_times this_cell_spike_data(k).spike_times_means(good_inds)/20];
+        all_data_y_jitter = [all_data_y_jitter this_cell_spike_data(k).spike_times_std(good_inds)/20];
+
+        if do_sim
+            subplot(311)
+            scatter(stim_intensity,this_cell_sim_data.spike_count_means(k,:),'r','filled', 'jitter','on', 'jitterAmount',0.5);
+            hold on
+    %         good_inds = this_cell_sim_data.spike_count_means(k,:) > .1;
+            subplot(312)
+            scatter(stim_intensity(good_inds),this_cell_sim_data.spike_time_means(k,good_inds)/20,'r','filled', 'jitter','on', 'jitterAmount',0.5);
+            hold on
+            subplot(313)
+            scatter(stim_intensity(good_inds),this_cell_sim_data.spike_time_std(k,good_inds)/20,'r','filled', 'jitter','on', 'jitterAmount',0.5);
+            hold on
+            all_preds_y_counts = [all_preds_y_counts this_cell_sim_data.spike_count_means(k,:)];
+            all_preds_y_times = [all_preds_y_times this_cell_sim_data.spike_time_means(k,good_inds)/20];
+            all_preds_y_jitter = [all_preds_y_jitter this_cell_sim_data.spike_time_std(k,good_inds)/20];
+        end
+
+        
+        
 
 
+    end
 
+end
 
+x_max = max(union(x_counts,x_times));
+% figure
+subplot(311)
+% f = fit(x_counts',all_data_y_counts','smoothingspline','SmoothingParam',0.07);
+xval = min(x_counts):.01:max(x_counts);
+fsigm = @(param,xval) param(1)+(param(2)-param(1))./(1+10.^((param(3)-xval)*param(4)));
+[param]=sigm_fit(x_counts,all_data_y_counts,[0 1 NaN NaN],[],0);
+plot(xval,fsigm(param,xval),'b','Linewidth',2)
+hold on
+% f = fit(x_counts',all_preds_y_counts','smoothingspline','SmoothingParam',0.07);
+if do_sim
+    xval = min(x_counts):.01:max(x_counts);
+    fsigm = @(param,xval) param(1)+(param(2)-param(1))./(1+10.^((param(3)-xval)*param(4)));
+    [param]=sigm_fit(x_counts,all_preds_y_counts,[0 1 NaN NaN],[],0);
+    plot(xval,fsigm(param,xval),'r','Linewidth',2)
+end
+set(gca,'xticklabels',{})
+ylim([0 1.1])
+xlim([0 x_max])
+ylabel('Mean Spike Count')
+title('Spiking Statistics')
+subplot(312)
 
-
-
-
+f = fit(x_times(~isnan(all_data_y_times))',all_data_y_times(~isnan(all_data_y_times))','exp1');%,'SmoothingParam',0.07);
+h = plot(f,'b')
+set(h,'linewidth',2)
+hold on
+if do_sim
+    f = fit(x_times(~isnan(all_preds_y_times))',all_preds_y_times(~isnan(all_preds_y_times))','exp1');%,'SmoothingParam',0.07);
+    h = plot(f,'r')
+    set(h,'linewidth',2)
+end
+set(gca,'xticklabels',{})
+ylim([0 10])
+xlim([0 x_max])
+ylabel('Mean First Spike Time (msec)')
+subplot(313)
+f = fit(x_times(~isnan(all_data_y_jitter))',all_data_y_jitter(~isnan(all_data_y_jitter))','exp1');%,'smoothingspline','SmoothingParam',0.07);
+h = plot(f,'b')
+set(h,'linewidth',2)
+hold on
+if do_sim
+    f = fit(x_times(~isnan(all_preds_y_jitter))',all_preds_y_jitter(~isnan(all_preds_y_jitter))','exp1');%,'smoothingspline','SmoothingParam',0.07);
+    h = plot(f,'r')
+    set(h,'linewidth',2)
+end
+xlabel('Est. Stim Intensity (a.u., avg. shape gain x laser power x cell gain)')
+ylim([0 2])
+xlim([0 x_max])
+ylabel('First Spike Time Std. Dev. (msec)')
 
 
 

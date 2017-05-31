@@ -60,10 +60,10 @@ if this_cell.use_shape
         upres_x_locs = this_cell.current_data.upres_x_locs;
         upres_y_locs = this_cell.current_data.upres_y_locs;
         upres_z_locs = this_cell.current_data.upres_z_locs;
-        load('l23_centered_upres_cell.mat')
-        upres_x_locs = -40:1:40;
-        upres_y_locs = -40:1:40;
-        upres_z_locs = -90:1:90;
+%         load('l23_centered_upres_cell.mat')
+%         upres_x_locs = -40:1:40;
+%         upres_y_locs = -40:1:40;
+%         upres_z_locs = -90:1:90;
 %             this_cell.current_data.shape_max/max(this_cell.current_data.shape_max(:));
     else
 %         load('l23_mean_shape.mat')
@@ -145,8 +145,8 @@ assignin('base','stims',stims)
 % g = [.000001 .000005 .00001 .0005 .0001]*downsamp;
 
 % g = [.001 .002 .003 .004 .005]*downsamp;
-g = [.025]*downsamp;
-% g = [.005 .010 .015 .020 .025 .03]*downsamp; % MAIN ONE
+% g = [.025]*downsamp;
+g = [.005 .010 .015 .020 .025 .03]*downsamp; % MAIN ONE
 
 this_cell.glm_params.g = g;
 this_cell.glm_params.downsamp = downsamp;
@@ -160,7 +160,7 @@ for i = 1:length(g)
         fit_lifglm(responses,stims,stims_ind,params);
     size(this_cell.glm_out(i).glm_result.beta)
     if this_cell.use_shape
-        this_cell.glm_out(i).glm_result.beta(3:num_spike_locs+2) = this_cell.glm_out(i).glm_result.beta(3);
+        this_cell.glm_out(i).glm_result.beta(2:num_spike_locs+1) = this_cell.glm_out(i).glm_result.beta(2);
     end
     this_cell.glm_out(i).dev = this_cell.glm_out(i).glm_result.dev;
 end
@@ -169,9 +169,9 @@ end
 this_cell.g = this_cell.glm_params.g(min_ind);
 this_glm_out = this_cell.glm_out(min_ind).glm_result;
 
-this_cell.v_th = this_glm_out.beta(1);
-this_cell.v_reset = this_glm_out.beta(2);
-this_cell.gain = this_glm_out.beta(3:end);
+this_cell.v_th = 15;%this_glm_out.beta(1);
+this_cell.v_reset = this_glm_out.beta(1);
+this_cell.gain = this_glm_out.beta(2:end);
 this_cell.th_gain_ratio = this_cell.v_th/this_cell.gain(1);
 
 
