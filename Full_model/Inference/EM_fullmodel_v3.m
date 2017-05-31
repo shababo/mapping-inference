@@ -1,16 +1,16 @@
 % mpp: the marked point process
-% estimated_intensity: estimated marginal firing rate
+% event_rates:
 % evoked_cell: the list of cells evoked in each trial
 % convergence_epsilon: convergence threshold
 % mean_background: mean of background events
 % sigma_background: standard deviation of background events
 % sparsity: indicator for whether to encourage sparsity in the estimates
 % gamma_threshold: thresholds for sparse estimates
-function [gamma_path, mu_path, sigma_path, total_time, soft_assignments] = EM_fullmodel_v2(mpp, ...
-    estimated_intensity, evoked_cell,expected_all, ...
+function [gamma_path, mu_path, sigma_path, total_time, soft_assignments, background] = EM_fullmodel_v2(mpp, ...
+    event_rates, evoked_cell,expected_all, ...
     n_cell_local, gamma_old, mu_old, sigma_old, ...
     convergence_epsilon,f_background, mean_background, sigma_background,... 
-sparsity, gamma_threshold,maxit,t_vect)
+sparsity, gamma_threshold,maxit,t_vect,use_size,background_update)
     tic;
     tstart = toc;
         
@@ -79,14 +79,14 @@ sparsity, gamma_threshold,maxit,t_vect)
         % Pick a few trials
         temp_ind = 0;
         count_events(:)=0;
-
+        counts_bg=0; % number of bg events.
         for i_trial_index = 1:n_trial
             i_trial = chosen_trials_index(i_trial_index);
             n_events = length(mpp(i_trial).times);
             evoked_cell_index = evoked_cell{i_trial};
             firing_rates = zeros(length(evoked_cell_index),1);
             size_rates = zeros(length(evoked_cell_index),1);
-
+            
             this_trial_time = mpp(i_trial).times;
             this_trial_amps = mpp(i_trial).amp;
             for i_event = 1:n_events
@@ -100,45 +100,52 @@ sparsity, gamma_threshold,maxit,t_vect)
                         size_rates(i_index) = ...
                             exp(-(log(this_event_size)-mean_background).^2/(2*sigma_background^2))/(sqrt(2*pi)*sigma_background);
                     else
-                        firing_rates(i_index)  = gamma_old(i_cell)*estimated_intensity{i_trial,i_cell}(i_t);
+                        firing_rates(i_index)  = gamma_old(i_cell)*event_rates{i_trial}(i_event,i_cell);
                         size_rates(i_index) = ...
                             exp(-(this_event_size-mu_old(i_cell)).^2/(2*sigma_old(i_cell)^2))/(sqrt(2*pi)*sigma_old(i_cell));
                     end
                 end
                 % Draw assignments given the estimated rates
-                chances = firing_rates.*size_rates;
+                if use_size == 0
+                    chances = firing_rates;
+                else
+                    chances = firing_rates.*size_rates;
+                    
+                end
                 if sum(chances)==0
                     chances(1) = 1;
                 end
                 chances = chances/sum(chances);
                 %fprintf('%d', sum(chances));
                 soft_assignments{i_trial_index}(i_event,:) = chances;
+                counts_bg = counts_bg+chances(1);
                 if isnan( chances(1))
                     fprintf('Wrong')
                     fprintf('%d\n', i_cell)
                     temp_ind = 1;
                     break
                 end
-
+                
             end
             if length(evoked_cell_index)>1
+                
                 for i_index = 2:length(evoked_cell_index)
                     i_cell = evoked_cell_index(i_index);
                     events_precell{i_cell}(2,count_events(i_cell) + (1:n_events)) = soft_assignments{i_trial_index}(:,i_index);
                     count_events(i_cell) =count_events(i_cell)+ n_events;
                 end
             end
-
+            
         end
         if temp_ind == 1
             break
         end
-
+        
         % The M-step:
         gamma_current = gamma_old;
         mu_current = mu_old;
         sigma_current = sigma_old;
-
+        
         %-------------------------------------------------------%
         % Update mu and sigma
         for i = 1:n_cell_evoked
@@ -167,33 +174,40 @@ sparsity, gamma_threshold,maxit,t_vect)
                 if expected_events == 0
                     expected_events = 1;
                 end
-                gamma_current(i_cell) = min(10,weighted_sum(2)/expected_events);
-                if sparsity == 1 & num_iter >3 % if we want to enforce the sparsity
-                    gamma_current(i_cell) = min(  gamma_current(i_cell) > gamma_threshold, gamma_current(i_cell));
+                gamma_current(i_cell) = min(1,weighted_sum(2)/expected_events);
+                if sparsity == 1 & num_iter >5 % if we want to enforce the sparsity
+                    if gamma_current(i_cell) < gamma_threshold
+                        gamma_current(i_cell) =0;
+                    end
+                    
                 end
             else
                 % Do nothing since not stimulated enough times
             end
         end
+        % update the background rate:
+        if background_update ==1
+        f_background = counts_bg/length(t_vect)/n_trial;
+        end
         
         % Evaluate the convergence
         normalized_change = norm(gamma_current - gamma_old)/(norm(gamma_old)+1) + norm(mu_current - mu_old)/(norm(mu_old)+1)+...
             norm(sigma_current - sigma_old)/(norm(sigma_old)+1);
-
+        
         % Update the paremeters
         gamma_old = gamma_current;
         mu_old = mu_current;
         sigma_old = sigma_current;
-
+        
         %----------------------------------------------%
         % Record the solution path
         gamma_path = [gamma_path gamma_current];
         mu_path = [mu_path mu_current];
         sigma_path = [sigma_path sigma_current];
-
+        
         fprintf('Iteration: %d, normalized changes %d\n',num_iter, normalized_change);
         
         tend=toc;
         total_time = tend-tstart;
-end
-
+    end
+    background=f_background;
