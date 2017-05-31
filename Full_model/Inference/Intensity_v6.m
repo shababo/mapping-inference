@@ -149,10 +149,10 @@ v_gap = [v_gap v_gap(end)];
                    expected_all(i_trial,i_cell)=sum(intensity_temp);
                    if length(mpp(i_trial).times)>0
             
-                   event_rates{i_trial}(:,i_cell)=intensity_temp(round(mpp(i_trial).times) );
+                   event_rates{i_trial}(:,i_cell)=intensity_temp( max(1,round(mpp(i_trial).times)) );
                    
                    end
                     end
             end
-            fprintf('%d\n', i_trial);
+           % fprintf('%d\n', i_trial);
         end

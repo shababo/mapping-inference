@@ -3,7 +3,7 @@ addpath(genpath('../../psc-detection'),genpath('../../mapping-inference'),genpat
 %% Loading templates from real data
 load('./Environments/l23_cells_for_sim.mat');
 % We only use the main gain in this analysis 
-mean_gain = mean([l23_cells_for_sim.optical_gain]);
+mean_gain = mean([l23_cells_for_sim.optical_gain])/2;
 %% Load templates for inference 
 load('./Environments/l23_template_cell.mat');
 %l23_average_shape
@@ -13,32 +13,54 @@ l23_average_shape = temp/temp_max;
 %% Set seed for reproducibility 
 rng(12242,'twister');
 % load real data
-load('./Environments/05082017_s3c1_t345_mpp_stim_data.mat') %for nuc_locs and stims 
-load('./Environments/05082017_s3c1_t345_mpp_FIX.mat') %for mpp
+%load('./Environments/05082017_s3c1_t345_mpp_stim_data.mat') %for nuc_locs and stims 
+load('./Environments/5_27_s1c1_mpp_and_stim_data.mat') 
+
+% %% Draw some plots..
+% 
+% figure(1)
+% temp2 = scatter(cell_locs(:,2),cell_locs(:,1),...
+%     50);
+% set(temp2,'MarkerFaceColor','r');
+% alpha(temp2,0.5);
+% 
+% set(gcf,'PaperUnits','inches','PaperPosition',[0 0 4 4])
+% 
+% axis off;
+% 
+% %%
+% figure(2)
+% temp2 = scatter(target_locs(:,2),target_locs(:,1),...
+%     50);
+% set(temp2,'MarkerFaceColor','r');
+% alpha(temp2,0.5);
+% 
+% set(gcf,'PaperUnits','inches','PaperPosition',[0 0 4 4])
+% 
+% axis off;
 
 %% Pre-calculation
 % Note: use the standard template for inference when testing robustness
-cell_params.locations = nuc_locs;
-n_cell_local = size(nuc_locs,1);
+cell_params.locations = cell_locs;
+
+
+n_cell_local = size(cell_locs,1);
 cell_params.shape_gain = ones(n_cell_local,1);
 shape_template = struct();
 shape_template.shape= l23_average_shape;
-Z_dense = unique(stim_locs,'rows');
+Z_dense =target_locs;
 [pi_dense_local, inner_normalized_products] = get_weights_v2(cell_params, shape_template,Z_dense);
 %% Loading the current template using new template
 load('./Environments/chrome-template-3ms.mat');
+max_time = 300;
 downsamp=1;
-max_time=200;
-current_template=template(1:downsamp:max_time);
+current_template=template(1:downsamp:300);
 I_e_vect=current_template;
 evoked_params.stim_start = 1;
 evoked_params.stim_end = length(I_e_vect);
 data_params.T = length(I_e_vect); % total time at 20k Hz
 data_params.dt = 1; % 1/20 ms
 k_minimum = 0.001; % minimum stimulus intensity to consider
-
-%%
-background_rate = 50/(0.5)/(16191/3)/20;
 
 %%
 %------------------------------------%
@@ -54,19 +76,17 @@ n_trial = size(stim_pow,1);
 
 stimuli_size_local=zeros(n_trial,n_cell_local);
 % locations_trials = arrayfun(@(x) find(arrayfun(@(y) isequal(y,x),nuc_locs)),Z_dense);
-locations_trials=zeros(n_trial,1);
-for i = 1:n_trial
-    for j = 1:size(Z_dense,1)
-        if isequal(round(stim_locs(i,[1 2])),round(Z_dense(j,[1 2])))
-            locations_trials(i) = j;
-        end
-    end
-end
+locations_trials=target_inds;
 
 %locations_trials  = locations_trials';
 for l = 1:n_trial
     for m = 1:size(locations_trials,2)
-        stimuli_size_local(l,:)  = stimuli_size_local(l,:)+( pi_dense_local(:,locations_trials(l,m)).*powers_trials(l,m))';
+        if isnan(locations_trials(l,m))
+            
+        else
+            stimuli_size_local(l,:)  = stimuli_size_local(l,:)+( pi_dense_local(:,locations_trials(l,m)).*powers_trials(l))';
+        end
+       
     end
 end
 
@@ -75,24 +95,9 @@ n_grid_voltage=400;
 t_factor=1;
 funcs.invlink = @invlink_test;%@(resp) log(1 + exp(resp));%@(x) exp(x);
 
-%%
-
-mpp_copy=mpp;
-for i_trial = 1:n_trial
-    if mpp(i_trial).num_events >0
-        range_idx = mpp(i_trial).times<max_time;
-        
-        mpp(i_trial).num_events = sum(range_idx);
-        mpp(i_trial).times = mpp(i_trial).times(range_idx);
-        mpp(i_trial).amp = mpp(i_trial).amp(range_idx);
-    end
-    
-end
-
-
 %% Removing cells that are rarely stimulated
-stim_threshold = 25;
-stimulated_cells = sum(stimuli_size_local>stim_threshold )>0;
+stim_threshold = 20;
+stimulated_cells = sum(stimuli_size_local>stim_threshold )>10;
 sum(stimulated_cells)
 %%
 
@@ -116,8 +121,12 @@ v_th_known=15;
 % The local gains:
 cell_params.gain = zeros(n_cell_local,1);
 cell_params.g = zeros(n_cell_local,1);
-delay_params.mean=1.75*20;
-delay_params.std=2.7*20;
+
+% delay_params.mean=1.75*20;
+% delay_params.std=2.7*20;
+
+delay_params.mean=0;
+delay_params.std=0;
 
 cell_params.V_th =  v_th_known*ones(sum(stimulated_cells),1);
 cell_params.V_reset = -v_reset_known*ones(sum(stimulated_cells),1);
@@ -127,12 +136,38 @@ cell_params.g = zeros(n_cell_temp,1);
 
 for i_cell = 1 : n_cell_temp
     %cell_params.gain(i_cell) = l23_cells_for_sim(local_shape_gain(i_cell)).optical_gain;
-    cell_params.gain(i_cell) = mean([l23_cells_for_sim.optical_gain]);
+    cell_params.gain(i_cell) = mean_gain;
     cell_params.gain_sd(i_cell)= std([l23_cells_for_sim.optical_gain]);
     %cell_params.g(i_cell) = l23_cells_for_sim(local_shape_gain(i_cell)).g;
     cell_params.g(i_cell) =  mean([l23_cells_for_sim.g]);
 end
 %
+
+%%
+min_time = 60;
+mpp_copy=mpp;
+for i_trial = 1:n_trial
+    if mpp(i_trial).num_events >0
+        range_idx = mpp(i_trial).times<max_time & mpp(i_trial).times>min_time;
+        
+        mpp(i_trial).num_events = sum(range_idx);
+        mpp(i_trial).times = mpp(i_trial).times(range_idx);
+        mpp(i_trial).amp = mpp(i_trial).amp(range_idx);
+    end
+    
+end
+
+%%
+trial_counts = 0;
+event_counts = 0;
+for i_trial = 1:n_trial
+    %if stim_pow(i_trial)==50
+       trial_counts = trial_counts+1;
+       event_counts = event_counts +sum(mpp(i_trial).times>60 & mpp(i_trial).times<100);
+    %end
+end
+background_rate = event_counts/trial_counts/40;
+mpp_copy=mpp;
 %%
 [event_rates,expected_all] =Intensity_v6(stimuli_size_temp,  n_stimuli_grid,n_grid_voltage,...
     t_vect,t_factor,k_minimum,...
@@ -179,28 +214,30 @@ sigma_ini = sigma_path(:,end);
 mu_ini = mu_path(:,end);
 %gain_current = median(gains_sample,2);
 
-%%
-gamma_initial =zeros(n_cell_local,1);
-gamma_initial(stimulated_cells)=gamma_ini;
-save('initial_fits_data.mat','gamma_initial');
 %% Select cells:
-connected_cells = gamma_ini>0.1;
+connected_cells = gamma_ini>0; %keeping all the cells 
 
 n_cell_temp=sum(connected_cells);
-cell_params.locations = nuc_locs(connected_cells,:);
+cell_params.locations = cell_locs(connected_cells,:);
 cell_params.shape_gain = ones(n_cell_temp,1);
 shape_template = struct();
 shape_template.shape= l23_average_shape;
 [pi_dense_local, inner_normalized_products] = get_weights_v2(cell_params, shape_template,Z_dense);
 
  %%
-stimuli_size_local=zeros(n_trial,n_cell_temp);
+
+%locations_trials  = locations_trials';
+stimuli_size_local= zeros(n_trial,sum(connected_cells));
 for l = 1:n_trial
     for m = 1:size(locations_trials,2)
-        stimuli_size_local(l,:)  = stimuli_size_local(l,:)+( pi_dense_local(:,locations_trials(l,m)).*powers_trials(l,m))';
+        if isnan(locations_trials(l,m))
+            
+        else
+            stimuli_size_local(l,:)  = stimuli_size_local(l,:)+( pi_dense_local(:,locations_trials(l,m)).*powers_trials(l))';
+        end
+       
     end
 end
-
 evoked_cell = cell(n_trial,1);
 for i_trial = 1:n_trial
     evoked_cell_index = 0; % 0: background evnets
@@ -220,7 +257,7 @@ cell_params.V_reset = v_reset_known*ones(n_cell_temp,1);
 cell_params.gain = zeros(n_cell_temp,1);
 for i_cell = 1 : n_cell_temp
     %cell_params.gain(i_cell) = l23_cells_for_sim(local_shape_gain(i_cell)).optical_gain;
-    cell_params.gain(i_cell) = mean([l23_cells_for_sim.optical_gain]);
+    cell_params.gain(i_cell) = mean_gain;
     cell_params.gain_sd(i_cell)= std([l23_cells_for_sim.optical_gain]);
      cell_params.g(i_cell) =  mean([l23_cells_for_sim.g]);
 end
@@ -244,7 +281,7 @@ sigma_old = ones(n_cell_temp,1);
 convergence_epsilon_outer=1e-3;
 normalized_change_outer=1;
 num_iter=1;
-soft_threshold =0.1;
+soft_threshold =0.05;
 while (normalized_change_outer > convergence_epsilon_outer) & (num_iter < maxit)
     num_iter = num_iter+1;
     %----------------------------------------------%
@@ -394,7 +431,6 @@ while (normalized_change_outer > convergence_epsilon_outer) & (num_iter < maxit)
     mu_old = mu_current;
     gain_old = gain_current;
     
-    fprintf('Changes %d\n', normalized_change_outer);
     % Update the intensities
     cell_params.V_th = v_th_known*ones(n_cell_temp,1);
     cell_params.V_reset = v_reset_known*ones(n_cell_temp,1);
@@ -413,45 +449,40 @@ while (normalized_change_outer > convergence_epsilon_outer) & (num_iter < maxit)
    gain_fits(:,num_iter)=gain_current;
    mu_fits(:,num_iter)=mu_current;
    gamma_fits(:,num_iter)=gamma_current;
+   
+     fprintf('Changes %d\n', normalized_change_outer);
+  
     
 end
 
 %%
-gamma_all=zeros(n_cell_local,1);
-gamma_all(connected_cells)=gamma_current;
+gamma_initial =zeros(n_cell_local,1);
+gamma_initial(stimulated_cells)=gamma_ini;
+ save('initial_fits_data_new.mat','gamma_initial');
 
+%%
+gamma_all=zeros(n_cell_local,1);
+gamma_temp =zeros(sum(stimulated_cells),1);
+gamma_temp(connected_cells,1)=gamma_current;
+
+gamma_all(stimulated_cells)=gamma_temp;
 %%
 
 gain_all=zeros(n_cell_local,1);
-gain_all(connected_cells)=gain_current;
+gain_temp =zeros(sum(stimulated_cells),1);
+gain_temp(connected_cells,1)=gain_current;
 
+gain_all(stimulated_cells)=gain_temp;
 %%
 save('final_fits_data.mat','gamma_all','gain_all');
 
 %%
-cell_params.locations = nuc_locs;
-local_locations=cell_params.locations;
+local_locations = cell_locs;
 %%
 figure(4)
 
-temp2 = scatter(local_locations(gamma_all>0.1,2),local_locations(gamma_all>0.1,1),...
-    200*gamma_all(gamma_all>0.1));
-set(temp2,'MarkerFaceColor','r');
-alpha(temp2,0.5);
-
-set(gcf,'PaperUnits','inches','PaperPosition',[0 0 4 4])
-
-%xlim([-150,150]);
-%ylim([-150,150]);
-%axis off;
-outflnm =strcat('./');
-saveas(4,strcat(outflnm,'Gamma_final','.jpg'));
-
-%%
-figure(3)
-
-temp2 = scatter(local_locations(gamma_initial>0,2),local_locations(gamma_initial>0,1),...
-    200*gamma_initial(gamma_initial>0));
+temp2 = scatter(cell_locs(gamma_all>0.05,2),cell_locs(gamma_all>0.05,1),...
+    200*gamma_all(gamma_all>0.05));
 set(temp2,'MarkerFaceColor','r');
 alpha(temp2,0.5);
 
@@ -461,6 +492,40 @@ xlim([-150,150]);
 ylim([-150,150]);
 axis off;
 % outflnm =strcat('./');
-% saveas(3,strcat(outflnm,'Gamma_initial','.jpg'));
+% saveas(4,strcat(outflnm,'Gamma_final_new','.jpg'));
 
 
+figure(5)
+temp2 = scatter(local_locations(gamma_all>0.05,2)+151,local_locations(gamma_all>0.05,1)+151,...
+    200*gamma_all(gamma_all>0.05));
+set(temp2,'MarkerFaceColor','r');
+alpha(temp2,0.5);
+hold on;
+
+set(gcf,'PaperUnits','inches','PaperPosition',[0 0 4 4])
+
+xlim([-13,311]);
+ylim([-13,311]);
+axis off;
+% Add legends to the plot 
+temp5 = scatter([0 0 0],[300 280 260],...
+    200*[1 0.5 0.2]);
+set(temp5,'MarkerFaceColor','r');
+alpha(temp5,0.5);
+
+
+txt4 = '\gamma = 1';
+txt5 = '\gamma = 0.5';
+txt6 = '\gamma = 0.2';
+
+text(12,300,txt4)
+
+text(12,280,txt5)
+
+text(12,260,txt6)
+
+rectangle('Position',[-13 250 72 60])
+
+
+outflnm =strcat('../Figures/Results/');
+saveas(5,strcat(outflnm,'Gamma_final_data','.jpg'));
