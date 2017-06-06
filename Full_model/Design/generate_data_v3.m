@@ -1,7 +1,8 @@
 function [mpp_new, presynaptic_events, background_events] = generate_data_v3(...
     locations_this_batch,powers_this_batch,pi_dense_all,k_minimum,...
     cell_params, shape_template,...
-    I_e_vect, data_params,bg_params,trials_specific_variance)
+    I_stimuli, data_params,bg_params,trials_specific_variance,...
+delay_params)
 
 num_this_batch = size(locations_this_batch,1);
 % Include power here:
@@ -36,7 +37,7 @@ for i_cell = 1:size(evoked_k,1)
         
         for i_trial = 1:size(evoked_k,2)
             k = evoked_k(i_cell,i_trial);
-            stim = I_e_vect*k;
+            stim = I_stimuli*k;
             presynaptic_events{i_trial, i_cell} = [];
             if max(stim)*params_sim.gain > k_minimum
             [V_vect, spikes]  = lif_glm_sim_v2(stim,params_sim,funcs);
@@ -85,9 +86,14 @@ for l = 1:num_this_batch
                 for i = 1:length(presynaptic_events{l,i_cell})
                     
                     if rand(1) < cell_params.gamma(i_cell)
-                        mpp_n.event_times = [mpp_n.event_times presynaptic_events{l,i_cell}(i)];
+                        delay_this_event = round(normrnd(delay_params.mean,delay_params.std,1));
+                        this_event_time = presynaptic_events{l,i_cell}(i)+delay_this_event;
+                        if this_event_time < length(I_stimuli)
+                            mpp_n.event_times = [mpp_n.event_times this_event_time];
                         mpp_n.amplitudes = [mpp_n.amplitudes presynaptic_amplitudes{l, i_cell}(i)];
                         mpp_n.assignments = [mpp_n.assignments i_cell];
+                        end
+                        
                     end
                 end
             end

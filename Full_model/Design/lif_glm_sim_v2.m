@@ -16,7 +16,7 @@ NumSpikes=0; %holds number of spikes that have occurred
 
 tao=exprnd(1);
 %     lambda(i)=log(exp(V_vect(i)-V_th_sim)+1);
-lambda(i) = exp(V_vect(i)-params.V_th);
+lambda(i) = funcs.invlink(V_vect(i)-params.V_th);
 
 for t=dt:dt:t_end-1 %loop through values of t in steps of df ms        
     %V_inf = E_L + I_e_vect(i)*R_m;
