@@ -1,9 +1,9 @@
-%rng(12242,'twister');
+% Testing the lif-glm estimates given TRUE events
 addpath(genpath('../../psc-detection'),genpath('../../mapping-inference'),genpath('../../mapping-core'));
-
+%%
+rng(12242,'twister');
 i_rep = 100;
-factor=20;
-num_sample = 50;
+num_sample = 500;
 
 load('./Environments/l23_cells_for_sim.mat');
 
@@ -21,13 +21,13 @@ v_reset_known=-4000;
 params_sim.V_th= 15;
 params_sim.V_reset = -4000;
 params_sim.g =  l23_cells_for_sim(i_template).g;
-params_sim.gain =  l23_cells_for_sim(i_template).optical_gain*factor;
+params_sim.gain =  l23_cells_for_sim(i_template).optical_gain;
 funcs.invlink = @invlink_test;%@(resp) log(1 + exp(resp));%@(x) exp(x);
 stoc_params.mu=0;
 stoc_params.sigma = 1e-8;
 
 %stimuli_seq = num_sample*(rand([num_sample 1])+0.5);
-stimuli_seq = 500*rand([num_sample 1])/factor;
+stimuli_seq = 200*rand([num_sample 1]);
 
 %
 load('./Environments/chrome-template-3ms.mat');
@@ -43,7 +43,10 @@ for i_trial = 1:num_sample
     stim = I_e_vect*k;
     stims(i_trial,:) = stim;
      [V_vect, spikes]  = lif_glm_sim_v2(stim,params_sim,funcs);
-    responses(i_trial,:)=spikes;
+     spk_time=find(spikes);
+     if length(spk_time)>0
+    responses(i_trial,spk_time(1))=1;
+     end
     sum(spikes)
 end
 
@@ -52,7 +55,7 @@ in_params.g =   l23_cells_for_sim(i_template).g;
 
 % LIF-GLM fits
 %-------------------------------------%
-[stats_conv] = fit_lifglm_v2(responses, stims,in_params,v_reset_known);
+[stats_conv] = fit_lifglm_v3(responses, stims,in_params,v_reset_known,true);
 
 % Output:
 stats_conv.beta(1)

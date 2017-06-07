@@ -10,11 +10,13 @@ cov_current=zeros(ntime,ntrial); % covariate for the current
 
 for tr=1:ntrial
     if isempty(find(trainM(:,tr)))==1 % if there are no events
-        t_elapse=1:ntime;
+        t_elapse=(1:ntime) -1;
         cov_resting(:,tr)=exp(-g.*t_elapse);
         cov_reset(:,tr) = 0;
-        for t=1:ntime
-            cov_current(t,tr)=exp(-g.*(t-[1:t]))*I_eg(1:t,tr);
+        cov_current(1,tr)=0;
+        cov_resting(1,tr)=0;
+        for t=2:ntime
+            cov_current(t,tr)=exp(-g.*(t-[1:(t-1)]))*I_eg(1:(t-1),tr);
             cov_resting(t,tr) = cov_resting(t,tr)+ g*sum(exp(-g.*(t-[1:t])));
         end
         %cov_current(:,tr) = cov_current(:,tr);
@@ -23,11 +25,13 @@ for tr=1:ntrial
         te1=[0;te0;ntime];
         
         % Before the first event:
-        t_elapse=1:min(te0);
+        t_elapse=(1:min(te0))-1;
         cov_resting(1:min(te0),tr)= exp(-g.*t_elapse);
         cov_reset(1:min(te0),tr) = 0;
-        for t=1:min(te0)
-            cov_current(t,tr)= exp(-g.*(t-[1:t]))*I_eg(1:t,tr);
+        cov_current(1,tr)=0;
+        cov_resting(1,tr)=0;
+        for t=2:min(te0)
+            cov_current(t,tr)= exp(-g.*(t-[1:(t-1)]))*I_eg(1:(t-1),tr);
             cov_resting(t,tr) = cov_resting(t,tr)+ g*sum(exp(-g.*(t-[1:t])));
         end
         
