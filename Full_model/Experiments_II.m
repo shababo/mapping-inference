@@ -151,8 +151,9 @@ addpath(genpath('../../psc-detection'),genpath('../../mapping-inference'),genpat
 % end
 
 %% Select the cells with decent gammas at the initial fits
-gamma_threshold = 0.05;
-selected_cells = gamma_initial >gamma_threshold;
+%gamma_threshold = 0;
+selected_cells = stimulated_cells;
+%gamma_initial >gamma_threshold;
 %
 stimuli_size_selected = stimuli_size_local(:,selected_cells);
 n_cell_selected = sum(selected_cells);
@@ -204,7 +205,7 @@ sigma_old = ones(n_cell_selected,1);
 
 sparsity_params.threshold=4;
 sparsity_params.eta=0.1;
-sparsity_params.sparsity=0;
+sparsity_params.sparsity=1;
 
 soft_threshold=0.1;
 num_MC_lifglm = 5;
@@ -385,6 +386,8 @@ while (normalized_change_outer > convergence_epsilon_outer) & (num_iter < maxit)
         
         %----------------------------------------------------------------%
         % Update the LIFGLM parameters and the delay distributions 
+        delays=[];
+                
         lif_glm_gains= zeros(n_cell_selected,1);
         delay_params_temp.mean = zeros(n_cell_selected,1);
         delay_params_temp.std = zeros(n_cell_selected,1);
@@ -397,7 +400,6 @@ while (normalized_change_outer > convergence_epsilon_outer) & (num_iter < maxit)
                 
                 n_trial_temp = size(responses,1);
                 responses_reg=responses;responses_reg(:,:)=0;
-                delays=[];
                 for i_trial = 1:n_trial_temp
 %                      t3=toc;
                     k_temp = max(stims(i_trial,:))/max(I_stimuli);
@@ -430,12 +432,12 @@ while (normalized_change_outer > convergence_epsilon_outer) & (num_iter < maxit)
                         delays =[delays spike_first-spike_max];
                     end
                     % Update the delay distribution 
-                    delay_params_temp.mean(i_cell)=mean(delays);
-                    if std(delays)==0
-                       % not updating the standard deviations  
-                    else
-                        delay_params_temp.std(i_cell)=delay_params_temp.std(i_cell);
-                    end
+%                     delay_params_temp.mean(i_cell)=mean(delays);
+%                     if std(delays)==0
+%                        % not updating the standard deviations  
+%                     else
+%                         delay_params_temp.std(i_cell)=delay_params_temp.std(i_cell);
+%                     end
 %                     t5=toc;
 %                     timevect(2)=timevect(2)+t5-t4;
                 end
@@ -448,12 +450,15 @@ while (normalized_change_outer > convergence_epsilon_outer) & (num_iter < maxit)
                     lif_glm_gains(i_cell)=stats_conv.beta;
             else
                 lif_glm_gains(i_cell)=cell_params.gain(i_cell);
-                delay_params_temp.mean(i_cell)=delay_params_est.mean(i_cell);
-                delay_params_temp.std(i_cell)=delay_params_est.std(i_cell);
+%                 delay_params_temp.mean(i_cell)=delay_params_est.mean(i_cell);
+%                 delay_params_temp.std(i_cell)=delay_params_est.std(i_cell);
             end
         end
-        delay_params_sample.mean(:,i_MC) = delay_params_temp.mean;
-        delay_params_sample.std(:,i_MC)= delay_params_temp.std;
+        %delay_params_sample.mean(:,i_MC) = delay_params_temp.mean;
+        %delay_params_sample.std(:,i_MC)= delay_params_temp.std;
+        delay_params_sample.mean(:,i_MC) = mean(delays)*ones(n_cell_selected,1);
+        delay_params_sample.std(:,i_MC)= std(delays)*ones(n_cell_selected,1);
+        
         gains_sample(:,i_MC)=lif_glm_gains;
         fprintf('%d MC sample completed\n',i_MC);
     end
@@ -551,7 +556,6 @@ hold off;
 gain_all = zeros(n_cell_local,1);
 gain_all(selected_cells)=gain_current;
 
-local_gain = [l23_cells_for_sim(local_shape_gain).optical_gain]';
 
 plot(local_gain(local_gamma>0)+normrnd(0,0.001,[sum(local_gamma>0) 1]),gain_all(local_gamma>0),'.','MarkerSize',20)
 xlim([0,0.06]);

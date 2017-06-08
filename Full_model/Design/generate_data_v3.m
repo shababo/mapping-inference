@@ -25,16 +25,15 @@ t_vect=0:data_params.dt:data_params.T-1;
 for i_cell = 1:size(evoked_k,1)
 
     if cell_params.gamma(i_cell) > 0
-        fprintf('%d\n', i_cell);
         mean_amp_this_trial = abs(normrnd(cell_params.amplitudes(i_cell),cell_params.sigma_across(i_cell)));
         sigma=cell_params.sigma_within(i_cell);
         
         params_sim.V_th= cell_params.V_th(i_cell);
         params_sim.V_reset = cell_params.V_reset(i_cell);
         params_sim.g = shape_template( cell_params.shape_gain(i_cell)).g;
-        params_sim.gain = shape_template( cell_params.shape_gain(i_cell)).optical_gain;
+        params_sim.gain =  cell_params.gains(i_cell);
         funcs.invlink = @invlink_test;%@(resp) log(1 + exp(resp));%@(x) exp(x);
-        
+        n_event_cell=0;
         for i_trial = 1:size(evoked_k,2)
             k = evoked_k(i_cell,i_trial);
             stim = I_stimuli*k;
@@ -42,9 +41,12 @@ for i_cell = 1:size(evoked_k,1)
             if max(stim)*params_sim.gain > k_minimum
             [V_vect, spikes]  = lif_glm_sim_v2(stim,params_sim,funcs);
             presynaptic_events{i_trial, i_cell} = t_vect(find(spikes));
+            n_event_cell = n_event_cell+length(find(spikes));
             presynaptic_amplitudes{i_trial, i_cell} = abs(normrnd(mean_amp_this_trial,sigma,sum(spikes)));
             end
         end
+        
+        fprintf('%d cell with %d events\n', i_cell,n_event_cell);
     end
 end
 
