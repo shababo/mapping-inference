@@ -173,7 +173,7 @@ while (normalized_change > convergence_epsilon) & (num_iter < maxit)
         if sum(size(events_precell{i_cell}))> 1
             weighted_sum = sum(events_precell{i_cell},2);
             expected_events = sum( expected_all(trials_precell{i_cell},i_cell));
-            if expected_events == 0
+            if expected_events < 1 % less than one event..
                 expected_events = 1;
             end
             if sparsity_params.sparsity == 1 & num_iter >sparsity_params.threshold % if we want to enforce the sparsity

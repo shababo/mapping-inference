@@ -15,7 +15,6 @@ mean_gain = mean([l23_cells_for_sim.optical_gain]);
 %% load real data
 load('./Environments/6_5_s2c1_mpp_and_stim_data.mat')
 %cell_locs, target_locs,
-
 %% Setting experiment details based on the data
 local_locations= cell_locs;
 Z_dense =target_locs;
@@ -26,12 +25,10 @@ rng(12242,'twister');
 n_trial = size(locations_trials,1);
 % n_trial = 8000;
 n_cell_local = size(local_locations,1);
-
 %% Calculate the background rate 
 mpp_copy=mpp;
 histogram([mpp_copy.times]);
 % Why are there a lot of events around 500?
-
 trial_counts = 0;
 event_counts = 0;
 for i_trial = 1:n_trial
@@ -73,14 +70,12 @@ k_minimum = 0.1; % minimum stimulus intensity to consider
 v_reset_known=-4e3;
 cell_params.V_th = 15*ones([n_cell_local,1]);
 cell_params.V_reset = v_reset_known*ones([n_cell_local,1]);
-
 %%
-    max_time = 300;
+max_time = 300;
 min_time=60;
 for i_trial = 1:n_trial
     if mpp(i_trial).num_events >0
         range_idx = mpp(i_trial).times<max_time & mpp(i_trial).times>min_time ;
-
         mpp(i_trial).num_events = sum(range_idx);
         mpp(i_trial).times = mpp(i_trial).times(range_idx);
         mpp(i_trial).amp =mpp(i_trial).amp(range_idx);
@@ -94,27 +89,23 @@ end
 %
 %
 %     length([mpp.assignments])
-%  length([mpp_copy(1:n_trial).times])
+%  length([mpp(1:n_trial).times])
 %
-
 % save('mpp_sim_II.mat','mpp');
 %%
 %------------------------------------%
 % Estimating the marginal firing rate
 sigma_unknown=1;
-T=length(I_stimuli); % total time at 20k Hz
 dt=1;
-t_vect= dt:dt:T;
+t_vect= dt:dt:max_time;
 sd_range=1.5;
 n_stimuli_grid=20;
 n_grid_voltage=400;
-t_factor=1;
 gap_stimuli=0.5;
 first_only=true;
 stimulus_threshold=0.1;
 funcs.invlink = @invlink_test;%@(resp) log(1 + exp(resp));%@(x) exp(x);
 n_grid_time = length(I_stimuli);
-%%
 
 stimuli_size_local=zeros(n_trial,n_cell_local);
 for l = 1:n_trial
@@ -125,14 +116,12 @@ for l = 1:n_trial
         end
     end
 end
-n_trial = size(stimuli_size_local,1);
 %% Throw away cells that are not stimulated enough:
 stim_threshold = 20;
 stimulated_cells = sum(stimuli_size_local>stim_threshold )>5;
 %%
 stimuli_size_stimulated = stimuli_size_local(:,stimulated_cells);
 n_cell_stimulated = sum(stimulated_cells);
-
 evoked_cell_stimulated = cell(n_trial,1);
 for i_trial = 1:n_trial
     evoked_cell_index = 0; % 0: background evnets
@@ -144,14 +133,11 @@ for i_trial = 1:n_trial
     end
     evoked_cell_stimulated{i_trial} = evoked_cell_index;
 end
-
-
 %% Analysis:
 % 1, Initial fits
 %   - Estimate the firing rate given initial delay distribution and lif-glm
 %   parameters
 %   - Estimate the soft assignments and gammas given the fitted values
-
 V_threshold = -50;
 cell_params.V_th = 15*ones(sum(stimulated_cells),1);
 cell_params.V_reset = v_reset_known*ones(sum(stimulated_cells),1);
@@ -164,7 +150,6 @@ outputM=false;
 delay_params_est.type=1;
 delay_params_est.mean=35*ones(n_cell_stimulated,1);
 delay_params_est.std=10*ones(n_cell_stimulated,1);
-
 
 [Stimuli_grid, Intensity_grid]=Intensity_v8(...
     stimuli_size_stimulated, mpp,I_stimuli,... % data from exp
@@ -247,7 +232,7 @@ maxit = 100;
 
 sparsity_params.threshold=4;
 sparsity_params.eta=0.1;
-sparsity_params.sparsity=0;
+sparsity_params.sparsity=1;
 
 [gamma_path mu_path sigma_path total_time soft_assignments bg_rate]= ...
     EM_fullmodel_v3(mpp(1:n_trial), ...
@@ -261,19 +246,15 @@ gamma_ini= gamma_path(:,end);
 sigma_ini = sigma_path(:,end);
 mu_ini = mu_path(:,end);
 
-%% Visualize the initial fits
+%% Save the initial fits
 gamma_initial =zeros(n_cell_local,1);
 gamma_initial(stimulated_cells)=gamma_ini;
 save('initial_fits_6_5.mat','gamma_initial');
-
-
 %% Select the cells with decent gammas at the initial fits
 gamma_threshold = 0.05;
 selected_cells = gamma_initial >gamma_threshold;
-%
 stimuli_size_selected = stimuli_size_local(:,selected_cells);
 n_cell_selected = sum(selected_cells);
-
 evoked_cell_selected = cell(n_trial,1);
 for i_trial = 1:n_trial
     evoked_cell_index = 0; % 0: background evnets
@@ -285,23 +266,17 @@ for i_trial = 1:n_trial
     end
     evoked_cell_selected{i_trial} = evoked_cell_index;
 end
-
 % 1, Initial fits
 %   - Estimate the firing rate given initial delay distribution and lif-glm
 %   parameters
 %   - Estimate the soft assignments and gammas given the fitted values
-
 V_threshold = -50;
 cell_params.V_th = 15*ones(n_cell_selected,1);
 cell_params.V_reset = v_reset_known*ones(n_cell_selected,1);
 cell_params.gain = ones(n_cell_selected,1)*mean([l23_cells_for_sim.optical_gain]);
 cell_params.gain_sd= ones(n_cell_selected,1)*std([l23_cells_for_sim.optical_gain]);
 cell_params.g =  ones(n_cell_selected,1)*mean([l23_cells_for_sim.g]);
-
-n_delay_grid = 200;
-
 %% Iterative updates with filtered cells 
-
 gain_fits=zeros(n_cell_selected,maxit);
 gamma_fits=zeros(n_cell_selected,maxit);
 mu_fits=zeros(n_cell_selected,maxit);
@@ -316,7 +291,7 @@ sigma_old = ones(n_cell_selected,1);
 
 sparsity_params.threshold=4;
 sparsity_params.eta=0.1;
-sparsity_params.sparsity=0;
+sparsity_params.sparsity=1;
 
 soft_threshold=0.1;
 num_MC_lifglm = 5;
@@ -329,8 +304,7 @@ maxit=100;
 % Initialize the delay distribution:
 delay_params_est.type=1;
 delay_params_est.mean=35*ones(n_cell_selected,1);
-delay_params_est.std=15*ones(n_cell_selected,1);
-
+delay_params_est.std=10*ones(n_cell_selected,1);
 
 n_delay_grid = 200;
 
@@ -612,8 +586,6 @@ while (normalized_change_outer > convergence_epsilon_outer) & (num_iter < maxit)
     gamma_fits(:,num_iter)=gamma_current;
     delay_mean_fits(:,num_iter)=delay_params_est.mean;
     delay_std_fits(:,num_iter)=delay_params_est.std;
-    
-   
 end
 %%
 
