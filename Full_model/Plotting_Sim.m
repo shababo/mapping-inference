@@ -173,7 +173,7 @@ outflnm =strcat('../Figures/Results/');
 saveas(3,strcat(outflnm,'CellShape_Post','.jpg'));
 
 %%
-load('final_fits.mat')
+%load('final_fits.mat')
 
 figure(4)
 temp = scatter(local_locations(local_gamma>0.05,2)+151,local_locations(local_gamma>0.05,1)+151,...
@@ -245,8 +245,8 @@ text(78,260,txt3)
 rectangle('Position',[-20 246 155 67],'LineStyle','--')
 
 
-outflnm =strcat('../Figures/Results/');
-saveas(4,strcat(outflnm,'Gamma_final','.jpg'));
+% outflnm =strcat('../Figures/Results/');
+% saveas(4,strcat(outflnm,'Gamma_final','.jpg'));
 
 %%
 %Draw the plot for real data
@@ -292,8 +292,8 @@ text(12,260,txt6)
 rectangle('Position',[-12 250 80 63],'LineStyle','--')
 
 
-outflnm =strcat('../Figures/Results/');
-saveas(5,strcat(outflnm,'Gamma_final_data_new','.jpg'));
+% outflnm =strcat('../Figures/Results/');
+% saveas(5,strcat(outflnm,'Gamma_final_data_new','.jpg'));
 
 %% Check the amount of stimuli received by the connected cells
 high_gamma =sum( stimuli_size_local(:,gamma_all==1));

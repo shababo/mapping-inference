@@ -58,7 +58,10 @@ end
 % Let the gap be the minimum increase in the stimuli input:
 if first_only
     v_gap_low = (V_threshold - V_min)/(n_grid_voltage/2);
-    v_gap_upp = (V_max-V_threshold)/(n_grid_voltage/2);
+%    v_gap_upp = (V_max-V_threshold)/(n_grid_voltage/2);
+
+	    v_gap = min(mid_points)*I_stimuli(end);
+    v_gap_upp = min(v_gap, (V_max-V_threshold)/(n_grid_voltage/2));
 
 else
     v_gap = min(mid_points)*I_stimuli(end);
