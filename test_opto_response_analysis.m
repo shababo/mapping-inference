@@ -430,7 +430,7 @@ cells_to_plot = setdiff(cells_to_plot,[5 27:30]);
 this_analysis = l23_cell_analyzed_10ms_fulldata_noshape_constg;
 % cells_to_plot = 27:30;
 z_slices = size(this_analysis(cells_to_plot(1)).current_data.shape_max,3);
-% l23_average_shape = zeros(9,9,z_slices);
+l23_average_shape = zeros(9,9,z_slices);
 
 z_depths = {'-90','-50','-20','0','20','50','90'};
 % z_depths = {'-60','-40','-20', '-10', '0', '10', '20','40','60'};
@@ -439,7 +439,7 @@ for i = 1:length(cells_to_plot)
     cell_i = cells_to_plot(i);
     this_shape = this_analysis(cell_i).current_data.shape_max;
     this_shape = this_shape/max(this_shape(:));
-%     l23_average_shape = l23_average_shape + this_shape;
+    l23_average_shape = l23_average_shape + this_shape;
 
     for j = 1:z_slices
         subplot(z_slices,length(cells_to_plot)+1,(j-1)*(length(cells_to_plot)+1) + i + 1)
@@ -454,7 +454,7 @@ for i = 1:length(cells_to_plot)
     end
 end
 
-% l23_average_shape = l23_average_shape/max(l23_average_shape(:));
+l23_average_shape = l23_average_shape/max(l23_average_shape(:));
 
 for j = 1:z_slices
     subplot(z_slices,length(cells_to_plot)+1,(j-1)*(length(cells_to_plot)+1) + 1)
