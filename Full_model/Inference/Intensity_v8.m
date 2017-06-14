@@ -85,15 +85,17 @@ v_gap = v_grid(2:end)-v_grid(1:n_grid_voltage-1);
 v_gap = [v_gap v_gap(end)];
 
 pL_given_V = zeros([2 n_grid_voltage]);
-pVL_given_I = zeros([n_grid_time n_grid_voltage 2]);
-pVnext_given_V_L = zeros([n_grid_voltage n_grid_voltage 2]);
+
+
 
 pL_given_V(2,:) =  min(1,funcs.invlink(v_grid-V_th));
 pL_given_V(1,:) = 1-pL_given_V(2,:);
     
-for i_stimuli = 1:length(mid_points)
+parfor i_stimuli = 1:length(mid_points)
     k_temp = mid_points(i_stimuli);
     %reset the values 
+    pVL_given_I = zeros([n_grid_time n_grid_voltage 2]);
+    pVnext_given_V_L = zeros([n_grid_voltage n_grid_voltage 2]);
     pVL_given_I(:,:,:)=0;
     pVL_given_I(1,index_rest,1)=1;
     for i_t = 2:n_grid_time

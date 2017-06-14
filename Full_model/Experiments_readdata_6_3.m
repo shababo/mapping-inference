@@ -24,7 +24,7 @@ single_trial_limit=max(find(isnan(target_inds(:,2))));
 locations_trials = target_inds(1:single_trial_limit,:);
 powers_trials = stim_pow(1:single_trial_limit);
 %% Read the locations of cells 
-load('./Environments/6_3_cell_locs_reduced.mat')
+load('./Environments/6_3_cell_locs_reduced_and_fixed.mat')
 local_locations = cell_locs;
 
 %% Set seed for reproducibility
@@ -151,7 +151,7 @@ stim_threshold=40;
 gain_initial =zeros(n_cell_stimulated, 1); 
 mean_delay = 35; %subtract the delays..
 in_params.g=mean([l23_cells_for_sim.g]);
-for i_cell = 1:n_cell_stimulated
+parfor i_cell = 1:n_cell_stimulated
     relevant_trials = stimuli_size_stimulated(:,i_cell)>stim_threshold;
      trials_with_responses = num_events_trials>0 & relevant_trials ;%& powers_trials == 100;
         
@@ -200,7 +200,7 @@ n_delay_grid = 200;
 outputM=false;
 delay_params_est.type=1;
 delay_params_est.mean=35*ones(n_cell_stimulated,1);
-delay_params_est.std=20*ones(n_cell_stimulated,1);
+delay_params_est.std=5*ones(n_cell_stimulated,1);
 
 sd_range=2;
 [Stimuli_grid, Intensity_grid]=Intensity_v8(...
@@ -233,7 +233,7 @@ for i_cell = 1:n_cell_stimulated
         min_delay = 1-1-n_delay_grid;
         max_delay = length(delay_prob)-1-n_delay_grid;
     end
-    for i_stimuli = 1:length(Stimuli_grid)
+    parfor i_stimuli = 1:length(Stimuli_grid)
         M_grid_intensity{i_stimuli}=zeros(length(Intensity_grid{1}),1);
         for i_t = 1:length(Intensity_grid{1})
             idx_time = max(i_t+min_delay,1): min(i_t+max_delay,n_grid_time);
@@ -242,7 +242,7 @@ for i_cell = 1:n_cell_stimulated
         end
     end
     %------------------------------------------------%
-    for i_trial = 1:n_trial
+    parfor i_trial = 1:n_trial
         %------------------------------------------------%
         % Allowing for noise in the gain estimates
         k_up = stimuli_size_stimulated(i_trial, i_cell)*(cell_params.gain(i_cell)+sd_range*cell_params.gain_sd(i_cell));
@@ -405,8 +405,8 @@ maxit=100;
 
 % Initialize the delay distribution:
 delay_params_est.type=1;
-delay_params_est.mean=75*ones(n_cell_stimulated,1);
-delay_params_est.std=30*ones(n_cell_stimulated,1);
+delay_params_est.mean=35*ones(n_cell_stimulated,1);
+delay_params_est.std=5*ones(n_cell_stimulated,1);
 
 
 n_delay_grid = 200;
@@ -672,7 +672,7 @@ while (normalized_change_outer > convergence_epsilon_outer) & (num_iter < maxit)
 %     delay_params_est.std= mean(mean(delay_params_sample.std,2))*ones(n_cell_selected,1);
     %mean(delay_params_sample.std,2);
     delay_params_est.mean = 75*ones(n_cell_selected,1);
-    delay_params_est.std=30*ones(n_cell_selected,1);
+    delay_params_est.std=10*ones(n_cell_selected,1);
    
     normalized_change_outer = norm(gamma_current - gamma_old)/(norm(gamma_old)+1) + norm(mu_current - mu_old)/(norm(mu_old)+1)+...
         norm(sigma_current - sigma_old)/(norm(sigma_old)+1)+norm(gain_current-gain_old)/(norm(gain_old)+1);
@@ -704,41 +704,41 @@ gain_final_all(selected_cells)=gain_current;
 
 delay_mean=mean(delay_params_est.mean);
 delay_std =mean(delay_params_est.std);
-save('final_fits_6_3_single_reduced.mat','gamma_all','gain_all','delay_mean','delay_std','soft_assignments_labeled');
+save('final_fits_6_3_single_reduced_delaytight.mat','gamma_final_all','gain_final_all','delay_mean','delay_std','soft_assignments_labeled');
 %save('6_3_single_reduced.mat');
 
 %%
-soft_assignments_labeled = cell(n_trial,1);
-stimulated_index = 1:n_cell_local;
-stimulated_index =stimulated_index(selected_cells);
-
-for i_trial = 1:n_trial 
-    if size(soft_assignments{i_trial},1)>0
-    soft_assignments_labeled{i_trial} = zeros(size(soft_assignments{i_trial},1)+1,1+n_cell_local);
-    soft_assignments_labeled{i_trial}(1,:)= [0 1:n_cell_local];
-    soft_assignments_labeled{i_trial}(2:end,[1 1+stimulated_index(evoked_cell_selected{i_trial}(2:end))])=...
-        soft_assignments{i_trial};
-    end
-end
-
-%% Check if the gamma fits match the guess:
-expected_by_cell=sum(expected_all,1);
-expected_by_cell*gamma_current
-
-   220*n_trial*background_rate
-    length([mpp.times])
-    
-    
-%%
-figure(1)
-for i = 1:length(Stimuli_grid)
-     plot(M_grid_intensity{i})
-   %  plot(Intensity_grid{i})
-     hold on;
-end
-hold off;
-
-%
-figure(2)
-histogram([mpp.times]);
-xlim([0 300])
+% soft_assignments_labeled = cell(n_trial,1);
+% stimulated_index = 1:n_cell_local;
+% stimulated_index =stimulated_index(selected_cells);
+% 
+% for i_trial = 1:n_trial 
+%     if size(soft_assignments{i_trial},1)>0
+%     soft_assignments_labeled{i_trial} = zeros(size(soft_assignments{i_trial},1)+1,1+n_cell_local);
+%     soft_assignments_labeled{i_trial}(1,:)= [0 1:n_cell_local];
+%     soft_assignments_labeled{i_trial}(2:end,[1 1+stimulated_index(evoked_cell_selected{i_trial}(2:end))])=...
+%         soft_assignments{i_trial};
+%     end
+% end
+% 
+% %% Check if the gamma fits match the guess:
+% expected_by_cell=sum(expected_all,1);
+% expected_by_cell*gamma_current
+% 
+%    220*n_trial*background_rate
+%     length([mpp.times])
+%     
+%     
+% %%
+% figure(1)
+% for i = 1:length(Stimuli_grid)
+%      plot(M_grid_intensity{i})
+%    %  plot(Intensity_grid{i})
+%      hold on;
+% end
+% hold off;
+% 
+% %
+% figure(2)
+% histogram([mpp.times]);
+% xlim([0 300])
