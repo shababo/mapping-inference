@@ -24,7 +24,7 @@ single_trial_limit=max(find(isnan(target_inds(:,2))));
 locations_trials = target_inds(1:single_trial_limit,:);
 powers_trials = stim_pow(1:single_trial_limit);
 %% Read the locations of cells 
-load('./Environments/6_3_cell_locs_reduced.mat')
+load('./Environments/6_3_cell_locs_reduced_and_fixed.mat')
 local_locations = cell_locs;
 
 %% Set seed for reproducibility
@@ -405,8 +405,8 @@ maxit=100;
 
 % Initialize the delay distribution:
 delay_params_est.type=1;
-delay_params_est.mean=75*ones(n_cell_stimulated,1);
-delay_params_est.std=30*ones(n_cell_stimulated,1);
+delay_params_est.mean=35*ones(n_cell_stimulated,1);
+delay_params_est.std=10*ones(n_cell_stimulated,1);
 
 
 n_delay_grid = 200;
@@ -671,8 +671,8 @@ while (normalized_change_outer > convergence_epsilon_outer) & (num_iter < maxit)
     %
 %     delay_params_est.std= mean(mean(delay_params_sample.std,2))*ones(n_cell_selected,1);
     %mean(delay_params_sample.std,2);
-    delay_params_est.mean = 75*ones(n_cell_selected,1);
-    delay_params_est.std=30*ones(n_cell_selected,1);
+    delay_params_est.mean = 35*ones(n_cell_selected,1);
+    delay_params_est.std=10*ones(n_cell_selected,1);
    
     normalized_change_outer = norm(gamma_current - gamma_old)/(norm(gamma_old)+1) + norm(mu_current - mu_old)/(norm(mu_old)+1)+...
         norm(sigma_current - sigma_old)/(norm(sigma_old)+1)+norm(gain_current-gain_old)/(norm(gain_old)+1);
@@ -696,18 +696,6 @@ while (normalized_change_outer > convergence_epsilon_outer) & (num_iter < maxit)
    
 end
 %%
-
-gamma_final_all = zeros(n_cell_local,1);
-gamma_final_all(selected_cells)=gamma_current;
-gain_final_all = zeros(n_cell_local,1);
-gain_final_all(selected_cells)=gain_current;
-
-delay_mean=mean(delay_params_est.mean);
-delay_std =mean(delay_params_est.std);
-save('final_fits_6_3_single_reduced.mat','gamma_all','gain_all','delay_mean','delay_std','soft_assignments_labeled');
-%save('6_3_single_reduced.mat');
-
-%%
 soft_assignments_labeled = cell(n_trial,1);
 stimulated_index = 1:n_cell_local;
 stimulated_index =stimulated_index(selected_cells);
@@ -720,6 +708,17 @@ for i_trial = 1:n_trial
         soft_assignments{i_trial};
     end
 end
+
+gamma_final_all = zeros(n_cell_local,1);
+gamma_final_all(selected_cells)=gamma_current;
+gain_final_all = zeros(n_cell_local,1);
+gain_final_all(selected_cells)=gain_current;
+
+delay_mean=mean(delay_params_est.mean);
+delay_std =mean(delay_params_est.std);
+save('final_fits_6_3_single_reduced.mat','gamma_final_all','gain_final_all','delay_mean','delay_std','soft_assignments_labeled');
+save('6_3_single_reduced.mat');
+
 
 %% Check if the gamma fits match the guess:
 expected_by_cell=sum(expected_all,1);

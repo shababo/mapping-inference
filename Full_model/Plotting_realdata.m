@@ -165,14 +165,14 @@ figure(4)
 
 for i = 1:n_cell_local
     if gamma_final_all(i)>0.05
-temp2 = scatter(local_locations(i,2)+151,local_locations(i,1)+151,...
+temp2 = scatter(local_locations(i,2)+151,-local_locations(i,1)-151,...
     200*gamma_final_all(i),'MarkerEdgeColor','r','MarkerFaceColor','r',...
     'MarkerFaceAlpha',(local_locations(i,3)/max(local_locations(:,3))));
     end
 hold on;
 end
 
-temp1 = scatter(local_locations(:,2)+151,local_locations(:,1)+151,...
+temp1 = scatter(local_locations(:,2)+151,-local_locations(:,1)-151,...
     2);
 set(temp1,'MarkerEdgeColor','g','MarkerFaceColor','g');
 alpha(temp1,1);
@@ -182,8 +182,8 @@ hold on;
 set(gcf,'PaperUnits','inches','PaperPosition',[0 0 5 5])
 
 xlim([-20,313]);
-ylim([-20,313]);
-% axis off;
+ylim([-313,20]);
+axis off;
 % Add legends to the plot 
 temp5 = scatter([0 0 0],[300 280 260],...
     200*[1 0.5 0.2]);
@@ -203,7 +203,7 @@ text(12,260,txt6)
 
 rectangle('Position',[-12 250 80 63],'LineStyle','--')
 
-% saveas(4,strcat(outflnm,'Gamma_final','.jpg'));
+saveas(4,strcat(outflnm,'Gamma_final','.jpg'));
 
 
 
