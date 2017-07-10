@@ -41,8 +41,7 @@ end
 background_rate = event_counts/trial_counts/60;
 
 %% Other constants:
-n_grid_voltage =1000;
-voltage_threshold=-50;
+n_grid_voltage =1000;voltage_threshold=-50;
 dt=1;
 n_grid_time = max_time;
 t_factor=1;
