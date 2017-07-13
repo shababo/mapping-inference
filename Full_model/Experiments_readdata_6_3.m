@@ -409,6 +409,7 @@ delay_params_est.mean=35*ones(n_cell_stimulated,1);
 delay_params_est.std=5*ones(n_cell_stimulated,1);
 
 
+
 n_delay_grid = 200;
 
 %%
@@ -671,7 +672,9 @@ while (normalized_change_outer > convergence_epsilon_outer) & (num_iter < maxit)
     %
 %     delay_params_est.std= mean(mean(delay_params_sample.std,2))*ones(n_cell_selected,1);
     %mean(delay_params_sample.std,2);
+
     delay_params_est.mean = 75*ones(n_cell_selected,1);
+
     delay_params_est.std=10*ones(n_cell_selected,1);
    
     normalized_change_outer = norm(gamma_current - gamma_old)/(norm(gamma_old)+1) + norm(mu_current - mu_old)/(norm(mu_old)+1)+...
@@ -696,6 +699,20 @@ while (normalized_change_outer > convergence_epsilon_outer) & (num_iter < maxit)
    
 end
 %%
+% 
+% soft_assignments_labeled = cell(n_trial,1);
+% stimulated_index = 1:n_cell_local;
+% stimulated_index =stimulated_index(selected_cells);
+% 
+% for i_trial = 1:n_trial 
+%     if size(soft_assignments{i_trial},1)>0
+%     soft_assignments_labeled{i_trial} = zeros(size(soft_assignments{i_trial},1)+1,1+n_cell_local);
+%     soft_assignments_labeled{i_trial}(1,:)= [0 1:n_cell_local];
+%     soft_assignments_labeled{i_trial}(2:end,[1 1+stimulated_index(evoked_cell_selected{i_trial}(2:end))])=...
+%         soft_assignments{i_trial};
+%     end
+% end
+
 
 gamma_final_all = zeros(n_cell_local,1);
 gamma_final_all(selected_cells)=gamma_current;
@@ -704,6 +721,7 @@ gain_final_all(selected_cells)=gain_current;
 
 delay_mean=mean(delay_params_est.mean);
 delay_std =mean(delay_params_est.std);
+
 save('final_fits_6_3_single_reduced_delaytight.mat','gamma_final_all','gain_final_all','delay_mean','delay_std','soft_assignments_labeled');
 %save('6_3_single_reduced.mat');
 
@@ -742,3 +760,30 @@ save('final_fits_6_3_single_reduced_delaytight.mat','gamma_final_all','gain_fina
 % figure(2)
 % histogram([mpp.times]);
 % xlim([0 300])
+
+% save('final_fits_6_3_single_reduced.mat','gamma_final_all','gain_final_all','delay_mean','delay_std','soft_assignments_labeled');
+% save('6_3_single_reduced.mat');
+% 
+% 
+% %% Check if the gamma fits match the guess:
+% expected_by_cell=sum(expected_all,1);
+% expected_by_cell*gamma_current
+% 
+%    220*n_trial*background_rate
+%     length([mpp.times])
+%     
+%     
+% %%
+% figure(1)
+% for i = 1:length(Stimuli_grid)
+%      plot(M_grid_intensity{i})
+%    %  plot(Intensity_grid{i})
+%      hold on;
+% end
+% hold off;
+% 
+% %
+% figure(2)
+% histogram([mpp.times]);
+% xlim([0 300])
+
