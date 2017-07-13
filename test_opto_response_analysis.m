@@ -854,8 +854,8 @@ end
 
 figure
 cells_to_plot = find([l23_cells.do_vc]);
-cells_to_plot = setdiff(cells_to_plot,[5]);
-this_analysis = l23_cell_analyzed_10ms_preprocess_only_raw_shape;
+cells_to_plot = setdiff(cells_to_plot,[1 5]);
+this_analysis = l23_cell_analyzed_10ms_fulldata_noshape;
 % cells_to_plot = 27:30;
 % z_slices = size(this_analysis(cells_to_plot(1)).current_data.shape_max,3);
 l23_average_shape = zeros(81,81,181);
@@ -866,16 +866,16 @@ all_shapes = nan(numel(l23_average_shape),length(cells_to_plot));
 count = 1;
 for i = 1:length(cells_to_plot)
     cell_i = cells_to_plot(i);
-    this_shape = this_analysis(cell_i).current_data.upres_shape;
+    this_shape = this_analysis(cell_i).current_data.shape_svd;
 %     this_shape = this_shape/max(this_shape(:));
-    this_shape = padarray(this_shape,[0 0 (181-size(this_shape,3))/2],NaN);
+% %     this_shape = padarray(this_shape,[0 0 (181-size(this_shape,3))/2],NaN);
 %     l23_average_shape = l23_average_shape + this_shape;
     
     % centered shape
      [~, center_ind] = max(this_shape(:));
     center = zeros(1,3);
-    [center(1), center(2), center(3)] = ind2sub([81,81,181],center_ind);
-    offset = center - [41 41 91];
+    [center(1), center(2), center(3)] = ind2sub(size(this_shape),center_ind);
+    offset = center - ceil(size(this_shape)/2);
     this_shape_tmp = nan(size(this_shape));
     for j = (1:81) - offset(1)
         if j > 0 && j < 82
@@ -1281,11 +1281,158 @@ ylabel('First Spike Time Std. Dev. (msec)')
 
 
 
+%%
+
+%%
+
+%%
+
+clear l23_cells_round2
+% base_cell.start_trial = 1;
+base_cell.cell_ch = 1;
+base_cell.cc_trials = [];
+base_cell.cc_spike_thresh = 8;
+base_cell.ca_trials = 1:7;
+base_cell.ca_spike_thresh = 20;
+base_cell.do_cc = 0;
+base_cell.do_vc = 0;
+% base_cell.stim_start = 100;
+base_cell.cell_pos_offset = [0 0 0];
+base_cell.hpass_filt = 1;
+% base_cell.exclude_trials = 1;
+base_cell.filename = '';
+base_cell.type = 'l23pyr';
+base_cell.fluor = NaN;
+base_cell.first_spike = 0;
+base_cell.fit_cc = 0;
+base_cell.glm_sim_scale = 1;
+base_cell.trial_dur = .010*20000;
+base_cell.use_shape = 1;
+base_cell.fit_locs = [];
+base_cell.intrinsics_trial = [];
+base_cell.vc_shape_trials = [];
+base_cell.vc_power_curve_trial = [];
+
+filenames = {'6_2_slice1_cell2.mat',...
+    '6_2_slice1_cell4.mat',...
+    '6_2_slice2_cell1.mat',...
+    '6_3_slice1_cell2.mat',...
+    '6_3_slice2_cell1next.mat'};
+
+this_cell = 1;
+l23_cells_round2(this_cell) = base_cell;
+l23_cells_round2(this_cell).filename = filenames{this_cell};
+% l23_cells(this_cell).exclude_trials = [1 2 3];
+
+this_cell = 2;
+l23_cells_round2(this_cell) = base_cell;
+l23_cells_round2(this_cell).filename = filenames{this_cell};
+
+this_cell = 3;
+l23_cells_round2(this_cell) = base_cell;
+l23_cells_round2(this_cell).filename = filenames{this_cell};
+
+this_cell = 4;
+l23_cells_round2(this_cell) = base_cell;
+l23_cells_round2(this_cell).filename = filenames{this_cell};
+
+this_cell = 5;
+l23_cells_round2(this_cell) = base_cell;
+l23_cells_round2(this_cell).filename = filenames{this_cell};
+
+%%
+
+cell_to_run = 1:3;
+
+clear l23_cells_round2_analyzed
+for i = 1:length(cell_to_run)
+    
+    this_cell = cell_to_run(i)
+    l23_cells_round2_analyzed(this_cell) = ...
+        analyze_opto_response(l23_cells_round2(this_cell));
 
 
+    
+end
 
+disp('done')
+%%
+this_cell = 3;
+analysis_struct = l23_cells_round2_analyzed_noshape;
+locs = [analysis_struct(this_cell).spike_data.location];
+locs = locs(3:3:end);
+[sorted_locs,sort_order] = sort(locs);
+figure; 
+hold on
 
+offsets = 2*[0 0 -1
+           0 0 0
+           0 0 1
+           1 0 -1
+           1 0 0
+           1 0 1];
+legend_cell = cell(size(offsets,1) + 1,1);
+for i = 1:size(offsets,1);
+    plot(-30:10:30,squeeze(...
+    l23_average_shape(41-offsets(i,1),41-offsets(i,2),[61:10:121]-offsets(i,3))/...
+    l23_average_shape(41-offsets(i,1),41-offsets(i,2),91-offsets(i,3))),'--','LineWidth',2)
+    legend_cell{i} = ['offset: ' mat2str(offsets(i,:))];
+end
+legend_cell{end} = 'Inferred Per Location Gain';
+plot(sorted_locs,...
+    analysis_struct(this_cell).gain(sort_order)/max(analysis_struct(this_cell).gain),'k','LineWidth',4)
+legend(legend_cell)
 
+%%
+
+figure; imagesc(squeeze(l23_average_shape(41,:,:))')
+
+figure; imagesc(squeeze(l23_average_shape(:,:,91)))
+
+%% plot bar shapes
+
+% figure; b = bar3(squeeze(struct_for_shape(cells_to_plot(3)).current_data.shape_svd(5,:,:))); colorbar; 
+figure; b = bar3(test_2D_only_inter); colorbar
+for k = 1:length(b)
+    zdata = b(k).ZData;
+    b(k).CData = zdata;
+    b(k).FaceColor = 'interp';
+end
+axis off
+
+%% play with interpolation
+
+current_data = struct_for_shape(cells_to_plot(3)).current_data;
+
+minx = min(current_data.shape_locations(:,1));
+maxx = max(current_data.shape_locations(:,1));
+miny = min(current_data.shape_locations(:,2));
+maxy = max(current_data.shape_locations(:,2));
+minz = min(current_data.shape_locations(:,3));
+maxz = max(current_data.shape_locations(:,3));
+current_data.upres = 1;
+current_data.upres_x_locs = minx:current_data.upres:maxx;
+current_data.upres_y_locs = miny:current_data.upres:maxy;
+current_data.upres_z_locs = minz:current_data.upres:maxz;
+
+start_x = sort(unique(current_data.shape_locations(:,1)));
+start_y = sort(unique(current_data.shape_locations(:,2)));
+start_z = sort(unique(current_data.shape_locations(:,3)));
+
+this_shape = current_data.shape_svd;
+this_shape(this_shape < 0) = 0;
+
+% [X, Y, Z] = meshgrid(start_x,start_y,start_z);
+[X, Y] = meshgrid(start_x,start_y);
+% [X_upres, Y_upres, Z_upres] = ...
+%     meshgrid(current_data.upres_x_locs, current_data.upres_y_locs, current_data.upres_z_locs);
+[X_upres, Y_upres] = ...
+    meshgrid(current_data.upres_x_locs, current_data.upres_y_locs);
+test_2D_only_inter = ...
+            interp2(X,Y,squeeze(this_shape(:,:,4)),X_upres,Y_upres,'linear');
+
+figure; imagesc(test_2D_only_inter)
+figure; imagesc(squeeze(this_shape(:,5,:))')
 
 
 
