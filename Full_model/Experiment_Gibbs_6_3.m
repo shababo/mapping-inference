@@ -27,7 +27,6 @@ min_time=0;
 for i_trial = 1:n_trial
     mpp(i_trial).locations = trials_locations(i_trial,:);
     mpp(i_trial).power = trials_powers(i_trial,:);
-
     if mpp(i_trial).num_events >0
         range_idx = mpp(i_trial).times<max_time & mpp(i_trial).times>min_time ;
         mpp(i_trial).num_events = sum(range_idx);
@@ -63,8 +62,9 @@ gamma_prior(2:end)= (1- gamma_prior(1))/(length(gamma_grid)-1);
 n_gibbs_sample=100;
 
 delay_params.type=2; %1: normal; 2: gamma
-delay_params.mean=60; delay_params.std=30;
+delay_params.mean=100; delay_params.std=30;
 delay_params.delayed=true; delay_params.n_grid=200;
+n_round_digit=0;
 %% Initialization:
 gain_initial= [];
 gamma_initial = [];
@@ -80,25 +80,33 @@ gamma_initial = [];
     current_template, shape_template,delay_params,linkfunc,...
     stim_threshold, g, background_rate,v_th_known,...
     gain_grid, gain_prior, gamma_grid,gamma_prior,...
-    gamma_initial,gain_initial,n_gibbs_sample);
+    gamma_initial,gain_initial,n_gibbs_sample,...
+     n_round_digit);
 %%
 
 % 1:
 %delay_params.type=2; %1: normal; 2: gamma
 %delay_params.mean=60; delay_params.std=15;
-%save('Gibbs_samples_6_3.mat','gamma_samples','gain_samples','gamma_initial','gain_initial');
+save('Gibbs_samples_6_3_July16.mat','gamma_samples','gain_samples');
 
 
 % 2:
 %delay_params.type=2; %1: normal; 2: gamma
 %delay_params.mean=60; delay_params.std=30;
-save('./Results/Gibbs_samples_6_3_v2.mat','gamma_samples','gain_samples','gamma_initial','gain_initial');
+% save('./Results/Gibbs_samples_6_3_v2.mat','gamma_samples','gain_samples');
 
 
 % 3:
 %delay_params.type=2; %1: normal; 2: gamma
 %delay_params.mean=35; delay_params.std=30;
-% save('./Results/Gibbs_samples_6_3_v3.mat','gamma_samples','gain_samples','gamma_initial','gain_initial');
+% save('./Results/Gibbs_samples_6_3_v3.mat','gamma_samples','gain_samples');
+
+
+% 4:
+%delay_params.type=2; %1: normal; 2: gamma
+%delay_params.mean=100; delay_params.std=30;
+% save('./Results/Gibbs_samples_6_3_v4.mat','gamma_samples','gain_samples');
+
 
 
 
