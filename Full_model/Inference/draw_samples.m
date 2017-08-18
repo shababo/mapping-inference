@@ -9,7 +9,7 @@ for l = 1:size(trials_locations,1)
         if isnan(trials_locations(l,m))
         else
             stimuli_size(l,:) = stimuli_size(l,:)+...
-                (pi_target(:,trials_locations(l,m)).*trials_powers(l))';
+                (pi_target(:,trials_locations(l,m))*trials_powers(l,m))';
         end
     end
 end
