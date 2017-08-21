@@ -5,7 +5,6 @@ cell_locations=cell_locs;
 n_cell = size(cell_locations,1);
 %% Preprocessing
 %--------------------------------------------------%
-
 %% Estimate the first spike probability given a template cell:
 %----------- Delay parameters
 delay_params.type=2; %1: normal; 2: gamma
@@ -24,7 +23,6 @@ stim_unique = (1:1000)/10;
 linkfunc = {@link_sig, @derlink_sig, @invlink_sig,@derinvlink_sig};
  [prob_trace]=get_firing_probability(...
     linkfunc,current_template,stim_unique,cell_params,delay_params);
-
 %% Put the cells into ten non-overlapping groups by their z-coordinates
 n_planes = 10;
 z_quantiles = quantile(cell_locations(:,3), (1:(n_planes))*0.1);
@@ -50,10 +48,9 @@ funcs.invlink = @invlink_sig;%@(resp) log(1 + exp(resp));%@(x) exp(x);
 stim_threshold=10;
 time_max =300;
 %gamma_truth=zeros(n_cell_this_plane,1);
-gamma_truth = (rand([n_cell_this_plane 1])<0.2).*(0.5+0.5*rand([n_cell_this_plane 1]));
+gamma_truth = (rand([n_cell_this_plane 1])<0.1).*(0.5+0.5*rand([n_cell_this_plane 1]));
 % gamma_truth(3)=0.8; gamma_truth(10)=0.8;gamma_truth(1)=0.8;gamma_truth(5)=0.8;
 gain_truth=0.015+rand([n_cell_this_plane 1])*0.01;
-
 %% Select the stimulation locations 
 % Load the shape template
 load('./Environments/l23_template_cell.mat');
@@ -75,271 +72,326 @@ num_per_grid_dense=16;
 %% End of preprocessing
 %-------------------------------------------------%
 
-%% Randomly select stim locations 
-n_spots_per_trial = 3;
-K_initial=20; % each cell appears approximated 20 times 
-n_replicates=2;
-single_spot_threshold=5;
-K=K_initial;
-remaining_cell_list= 1:length(cell_list);
-[trials_locations,  trials_powers] = random_design(...
-    target_locations_selected,power_selected,...
-    inner_normalized_products,single_spot_threshold,...
-    remaining_cell_list,n_spots_per_trial,K,n_replicates);
+%% Designing experiment 
+%-------------------------------------------------%
+% In each batch,
+%   a) design random trials on the remianing cells
+%   b) design random trials on the potnetially disconnected cells 
+%       (identified in the previous iteration) 
 
-% plot(target_locations_selected{this_plane}( trials_locations(i_trial,:),2),target_locations_selected{this_plane}( trials_locations(i_trial,:),1),'.')
-%% Generate mpp given the trials 
-[mpp_temp] = draw_samples(...
-    trials_locations, trials_powers, pi_target_selected, background_rate,...
-    v_th_known, v_reset_known, g_truth, gain_truth,gamma_truth,...
-    current_template,  funcs,    delay_params,stim_threshold,time_max);
-mpp=mpp_temp;
-%% Variational inference 
-% Calculate the stimulation size and the induced probability 
- [cells_probabilities, stimuli_size] = get_prob_and_size(...
-    pi_target_selected,trials_locations,trials_powers,...
-    stim_unique,prob_trace);
+%% Parameters in the design stage
 
-% Set the parameters 
-% Initialize the variational family (spike-and-slab with beta distribution)
-variational_params=struct([]);
-for i_cell = 1:n_cell_this_plane
-    variational_params(i_cell).pi = 0.01;
-    variational_params(i_cell).p_logit = log(variational_params(i_cell).pi/(1-variational_params(i_cell).pi));
-    variational_params(i_cell).log_alpha = 0; %log_alpha
-    variational_params(i_cell).log_beta = 0;%log_alpha
-end
-
-prioir_params.pi0= 0.7*ones(n_cell_this_plane,1);
-prioir_params.alpha0= ones(n_cell_this_plane,1);
-prioir_params.beta0 = ones(n_cell_this_plane,1);
-C_threshold = 0.01;maxit=1000;
-S=200;epsilon=0.01;eta_logit=0;eta_beta=0.01;
-background_rt=background_rate*time_max;
-%
-designs_initial=cells_probabilities;
-outputs_initial=zeros(size(designs_initial,1),1);
-for i_trial = 1:size(designs_initial,1)
-    outputs_initial(i_trial)=length(mpp(i_trial).times);
-end
-%%
-[parameter_history,change_history] = fit_working_model_vi(...
-    designs_initial,outputs_initial,background_rt, ...
-    variational_params,prioir_params,C_threshold,...
-    S,epsilon,eta_logit,eta_beta,maxit);
-%% Calculate the variational means 
-last_iter = size(parameter_history.pi,2);
-% Update the variational parameter 
-for i_cell = 1:n_cell_this_plane
-    variational_params(i_cell).pi = parameter_history.pi(i_cell,last_iter);
-    variational_params(i_cell).p_logit = log(variational_params(i_cell).pi/(1-variational_params(i_cell).pi));
-    variational_params(i_cell).log_alpha = log(parameter_history.alpha(i_cell,last_iter)); %log_alpha
-    variational_params(i_cell).log_beta = log(parameter_history.beta(i_cell,last_iter));%log_alpha
-end
-
-
-mean_gamma= (1-parameter_history.pi(:,last_iter)).*...
-     (C_threshold+ (1-C_threshold)./(1+parameter_history.beta(:,last_iter)./parameter_history.alpha(:,last_iter)));
-   
-variance_gamma = (1-parameter_history.pi(:,last_iter)).* ...
-    (mean_gamma.^2+ parameter_history.alpha(:,last_iter).*parameter_history.beta(:,last_iter)./...
-    (parameter_history.alpha(:,last_iter)+parameter_history.beta(:,last_iter)).^2./...
-    (parameter_history.alpha(:,last_iter)+parameter_history.beta(:,last_iter)+1));
-
-mean_gamma(gamma_truth==0)
-mean_gamma(gamma_truth>0)
-gamma_truth(gamma_truth>0)
-% Visualize the posterior distributions 
-
-
-figure(1)
-scatter(cell_locations(cell_group_list{this_plane},2),...
-    cell_locations(cell_group_list{this_plane},1),...
-    'Marker','o','SizeData',1,...
-    'MarkerFaceColor','r', 'MarkerEdgeColor','r', 'MarkerFaceAlpha',1)
-hold on;
-for i_cell = 1:length(cell_group_list{this_plane})
-    cell_index =cell_group_list{this_plane}(i_cell);
-    scatter(cell_locations(cell_index,2),...
-        cell_locations(cell_index,1),...
-        'Marker','o','SizeData',- 200/log(variance_gamma(i_cell)),...
-        'MarkerFaceColor','k', 'MarkerEdgeColor','w', 'MarkerFaceAlpha',mean_gamma(i_cell))
-end
-hold off;
-%xlabel('X (um)');
-%ylabel('Y (um)');
-axis off;
-% saveas(1,strcat('./Figures/Preprocess/','Selected_locations','.jpg'));
-
-%% Confirm and eliminate the disconnected cells 
-% i.e., the cell-killing mode 
-% Find cells with close to zero gammas 
+% Design parameters
+n_spots_per_trial = 4;
+n_replicates=2; % conduct two replicates for each trial
+K_random=20; % each cell appears approximately 20 times 
+K_confirm=10; % each cell appears approximately 10 times 
+single_spot_threshold=5; % switch to single spot stimulation if there are fewer than 5 cells 
+trial_max=2000;
 disconnect_threshold = 0.1;
-potentially_disconnected_cells =setdiff( find(mean_gamma<disconnect_threshold),weakly_identified_cells);
-%%
-K_confirm=20; % each cell appears approximated 20 times 
-K=K_confirm;
-remaining_cell_list= potentially_disconnected_cells;
-[confirm_trials_locations,  confirm_trials_powers] = random_design(...
-    target_locations_selected,power_selected,...
-    inner_normalized_products,single_spot_threshold,...
-    potentially_disconnected_cells,n_spots_per_trial,K,n_replicates);
+potentially_disconnected_cells=[];
+confirmed_disconnected_cells=[];
+% Prior distribution 
+prior_pi0=0.7;
 
-%% Conduct trials 
-[mpp_confirm] = draw_samples(...
-    confirm_trials_locations, confirm_trials_powers, pi_target_selected, background_rate,...
-    v_th_known, v_reset_known, g_truth, gain_truth,gamma_truth,...
-    current_template,  funcs,    delay_params,stim_threshold,time_max);
-%%
- [cells_probabilities_confirm, stimuli_size_confirm] = get_prob_and_size(...
-    pi_target_selected,confirm_trials_locations,confirm_trials_powers,...
-    stim_unique,prob_trace);
-
-prioir_params.pi0= 0.7*ones(n_cell_this_plane,1);
-prioir_params.alpha0= ones(n_cell_this_plane,1);
-prioir_params.beta0 = ones(n_cell_this_plane,1);
-C_threshold = 0.01;maxit=1000;
-S=200;epsilon=0.01;eta_logit=0;eta_beta=0.01;
-background_rt=background_rate*time_max;
-%
-designs_confirm=cells_probabilities_confirm;
-outputs_confirm=zeros(size(designs_confirm,1),1);
-for i_trial = 1:size(designs_confirm,1)
-    outputs_confirm(i_trial)=length(mpp_confirm(i_trial).times);
-end
-%% Apply VI using only the newly collected data 
-[parameter_history,change_history] = fit_working_model_vi(...
-    designs_confirm,outputs_confirm,background_rt, ...
-    variational_params,prioir_params,C_threshold,...
-    S,epsilon,eta_logit,eta_beta,maxit);
-
-%%
-last_iter = size(parameter_history.pi,2);
-mean_gamma= (1-parameter_history.pi(:,last_iter)).*...
-     (C_threshold+ (1-C_threshold)./(1+parameter_history.beta(:,last_iter)./parameter_history.alpha(:,last_iter)));
-   
-variance_gamma = (1-parameter_history.pi(:,last_iter)).* ...
-    (mean_gamma.^2+ parameter_history.alpha(:,last_iter).*parameter_history.beta(:,last_iter)./...
-    (parameter_history.alpha(:,last_iter)+parameter_history.beta(:,last_iter)).^2./...
-    (parameter_history.alpha(:,last_iter)+parameter_history.beta(:,last_iter)+1));
-%histogram(cells_probabilities)
-
-% Eliminate cells if their new estimates are still lower than the threshold 
-confirmed_disconnected_cells = find( mean_gamma<disconnect_threshold );
-confirmed_disconnected_cells = intersect(confirmed_disconnected_cells ,potentially_disconnected_cells);
-confirmed_disconnected_cells
-%% Conduct random trials on the remaining cells 
+% Initialize storage 
 cells_history = cell(0);
 cells_history{1}=ones(n_cell_this_plane,1);
-cells_history{2}=ones(n_cell_this_plane,1);
-cells_history{2}(confirmed_disconnected_cells)=0;
+iter=1;
+mpp_confirm=cell(0);
+trials_locations_confirm=cell(0);
+trials_powers_confirm=cell(0);
 
-K_random=10; % each cell appears approximated 20 times 
-K=K_confirm;
-remaining_cell_list= find(cells_history{2});
-[random_trials_locations,  random_trials_powers] = random_design(...
-    target_locations_selected,power_selected,...
-    inner_normalized_products,single_spot_threshold,...
-    potentially_disconnected_cells,n_spots_per_trial,K,n_replicates);
+mpp_random=cell(0);
+trials_locations_random=cell(0);
+trials_powers_random=cell(0);
 
-%% Conduct trials 
-[mpp_random] = draw_samples(...
-    random_trials_locations, random_trials_powers, pi_target_selected, background_rate,...
-    v_th_known, v_reset_known, g_truth, gain_truth,gamma_truth,...
-    current_template,  funcs,    delay_params,stim_threshold,time_max);
-%%
- [cells_probabilities_random, ~] = get_prob_and_size(...
-    pi_target_selected,confirm_trials_locations,confirm_trials_powers,...
-    stim_unique,prob_trace);
+variational_params_path.pi=zeros(n_cell_this_plane,1);
+variational_params_path.log_alpha=zeros(n_cell_this_plane,1);
+variational_params_path.log_beta=zeros(n_cell_this_plane,1);
 
-prioir_params.pi0= 0.7*ones(n_cell_this_plane,1);
-prioir_params.alpha0= ones(n_cell_this_plane,1);
-prioir_params.beta0 = ones(n_cell_this_plane,1);
+designs_random=[];designs_confirm=[];
+outputs_random=[];outputs_confirm=[];
+
+% Initialize the variational family
+var_pi_ini=0.01;
+var_log_alpha_initial=0;
+var_log_beta_initial=0;
+
+
+% Initialize the parameters in the VI
 C_threshold = 0.01;maxit=1000;
 S=200;epsilon=0.01;eta_logit=0;eta_beta=0.01;
 background_rt=background_rate*time_max;
-%
-designs_random=cells_probabilities_random;
-outputs_random=zeros(size(designs_random,1),1);
-for i_trial = 1:size(designs_random,1)
-    outputs_random(i_trial)=length(mpp_random(i_trial).times);
+
+
+visualized = 1;
+   
+%% Online design: 
+while ((n_trials < trial_max) | (sum(cells_history{iter})<10))% while not exceeding the set threshold of total trials
+    
+    %----
+    % Random trials on the surviving cells
+    K=K_random;
+    remaining_cell_list= setdiff(find(cells_history{iter}),potentially_disconnected_cells);
+    
+    [trials_locations,  trials_powers] = random_design(...
+        target_locations_selected,power_selected,...
+        inner_normalized_products,single_spot_threshold,...
+        remaining_cell_list,n_spots_per_trial,K,n_replicates);
+    [cells_probabilities_random, ~] = get_prob_and_size(...
+        pi_target_selected,trials_locations,trials_powers,...
+        stim_unique,prob_trace);
+    
+    % Generate mpp given the trials
+    [mpp_temp] = draw_samples(...
+        trials_locations, trials_powers, pi_target_selected, background_rate,...
+        v_th_known, v_reset_known, g_truth, gain_truth,gamma_truth,...
+        current_template,  funcs,    delay_params,stim_threshold,time_max);
+    mpp_random{iter}=mpp_temp;
+    trials_locations_random{iter}=trials_locations;
+    trials_powers_random{iter}=trials_powers;
+    
+    %-------
+    % Confirm and eliminate the disconnected cells
+    % i.e., the cell-killing mode
+    
+    if ~isempty(potentially_disconnected_cells)
+        % Find cells with close to zero gammas
+        K=K_confirm;
+        remaining_cell_list= potentially_disconnected_cells;
+        [trials_locations,  trials_powers] = random_design(...
+            target_locations_selected,power_selected,...
+            inner_normalized_products,single_spot_threshold,...
+            remaining_cell_list,n_spots_per_trial,K,n_replicates);
+        
+        [cells_probabilities_confirm, ~] = get_prob_and_size(...
+            pi_target_selected,trials_locations,trials_powers,...
+            stim_unique,prob_trace);
+        
+        % Conduct trials
+        [mpp_temp] = draw_samples(...
+            trials_locations, trials_powers, pi_target_selected, background_rate,...
+            v_th_known, v_reset_known, g_truth, gain_truth,gamma_truth,...
+            current_template,  funcs,    delay_params,stim_threshold,time_max);
+        mpp_confirm{iter}=mpp_temp;
+        trials_locations_confirm{iter}=trials_locations;
+        trials_powers_confirm{iter}=trials_powers;
+    else
+        mpp_confirm{iter}=[];
+        trials_locations_confirm{iter}=[];
+        trials_powers_confirm{iter}=[];
+    end
+
+%------------------------------------------%
+% Transform the data
+designs_random=[designs_random; cells_probabilities_random];
+n_previous_trials =length(outputs_random);
+for i_trial = 1:size(cells_probabilities_random,1)
+    outputs_random(n_previous_trials+i_trial,1)=length(mpp_random{iter}(i_trial).times);
 end
-%% Use all available data 
-designs=[designs_initial; designs_random];
-outputs=[outputs_initial; outputs_random];
-%%
-[parameter_history,change_history] = fit_working_model_vi(...
-    designs,outputs,background_rt, ...
+
+if ~isempty(potentially_disconnected_cells)
+    designs_confirm=[designs_confirm; cells_probabilities_confirm];
+    n_previous_trials =length(outputs_confirm);
+    for i_trial = 1:size(cells_probabilities_confirm,1)
+        outputs_confirm(n_previous_trials+i_trial,1)=length(mpp_confirm{iter}(i_trial).times);
+    end
+end
+
+%------------------------------------------%
+% Analysis: 
+
+% Fit VI on the remaining cells 
+remaining_cell_list= find(cells_history{iter});
+n_cell_remaining=length(remaining_cell_list);
+variational_params=struct([]);
+if iter== 1
+    for i_cell = 1:n_cell_remaining
+        variational_params(i_cell).pi = var_pi_ini;
+        variational_params(i_cell).p_logit = log(variational_params(i_cell).pi/(1-variational_params(i_cell).pi));
+        variational_params(i_cell).log_alpha = var_log_alpha_initial; %log_alpha
+        variational_params(i_cell).log_beta = var_log_beta_initial;%log_alpha
+    end
+else
+    for i_cell_idx = 1:n_cell_remaining
+        i_cell=remaining_cell_list(i_cell_idx);
+        variational_params(i_cell_idx).pi = variational_params_path.pi(i_cell,iter-1);
+        variational_params(i_cell_idx).p_logit = log(variational_params(i_cell_idx).pi/(1-variational_params(i_cell_idx).pi));
+        variational_params(i_cell_idx).log_alpha = variational_params_path.log_alpha(i_cell,iter-1);
+        variational_params(i_cell_idx).log_beta = variational_params_path.log_beta(i_cell,iter-1);
+    end 
+end
+prioir_params.pi0= prior_pi0*ones(n_cell_remaining,1);
+prioir_params.alpha0= ones(n_cell_remaining,1);
+prioir_params.beta0 = ones(n_cell_remaining,1);
+
+% Include only the remaining cells 
+
+designs_remained=designs_random(:,remaining_cell_list);
+active_trials=find(sum(designs_remained,2)>1e-3);
+designs_remained=designs_remained(active_trials,:);
+outputs_remained=outputs_random(active_trials,:);
+%
+[parameter_history,~] = fit_working_model_vi(...
+    designs_remained,outputs_remained,background_rt, ...
     variational_params,prioir_params,C_threshold,...
     S,epsilon,eta_logit,eta_beta,maxit);
 
-%-----------------------% 
-% Apply the variational inference:
+% Record the variational parameters
+variational_params_path.pi(remaining_cell_list,iter) = parameter_history.pi(:,end);
+variational_params_path.log_alpha(remaining_cell_list,iter) = log(parameter_history.alpha(:,end));
+variational_params_path.log_beta(remaining_cell_list,iter) = log(parameter_history.beta(:,end));
 
-
-
-%% Calculate the variational means 
 last_iter = size(parameter_history.pi,2);
-% Update the variational parameter 
-for i_cell = 1:n_cell_this_plane
-    variational_params(i_cell).pi = parameter_history.pi(i_cell,last_iter);
-    variational_params(i_cell).p_logit = log(variational_params(i_cell).pi/(1-variational_params(i_cell).pi));
-    variational_params(i_cell).log_alpha = log(parameter_history.alpha(i_cell,last_iter)); %log_alpha
-    variational_params(i_cell).log_beta = log(parameter_history.beta(i_cell,last_iter));%log_alpha
+mean_gamma_temp= (1-parameter_history.pi(:,last_iter)).*...
+     (C_threshold+ (1-C_threshold)./(1+parameter_history.beta(:,last_iter)./parameter_history.alpha(:,last_iter)));   
+%variance_gamma = (1-parameter_history.pi(:,last_iter)).* ...
+%    (mean_gamma_random.^2+ parameter_history.alpha(:,last_iter).*parameter_history.beta(:,last_iter)./...
+%    (parameter_history.alpha(:,last_iter)+parameter_history.beta(:,last_iter)).^2./...
+%    (parameter_history.alpha(:,last_iter)+parameter_history.beta(:,last_iter)+1));
+mean_gamma_random=zeros(n_cell_this_plane,1);
+mean_gamma_random(remaining_cell_list,1)=mean_gamma_temp;
+    
+
+
+% Fit the VI on the confirmatory data sets
+if ~isempty(potentially_disconnected_cells)
+    
+    remaining_cell_list= potentially_disconnected_cells;
+    n_cell_remaining=length(potentially_disconnected_cells);
+    variational_params=struct([]);
+    if iter== 1
+        for i_cell = 1:n_cell_remaining
+            variational_params(i_cell).pi = var_pi_ini;
+            variational_params(i_cell).p_logit = log(variational_params(i_cell).pi/(1-variational_params(i_cell).pi));
+            variational_params(i_cell).log_alpha = var_log_alpha_initial; %log_alpha
+            variational_params(i_cell).log_beta = var_log_beta_initial;%log_alpha
+        end
+    else
+        for i_cell_idx = 1:n_cell_remaining
+            i_cell=remaining_cell_list(i_cell_idx);
+            variational_params(i_cell_idx).pi = variational_params_path.pi(i_cell,iter-1);
+            variational_params(i_cell_idx).p_logit = log(variational_params(i_cell_idx).pi/(1-variational_params(i_cell_idx).pi));
+            variational_params(i_cell_idx).log_alpha = variational_params_path.log_alpha(i_cell,iter-1);
+            variational_params(i_cell_idx).log_beta = variational_params_path.log_beta(i_cell,iter-1);
+        end
+    end
+    prioir_params.pi0= prior_pi0*ones(n_cell_remaining,1);
+    prioir_params.alpha0= ones(n_cell_remaining,1);
+    prioir_params.beta0 = ones(n_cell_remaining,1);
+    
+    % Include only the remaining cells
+    
+    designs_remained=designs_confirm(:,remaining_cell_list);
+    active_trials=find(sum(designs_confirm,2)>1e-3);
+    designs_remained=designs_remained(active_trials,:);
+    outputs_remained=outputs_confirm(active_trials,:);
+    %
+    [parameter_history,~] = fit_working_model_vi(...
+        designs_remained,outputs_remained,background_rt, ...
+        variational_params,prioir_params,C_threshold,...
+        S,epsilon,eta_logit,eta_beta,maxit);
+    
+    % Eliminate cells if their new estimates are still lower than the threshold
+    
+last_iter = size(parameter_history.pi,2);
+    mean_gamma_temp= (1-parameter_history.pi(:,last_iter)).*...
+        (C_threshold+ (1-C_threshold)./(1+parameter_history.beta(:,last_iter)./parameter_history.alpha(:,last_iter)));
+    mean_gamma_confirm=zeros(n_cell_this_plane,1);
+    mean_gamma_confirm(remaining_cell_list,1)=mean_gamma_temp;
+    confirmed_disconnected_cells = find( mean_gamma_confirm<disconnect_threshold );
+    confirmed_disconnected_cells = intersect(confirmed_disconnected_cells,potentially_disconnected_cells);
+else
+    confirmed_disconnected_cells=[];
+end
+
+iter=iter+1;
+cells_history{iter}=cells_history{iter-1};
+cells_history{iter}(confirmed_disconnected_cells)=0;
+
+potentially_disconnected_cells =setdiff( find(mean_gamma_random<disconnect_threshold),weakly_identified_cells);
+potentially_disconnected_cells =intersect(potentially_disconnected_cells,find(cells_history{iter}));
+
+% Plot the progress
+n_trials = size(designs_random,1)+size(designs_confirm,1);
+
+    fprintf('Number of trials so far: %d; number of cells killed: %d\n',n_trials, sum(cells_history{iter}==0))
+
+    if visualized == 1
+        pi=variational_params_path.pi(:,iter-1);
+        alpha=exp(variational_params_path.log_alpha(:,iter-1));
+        beta=exp(variational_params_path.log_beta(:,iter-1));
+        mean_gamma_temp= (1-pi).*...
+            (C_threshold+ (1-C_threshold)./(1+beta./alpha));
+        variance_gamma_temp = (1-pi).* ...
+            (mean_gamma_temp.^2+ alpha.*beta./...
+            (alpha+beta).^2./(alpha+beta+1));
+        mean_gamma_temp(find(cells_history{iter}==0))=0.01;
+        variance_gamma_temp(find(cells_history{iter}==0))=0.01;
+        
+        
+        figure(iter)
+        scatter(cell_locations(cell_group_list{this_plane},2),...
+            cell_locations(cell_group_list{this_plane},1),...
+            'Marker','o','SizeData',1,...
+            'MarkerFaceColor','r', 'MarkerEdgeColor','r', 'MarkerFaceAlpha',1)
+        hold on;
+        for i_cell = 1:length(cell_group_list{this_plane})
+            cell_index =cell_group_list{this_plane}(i_cell);
+            
+            if cells_history{iter}(i_cell)>0
+            if sum(potentially_disconnected_cells==i_cell)>0
+                facecolor='g';
+            else
+                facecolor='k';
+            end
+            scatter(cell_locations(cell_index,2),...
+                cell_locations(cell_index,1),...
+                'Marker','o','SizeData',- 200/log(variance_gamma_temp(i_cell)),...
+                'MarkerFaceColor',facecolor, 'MarkerEdgeColor','w', 'MarkerFaceAlpha',mean_gamma_temp(i_cell))
+            else
+            % the cell has been eliminated 
+            facecolor='r';
+            scatter(cell_locations(cell_index,2),...
+                cell_locations(cell_index,1),...
+                'Marker','x','SizeData',80,...
+                'MarkerFaceColor',facecolor, 'MarkerEdgeColor',facecolor)
+            
+            end
+            hold on;
+        end
+        
+        hold off;
+        %xlabel('X (um)');
+        %ylabel('Y (um)');
+        axis off;
+        
+    end
+
+
+
 end
 
 
-mean_gamma= (1-parameter_history.pi(:,last_iter)).*...
-     (C_threshold+ (1-C_threshold)./(1+parameter_history.beta(:,last_iter)./parameter_history.alpha(:,last_iter)));
-   
-variance_gamma = (1-parameter_history.pi(:,last_iter)).* ...
-    (mean_gamma.^2+ parameter_history.alpha(:,last_iter).*parameter_history.beta(:,last_iter)./...
-    (parameter_history.alpha(:,last_iter)+parameter_history.beta(:,last_iter)).^2./...
-    (parameter_history.alpha(:,last_iter)+parameter_history.beta(:,last_iter)+1));
-
-mean_gamma(gamma_truth==0)
-mean_gamma(gamma_truth>0)
-gamma_truth(gamma_truth>0)
+%% Check posterior means:
+% mean_gamma(gamma_truth==0)
+% mean_gamma(gamma_truth>0)
+% gamma_truth(gamma_truth>0)
 % Visualize the posterior distributions 
 
-
-figure(2)
-scatter(cell_locations(cell_group_list{this_plane},2),...
-    cell_locations(cell_group_list{this_plane},1),...
-    'Marker','o','SizeData',1,...
-    'MarkerFaceColor','r', 'MarkerEdgeColor','r', 'MarkerFaceAlpha',1)
-hold on;
-for i_cell = 1:length(cell_group_list{this_plane})
-    cell_index =cell_group_list{this_plane}(i_cell);
-    scatter(cell_locations(cell_index,2),...
-        cell_locations(cell_index,1),...
-        'Marker','o','SizeData',- 200/log(variance_gamma(i_cell)),...
-        'MarkerFaceColor','k', 'MarkerEdgeColor','w', 'MarkerFaceAlpha',mean_gamma(i_cell))
+%% Plot the selected cells 
+for i_figure= 2:iter
+    saveas(i_figure,strcat('./Figures/Preprocess/Killed_cells',num2str(i_figure),'.jpg'));
 end
-hold off;
-%xlabel('X (um)');
-%ylabel('Y (um)');
-axis off;
-
-
-
-%--------------------------------------------------%
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+%% Get the numbers 
+summ_matrix = zeros(size(cells_history,2),3);
+% remaining cells, percentage of connected cells, percentage of disconnected cells
+for i_figure= 2:iter
+    summ_matrix(i_figure,1)=sum(cells_history{i_figure});
+    summ_matrix(i_figure,2)=sum(gamma_truth>0 & cells_history{i_figure})/sum(gamma_truth>0);
+    summ_matrix(i_figure,3)=sum(gamma_truth==0 & cells_history{i_figure})/sum(gamma_truth==0);
+end
 
 %%
 % List the non-identifiable pairs:

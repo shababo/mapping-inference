@@ -17,8 +17,8 @@ for i_cell_index=1:length(cell_list)
     i_cell= cell_list(i_cell_index);
     nucleus_loc=cell_locations(i_cell,:);
     grid_locs=nucleus_loc;
-    grid_locs=[grid_locs;nucleus_loc+grid_jitters*r1];
-    grid_locs=[grid_locs;nucleus_loc+grid_jitters*r2];
+    grid_locs=[grid_locs;bsxfun(@plus,grid_jitters*r1,nucleus_loc)];
+    grid_locs=[grid_locs;bsxfun(@plus,grid_jitters*r2,nucleus_loc)];
     target_idx=(i_cell_index-1)*(2*num_per_grid+1) +(1: (2*num_per_grid+1));
     target_locations(target_idx,:) = grid_locs;
 end
@@ -98,9 +98,9 @@ for i_cell_index=1:length(unidentified_cells)
     i_cell= cell_list(unidentified_cells(i_cell_index));
     nucleus_loc=cell_locations(i_cell,:);
     grid_locs=nucleus_loc;
-    grid_locs=[grid_locs;nucleus_loc+grid_jitters*r1];
-    grid_locs=[grid_locs;nucleus_loc+grid_jitters*r2];
-    grid_locs=[grid_locs;nucleus_loc+grid_jitters*r3];
+    grid_locs=[grid_locs;bsxfun(@plus,grid_jitters*r1,nucleus_loc)];
+    grid_locs=[grid_locs;bsxfun(@plus,grid_jitters*r2,nucleus_loc)];
+    grid_locs=[grid_locs;bsxfun(@plus,grid_jitters*r3,nucleus_loc)];
     target_idx=(i_cell_index-1)*(2*num_per_grid_dense+1) +(1: (3*num_per_grid_dense+1));
     target_locations_dense(target_idx,:) = grid_locs;
 end
