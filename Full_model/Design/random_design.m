@@ -1,6 +1,7 @@
 function [ trials_locations,  trials_powers] = random_design(...
     target_locations_selected,power_selected,...
     inner_normalized_products,single_spot_threshold,...
+    gamma_estimates,prob_weight,...
     remaining_cell_list,n_spots_per_trial,K,n_replicates)
 
 n_remaining_cell=length(remaining_cell_list);
@@ -12,18 +13,23 @@ if n_remaining_cell > single_spot_threshold
     n_stim_locations = size(target_locations_selected,1);
     this_trial_locations=zeros(1,n_spots_per_trial);
     this_trial_powers=zeros(1,n_spots_per_trial);
-    
+    % Set the probability to be inversely proportional to the
+    % gamma_estimates, since we want to eliminate more disconnected cells
+    probability_weights = (1-gamma_estimates)*prob_weight+(1-prob_weight); 
     
 else
     
+    n_unique_initial_per_plane = round(K*n_remaining_cell);
     this_trial_locations=zeros(1,n_spots_per_trial);
     this_trial_powers=zeros(1,n_spots_per_trial);
     this_trial_locations(1,2:end)=NaN;
     this_trial_powers(1,2:end)=NaN;
     n_spots_per_trial=1;
+    probability_weights =ones(n_remaining_cell,1);
+    
 end
 for i_trial =1:n_unique_initial_per_plane
-    prob_initial = ones(n_remaining_cell,1);
+    prob_initial = probability_weights;
     prob_initial=prob_initial/sum(prob_initial);
     for i_spot = 1:n_spots_per_trial
         if sum(prob_initial)>0.1
