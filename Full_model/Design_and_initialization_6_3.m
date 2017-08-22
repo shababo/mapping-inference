@@ -84,11 +84,13 @@ num_per_grid_dense=16;
 % Design parameters
 n_spots_per_trial = 4;
 n_replicates=2; % conduct two replicates for each trial
-K_random=20; % each cell appears approximately 20 times 
-K_confirm=10; % each cell appears approximately 10 times 
+K_random=10; % each cell appears approximately 20 times 
+K_confirm=20; % each cell appears approximately 10 times 
 single_spot_threshold=5; % switch to single spot stimulation if there are fewer than 5 cells 
 trial_max=2000;
-disconnect_threshold = 0.1;
+disconnect_threshold = 0.15;
+confirm_threshold = 0.1;
+
 potentially_disconnected_cells=[];
 confirmed_disconnected_cells=[];
 % Prior distribution 
@@ -127,17 +129,26 @@ background_rt=background_rate*time_max;
 
 visualized = 1;
    
+n_trials=0;
+gamma_estimates = 0.5*ones(n_cell_this_plane,1);% for drawing samples...
+
+id_continue=1;% an indicator 
+prob_weight=0;
 %% Online design: 
-while ((n_trials < trial_max) | (sum(cells_history{iter})<10))% while not exceeding the set threshold of total trials
+while ((n_trials < trial_max) & (id_continue>0))
+    % while not exceeding the set threshold of total trials
+    % and there are new cells being excluded 
     
-    %----
+    %---------------------------------
     % Random trials on the surviving cells
+    % We focus more random trials on the cells that have low gammas 
     K=K_random;
     remaining_cell_list= setdiff(find(cells_history{iter}),potentially_disconnected_cells);
     
     [trials_locations,  trials_powers] = random_design(...
         target_locations_selected,power_selected,...
         inner_normalized_products,single_spot_threshold,...
+        gamma_estimates,prob_weight,...
         remaining_cell_list,n_spots_per_trial,K,n_replicates);
     [cells_probabilities_random, ~] = get_prob_and_size(...
         pi_target_selected,trials_locations,trials_powers,...
@@ -159,10 +170,13 @@ while ((n_trials < trial_max) | (sum(cells_history{iter})<10))% while not exceed
     if ~isempty(potentially_disconnected_cells)
         % Find cells with close to zero gammas
         K=K_confirm;
+        gamma_estimates_confirm = 0.5*ones(length(potentially_disconnected_cells),1);% for drawing samples...
+
         remaining_cell_list= potentially_disconnected_cells;
         [trials_locations,  trials_powers] = random_design(...
             target_locations_selected,power_selected,...
             inner_normalized_products,single_spot_threshold,...
+            gamma_estimates_confirm,0,...
             remaining_cell_list,n_spots_per_trial,K,n_replicates);
         
         [cells_probabilities_confirm, ~] = get_prob_and_size(...
@@ -186,16 +200,16 @@ while ((n_trials < trial_max) | (sum(cells_history{iter})<10))% while not exceed
 %------------------------------------------%
 % Transform the data
 designs_random=[designs_random; cells_probabilities_random];
-n_previous_trials =length(outputs_random);
+n_previous_trials_random =length(outputs_random);
 for i_trial = 1:size(cells_probabilities_random,1)
-    outputs_random(n_previous_trials+i_trial,1)=length(mpp_random{iter}(i_trial).times);
+    outputs_random(n_previous_trials_random+i_trial,1)=length(mpp_random{iter}(i_trial).times);
 end
 
 if ~isempty(potentially_disconnected_cells)
     designs_confirm=[designs_confirm; cells_probabilities_confirm];
-    n_previous_trials =length(outputs_confirm);
+    n_previous_trials_confirm =length(outputs_confirm);
     for i_trial = 1:size(cells_probabilities_confirm,1)
-        outputs_confirm(n_previous_trials+i_trial,1)=length(mpp_confirm{iter}(i_trial).times);
+        outputs_confirm(n_previous_trials_confirm+i_trial,1)=length(mpp_confirm{iter}(i_trial).times);
     end
 end
 
@@ -213,6 +227,10 @@ if iter== 1
         variational_params(i_cell).log_alpha = var_log_alpha_initial; %log_alpha
         variational_params(i_cell).log_beta = var_log_beta_initial;%log_alpha
     end
+       prior_params.pi0= prior_pi0*ones(n_cell_remaining,1);
+    prior_params.alpha0= ones(n_cell_remaining,1);
+    prior_params.beta0 = ones(n_cell_remaining,1);
+ 
 else
     for i_cell_idx = 1:n_cell_remaining
         i_cell=remaining_cell_list(i_cell_idx);
@@ -221,21 +239,23 @@ else
         variational_params(i_cell_idx).log_alpha = variational_params_path.log_alpha(i_cell,iter-1);
         variational_params(i_cell_idx).log_beta = variational_params_path.log_beta(i_cell,iter-1);
     end 
+    prior_params.pi0= [variational_params(:).pi]';
+    prior_params.alpha0= exp([variational_params(:).log_alpha]');
+    prior_params.beta0 = exp([variational_params(:).log_beta]');
 end
-prioir_params.pi0= prior_pi0*ones(n_cell_remaining,1);
-prioir_params.alpha0= ones(n_cell_remaining,1);
-prioir_params.beta0 = ones(n_cell_remaining,1);
 
 % Include only the remaining cells 
 
-designs_remained=designs_random(:,remaining_cell_list);
+designs_remained=cells_probabilities_random;
+designs_remained=designs_remained(:,remaining_cell_list);
 active_trials=find(sum(designs_remained,2)>1e-3);
 designs_remained=designs_remained(active_trials,:);
-outputs_remained=outputs_random(active_trials,:);
+outputs_remained=outputs_random( (n_previous_trials_random+1) : length(outputs_random));
+outputs_remained=outputs_remained(active_trials,:);
 %
 [parameter_history,~] = fit_working_model_vi(...
     designs_remained,outputs_remained,background_rt, ...
-    variational_params,prioir_params,C_threshold,...
+     variational_params,prior_params,C_threshold,...
     S,epsilon,eta_logit,eta_beta,maxit);
 
 % Record the variational parameters
@@ -257,7 +277,6 @@ mean_gamma_random(remaining_cell_list,1)=mean_gamma_temp;
 
 % Fit the VI on the confirmatory data sets
 if ~isempty(potentially_disconnected_cells)
-    
     remaining_cell_list= potentially_disconnected_cells;
     n_cell_remaining=length(potentially_disconnected_cells);
     variational_params=struct([]);
@@ -277,20 +296,23 @@ if ~isempty(potentially_disconnected_cells)
             variational_params(i_cell_idx).log_beta = variational_params_path.log_beta(i_cell,iter-1);
         end
     end
-    prioir_params.pi0= prior_pi0*ones(n_cell_remaining,1);
-    prioir_params.alpha0= ones(n_cell_remaining,1);
-    prioir_params.beta0 = ones(n_cell_remaining,1);
+    prior_params.pi0= prior_pi0*ones(n_cell_remaining,1);
+    prior_params.alpha0= ones(n_cell_remaining,1);
+    prior_params.beta0 = ones(n_cell_remaining,1);
     
     % Include only the remaining cells
     
-    designs_remained=designs_confirm(:,remaining_cell_list);
-    active_trials=find(sum(designs_confirm,2)>1e-3);
-    designs_remained=designs_remained(active_trials,:);
-    outputs_remained=outputs_confirm(active_trials,:);
+designs_remained=cells_probabilities_confirm;
+designs_remained=designs_remained(:,remaining_cell_list);
+active_trials=find(sum(designs_remained,2)>1e-3);
+designs_remained=designs_remained(active_trials,:);
+outputs_remained=outputs_confirm( (n_previous_trials_confirm+1) : length(outputs_confirm));
+outputs_remained=outputs_remained(active_trials,:);
+   
     %
     [parameter_history,~] = fit_working_model_vi(...
         designs_remained,outputs_remained,background_rt, ...
-        variational_params,prioir_params,C_threshold,...
+        variational_params,prior_params,C_threshold,...
         S,epsilon,eta_logit,eta_beta,maxit);
     
     % Eliminate cells if their new estimates are still lower than the threshold
@@ -300,7 +322,7 @@ last_iter = size(parameter_history.pi,2);
         (C_threshold+ (1-C_threshold)./(1+parameter_history.beta(:,last_iter)./parameter_history.alpha(:,last_iter)));
     mean_gamma_confirm=zeros(n_cell_this_plane,1);
     mean_gamma_confirm(remaining_cell_list,1)=mean_gamma_temp;
-    confirmed_disconnected_cells = find( mean_gamma_confirm<disconnect_threshold );
+    confirmed_disconnected_cells = find( mean_gamma_confirm<confirm_threshold );
     confirmed_disconnected_cells = intersect(confirmed_disconnected_cells,potentially_disconnected_cells);
 else
     confirmed_disconnected_cells=[];
@@ -310,11 +332,23 @@ iter=iter+1;
 cells_history{iter}=cells_history{iter-1};
 cells_history{iter}(confirmed_disconnected_cells)=0;
 
-potentially_disconnected_cells =setdiff( find(mean_gamma_random<disconnect_threshold),weakly_identified_cells);
+potentially_disconnected_cells =find(mean_gamma_random<disconnect_threshold);
 potentially_disconnected_cells =intersect(potentially_disconnected_cells,find(cells_history{iter}));
 
-% Plot the progress
 n_trials = size(designs_random,1)+size(designs_confirm,1);
+remaining_cell_list= setdiff(find(cells_history{iter}),potentially_disconnected_cells);
+    gamma_estimates=mean_gamma_random(remaining_cell_list);
+    
+    if isempty(potentially_disconnected_cells)
+        if id_continue==2
+            id_continue=0;% terminate
+        else
+            id_continue=2;
+        end
+    else
+       id_continue=1; 
+    end
+% Plot the progress
 
     fprintf('Number of trials so far: %d; number of cells killed: %d\n',n_trials, sum(cells_history{iter}==0))
 
@@ -349,8 +383,9 @@ n_trials = size(designs_random,1)+size(designs_confirm,1);
             scatter(cell_locations(cell_index,2),...
                 cell_locations(cell_index,1),...
                 'Marker','o','SizeData',- 200/log(variance_gamma_temp(i_cell)),...
-                'MarkerFaceColor',facecolor, 'MarkerEdgeColor','w', 'MarkerFaceAlpha',mean_gamma_temp(i_cell))
-            else
+                'MarkerFaceColor',facecolor, 'MarkerEdgeColor',facecolor,...
+                'MarkerFaceAlpha',0.3+ 0.7*mean_gamma_temp(i_cell))
+            else 
             % the cell has been eliminated 
             facecolor='r';
             scatter(cell_locations(cell_index,2),...
@@ -372,8 +407,8 @@ n_trials = size(designs_random,1)+size(designs_confirm,1);
 
 
 end
-
-
+%% End of the cell-killing mode
+%--------------------------------------------------------%
 %% Check posterior means:
 % mean_gamma(gamma_truth==0)
 % mean_gamma(gamma_truth>0)
@@ -393,406 +428,5 @@ for i_figure= 2:iter
     summ_matrix(i_figure,3)=sum(gamma_truth==0 & cells_history{i_figure})/sum(gamma_truth==0);
 end
 
-%%
-% List the non-identifiable pairs:
-% Two cells are non-identifiable if their responses differ only in a few
-% trials (<5?)
-% diff_trials_threshold = 5;
-% 
-% nonidentifiable_pairs=zeros(n_cell,n_cell);
-% for i_cell = 1:n_cell
-%     nonid_pairs= find(sum(abs(cells_probabilities-cells_probabilities(:,i_cell)),1)<diff_trials_threshold);
-%     nonidentifiable_pairs(i_cell,nonid_pairs)=1;
-%     nonidentifiable_pairs(i_cell,i_cell)=0;
-% end
-% 
-% %%
-% disconnected_cell_path = []; %initialize the disconnected cells
-% n_trial =length(mpp);
-% eta = 0.001;
-% %spike_threshold = 40;
-% S=200;
-% epsilon=0.01;
-% changes=1;
-% n_cell=length(gain_truth);
-% % psi(x)% digamma function
-% 
-% % Initialize the prior distributions
-% pi0= 0.7*ones(n_cell,1);alpha0= ones(n_cell,1);beta0 = ones(n_cell,1);
-% 
-% gamma0 = background_rate;
-% 
-% % Initialize the variational family (spike-and-slab with beta distribution)
-% variational_params=struct([]);
-% for i_cell = 1:n_cell
-%     variational_params(i_cell).pi = 0.2;
-%     variational_params(i_cell).alpha = 1;
-%     variational_params(i_cell).beta = 1;
-% end
-% 
-% %---------------------------------------------------%
-% % Use gradient descent to find the optimal:
-% 
-% sum_of_logs=zeros(S,1);
-% dqdpi=zeros(n_cell,S);
-% dqdalpha=zeros(n_cell,S);
-% dqdbeta=zeros(n_cell,S);
-% 
-% dELBOdpi=zeros(n_cell,S);
-% dELBOdalpha=zeros(n_cell,S);
-% dELBOdbeta=zeros(n_cell,S);
-% 
-% temp_rec_pi=zeros(n_cell,1000);
-% temp_rec_alpha=zeros(n_cell,1000);
-% temp_rec_beta=zeros(n_cell,1000);
-% change_history=zeros(1000,1);
-% 
-% iter = 1;
-% % pickout the identifiable cells
-% identifiable_index= sum(nonidentifiable_pairs,2)==0;
-% %%
-% while changes > epsilon
-%     v_pi =[variational_params(:).pi]';
-%     v_alpha = [variational_params(:).alpha]';
-%     v_beta = [variational_params(:).beta]';
-%     
-%     temp_rec_pi(:,iter)=v_pi;
-%     temp_rec_alpha(:,iter)=v_alpha;
-%     temp_rec_beta(:,iter)=v_beta;
-%     
-%     
-%     % v_pi=temp_rec_pi(:,iter);
-%     % v_alpha=temp_rec_alpha(:,iter);
-%     % v_beta=temp_rec_beta(:,iter);
-%     
-%     iter=iter+1;
-%     for s= 1:S
-%         % Draw samples from the variational distribution given the current
-%         % parameters
-%         gamma_spike = rand(n_cell,1) > v_pi;
-%         gamma_slab = betarnd(v_alpha,v_beta,[n_cell 1]);
-%         gamma_sample = gamma_spike.*gamma_slab;
-%         %bound gamma from 1 to avoid singularity
-%         gamma_sample=min(gamma_sample, 0.999);
-%         
-%         
-%         % Calculate the loglikelihood given the current samples of gamma
-%         
-%         % Need to change how we estimate the likelihood
-%         
-%         loglklh_vec = zeros(n_trial,1);
-%         for i_trial = 1:n_trial
-%             n_events=length(mpp(i_trial).times);
-%             [lklh] = calculate_likelihood_sum_bernoulli(n_events,...
-%                 [gamma0; gamma_sample],[1 cells_probabilities(i_trial,:)]');
-%                 loglklh_vec(i_trial)=log(lklh);
-%         end
-%         
-%         loglklh=sum(loglklh_vec);
-%         %loglklh
-%         if isinf(loglklh)
-%             dELBOdpi(:,s)=0;
-%             dELBOdalpha(:,s)= 0;
-%             dELBOdbeta(:,s)= 0;
-%             
-%         else
-%             % Calculate the prior probability given the current sample of gamma
-%             logprior=sum(log(pi0).*(gamma_sample==0)+log(1-pi0).*(gamma_sample>0)+ ...
-%                 (gamma_sample>0).*log(betapdf(gamma_sample,alpha0,beta0)));
-%             
-%             % Calculate the probability of the variational distribution given the
-%             % current sample of gamma
-%             logvariational=sum(log(max(0.001,v_pi)).*(gamma_sample==0)+...
-%                 log(max(0.001, 1-v_pi)).*(gamma_sample>0)+ ...
-%                 (gamma_sample>0).*log( min(1000,max(0.0001,betapdf(gamma_sample,v_alpha,v_beta)))));
-%             
-%             sum_of_logs(s) = loglklh+logprior-logvariational;
-%             
-%             % Calculate the gradients of the variational distribution w.r.t. the
-%             % prior parameters
-%             dqdpi(:,s)= (gamma_sample==0)./max(0.001,v_pi)-...
-%                 (gamma_sample>0)./max(0.001, 1-v_pi);
-%             alphaplusbeta = v_alpha+v_beta;
-%             dqdalpha(:,s)= (gamma_sample>0).*(log(max(0.001,gamma_sample)) + psi(alphaplusbeta)-psi(v_alpha));
-%             dqdalpha(gamma_sample==0,s)=0;
-%             dqdbeta(:,s)= (gamma_sample>0).*(log(max(0.001,1-gamma_sample)) + psi(alphaplusbeta)-psi(v_beta));
-%             dqdbeta(gamma_sample==0,s)=0;
-%             
-%             dELBOdpi(:,s)=sum_of_logs(s)*dqdpi(:,s);
-%             dELBOdalpha(:,s)= sum_of_logs(s)*dqdalpha(:,s);
-%             dELBOdbeta(:,s)= sum_of_logs(s)*dqdbeta(:,s);
-%         end
-%         %dELBOdbeta(:,s)
-%     end
-%     % Update the variational parameters using gradient descents
-%     v_pi_old = v_pi;v_alpha_old = v_alpha;v_beta_old = v_beta;
-%     v_pi = v_pi+eta*mean(dELBOdpi,2);
-%     v_alpha = v_alpha+eta*mean(dELBOdalpha,2);
-%     v_beta = v_beta+eta*mean(dELBOdbeta,2);
-%     
-%     v_pi=max(0,min(1,v_pi));
-%     v_alpha=max(0.001,v_alpha);
-%     v_beta=max(0.001,v_beta);
-%     
-%     
-%     % Calculate the stopping criteriar
-%     %changes=sqrt(sum(mean(dELBOdpi,2).^2)+sum(mean(dELBOdalpha,2).^2)+sum(mean(dELBOdbeta,2).^2));
-%     mean_gamma= (1-v_pi).*v_alpha./(v_alpha+v_beta);
-%     mean_gamma_old= (1-v_pi_old).*v_alpha_old./(v_alpha_old+v_beta_old);
-%     
-%     changes = sqrt(sum((mean_gamma(identifiable_index)-mean_gamma_old(identifiable_index)).^2)/sum(mean_gamma_old(identifiable_index).^2 ));
-%     changes2=  sum(abs([variational_params(:).pi]'-v_pi))+...
-%         sum(abs([variational_params(:).alpha]'-v_alpha))+...
-%         sum(abs([variational_params(:).beta]'-v_beta));
-%     
-%     for i_cell = 1:n_cell
-%         variational_params(i_cell).pi=v_pi(i_cell);
-%         variational_params(i_cell).alpha=v_alpha(i_cell);
-%         variational_params(i_cell).beta = v_beta(i_cell);
-%     end
-%     change_history(iter)=changes;
-%     
-%     fprintf('Iteration: %d; change: %d and %d\n',iter,changes,changes2)
-% end
-% 
-% % The posterior mean is
-% mean_gamma= (1-v_pi).*v_alpha./(v_alpha+v_beta)
-% gamma_truth
-% 
-% 
-% %%
-% % Filter the disconneced neurons (very low gamma mean with small variance)
-% 
-% variance_gamma = (1-v_pi).*(mean_gamma.^2+ v_alpha.*v_beta./(v_alpha+v_beta).^2./(v_alpha+v_beta+1));
-% 
-% disconnected_cells = (mean_gamma<0.1) & (variance_gamma <0.01);
-% disconnected_cells = disconnected_cells | disconnected_cells;
-% % how to incorporate previous info on disconnected cells?
-% % add the list of disconnected cell to the previous one?
-% disconnected_cell_path = [disconnected_cell_path disconnected_cells];
-% 
-% 
-% %% Calculate the posterior variances
-% post_variances=variance_gamma; % useful for calculating the score for each locations later
-% post_variances(sum(nonidentifiable_pairs,1)>0)=1000;
-% 
-% % set the variances for the unidentifiable pairs to be infinity
-% 
-% 
-% %% Now predict stim reactions
-% % Evaluate the expected output on the target locations
-% 
-% % Set these parameters as the prior parameters:
-% pi0=[variational_params(:).pi]';
-% alpha0=[variational_params(:).alpha]';
-% beta0=[variational_params(:).beta]';
-% 
-% 
-% epsilon=0.01;
-% params_by_target=struct([]);
-% score_target = zeros(size(target_locations,1),1);
-% for i_target= 1:size(target_locations,1)
-%     % calculate the size of stimulations, and find the cells stimulated
-%     stimuli_temp = pi_target(:,i_target).*power_level(3);
-%     temp_idx= stimuli_temp>spike_threshold; %cells_stimulated_temp
-%     
-%     % If the selected cells are identifiable in the previous data, we will
-%     % consider this locations:
-%     if sum(nonidentifiable_pairs(min(find(temp_idx)),find(temp_idx)))>0
-%         % meaning that the new stimulated cells are non-identifiable
-%         score_target(i_target)=0;
-%         
-%     else
-%         
-%         % Narrow our discussion to cells that are stimulated in this trials
-%         pi0_local=[variational_params(temp_idx).pi]';
-%         % bound pi0_local away from singularity:
-%         pi0_local = min(0.9,max(0.1,pi0_local));
-%         
-%         alpha0_local=[variational_params(temp_idx).alpha]';
-%         beta0_local=[variational_params(temp_idx).beta]';
-%         
-%         
-%         
-%         % Variational updates:
-%         
-%         
-%         
-%         temp_rec_pi=zeros(sum(temp_idx),1000);
-%         temp_rec_alpha=zeros(sum(temp_idx),1000);
-%         temp_rec_beta=zeros(sum(temp_idx),1000);
-%         change_history=zeros(1000,1);
-%         
-%         changes=1;
-%         v_pi_old =pi0_local;
-%         v_alpha_old = alpha0_local;
-%         v_beta_old = beta0_local;
-%         iter=1;
-%         while changes > epsilon
-%             v_pi =v_pi_old;
-%             v_alpha = v_alpha_old;
-%             v_beta = v_beta_old;
-%             
-%             temp_rec_pi(:,iter)=v_pi;
-%             temp_rec_alpha(:,iter)=v_alpha;
-%             temp_rec_beta(:,iter)=v_beta;
-%             
-%             % v_pi=temp_rec_pi(:,iter);
-%             % v_alpha=temp_rec_alpha(:,iter);
-%             % v_beta=temp_rec_beta(:,iter);
-%             iter=iter+1;
-%             dELBOdpi_temp=zeros(sum(temp_idx),S);
-%             dELBOdalpha_temp=zeros(sum(temp_idx),S);
-%             dELBOdbeta_temp=zeros(sum(temp_idx),S);
-%             gsample=zeros(1,S);
-%             for s= 1:S
-%                 gamma_spike = rand(sum(temp_idx),1) > v_pi;
-%                 gamma_slab = betarnd(v_alpha,v_beta,[sum(temp_idx) 1]);
-%                 gamma_sample = gamma_spike.*gamma_slab;
-%                 %bound gamma from 1 to avoid singularity
-%                 gamma_sample=min(gamma_sample, 0.999);
-%                 gsample(s)=gamma_sample;
-%                 
-%                 % Calculate the gradient given the the prob_no_event, and prob_event
-%                 prob_no_event= (1-gamma0)*prod(1-gamma_sample);
-%                 prob_event=1-prob_no_event;
-%                 
-%                 % Calculate the prior probability given the current sample of gamma
-%                 logprior=sum(log(pi0_local).*(gamma_sample==0)+log(1-pi0_local).*(gamma_sample>0)+ ...
-%                     (gamma_sample>0).*log( min(1000,max(0.0001,betapdf(gamma_sample,v_alpha,v_beta)))));
-%                 
-%                 % Calculate the probability of the variational distribution given the
-%                 % current sample of gamma
-%                 logvariational=sum(log(max(0.001,v_pi)).*(gamma_sample==0)+...
-%                     log(max(0.001, 1-v_pi)).*(gamma_sample>0)+ ...
-%                     (gamma_sample>0).*log( min(1000,max(0.0001,betapdf(gamma_sample,v_alpha,v_beta)))));
-%                 
-%                 % Calculate the gradients of the variational distribution w.r.t. the
-%                 % prior parameters
-%                 dqdpi_temp= (gamma_sample==0)./max(0.001,v_pi)-...
-%                     (gamma_sample>0)./max(0.001, 1-v_pi);
-%                 alphaplusbeta = v_alpha+v_beta;
-%                 dqdalpha_temp= (gamma_sample>0).*(log(max(0.001,gamma_sample)) + ...
-%                     psi(alphaplusbeta)-psi(v_alpha));
-%                 dqdalpha_temp(gamma_sample==0)=0;
-%                 dqdbeta_temp= (gamma_sample>0).*(log(max(0.001,1-gamma_sample)) + ...
-%                     psi(alphaplusbeta)-psi(v_beta));
-%                 dqdbeta_temp(gamma_sample==0)=0;
-%                 
-%                 
-%                 % Calculate the loglikelihood given the current samples of gamma
-%                 if prob_no_event>0 % avoid singularity
-%                     loglklh_0=log(prob_no_event);
-%                     sum_of_logs_0 = loglklh_0+logprior-logvariational;
-%                     dELBOdpi_temp(:,s)=sum_of_logs_0*dqdpi_temp*prob_no_event;
-%                     dELBOdalpha_temp(:,s)=sum_of_logs_0*dqdalpha_temp*prob_no_event;
-%                     dELBOdbeta_temp(:,s)=sum_of_logs_0*dqdbeta_temp*prob_no_event;
-%                 end
-%                 
-%                 if prob_event > 0 % avoid singularity
-%                     loglklh_1=log(prob_event);
-%                     sum_of_logs_1 = loglklh_1+logprior-logvariational;
-%                     dELBOdpi_temp(:,s)=dELBOdpi_temp(:,s)+sum_of_logs_0*dqdpi_temp*prob_event;
-%                     dELBOdalpha_temp(:,s)=dELBOdalpha_temp(:,s)+sum_of_logs_0*dqdalpha_temp*prob_event;
-%                     dELBOdbeta_temp(:,s)=dELBOdbeta_temp(:,s)+sum_of_logs_0*dqdbeta_temp*prob_event;
-%                 end
-%                 
-%             end
-%             
-%             v_pi = v_pi+eta*mean(dELBOdpi_temp,2);
-%             v_alpha = v_alpha+eta*mean(dELBOdalpha_temp,2);
-%             v_beta = v_beta+eta*mean(dELBOdbeta_temp,2);
-%             
-%             v_pi=max(0,min(1,v_pi));
-%             v_alpha=max(0.001,v_alpha);
-%             v_beta=max(0.001,v_beta);
-%             
-%             % Calculate the stopping criteriar
-%             mean_gamma= (1-v_pi).*v_alpha./(v_alpha+v_beta);
-%             mean_gamma_old= (1-v_pi_old).*v_alpha_old./(v_alpha_old+v_beta_old);
-%             
-%             changes = sqrt(sum((mean_gamma-mean_gamma_old).^2)/sum(mean_gamma_old.^2 ));
-%             change_history(iter)=changes;
-%             v_pi_old = v_pi;
-%             v_alpha_old = v_alpha;
-%             v_beta_old = v_beta;
-%             
-%             fprintf('Iteration: %d; change: %d\n',iter,changes)
-%         end
-%         
-%         % Calculate the score of this target as the changes in the posterior
-%         % variances
-%         mean_gamma= (1-v_pi).*v_alpha./(v_alpha+v_beta);
-%         new_variance=(1-v_pi).*(mean_gamma.^2+ v_alpha.*v_beta./(v_alpha+v_beta).^2./(v_alpha+v_beta+1));
-%         
-%         score_target(i_target) = sum(abs(post_variances(temp_idx)-new_variance));
-%         
-%     end
-%     
-% end
-% %% Now select the trials based on the scores
-% 
-% 
-% %% Testing code:
-% 
-% 
-% % Find out how many cell are stimulated in each trial
-% spike_threshold = 40;
-% n_cell=length(gain_truth);
-% stimuli_size=zeros(size(trials_locations,1),n_cell);
-% for l = 1:size(trials_locations,1)
-%     for m = 1:size(trials_locations,2)
-%         if isnan(trials_locations(l,m))
-%         else
-%             stimuli_size(l,:) = stimuli_size(l,:)+...
-%                 (pi_target(:,trials_locations(l,m)).*trials_powers(l))';
-%         end
-%     end
-% end
-% 
-% cells_stimulated = zeros([size(trials_locations,1) n_cell]);
-% for   l = 1:size(trials_locations,1)
-%     cells_stimulated(l,: )= stimuli_size(l,:)>spike_threshold;
-% end
-% 
-% % need a vector to represent probability of events from other sources
-% % the probability depends on the number of other stimulated cells, and the
-% % distribution of gamma
-% % can be an estimates from simulation
-% sparsity_level = 0.05;
-% prob_spikes_other = zeros(21,1); % 0 to 20 cells
-% for i_events=1:length(prob_spikes_other)
-%     prob_no_spikes = (1-time_max*background_rate)*(1-sparsity_level)^(i_events-1);
-%     prob_spikes_other(i_events) = 1-prob_no_spikes;
-% end
-% 
-% %%
-% % We can calculate the likelihood across different values of gamma
-% % ...find MLE of gamma, and check its variance?
-% 
-% gamma_low = 0.2;
-% gamma_up = 0.8;
-% prob_gamma_greater_than_lb = zeros(n_cell,1);
-% prob_gamma_smaller_than_ub = zeros(n_cell,1);
-% 
-% for i_cell = 1:n_cell
-%     related_trials = find(cells_stimulated(:,i_cell));
-%     prob_low=1;prob_up=1;
-%     for i_trial = 1:length(related_trials)
-%         num_stimulated_cells=sum(cells_stimulated(related_trials(i_trial),:));
-%         prob_low_temp = prob_spikes_other(num_stimulated_cells+1)*(1-gamma_low) +gamma_low;
-%         prob_up_temp = prob_spikes_other(num_stimulated_cells+1)*(1-gamma_up) +gamma_up;
-%         if isempty(mpp_temp(related_trials(i_trial)).times)
-%             prob_low = prob_low*(1-prob_low_temp);
-%             prob_up = prob_up*(1-prob_up_temp);
-%         else
-%             prob_low = prob_low*(prob_low_temp);
-%             prob_up = prob_up*(prob_up_temp);
-%         end
-%     end
-%     prob_gamma_greater_than_lb(i_cell)=prob_low;
-%     prob_gamma_smaller_than_ub(i_cell)=prob_up;
-% end
-% % We can simulate the null distribution given the number of cells
-% % stimulated in each trial
-
+%% Second stage: learning the cell properties
+%---------------------------------------------%
