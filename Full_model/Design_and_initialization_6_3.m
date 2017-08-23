@@ -430,3 +430,45 @@ end
 
 %% Second stage: learning the cell properties
 %---------------------------------------------%
+last_iter=length(cells_history); 
+cells_history{iter}
+% Use variational inference to update the gain parameters
+% Maybe use the variational inference to update the gains as well?
+
+%% Another precalculation
+%------------------------------%
+% Calculate the firing intensity
+stim_scale=200;
+stim_grid = (1:1000)/stim_scale;
+cell_params.g=0.02;
+[prob_trace,v_trace] = get_first_spike_intensity(...
+    linkfunc,...
+    current_template,stim_grid,cell_params,delay_params);
+
+% 
+eff_stim_threshold=stim_grid(min(find(sum(prob_trace,2)>1e-2)));
+%%
+this_iter=last_iter-1;
+mpp_temp=mpp_random{this_iter};
+loc_temp=trials_locations_random{this_iter};
+pow_temp=trials_powers_random{this_iter};
+
+[~, stim_size] = get_prob_and_size(...
+        pi_target_selected,loc_temp,pow_temp,...
+        stim_unique,prob_trace);
+    
+%%
+
+stim_threshold = 10;
+gain_bound.up=0.03;
+gain_bound.low=0.01;
+
+mpp=mpp_temp;
+%stim_size=stim_size(:,find(cells_history{last_iter}));
+
+[parameter_history] = fit_full_model_vi(...
+    stim_size, mpp_temp, background_rate, ...
+     prob_trace,    stim_grid,...
+   stim_scale,eff_stim_threshold,gain_bound,...
+    variational_params,prior_params,C_threshold,stim_threshold,...
+    S,epsilon,eta_logit,eta_beta,maxit);
