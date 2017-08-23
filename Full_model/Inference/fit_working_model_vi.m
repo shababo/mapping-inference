@@ -21,7 +21,7 @@ dqdalpha=zeros(n_cell,S);
 dqdbeta=zeros(n_cell,S);
 
 f_p_logit=zeros(n_cell,S);
-f_dalpha=zeros(n_cell,S);
+f_alpha=zeros(n_cell,S);
 f_beta=zeros(n_cell,S);
 
 h_p_logit=zeros(n_cell,S);
