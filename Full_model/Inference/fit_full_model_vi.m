@@ -5,32 +5,16 @@ function [parameter_history] = fit_full_model_vi(...
     variational_params,prior_params,C_threshold,stim_threshold,...
     S,epsilon,eta_logit,eta_beta,maxit)
 
-% stim_threshold = 10;
-% gain_bound.up=0.03;
-% gain_bound.low=0.01;
 
-
+%  stim_size; 
+%  mpp=mpp_temp;
+ 
+ 
 % mpp=mpp_temp;
 % stim_size=stim_size(:,find(cells_history{last_iter}));
 
 n_cell=size(stim_size,2);n_trial=size(stim_size,1);
 n_grid=size(prob_trace,2);
-
-for i_cell = 1:n_cell
-    variational_params(i_cell).pi = 0.01;
-    variational_params(i_cell).p_logit = log(variational_params(i_cell).pi/(1-variational_params(i_cell).pi));
-    variational_params(i_cell).log_alpha = 0;
-    variational_params(i_cell).log_beta = 0;
-    variational_params(i_cell).log_alpha_gain = 0;
-    variational_params(i_cell).log_beta_gain = 0;
-end
-prior_params.pi0= 0.01*ones(n_cell,1);
-prior_params.alpha0= ones(n_cell,1);
-prior_params.beta0 = ones(n_cell,1);
-prior_params.alpha0_gain= ones(n_cell,1);
-prior_params.beta0_gain = ones(n_cell,1);
-
-    
 
 sum_of_logs=zeros(S,1);logvariational=zeros(n_cell,S);
 logprior=zeros(n_cell,S);loglklh=zeros(n_cell,S);
@@ -236,17 +220,17 @@ while (changes > epsilon & iter<maxit)
           v_p_logit(i_cell) = v_p_logit(i_cell)+eta_logit*mean(f_p_logit(i_cell,:)-a_constant*h_p_logit(i_cell,:));
             v_log_alpha(i_cell) = v_log_alpha(i_cell)+eta_beta*mean(f_alpha(i_cell,:)-a_constant*h_alpha(i_cell,:));
             v_log_beta(i_cell) = v_log_beta(i_cell)+eta_beta*mean(f_beta(i_cell,:)-a_constant*h_beta(i_cell,:));
-            v_log_alpha(i_cell) = v_log_alpha_gain(i_cell)+...
+            v_log_alpha_gain(i_cell) = v_log_alpha_gain(i_cell)+...
                 eta_beta*mean(f_alpha_gain(i_cell,:)-a_constant*h_alpha_gain(i_cell,:));
-            v_log_beta(i_cell) = v_log_beta_gain(i_cell)+...
+            v_log_beta_gain(i_cell) = v_log_beta_gain(i_cell)+...
                 eta_beta*mean(f_beta_gain(i_cell,:)-a_constant*h_beta_gain(i_cell,:));
         else
           v_p_logit(i_cell) = v_p_logit(i_cell)+(eta_beta/sqrt(iter*log(iter)))*mean(f_p_logit(i_cell,:)-a_constant*h_p_logit(i_cell,:));
             v_log_alpha(i_cell) = v_log_alpha(i_cell)+(eta_beta/sqrt(iter*log(iter)))*mean(f_alpha(i_cell,:)-a_constant*h_alpha(i_cell,:));
             v_log_beta(i_cell) = v_log_beta(i_cell)+(eta_beta/sqrt(iter*log(iter)))*mean(f_beta(i_cell,:)-a_constant*h_beta(i_cell,:));
-           v_log_alpha(i_cell) = v_log_alpha(i_cell)+...
+           v_log_alpha_gain(i_cell) = v_log_alpha_gain(i_cell)+...
                (eta_beta/sqrt(iter*log(iter)))*mean(f_alpha_gain(i_cell,:)-a_constant*h_alpha_gain(i_cell,:));
-            v_log_beta(i_cell) = v_log_beta(i_cell)+...
+            v_log_beta_gain(i_cell) = v_log_beta_gain(i_cell)+...
                 (eta_beta/sqrt(iter*log(iter)))*mean(f_beta_gain(i_cell,:)-a_constant*h_beta_gain(i_cell,:));
         
         end
@@ -267,19 +251,28 @@ while (changes > epsilon & iter<maxit)
     
     % Calculate the stopping criteriar
     %changes=sqrt(sum(mean(dELBOdpi,2).^2)+sum(mean(dELBOdalpha,2).^2)+sum(mean(dELBOdbeta,2).^2));
-%     mean_gamma= (1-v_pi).*(C_threshold+ (1-C_threshold)*v_alpha./(v_alpha+v_beta));
+ %mean_gamma= (1-v_pi).*(C_threshold+ (1-C_threshold)*v_alpha./(v_alpha+v_beta));
+ mean_gamma=[1 1]';
 %     mean_gamma_old= (1-v_pi_old).*(C_threshold+ (1-C_threshold)*v_alpha_old./(v_alpha_old+v_beta_old));
     
     %changes = sqrt(sum((mean_gamma-mean_gamma_old).^2)/sum(mean_gamma_old.^2 ));
     changes=  sum(abs(v_pi_old-v_pi))+...
         sum(abs(v_log_alpha_old-v_log_alpha))+...
         sum(abs(v_log_beta_old-v_log_beta)) +...
-    sum(abs(v_log_alpha_gain_old-v_log_alpha))+...
-        sum(abs(v_log_beta_gain_old-v_log_beta_gain));
+    sum(abs(v_log_alpha_gain_old-v_log_alpha_gain).*mean_gamma)+...
+        sum(abs(v_log_beta_gain_old-v_log_beta_gain).*mean_gamma);
     changes= changes/(sum(abs(v_log_alpha_old))+sum(abs(v_log_beta_old))+sum(abs(v_pi_old))+...
-        sum(abs(v_log_alpha_gain_old))+sum(abs(v_log_beta_gain_old))); 
+        sum(abs(v_log_alpha_gain_old).*mean_gamma)+sum(abs(v_log_beta_gain_old).*mean_gamma)); 
     
     change_history(iter)=changes;
     
     fprintf('Change: %d;\n',changes)
 end
+%% Debug section:
+% mean_gamma= (1-v_pi).*(C_threshold+ (1-C_threshold)*v_alpha./(v_alpha+v_beta));
+% mean_gain= v_alpha_gain./(v_alpha_gain+v_beta_gain)*(gain_bound.up-gain_bound.low) +gain_bound.low;
+%         
+% gamma_truth(remaining_cell_list)
+% mean_gamma
+% gain_truth(remaining_cell_list)
+% mean_gain
