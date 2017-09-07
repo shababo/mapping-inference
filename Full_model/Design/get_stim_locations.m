@@ -1,5 +1,5 @@
 function [pi_target_selected, inner_normalized_products,target_locations_selected,power_selected,...
-    target_locations_all,weakly_identified_cells] = ...
+    target_locations_all,cell_neighbours] = ...
     get_stim_locations(...
     cell_list,cell_locations,power_level,...
     r1,r2,r3,num_per_grid,num_per_grid_dense,shape_template,...
@@ -123,6 +123,9 @@ for l = 1:size(pi_target_dense,2)
     end
 end
 
+% define the neighbours of the cells ...
+cell_neighbours=diag(ones(length(cell_list),1));
+
 % A heuristic approach
 % For each unidentifiable cell, find rows that maximize its firing
 % probabilities subtracting the second largest one
@@ -138,15 +141,16 @@ for i_cell_index = 1:length(unidentified_cells)
     [~, tar_idx]=max(max_diff);
     unique_stim_locations(i_cell)=tar_idx+size(pi_target,2);
     unique_stim_powers(i_cell)=power_level(1);
+    cell_neighbours(i_cell,prob_temp(tar_idx,:)>1e-2)=1;
 end
-
+ cell_neighbours= 1*((cell_neighbours+ cell_neighbours')>0);
+ cell_neighbours = 1*(expm(cell_neighbours)>0);
 
  % Summarize the stim locations and power 
  target_locations_all= [target_locations; target_locations_dense];
  target_locations_selected=target_locations_all(unique_stim_locations,:);
  power_selected=unique_stim_powers;
- weakly_identified_cells= unidentified_cells;
-
+ 
 cell_params.locations =  cell_locations(cell_list,:);
 cell_params.shape_gain = ones(length(cell_list),1);
 cell_template = struct();

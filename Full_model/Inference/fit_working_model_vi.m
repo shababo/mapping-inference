@@ -1,12 +1,12 @@
 function [parameter_history,change_history] = fit_working_model_vi(...
     designs,outputs, background_rate, ...
     variational_params,prior_params,C_threshold,...
-S,epsilon,eta_logit,eta_beta,maxit)
+S,epsilon,eta_logit,eta_beta,maxit,lklh_func)
 
 %   designs=designs_remained;
 %   outputs=outputs_remained;
 %   background_rate=background_rt;
-
+% lklh_func=@calculate_likelihood_sum_bernoulli;
 n_cell=size(designs,2);
 n_trial=size(designs,1);
 
@@ -124,7 +124,7 @@ parameter_history.beta(:,iter)=v_beta;
         gamma_sample=gamma_sample_mat(:,s);
         for i_data = 1:n_unique
             n_events=data_unique(i_data,1);
-            [lklh]= calculate_likelihood_sum_bernoulli(n_events,...
+            [lklh]= lklh_func(n_events,...
                 [background_rate;gamma_sample],[background_rate data_unique(i_data,2:end)]');
             loglikelihood_unique(i_data)=log(lklh);
         end
