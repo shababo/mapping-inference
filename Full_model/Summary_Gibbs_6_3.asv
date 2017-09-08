@@ -1,18 +1,19 @@
-%% Plot the cells with estimated gammas 
-%% Load the gamma estimates and data 
+%% Summary plots with raw data:
+addpath(genpath('../../psc-detection'),genpath('../../mapping-inference'),genpath('../../mapping-core'));
+%% Load the data set 
 load('./Environments/6_3_s2c3_mpp_and_stim_data.mat')
-load('final_fits_6_3_single_reduced.mat');%'gamma_all','gain_all');
-load('initial_fits_6_3_single_reduced.mat'); %'gamma_initial');
-outflnm =strcat('./Figures/Plots_6_3_single_reduced');
+target_locations =target_locs;
+single_trial_limit=max(find(isnan(target_inds(:,2))));
+trials_locations= target_inds(1:single_trial_limit,:);
+trials_powers = stim_pow(1:single_trial_limit);
+load('./Environments/6_3_cell_locs_reduced_and_fixed.mat')
+cell_locations = cell_locs;
+n_trial = size(trials_locations,1);
+n_cell=size(cell_locations,1);
 
+load('./Results/Gibbs_samples_6_3.mat')%'gamma_samples','gain_samples','gamma_initial','gain_initial');
 
-% load('./Environments/6_5_s2c1_mpp_and_stim_data.mat')
-% load('final_fits_6_5_single.mat');%'gamma_all','gain_all');
-% load('initial_fits_6_5_single.mat'); %'gamma_initial');
-% outflnm =strcat('./Figures/Plots_6_5_single');
-
-
-
+%%
 %%
 local_locations= cell_locs;
 Z_dense =target_locs;
