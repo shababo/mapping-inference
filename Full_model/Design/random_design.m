@@ -5,7 +5,7 @@ function [ trials_locations,  trials_powers] = random_design(...
     remaining_cell_list,n_spots_per_trial,K,n_replicates)
 
 n_remaining_cell=length(remaining_cell_list);
-
+loc_counts=zeros(n_remaining_cell,1);
 if n_remaining_cell > single_spot_threshold
     n_unique_initial_per_plane = round(K*n_remaining_cell/n_spots_per_trial);
     trials_locations =zeros(n_unique_initial_per_plane*n_replicates,n_spots_per_trial);
@@ -30,11 +30,13 @@ else
 end
 for i_trial =1:n_unique_initial_per_plane
     prob_initial = probability_weights;
+    prob_initial=prob_initial./(loc_counts+0.1);
     prob_initial=prob_initial/sum(prob_initial);
     for i_spot = 1:n_spots_per_trial
         if sum(prob_initial)>0.1
             temp_index = ...
                 randsample(1:n_remaining_cell,1,true,prob_initial);
+            loc_counts(temp_index)=loc_counts(temp_index)+1;
             temp_loc =  remaining_cell_list(temp_index);
             this_trial_locations(1,i_spot)=temp_loc;
             this_trial_powers(1,i_spot)=power_selected(temp_loc);
@@ -45,6 +47,7 @@ for i_trial =1:n_unique_initial_per_plane
             this_trial_locations(1,i_spot)=NaN;
             this_trial_powers(1,i_spot)=NaN;
         end
+        
     end
     trials_locations(n_replicates*(i_trial-1)+(1:n_replicates),:)=ones(n_replicates,1)*this_trial_locations;
     trials_powers(n_replicates*(i_trial-1)+(1:n_replicates),:)=ones(n_replicates,1)*this_trial_powers;
