@@ -1,14 +1,11 @@
 function [parameter_history] = fit_full_model_vi(...
     stim_size, mpp, background_rate, ...
-    prob_trace,    stim_grid,...
+    prob_trace, stim_grid,...
     stim_scale,eff_stim_threshold,gain_bound,...
     variational_params,prior_params,C_threshold,stim_threshold,...
     S,epsilon,eta_logit,eta_beta,maxit)
-
-
 %  stim_size; 
 %  mpp=mpp_temp;
- 
  
 % mpp=mpp_temp;
 % stim_size=stim_size(:,find(cells_history{last_iter}));
@@ -157,21 +154,36 @@ while (changes > epsilon & iter<maxit)
 %         t3p=toc;
         gamma_sample=gamma_sample_mat(:,s);
         gain_sample=gain_sample_mat(:,s);
-        loglklh_vec = zeros(n_trial,1);
         
+        
+%         gamma_sample=mean_gamma_temp
+%         gain_sample=mean_gain_temp
+        
+        
+%         gamma_sample=gamma_truth(11:12)
+%         gain_sample=gain_truth(11:12)
+        
+        loglklh_vec = zeros(n_trial,1);
         for  i_trial = 1:n_trial
-            
-            
             effective_stim= [stim_size(i_trial,:)'].*gain_sample;
             stimulated_cells = find(effective_stim>eff_stim_threshold);
             effective_stim=effective_stim(stimulated_cells );
             stim_index=max(1,round(effective_stim*stim_scale));
             
             prob_this_trial= (gamma_sample(stimulated_cells)*ones(1,n_grid)).*prob_trace(stim_index,:);
+            prob_this_trial=[background_rate*ones(1, size(prob_this_trial,2)); prob_this_trial];
             [loss]=  lif_glm_firstspike_loglikelihood_for_VI(mpp(i_trial),...
-                prob_this_trial,background_rate);
+                prob_this_trial);
             loglklh_vec(i_trial)=loss;
         end
+%         sum(loglklh_vec)
+        
+%       figure(2)
+%       mpp(i_trial).times
+%       plot(sum( prob_this_trial,1))
+%         
+%
+        
 %         t4=toc;time_record(3)=time_record(3)+t4-t3p;
    
 %           t5=toc;time_record(4)=time_record(4)+t5-t4;
