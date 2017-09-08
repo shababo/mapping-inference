@@ -22,8 +22,8 @@ for i = 1:N
 end
 
 lambda = dt*params.invlink(total_filter_out);
-d_lambda = dt*params.dinvlink(total_filter_out)*1e5;
-assignin('base','d_lambda',d_lambda)
+% d_lambda = dt*params.dinvlink(total_filter_out)*1e5;
+% assignin('base','d_lambda',d_lambda)
 
 log_likelihood = -sum(sum(total_filter_out.*responses - lambda));
  
