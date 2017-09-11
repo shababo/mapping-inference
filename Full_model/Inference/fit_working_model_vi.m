@@ -1,8 +1,13 @@
 function [parameter_history,change_history] = fit_working_model_vi(...
     designs,outputs, background_rate, ...
-    variational_params,prioir_params,C_threshold,...
-S,epsilon,eta_logit,eta_beta,maxit)
+    variational_params,prior_params,C_threshold,...
+     designs_neighbours,gamma_neighbours,...
+    S,epsilon,eta_logit,eta_beta,maxit,lklh_func)
 
+%   designs=designs_remained;
+%   outputs=outputs_remained;
+%   background_rate=background_rt;
+% lklh_func=@calculate_likelihood_sum_bernoulli;
 n_cell=size(designs,2);
 n_trial=size(designs,1);
 
@@ -17,7 +22,7 @@ dqdalpha=zeros(n_cell,S);
 dqdbeta=zeros(n_cell,S);
 
 f_p_logit=zeros(n_cell,S);
-f_dalpha=zeros(n_cell,S);
+f_alpha=zeros(n_cell,S);
 f_beta=zeros(n_cell,S);
 
 h_p_logit=zeros(n_cell,S);
@@ -39,8 +44,12 @@ v_p_logit =[variational_params(:).p_logit]';
 v_log_alpha=[variational_params(:).log_alpha]';
 v_log_beta=[variational_params(:).log_beta]';
 
+if isempty(designs_neighbours)
+    data_matrix = [outputs designs];    
+else 
+    data_matrix = [outputs designs designs_neighbours];
+end
 
-data_matrix = [outputs designs];
 [data_unique,~,data_index] = unique(data_matrix, 'rows');
 n_unique = size(data_unique,1);
 loglikelihood_unique = zeros(n_unique,1);
@@ -91,8 +100,12 @@ parameter_history.beta(:,iter)=v_beta;
         %bound gamma from 1 to avoid singularity
         gamma_sample_mat(:,s)=min(gamma_sample, 0.999);
         % Calculate the prior probability given the current sample of gamma
-        logprior(:,s)=log(prioir_params.pi0).*(gamma_sample==0)+log(1-prioir_params.pi0).*(gamma_sample>0)+ ...
-            (gamma_sample>0).*log(betapdf(gamma_sample,prioir_params.alpha0,prioir_params.beta0));
+        logprior(:,s)=log(max(0.001,prior_params.pi0)).*(gamma_sample==0)+...
+            log(max(0.001, 1-prior_params.pi0)).*(gamma_sample>0)+ ...
+            (gamma_sample>0).*log( min(1000,max(0.0001,...
+            betapdf((gamma_sample),prior_params.alpha0,prior_params.beta0))));
+%          logprior(:,s)=log(prior_params.pi0).*(gamma_sample==0)+log(1-prior_params.pi0).*(gamma_sample>0)+ ...
+%             (gamma_sample>0).*log(betapdf(gamma_sample,prior_params.alpha0,prior_params.beta0));
         % Calculate the probability of the variational distribution given the
         % current sample of gamma
         logvariational(:,s)=log(max(0.001,v_pi)).*(gamma_sample==0)+...
@@ -112,12 +125,16 @@ parameter_history.beta(:,iter)=v_beta;
 %     t3=toc;time_record(2)=time_record(2)+t3-t2;
     
     for s=1:S
-%         t3p=toc;
-        gamma_sample=gamma_sample_mat(:,s);
+        %         t3p=toc;
+        if isempty(gamma_neighbours)
+            gamma_temp=gamma_sample_mat(:,s);
+        else
+            gamma_temp=[gamma_sample_mat(:,s); gamma_neigbours];
+        end
         for i_data = 1:n_unique
             n_events=data_unique(i_data,1);
-            [lklh]= calculate_likelihood_sum_bernoulli(n_events,...
-                [background_rate;gamma_sample],[background_rate data_unique(i_data,2:end)]');
+            [lklh]= lklh_func(n_events,...
+                [1;gamma_temp],[background_rate data_unique(i_data,2:end)]');
             loglikelihood_unique(i_data)=log(lklh);
         end
 %         t4=toc;time_record(3)=time_record(3)+t4-t3p;

@@ -16,6 +16,7 @@ end
 n_trial =size(trials_locations,1);
 mpp=struct();
 mu_bg = 1/background_rate;
+fprintf('Trials');
 for i_trial = 1:n_trial
     mpp(i_trial).times=[];mpp(i_trial).assignments=[];
     mpp(i_trial).locations=trials_locations(i_trial,:);
@@ -62,9 +63,9 @@ for i_trial = 1:n_trial
         mpp(i_trial).assignments=[mpp(i_trial).assignments 0];
         R = R+exprnd(mu_bg);
     end
-     fprintf('Trial %d simulated;\n', i_trial);
+     fprintf('%d', i_trial);
 end
-
+fprintf(' simulated;\n');
 
 end
 
