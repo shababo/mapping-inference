@@ -1,10 +1,14 @@
 function [parameter_history] = fit_full_model_vi(...
     stim_size, mpp, background_rate, ...
-    prob_trace, stim_grid,...
+    prob_trace_full, stim_grid,...
     stim_scale,eff_stim_threshold,gain_bound,...
     variational_params,prior_params,C_threshold,stim_threshold,...
     stim_size_neighbours,gamma_neighbours,gain_neighbours,...
     S,epsilon,eta_logit,eta_beta,maxit)
+
+% stim_size=designs_remained; mpp=mpp_remained;
+    
+%    stim_size_neighbours= designs_neighbours;
 %  stim_size; 
 %  mpp=mpp_temp;
  
@@ -12,7 +16,7 @@ function [parameter_history] = fit_full_model_vi(...
 % stim_size=stim_size(:,find(cells_history{last_iter}));
 
 n_cell=size(stim_size,2);n_trial=size(stim_size,1);
-n_grid=size(prob_trace,2);
+n_grid=size(prob_trace_full,2);
 
 sum_of_logs=zeros(S,1);logvariational=zeros(n_cell,S);
 logprior=zeros(n_cell,S);loglklh=zeros(n_cell,S);
@@ -174,10 +178,10 @@ while (changes > epsilon & iter<maxit)
             effective_stim=effective_stim(stimulated_cells );
             stim_index=max(1,round(effective_stim*stim_scale));
             if ~isempty(stimulated_cells)
-                prob_this_trial= (gamma_temp(stimulated_cells)*ones(1,n_grid)).*prob_trace(stim_index,:);
+                prob_this_trial= (gamma_temp(stimulated_cells)*ones(1,n_grid)).*prob_trace_full(stim_index,:);
                 prob_this_trial=[background_rate*ones(1, size(prob_this_trial,2)); prob_this_trial];
             else
-                prob_this_trial=[background_rate*ones(1, size(prob_trace,2))];
+                prob_this_trial=[background_rate*ones(1, size(prob_trace_full,2))];
             end
             [loss]=  lif_glm_firstspike_loglikelihood_for_VI(mpp(i_trial),...
                 prob_this_trial);
@@ -287,6 +291,9 @@ while (changes > epsilon & iter<maxit)
     
     fprintf('Change: %d;\n',changes)
 end
+
+end
+
 %% Debug section:
 % mean_gamma= (1-v_pi).*(C_threshold+ (1-C_threshold)*v_alpha./(v_alpha+v_beta));
 % mean_gain= v_alpha_gain./(v_alpha_gain+v_beta_gain)*(gain_bound.up-gain_bound.low) +gain_bound.low;

@@ -105,7 +105,7 @@ K_undefined=3; % each cell appears approximately 10*2 times
 K_disconnected=3; % each cell appears approximately 10*2 times
 K_connected=10; % each cell appears approximately 10*2 times
 
-single_spot_threshold=8; % switch to single spot stimulation if there are fewer than 8 cells in this group
+single_spot_threshold=15; % switch to single spot stimulation if there are fewer than 8 cells in this group
 trial_max=2000;
 disconnected_threshold = 0.2;
 disconnected_confirm_threshold = 0.2;
@@ -186,6 +186,8 @@ connected=true;
  %  loc_to_cell_nuclei is from get_stim_locations 
 mean_gamma_current=zeros(n_cell_this_plane,1);
 mean_gain_current=gain_template*ones(n_cell_this_plane,1);
+change_threshold=0.05;
+gamma_path=zeros(n_cell_this_plane,1);
 % Online design:
 while ((n_trials < trial_max) & (id_continue>0))
     % while not exceeding the set threshold of total trials
@@ -373,6 +375,7 @@ while ((n_trials < trial_max) & (id_continue>0))
         mean_gamma_undefined=zeros(n_cell_this_plane,1);
         mean_gamma_undefined(cell_list,1)=mean_gamma_temp;
         mean_gamma_current(cell_list)=mean_gamma_temp;
+        gamma_path(cell_list,iter+1)=mean_gamma_temp;
     end
     %-------------------------------------------------------------%
     
@@ -425,6 +428,7 @@ while ((n_trials < trial_max) & (id_continue>0))
         mean_gamma_disconnected=ones(n_cell_this_plane,1);
         mean_gamma_disconnected(cell_list,1)=mean_gamma_temp;
         mean_gamma_current(cell_list)=mean_gamma_temp;
+        gamma_path(cell_list,iter+1)=mean_gamma_temp;
     end
     %---------------------------------------------%
     
@@ -432,6 +436,7 @@ while ((n_trials < trial_max) & (id_continue>0))
     % Fit the VI on group C: potentially connected cells
     % This step is different, we shoul fit each neuron seperately if possible
     mean_gamma_connected=zeros(n_cell_this_plane,1);
+    variance_gamma_connected=ones(n_cell_this_plane,1);
     
     if sum(potentially_connected_cells{iter})>0
         cell_list= find(potentially_connected_cells{iter});
@@ -475,7 +480,6 @@ while ((n_trials < trial_max) & (id_continue>0))
         for i_cluster= 1:n_cluster
             
             neighbour_list=find(sum(cell_neighbours(cell_list(cluster_of_cells{i_cluster}),:),1)>0)';
-            
             variational_params=struct([]);
             for i_cell_idx = 1:length(neighbour_list)
                 i_cell=neighbour_list(i_cell_idx);
@@ -533,17 +537,27 @@ while ((n_trials < trial_max) & (id_continue>0))
             % obtain estimates
             mean_gamma_temp= (1-parameter_history.pi(:,end)).*...
                 (C_threshold+ (1-C_threshold)./(1+parameter_history.beta(:,end)./parameter_history.alpha(:,end)));
+           
+           
             mean_gain_temp= (gain_bound.low+ (gain_bound.up-gain_bound.low)...
                 ./(1+parameter_history.beta_gain(:,end)./parameter_history.alpha_gain(:,end)));
+           
+             % approximated variance:
+%             sumab=parameter_history.alpha(:,end)+parameter_history.beta(:,end);
+%             var_gamma_temp=(parameter_history.alpha(:,end).*parameter_history.beta(:,end))./...
+%                 (sumab.*sumab.*(sumab+1));
+%             variance_gamma_connected(neighbour_list,1)=var_gamma_temp;
+%            
             % mean_gamma_temp
             %mean_gain_temp
             %
             % Needs to take gain into account (as gain and gamma are
             % unidentifiable at no responses
             
-            mean_gamma_connected(neighbour_list,1)=mean_gamma_temp;
+           mean_gamma_connected(neighbour_list,1)=mean_gamma_temp;
            mean_gamma_current(neighbour_list)=mean_gamma_temp;
            mean_gain_current(neighbour_list)=mean_gain_temp;
+           gamma_path(neighbour_list,iter+1)=mean_gamma_temp;
            
             %length([mpp_remained.times])
         end
@@ -630,6 +644,10 @@ while ((n_trials < trial_max) & (id_continue>0))
             find(potentially_connected_cells{iter}));
         connected_to_alive = intersect(find(mean_gamma_connected>connected_confirm_threshold),...
             find(potentially_connected_cells{iter}));
+        change_gamma =gamma_path(:,iter+1)-gamma_path(:,iter);
+        connected_to_alive = intersect(find(change_gamma<change_threshold),...
+            connected_to_alive);
+        
         % Eliminate the weakly identifiable pairs if they are both assign to a
         % group:
         %moved_cells = [connected_to_dead; connected_to_alive]';
@@ -674,6 +692,8 @@ while ((n_trials < trial_max) & (id_continue>0))
         
         
     end
+    %%
+    variance_gamma_connected(find(potentially_disconnected_cells{iter})
     %%
     
     [find(gamma_truth>0) find(alive_cells{iter})]
