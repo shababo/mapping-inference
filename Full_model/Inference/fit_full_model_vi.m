@@ -3,6 +3,7 @@ function [parameter_history] = fit_full_model_vi(...
     prob_trace, stim_grid,...
     stim_scale,eff_stim_threshold,gain_bound,...
     variational_params,prior_params,C_threshold,stim_threshold,...
+    stim_size_neighbours,gamma_neighbours,gain_neighbours,...
     S,epsilon,eta_logit,eta_beta,maxit)
 %  stim_size; 
 %  mpp=mpp_temp;
@@ -155,23 +156,29 @@ while (changes > epsilon & iter<maxit)
         gamma_sample=gamma_sample_mat(:,s);
         gain_sample=gain_sample_mat(:,s);
         
-        
-%         gamma_sample=mean_gamma_temp
-%         gain_sample=mean_gain_temp
-        
-        
-%         gamma_sample=gamma_truth(11:12)
-%         gain_sample=gain_truth(11:12)
-        
+        % Need to account for the neighbour cells that are not in this
+        % group:
         loglklh_vec = zeros(n_trial,1);
         for  i_trial = 1:n_trial
-            effective_stim= [stim_size(i_trial,:)'].*gain_sample;
+            if ~isempty(gamma_neighbours)
+                stim_temp =[stim_size(i_trial,:)';stim_size_neighbours(i_trial,:)'];
+                gain_temp=[gain_sample;gain_neighbours];
+                gamma_temp=[gamma_sample;gamma_neighbours];
+            else
+                stim_temp =stim_size(i_trial,:)';
+                gain_temp=gain_sample;
+                gamma_temp=gamma_sample;
+            end
+            effective_stim= stim_temp.*gain_temp;
             stimulated_cells = find(effective_stim>eff_stim_threshold);
             effective_stim=effective_stim(stimulated_cells );
             stim_index=max(1,round(effective_stim*stim_scale));
-            
-            prob_this_trial= (gamma_sample(stimulated_cells)*ones(1,n_grid)).*prob_trace(stim_index,:);
-            prob_this_trial=[background_rate*ones(1, size(prob_this_trial,2)); prob_this_trial];
+            if ~isempty(stimulated_cells)
+                prob_this_trial= (gamma_temp(stimulated_cells)*ones(1,n_grid)).*prob_trace(stim_index,:);
+                prob_this_trial=[background_rate*ones(1, size(prob_this_trial,2)); prob_this_trial];
+            else
+                prob_this_trial=[background_rate*ones(1, size(prob_trace,2))];
+            end
             [loss]=  lif_glm_firstspike_loglikelihood_for_VI(mpp(i_trial),...
                 prob_this_trial);
             loglklh_vec(i_trial)=loss;
