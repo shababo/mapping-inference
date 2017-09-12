@@ -1,9 +1,14 @@
 function [parameter_history] = fit_full_model_vi(...
     stim_size, mpp, background_rate, ...
-    prob_trace, stim_grid,...
+    prob_trace_full, stim_grid,...
     stim_scale,eff_stim_threshold,gain_bound,...
     variational_params,prior_params,C_threshold,stim_threshold,...
+    stim_size_neighbours,gamma_neighbours,gain_neighbours,...
     S,epsilon,eta_logit,eta_beta,maxit)
+
+% stim_size=designs_remained; mpp=mpp_remained;
+    
+%    stim_size_neighbours= designs_neighbours;
 %  stim_size; 
 %  mpp=mpp_temp;
  
@@ -11,7 +16,7 @@ function [parameter_history] = fit_full_model_vi(...
 % stim_size=stim_size(:,find(cells_history{last_iter}));
 
 n_cell=size(stim_size,2);n_trial=size(stim_size,1);
-n_grid=size(prob_trace,2);
+n_grid=size(prob_trace_full,2);
 
 sum_of_logs=zeros(S,1);logvariational=zeros(n_cell,S);
 logprior=zeros(n_cell,S);loglklh=zeros(n_cell,S);
@@ -155,23 +160,29 @@ while (changes > epsilon & iter<maxit)
         gamma_sample=gamma_sample_mat(:,s);
         gain_sample=gain_sample_mat(:,s);
         
-        
-%         gamma_sample=mean_gamma_temp
-%         gain_sample=mean_gain_temp
-        
-        
-%         gamma_sample=gamma_truth(11:12)
-%         gain_sample=gain_truth(11:12)
-        
+        % Need to account for the neighbour cells that are not in this
+        % group:
         loglklh_vec = zeros(n_trial,1);
         for  i_trial = 1:n_trial
-            effective_stim= [stim_size(i_trial,:)'].*gain_sample;
+            if ~isempty(gamma_neighbours)
+                stim_temp =[stim_size(i_trial,:)';stim_size_neighbours(i_trial,:)'];
+                gain_temp=[gain_sample;gain_neighbours];
+                gamma_temp=[gamma_sample;gamma_neighbours];
+            else
+                stim_temp =stim_size(i_trial,:)';
+                gain_temp=gain_sample;
+                gamma_temp=gamma_sample;
+            end
+            effective_stim= stim_temp.*gain_temp;
             stimulated_cells = find(effective_stim>eff_stim_threshold);
             effective_stim=effective_stim(stimulated_cells );
             stim_index=max(1,round(effective_stim*stim_scale));
-            
-            prob_this_trial= (gamma_sample(stimulated_cells)*ones(1,n_grid)).*prob_trace(stim_index,:);
-            prob_this_trial=[background_rate*ones(1, size(prob_this_trial,2)); prob_this_trial];
+            if ~isempty(stimulated_cells)
+                prob_this_trial= (gamma_temp(stimulated_cells)*ones(1,n_grid)).*prob_trace_full(stim_index,:);
+                prob_this_trial=[background_rate*ones(1, size(prob_this_trial,2)); prob_this_trial];
+            else
+                prob_this_trial=[background_rate*ones(1, size(prob_trace_full,2))];
+            end
             [loss]=  lif_glm_firstspike_loglikelihood_for_VI(mpp(i_trial),...
                 prob_this_trial);
             loglklh_vec(i_trial)=loss;
@@ -280,6 +291,9 @@ while (changes > epsilon & iter<maxit)
     
     fprintf('Change: %d;\n',changes)
 end
+
+end
+
 %% Debug section:
 % mean_gamma= (1-v_pi).*(C_threshold+ (1-C_threshold)*v_alpha./(v_alpha+v_beta));
 % mean_gain= v_alpha_gain./(v_alpha_gain+v_beta_gain)*(gain_bound.up-gain_bound.low) +gain_bound.low;
