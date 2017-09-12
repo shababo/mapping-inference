@@ -663,7 +663,7 @@ while ((n_trials < trial_max) & (id_continue>0))
 xlim([0 1]);
 ylim([0 1]);
     
-    xlabel('True synaptic success rate');
+xlabel('True synaptic success rate');
 ylabel('Estimated synaptic success rate');
 % saveas(1,strcat('./Figures/Toy/','Gamma_truth_vs_fits','.jpg'));
 

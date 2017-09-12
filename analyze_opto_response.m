@@ -6,7 +6,7 @@ function this_cell = analyze_opto_response(this_cell)
 
 load(this_cell.filename)
 % package up and preprocess raw data
-% start_trial = this_cell.start_trial;
+start_trial = this_cell.start_trial;
 cc_trials = this_cell.cc_trials;
 cc_spike_thresh = this_cell.cc_spike_thresh;
 ca_trials = this_cell.ca_trials;
@@ -19,18 +19,32 @@ do_hpf = this_cell.hpass_filt;
 first_spike_only = this_cell.first_spike;
 cell_ch = this_cell.cell_ch;
 intrinsics_trial = this_cell.intrinsics_trial;
-vc_shape_trials = this_cell.vc_shape_trials;
-vc_power_curve_trial = this_cell.vc_power_curve_trial;
-targ_dist_lims = this_cell.targ_dist_lims;
-stim_z = this_cell.stim_z;
 
+if isfield(this_cell,'vc_shape_trials')
+    vc_shape_trials = this_cell.vc_shape_trials;
+else
+    vc_shape_trials = (1:this_cell.shape_z)+(length(cc_trials)+length(ca_trials) + 4);
+end
+vc_power_curve_trial = this_cell.vc_power_curve_trial;
+if this_cell.vers == 2
+    targ_dist_lims = this_cell.targ_dist_lims;
+    stim_z = this_cell.stim_z;
+end
 trial_dur = this_cell.trial_dur;
 
-[this_cell.spike_data, this_cell.voltage_data, this_cell.current_data, this_cell.intrinsics] = ...
-    preprocess_opto_response_v2(data,cell_ch,cc_spike_thresh,...
-    ca_trials,ca_spike_thresh,do_cc,cc_trials,intrinsics_trial,do_vc,...
-    vc_shape_trials,vc_power_curve_trial,cell_pos,first_spike_only,...
-    trial_dur,do_hpf,targ_dist_lims,stim_z);
+if this_cell.vers == 1
+    [this_cell.spike_data, this_cell.voltage_data, this_cell.current_data, this_cell.intrinsics] = ...
+        preprocess_opto_response(data,cell_ch,cc_spike_thresh,...
+        ca_trials,ca_spike_thresh,do_cc,cc_trials,intrinsics_trial,do_vc,...
+        vc_shape_trials,vc_power_curve_trial,cell_pos_offset,first_spike_only,...
+        trial_dur,do_hpf,start_trial);
+elseif this_cell.vers == 2
+    [this_cell.spike_data, this_cell.voltage_data, this_cell.current_data, this_cell.intrinsics] = ...
+        preprocess_opto_response_v2(data,cell_ch,cc_spike_thresh,...
+        ca_trials,ca_spike_thresh,do_cc,cc_trials,intrinsics_trial,do_vc,...
+        vc_shape_trials,vc_power_curve_trial,cell_pos,first_spike_only,...
+        trial_dur,do_hpf,targ_dist_lims,stim_z);
+end
 
 % [spike_data, voltage_data, current_data, intrinsics] = ...
 %     preprocess_opto_response(data,cell_ch,cc_spike_thresh,...
@@ -166,7 +180,7 @@ if num_spike_locs
 
     % g = [.001 .002 .003 .004 .005]*downsamp;
 %     g = [.025]*downsamp;
-    g = [.015 .020 .025 .03 .05 .1 .2]*downsamp; % MAIN ONE
+    g = [.05 .1 .2 .3 .5]*downsamp; % MAIN ONE
 
     this_cell.glm_params.g = g;
     this_cell.glm_params.downsamp = downsamp;
@@ -189,8 +203,8 @@ if num_spike_locs
     this_cell.g = this_cell.glm_params.g(min_ind);
     this_glm_out = this_cell.glm_out(min_ind).glm_result;
 
-    this_cell.v_th = this_glm_out.beta(1);
-    this_cell.v_reset = -5000000;%this_glm_out.beta(1);
+    this_cell.v_th = 15;%this_glm_out.beta(1);
+    this_cell.v_reset = this_glm_out.beta(1);
     this_cell.gain = this_glm_out.beta(2:end);
     this_cell.th_gain_ratio = this_cell.v_th/this_cell.gain(1);
 
