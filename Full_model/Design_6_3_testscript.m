@@ -49,7 +49,7 @@ for i_plane = 1:n_planes
 end
 
 %% Consider the second plane in this analysis
-this_plane =3;
+this_plane =4;
 % plane 4 
 rng(12242,'twister');
 n_cell_this_plane = length(cell_group_list{this_plane});
@@ -644,7 +644,7 @@ while ((n_trials < trial_max) & (id_continue>0))
             find(potentially_connected_cells{iter}));
         connected_to_alive = intersect(find(mean_gamma_connected>connected_confirm_threshold),...
             find(potentially_connected_cells{iter}));
-        change_gamma =gamma_path(:,iter+1)-gamma_path(:,iter);
+        change_gamma =abs(gamma_path(:,iter+1)-gamma_path(:,iter));
         connected_to_alive = intersect(find(change_gamma<change_threshold),...
             connected_to_alive);
         
