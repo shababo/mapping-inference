@@ -1,4 +1,4 @@
-function cell_features = filter_nuclear_detection(cell_features, size_lims)
+function cell_features = filter_nuclear_detection(cell_features, fluor_min)
 
 % bad_ids = zeros(size(cell_features,2),1);
 % for i = 1:size(cell_features,2)
@@ -22,4 +22,4 @@ size_min = 0;
 % cell_features(:,cell_features(8,:)<size_min) = [];
 % cell_features(:,cell_features(10,:)>size_max) = [];
 % cell_features(:,cell_features(10,:)<size_min) = [];
-cell_features(:,cell_features(1,:)<140) = []; %140
+cell_features(:,cell_features(1,:)<fluor_min) = []; %140
