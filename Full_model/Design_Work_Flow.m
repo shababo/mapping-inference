@@ -704,7 +704,12 @@ while ((n_trials < trial_max) & (id_continue>0))
     y=cell_locations(:,2);
     z=cell_locations(:,3);
     
+
     figure(101)
+    figure(101)
+   ax1=axes('Position',[0 0 1 1],'Visible','off');
+   ax2=axes('Position',[0.1 0.2 .8 .8],'Visible','off');
+ axes(ax2)
     scatter3(-y,x,z,...
         'MarkerEdgeColor','b',...
         'MarkerFaceColor','b',...
@@ -713,6 +718,10 @@ while ((n_trials < trial_max) & (id_continue>0))
     xlim([-150 150]);
     ylim([-150 150]);
     zlim([0 150]);
+    axes(ax1)
+      title_text = {'I.a all cells'};
+      text(0.4,0.08,title_text,'fontsize',15)
+ 
     saveas(101,strcat('./Figures/work_flow/','FigureIa','.jpg'));
 
     %%
@@ -722,39 +731,68 @@ while ((n_trials < trial_max) & (id_continue>0))
     z=cell_locations(:,3);
     
     figure(102)
-    scatter3(-y,x,z,...
-        'MarkerEdgeColor','b',...
-        'MarkerFaceColor','b',...
-        'MarkerFaceAlpha',0.2)
-    view(-30,10)
-    xlim([-150 150]);
-    ylim([-150 150]);
-    zlim([45 65]);
-    hold on;
-    
-    scatter3(-y(cell_group_list{this_plane}),x(cell_group_list{this_plane}),z(cell_group_list{this_plane}),...
-        'MarkerEdgeColor','k',...
-        'MarkerFaceColor','k',...
-        'MarkerFaceAlpha',1)
-    
-    [x_coord, y_coord] = meshgrid(-150:10:150);
-    z_coord= mean(cell_locations(cell_group_list{this_plane},3))*ones(size(x_coord,1),size(x_coord,2));
-    surf(-y_coord,x_coord,z_coord,'FaceColor','r','FaceAlpha',0.5,'EdgeColor','none');
+   ax1=axes('Position',[0 0 1 1],'Visible','off');
+   ax2=axes('Position',[0.1 0.2 .8 .8],'Visible','off');
+   
+   sc2=scatter3(ax2,-y,x,z,...
+       'MarkerEdgeColor','b',...
+       'MarkerFaceColor','b',...
+       'MarkerFaceAlpha',0.2);
+   hold on;
+   sc1=scatter3(ax2,-y(cell_group_list{this_plane}),x(cell_group_list{this_plane}),...
+       z(cell_group_list{this_plane}),...
+       'MarkerEdgeColor','k',...
+       'MarkerFaceColor','k',...
+       'MarkerFaceAlpha',0.8);
+   hold on;
+   view(-30,10)
+   xlim([-150 150]);
+   ylim([-150 150]);
+   zlim([0 150]);
+   
+   [x_coord, y_coord] = meshgrid(-150:10:150);
+   z_coord= mean(cell_locations(cell_group_list{this_plane},3))*ones(size(x_coord,1),size(x_coord,2));
+   surf(ax2,-y_coord,x_coord,z_coord,'FaceColor','r','FaceAlpha',0.5,'EdgeColor','none');
+   hold on;
+   
+   title_text = {'I.b selected cells'};
+   axes(ax1)
+%    text(ax2,-50,0,-50,title_text)
+     text(ax2,-40,80,-50,title_text,'fontsize',15)
+ 
+   hold on;
+   %scatter3(-50,-50,-50,'MarkerSize',20,'Marker','o','MarkerFaceColor','k','MarkerEdgeColor','k','MarkerFaceAlpha',0.8);
+   
     hold off;
      saveas(102,strcat('./Figures/work_flow/','FigureIb','.jpg'));
 
     %%
     % I.c projection of cells onto that plane 
     figure(103)
+   ax1=axes('Position',[0 0 1 1],'Visible','off');
+   ax2=axes('Position',[0.1 0.2 .8 .8],'Visible','off');
+    axes(ax2)
     scatter(-cell_locations(cell_group_list{this_plane},2),...
         cell_locations(cell_group_list{this_plane},1),...
-        'Marker','o','SizeData',30,...
-        'MarkerFaceColor','k', 'MarkerEdgeColor','k', 'MarkerFaceAlpha',0.8)
+        'Marker','o','SizeData',60,...
+        'MarkerFaceColor','k', 'MarkerEdgeColor','k', 'MarkerFaceAlpha',0.5)
     hold on;
-     xlim([-150 150]);
-    ylim([-150 150]);
+    scatter(-target_locations_selected(:,2),...
+        target_locations_selected(:,1),...
+        'Marker','d','SizeData',60,...
+        'MarkerFaceColor','r', 'MarkerEdgeColor','r', 'MarkerFaceAlpha',0.5)
+    
+     xlim([-160 160]);
+    ylim([-160 160]);
     axis off;
+    
+    axes(ax1)
+    title_text = {'I.c projected cells and selected locations'};
+    axes(ax1)
+    text(0.15,0.08,title_text,'fontsize',15)
+   
     hold off;
+    
     saveas(103,strcat('./Figures/work_flow/','FigureIc','.jpg'));
 
     
@@ -765,6 +803,10 @@ while ((n_trials < trial_max) & (id_continue>0))
     %%
     % II.a trials for undeifned cells 
     figure(201)
+    ax1=axes('Position',[0 0 1 1],'Visible','off');
+   ax2=axes('Position',[0.1 0.2 .8 .8],'Visible','off');
+    axes(ax2)
+    
            for i_cell = 1:length(cell_group_list{this_plane})
                 cell_index =cell_group_list{this_plane}(i_cell);
                 
@@ -801,6 +843,13 @@ facecolor='k';
                         'MarkerFaceColor',facecolor, 'MarkerEdgeColor',facecolor,...
                         'MarkerFaceAlpha',0.2)
     end
+     axis off;
+    
+    axes(ax1)
+    title_text = {'II.a designed trials on undefined cells'};
+    axes(ax1)
+   text(0.2,0.08,title_text,'fontsize',15)
+   
 %      target_locations_selected
  saveas(201,strcat('./Figures/work_flow/','FigureIIa','.jpg'));
 
@@ -808,6 +857,9 @@ facecolor='k';
     %%
     % II.b trials for disconnected cells
     figure(202)
+       ax1=axes('Position',[0 0 1 1],'Visible','off');
+   ax2=axes('Position',[0.1 0.2 .8 .8],'Visible','off');
+    axes(ax2)
     for i_cell = 1:length(cell_group_list{this_plane})
         cell_index =cell_group_list{this_plane}(i_cell);
         
@@ -835,7 +887,7 @@ facecolor='k';
     %xlabel(strcat(num2str(n_total_trial(iter)), ' trials'));
     xlim([-160 160]);
     ylim([-160 160]);
-    
+    axis off;
     facecolor='r';
     for i_trial = 1:size(trials_locations_disconnected{iter_II},1)
         scatter(target_locations_selected(trials_locations_disconnected{iter_II}(i_trial,:),2),...
@@ -845,13 +897,21 @@ facecolor='k';
             'MarkerFaceAlpha',0.2)
     end
     %      target_locations_selected
-    
+      axes(ax1)
+    title_text = {'II.b designed trials on pot. disconnected cells'};
+    axes(ax1)
+   % text(0.25,0.05,title_text)
+  text(0.2,0.08,title_text,'fontsize',15)
+   
      saveas(202,strcat('./Figures/work_flow/','FigureIIb','.jpg'));
 
 
     %%
     % II.c trials for connected cells (3D)
  figure(203)
+    ax1=axes('Position',[0 0 1 1],'Visible','off');
+   ax2=axes('Position',[0.1 0.2 .8 .8],'Visible','off');
+    axes(ax2)
     for i_cell = 1:length(cell_group_list{this_plane})
         cell_index =cell_group_list{this_plane}(i_cell);
         
@@ -888,68 +948,141 @@ facecolor='k';
     xlim([-150 150]);
     ylim([-150 150]);
     zlim([45 65]);
+      title_text = {'II.c designed trials on pot. connected cells'};
+   axes(ax1)
+   text(ax2,-150,40,30,title_text,'fontsize',15)
+   %text(0.15,0.08,title_text,'fontsize',15)
+   
+   hold on;
+ 
      saveas(203,strcat('./Figures/work_flow/','FigureIIc','.jpg'));
 
     %% ---------------------------------------
     % Column III: observed data 
     %%
     % III.a Response and Probability 
-    figure(3011)
+    figure(301)
+        ax1=axes('Position',[0 0 1 1],'Visible','off');
+   ax2=axes('Position',[0.1 0.2 .8 .8],'Visible','off');
+    axes(ax2)
     [cells_probabilities_undefined, ~] = get_prob_and_size(...
         pi_target_selected,trials_locations_undefined{iter_II},trials_powers_undefined{iter_II},...
         stim_unique,prob_trace);
     
     for i_trial = 1:size(cells_probabilities_undefined,1)
-        outputs_undefined(i_trial,1)=1*isempty(mpp_undefined{iter_II}(i_trial).times);
+        outputs_undefined(i_trial,1)=1*(1-isempty(mpp_undefined{iter_II}(i_trial).times));
     end
     
-        
+        cell_list=find(sum(cells_probabilities_undefined,1)>0.1);
     facecolor='k';
     for i_trial = 1:size(trials_locations_undefined{iter_II},1)
         scatter(-1,...
             i_trial,...
             'Marker','s','SizeData',20,...
-            'MarkerFaceColor',facecolor, 'MarkerEdgeColor','w',...
+            'MarkerFaceColor','b', 'MarkerEdgeColor','w',...
             'MarkerFaceAlpha',max(outputs_undefined(i_trial),0.01))
         hold on;
-       for i_cell = 1:size(cells_probabilities_undefined,2)
-           if cells_probabilities_undefined(i_trial,i_cell)>0.01
-       scatter(i_cell,...
+       for i_cell = 1:length(cell_list)
+           i_cell_idx=cell_list(i_cell);
+           if cells_probabilities_undefined(i_trial,i_cell_idx)>0.01
+       scatter(i_cell+4,...
             i_trial,...
             'Marker','s','SizeData',20,...
             'MarkerFaceColor',facecolor, 'MarkerEdgeColor','w',...
-            'MarkerFaceAlpha',min(max(cells_probabilities_undefined(i_trial,i_cell),0.01),1))
+            'MarkerFaceAlpha',min(max(cells_probabilities_undefined(i_trial,i_cell_idx),0.01),1))
            end
        end
     end
     %      target_locations_selected
-      xlim([-3 i_cell]);
+      xlim([-3 i_cell+5]);
+      xticks([-1 3  4+(1:length(cell_list)) ])
+      xticklabels({'Response' 'Cells:'  string(cell_list)})
     ylim([0 i_trial]);
-  hold off;
-   saveas(3011,strcat('./Figures/work_flow/','FigureIIIa1','.jpg'));
+    ylabel('Trials');
+  hold on;
+      title_text = {'III.a responses and firing probabilities (undefined)'};
+   axes(ax1)
+   text(0.15,0.08,title_text,'fontsize',15)
+   hold off;
+ 
+   saveas(301,strcat('./Figures/work_flow/','FigureIIIa','.jpg'));
 
   % Fitted values
-  cell_list=find(undefined_cells{iter_II});
-  alpha_current=exp(variational_params_path.log_alpha(cell_list,iter_II));
-  beta_current=exp(variational_params_path.log_beta(cell_list,iter_II));
-  figure(3012)
- xgrid=0:0.02:1; 
-    facecolor='k';
-       for i_cell = 1:length(cell_list)
-           
-       line(xgrid,betapdf(xgrid,alpha_current(i_cell),beta_current(i_cell)));
-       end
+%   cell_list=find(undefined_cells{iter_II});
+%   alpha_current=exp(variational_params_path.log_alpha(cell_list,iter_II));
+%   beta_current=exp(variational_params_path.log_beta(cell_list,iter_II));
+%   figure(3012)
+%  xgrid=0:0.02:1; 
+%     facecolor='k';
+%        for i_cell = 1:length(cell_list)
+%            
+%        line(xgrid,betapdf(xgrid,alpha_current(i_cell),beta_current(i_cell)));
+%        end
+%     
+%     %      target_locations_selected
+%       xlim([0 1]);
+%     ylim([0 5]);
+%   hold off;
+%        saveas(3012,strcat('./Figures/work_flow/','FigureIIIa2','.jpg'));
+%%
+  % III.b Response and Probability (disconnected)
+   [cells_probabilities_disconnected, ~] = get_prob_and_size(...
+        pi_target_selected,trials_locations_disconnected{iter_II},trials_powers_disconnected{iter_II},...
+        stim_unique,prob_trace);
+    outputs_disconnected(:)=[];
+    for i_trial = 1:size(cells_probabilities_disconnected,1)
+        outputs_disconnected(i_trial,1)=1*(1-isempty(mpp_disconnected{iter_II}(i_trial).times));
+    end
     
+  figure(302)
+    ax1=axes('Position',[0 0 1 1],'Visible','off');
+   ax2=axes('Position',[0.1 0.2 .8 .8],'Visible','off');
+    axes(ax2)
+   
+    cell_list=find(sum(cells_probabilities_disconnected,1)>0.1);
+    facecolor='k';
+    for i_trial = 1:size(trials_locations_disconnected{iter_II},1)
+        scatter(-1,...
+            i_trial,...
+            'Marker','s','SizeData',20,...
+            'MarkerFaceColor','b', 'MarkerEdgeColor','w',...
+            'MarkerFaceAlpha',max(outputs_disconnected(i_trial),0.01))
+        hold on;
+           
+       for i_cell = 1:length(cell_list)
+            i_cell_idx=cell_list(i_cell);
+           if cells_probabilities_disconnected(i_trial,i_cell_idx)>0.01
+       scatter(1.3*i_cell+4,...
+            i_trial,...
+            'Marker','s','SizeData',20,...
+            'MarkerFaceColor',facecolor, 'MarkerEdgeColor','w',...
+            'MarkerFaceAlpha',min(max(cells_probabilities_disconnected(i_trial,i_cell_idx),0.01),1))
+           end
+       end
+    end
     %      target_locations_selected
-      xlim([0 1]);
-    ylim([0 5]);
+    xlim([-3 1.3*i_cell+5]);
+      xticks([-1 3  4+1.3*(1:length(cell_list)) ])
+      xticklabels({'Response' 'Cells:'  string(cell_list)})
+        ylim([0 i_trial]);
+    ylabel('Trials');
+  hold on;
+ 
+   title_text = {'III.b responses and firing probabilities (disconnected)'};
+   axes(ax1)
+   text(0.1,0.08,title_text,'fontsize',15)
+ 
   hold off;
-       saveas(3012,strcat('./Figures/work_flow/','FigureIIIa2','.jpg'));
+  saveas(302,strcat('./Figures/work_flow/','FigureIIIb','.jpg'));
 
     %%
     % III.b Process and Stim size 
     
- figure(3021)
+ figure(303)
+ ax1=axes('Position',[0 0 1 1],'Visible','off');
+ ax2=axes('Position',[0.1 0.2 .8 .8],'Visible','off');
+ axes(ax2)
+ 
       [~, stim_size_connected] = get_prob_and_size(...
             pi_target_nuclei,trials_locations_connected{iter_II},trials_powers_connected{iter_II},...
             stim_unique,prob_trace);
@@ -957,13 +1090,14 @@ facecolor='k';
         transparencies= stim_size_connected/max(max(stim_size_connected));
         cell_list=find(sum(transparencies)>4);
     facecolor='k';
+    
     for i_trial = 1:size(trials_locations_undefined{iter_II},1)
         if ~isempty(mpp_connected{iter_II}(i_trial).times)
            for i_event = 1:length(mpp_connected{iter_II}(i_trial).times)
                x_sp=[mpp_connected{iter_II}(i_trial).times(i_event) mpp_connected{iter_II}(i_trial).times(i_event)];
                x_sp=x_sp/(time_max/10);
                y_sp=[i_trial+0.2 i_trial+0.8];
-               line(x_sp,y_sp,'LineWidth',5)
+               line(x_sp,y_sp,'LineWidth',2)
                
            end
         end
@@ -972,7 +1106,7 @@ facecolor='k';
        for i_cell = 1:length(cell_list)
            i_cell_idx = cell_list(i_cell);
            %if transparencies(i_trial,i_cell)>0.2
-       scatter(i_cell+10,...
+       scatter(i_cell+11,...
             i_trial,...
             'Marker','s','SizeData',20,...
             'MarkerFaceColor',facecolor, 'MarkerEdgeColor','w',...
@@ -982,68 +1116,81 @@ facecolor='k';
            %end
        end
     end
-      xlim([-1 i_cell+10]);
-    ylim([0 i_trial]);
-  hold off;
+       xlim([-2 i_cell+12]);
+      xticks([1 4 6 8 10.5  11+(1:length(cell_list)) ])
+      xticklabels({'Time (1/20 ms):' string([3 9 12]) 'Cells:'  string(cell_list)})
+        ylim([0 i_trial]);
+    ylabel('Trials');
+  hold on;
+ 
+   title_text = {'III.c responses and firing probabilities (connected)'};
+   axes(ax1)
+   
+   text(0.15,0.08,title_text,'fontsize',15)
+ 
     gamma_truth(find(potentially_connected_cells{iter_II}));
-       saveas(3021,strcat('./Figures/work_flow/','FigureIIIb1','.jpg'));
+       saveas(303,strcat('./Figures/work_flow/','FigureIIIc','.jpg'));
 
     %% Draw the estimated gamma and gains 
-      figure(3022)
-  % Fitted values
-  cell_list=find(potentially_connected_cells{iter_II});
-  alpha_current=exp(variational_params_path.log_alpha(cell_list,iter_II));
-  beta_current=exp(variational_params_path.log_beta(cell_list,iter_II));
-  
- xgrid=0:0.02:1; 
-  figure(4)
-    facecolor='k';
-       for i_cell = 1:length(cell_list)
-           
-       line(xgrid,betapdf(xgrid,alpha_current(i_cell),beta_current(i_cell)));
-       end
-    
-    %      target_locations_selected
-      xlim([0 1]);
-    ylim([0 5]);
-  hold off;
-       saveas(3022,strcat('./Figures/work_flow/','FigureIIIb2','.jpg'));
+%       figure(3022)
+%   % Fitted values
+%   cell_list=find(potentially_connected_cells{iter_II});
+%   alpha_current=exp(variational_params_path.log_alpha(cell_list,iter_II));
+%   beta_current=exp(variational_params_path.log_beta(cell_list,iter_II));
+%   
+%  xgrid=0:0.02:1; 
+%   figure(4)
+%     facecolor='k';
+%        for i_cell = 1:length(cell_list)
+%            
+%        line(xgrid,betapdf(xgrid,alpha_current(i_cell),beta_current(i_cell)));
+%        end
+%     
+%     %      target_locations_selected
+%       xlim([0 1]);
+%     ylim([0 5]);
+%   hold off;
+%        saveas(3022,strcat('./Figures/work_flow/','FigureIIIb2','.jpg'));
 
   %% Gains 
-  alpha_gain_current=exp(variational_params_path.log_alpha(cell_list,iter_II));
-  beta_gain_current=exp(variational_params_path.log_beta(cell_list,iter_II));
-  
-  figure(3023)
-  xgrid=0:0.02:1;
-  scaled_xgrid=(gain_bound.low+ (gain_bound.up-gain_bound.low)*xgrid);
-  figure(5)
-  facecolor='k';
-  for i_cell = 1:length(cell_list)
-      
-      line(scaled_xgrid,betapdf(xgrid,alpha_current(i_cell),beta_current(i_cell)));
-      
-  end
-  
-  %      target_locations_selected
-  xlim([0.01 0.03]);
-  ylim([0 5]);
-  hold off;
-     saveas(3023,strcat('./Figures/work_flow/','FigureIIIb3','.jpg'));
+%   alpha_gain_current=exp(variational_params_path.log_alpha(cell_list,iter_II));
+%   beta_gain_current=exp(variational_params_path.log_beta(cell_list,iter_II));
+%   
+%   figure(3023)
+%   xgrid=0:0.02:1;
+%   scaled_xgrid=(gain_bound.low+ (gain_bound.up-gain_bound.low)*xgrid);
+%   figure(5)
+%   facecolor='k';
+%   for i_cell = 1:length(cell_list)
+%       
+%       line(scaled_xgrid,betapdf(xgrid,alpha_current(i_cell),beta_current(i_cell)));
+%       
+%   end
+%   
+%   %      target_locations_selected
+%   xlim([0.01 0.03]);
+%   ylim([0 5]);
+%   hold off;
+%      saveas(3023,strcat('./Figures/work_flow/','FigureIIIb3','.jpg'));
 
            
   
     %% ---------------------------------------
     % Column IV: assignments
+    % IV.a undefined  cells  
     
     
-    % IV.a undefined and potentially disconnected cells  
     cell_list=find(undefined_cells{iter_II});
     alpha_current=exp(variational_params_path.log_alpha(cell_list,iter_II));
     beta_current=exp(variational_params_path.log_beta(cell_list,iter_II));
     
     gamma_mean = alpha_current./(alpha_current+beta_current);
     xgrid=0:0.02:1;
+    
     figure(401)
+    ax1=axes('Position',[0 0 1 1],'Visible','off');
+    ax2=axes('Position',[0.1 0.2 .8 .8],'Visible','off');
+    axes(ax2)
     for i_cell = 1:length(cell_list)
         if gamma_mean(i_cell)>connected_threshold
             color_codes = [0 1 0 0.4]; %green
@@ -1062,9 +1209,57 @@ facecolor='k';
     %      target_locations_selected
     xlim([0 1]);
     ylim([0 5]);
+    axis on;
+    ylabel('Density');
+    xlabel('\gamma and E(\gamma)')
+    hold on;
+    
+    title_text = {'IV.a posterior dist. of \gamma (undefined)'};
+    axes(ax1)
+   text(0.23,0.06,title_text,'fontsize',15)
     hold off;
        saveas(401,strcat('./Figures/work_flow/','FigureIVa','.jpg'));
 
+       %%
+         % IV.b potentially disconnected cells  
+    cell_list=find(potentially_disconnected_cells{iter_II});
+    alpha_current=exp(variational_params_path.log_alpha(cell_list,iter_II));
+    beta_current=exp(variational_params_path.log_beta(cell_list,iter_II));
+    
+    gamma_mean = alpha_current./(alpha_current+beta_current);
+    xgrid=0:0.02:1;
+    figure(402)
+    ax1=axes('Position',[0 0 1 1],'Visible','off');
+    ax2=axes('Position',[0.1 0.2 .8 .8],'Visible','off');
+    axes(ax2)
+    for i_cell = 1:length(cell_list)
+        if gamma_mean(i_cell)<disconnected_threshold
+            color_codes = [1 0 0 0.4]; %red
+        else
+            color_codes = [0 0 0 0.2]; %black 
+        end
+        line([gamma_mean(i_cell) gamma_mean(i_cell)],[4 5],'LineStyle','-','LineWidth',1,'Color',color_codes)
+        line(xgrid,betapdf(xgrid,alpha_current(i_cell),beta_current(i_cell)),'Color',color_codes );
+        hold on;
+    end
+    line([disconnected_threshold disconnected_threshold],[3 5],'LineStyle','-','LineWidth',1,'Color',[1 0 0])
+    
+    %      target_locations_selected
+     xlim([0 1]);
+    ylim([0 5]);
+    axis on;
+    ylabel('Density');
+    xlabel('\gamma and E(\gamma)')
+    hold on;
+    
+    title_text = {'IV.b posterior dist. of \gamma (disconnected)'};
+    axes(ax1)
+    
+   text(0.2,0.06,title_text,'fontsize',15)
+ 
+       saveas(402,strcat('./Figures/work_flow/','FigureIVb','.jpg'));
+
+       
   %%
     % IV.b Potentially connected cells 
       % Fitted values
@@ -1081,7 +1276,9 @@ facecolor='k';
   gamma_change = abs(gamma_mean-gamma_mean_old);
  change_threshold=0.06;
   xgrid=0:0.02:1; 
-  figure(402)
+  figure(403)
+    ax1=axes('Position',[0 0 1 1],'Visible','off');
+    ax2=axes('Position',[0.1 0.2 .8 .8],'Visible','off');
     facecolor='k';
        for i_cell = 1:length(cell_list)
         if gamma_mean(i_cell)>connected_threshold & gamma_change(i_cell)<change_threshold
@@ -1104,11 +1301,19 @@ facecolor='k';
     %      target_locations_selected
       xlim([0 1]);
     ylim([0 5]);
-  hold off;
-       saveas(402,strcat('./Figures/work_flow/','FigureIVb','.jpg'));
+    axis on;
+    ylabel('Density');
+    xlabel('\gamma and E(\gamma)')
+    hold on;
+    
+    title_text = {'IV.c posterior dist. of \gamma (connected)'};
+    axes(ax1)
+    
+   text(0.2,0.06,title_text,'fontsize',15)
+       saveas(403,strcat('./Figures/work_flow/','FigureIVc','.jpg'));
 
     %% --------------------------------------
-    % Column V: new trials 
+    % Column V: new trials (not needed)
     
     iter_V=iter_II+1;
     
