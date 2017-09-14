@@ -145,22 +145,21 @@ designs_undefined=[];designs_connected=[];designs_disconnected=[];
 outputs_undefined=[];outputs_connected=[];outputs_disconnected=[];
 
 
+
 % Initialize the variational family
-var_pi_ini=0.01;
-var_log_alpha_initial=0;
-var_log_beta_initial=0;
-var_log_alpha_gain_initial=0;
-var_log_beta_gain_initial=0;
+var_pi_ini=0.01;% not used.
+var_alpha_initial=1;var_beta_initial=1.78;
+var_alpha_gain_initial=1;var_beta_gain_initial=1.78;
 
 variational_params_path.pi=var_pi_ini*ones(n_cell_this_plane,1);
-variational_params_path.log_alpha=var_log_alpha_initial*ones(n_cell_this_plane,1);
-variational_params_path.log_beta=var_log_alpha_initial*ones(n_cell_this_plane,1);
-variational_params_path.log_alpha_gain=var_log_alpha_gain_initial*ones(n_cell_this_plane,1);
-variational_params_path.log_beta_gain=var_log_alpha_gain_initial*ones(n_cell_this_plane,1);
+variational_params_path.alpha=var_alpha_initial*ones(n_cell_this_plane,1);
+variational_params_path.beta=var_beta_initial*ones(n_cell_this_plane,1);
+variational_params_path.alpha_gain=var_alpha_gain_initial*ones(n_cell_this_plane,1);
+variational_params_path.beta_gain=var_beta_gain_initial*ones(n_cell_this_plane,1);
 
 % Initialize the parameters in the VI
 C_threshold = 0.01;maxit=1000;
-S=200;epsilon=0.01;eta_logit=0;eta_beta=0.01;
+S=200;epsilon=0.01;eta_logit=0;eta_beta=0.05;
 background_rt=background_rate*time_max;
 
 
@@ -185,8 +184,8 @@ connected=true;
 mean_gamma_current=zeros(n_cell_this_plane,1);
 mean_gain_current=gain_template*ones(n_cell_this_plane,1);
 change_threshold=0.05;
-gamma_path=zeros(n_cell_this_plane,1);
-% Online design:
+gamma_path=zeros(n_cell_this_plane,1);var_gamma_path=zeros(n_cell_this_plane,1);
+%% Online design:
 while ((n_trials < trial_max) & (id_continue>0))
     % while not exceeding the set threshold of total trials
     % and there are new cells being excluded
@@ -314,13 +313,11 @@ while ((n_trials < trial_max) & (id_continue>0))
     %------------------------------------------%
     % Analysis:
     
-    variational_params_path.log_alpha_gain(:,iter+1)=0;
-    variational_params_path.log_alpha_gain(:,iter+1)=0;
-    variational_params_path.pi(:,iter+1)=var_pi_ini*ones(n_cell_this_plane,1);
-    variational_params_path.log_alpha(:,iter+1)=variational_params_path.log_alpha(:,iter);
-    variational_params_path.log_beta(:,iter+1)=variational_params_path.log_beta(:,iter);
-    variational_params_path.log_alpha_gain(:,iter+1)=variational_params_path.log_alpha_gain(:,iter);
-    variational_params_path.log_beta_gain(:,iter+1)=variational_params_path.log_beta_gain(:,iter);
+     variational_params_path.pi(:,iter+1)=var_pi_ini*ones(n_cell_this_plane,1);
+    variational_params_path.alpha(:,iter+1)=variational_params_path.alpha(:,iter);
+    variational_params_path.beta(:,iter+1)=variational_params_path.beta(:,iter);
+    variational_params_path.alpha_gain(:,iter+1)=variational_params_path.alpha_gain(:,iter);
+    variational_params_path.beta_gain(:,iter+1)=variational_params_path.beta_gain(:,iter);
     
     
     %------------------------------------------------------%
@@ -330,17 +327,17 @@ while ((n_trials < trial_max) & (id_continue>0))
     if sum(undefined_cells{iter})>0
         cell_list= find(undefined_cells{iter});
         % Update variational and prior distribution
-        variational_params=struct([]);
+       variational_params=struct([]);
         for i_cell_idx = 1:length(cell_list)
             i_cell=cell_list(i_cell_idx);
             variational_params(i_cell_idx).pi = variational_params_path.pi(i_cell,iter);
             variational_params(i_cell_idx).p_logit = log(variational_params(i_cell_idx).pi/(1-variational_params(i_cell_idx).pi));
-            variational_params(i_cell_idx).log_alpha = variational_params_path.log_alpha(i_cell,iter);
-            variational_params(i_cell_idx).log_beta = variational_params_path.log_beta(i_cell,iter);
+            variational_params(i_cell_idx).alpha = variational_params_path.alpha(i_cell,iter);
+            variational_params(i_cell_idx).beta = variational_params_path.beta(i_cell,iter);
         end
         prior_params.pi0= [variational_params(:).pi]';
-        prior_params.alpha0= exp([variational_params(:).log_alpha]');
-        prior_params.beta0 = exp([variational_params(:).log_beta]');
+        prior_params.alpha0= [variational_params(:).alpha]';
+        prior_params.beta0 = [variational_params(:).beta]';
         
         
         
@@ -364,16 +361,16 @@ while ((n_trials < trial_max) & (id_continue>0))
             S,epsilon,eta_logit,eta_beta,maxit,lklh_func);
         
         % Record the variational parameters
-        variational_params_path.pi(cell_list,iter+1) = parameter_history.pi(:,end);
-        variational_params_path.log_alpha(cell_list,iter+1) = log(parameter_history.alpha(:,end));
-        variational_params_path.log_beta(cell_list,iter+1) = log(parameter_history.beta(:,end));
+       variational_params_path.pi(cell_list,iter+1) = parameter_history.pi(:,end);
+        variational_params_path.alpha(cell_list,iter+1) = parameter_history.alpha(:,end);
+        variational_params_path.beta(cell_list,iter+1) = parameter_history.beta(:,end);
         
-        mean_gamma_temp= (1-parameter_history.pi(:,end)).*...
-            (C_threshold+ (1-C_threshold)./(1+parameter_history.beta(:,end)./parameter_history.alpha(:,end)));
-        mean_gamma_undefined=zeros(n_cell_this_plane,1);
+        [mean_gamma_temp, ~] = calculate_posterior_mean(parameter_history.alpha(:,end),parameter_history.beta(:,end),0,1);
+        
         mean_gamma_undefined(cell_list,1)=mean_gamma_temp;
         mean_gamma_current(cell_list)=mean_gamma_temp;
         gamma_path(cell_list,iter+1)=mean_gamma_temp;
+
     end
     %-------------------------------------------------------------%
     
@@ -382,18 +379,18 @@ while ((n_trials < trial_max) & (id_continue>0))
     mean_gamma_disconnected=ones(n_cell_this_plane,1);
     if sum(potentially_disconnected_cells{iter})>0
         cell_list= find(potentially_disconnected_cells{iter});
-        variational_params=struct([]);
+       variational_params=struct([]);
         for i_cell_idx = 1:length(cell_list)
             i_cell=cell_list(i_cell_idx);
             variational_params(i_cell_idx).pi = variational_params_path.pi(i_cell,iter);
             variational_params(i_cell_idx).p_logit = log(variational_params(i_cell_idx).pi/(1-variational_params(i_cell_idx).pi));
-            variational_params(i_cell_idx).log_alpha = variational_params_path.log_alpha(i_cell,iter);
-            variational_params(i_cell_idx).log_beta = variational_params_path.log_beta(i_cell,iter);
+            variational_params(i_cell_idx).alpha = variational_params_path.alpha(i_cell,iter);
+            variational_params(i_cell_idx).beta = variational_params_path.beta(i_cell,iter);
         end
         
         prior_params.pi0= [variational_params(:).pi]';
-        prior_params.alpha0= exp([variational_params(:).log_alpha]');
-        prior_params.beta0 = exp([variational_params(:).log_beta]');
+        prior_params.alpha0= [variational_params(:).alpha]';
+        prior_params.beta0 = [variational_params(:).beta]';
         % Include only the remaining cells
         
         designs_remained=cells_probabilities_disconnected(:,cell_list);
@@ -416,14 +413,11 @@ while ((n_trials < trial_max) & (id_continue>0))
         
         % Record the variational parameters
         variational_params_path.pi(cell_list,iter+1) = parameter_history.pi(:,end);
-        variational_params_path.log_alpha(cell_list,iter+1) = log(parameter_history.alpha(:,end));
-        variational_params_path.log_beta(cell_list,iter+1) = log(parameter_history.beta(:,end));
+        variational_params_path.alpha(cell_list,iter+1) = parameter_history.alpha(:,end);
+        variational_params_path.beta(cell_list,iter+1) = parameter_history.beta(:,end);
         
+        [mean_gamma_temp, ~] = calculate_posterior_mean(parameter_history.alpha(:,end),parameter_history.beta(:,end),0,1);
         
-        % obtain estimates
-        mean_gamma_temp= (1-parameter_history.pi(:,end)).*...
-            (C_threshold+ (1-C_threshold)./(1+parameter_history.beta(:,end)./parameter_history.alpha(:,end)));
-        mean_gamma_disconnected=ones(n_cell_this_plane,1);
         mean_gamma_disconnected(cell_list,1)=mean_gamma_temp;
         mean_gamma_current(cell_list)=mean_gamma_temp;
         gamma_path(cell_list,iter+1)=mean_gamma_temp;
@@ -478,22 +472,23 @@ while ((n_trials < trial_max) & (id_continue>0))
         for i_cluster= 1:n_cluster
             
             neighbour_list=find(sum(cell_neighbours(cell_list(cluster_of_cells{i_cluster}),:),1)>0)';
+            
             variational_params=struct([]);
             for i_cell_idx = 1:length(neighbour_list)
                 i_cell=neighbour_list(i_cell_idx);
                 variational_params(i_cell_idx).pi = variational_params_path.pi(i_cell,iter);
                 variational_params(i_cell_idx).p_logit = log(variational_params(i_cell_idx).pi/(1-variational_params(i_cell_idx).pi));
-                variational_params(i_cell_idx).log_alpha = variational_params_path.log_alpha(i_cell,iter);
-                variational_params(i_cell_idx).log_beta = variational_params_path.log_beta(i_cell,iter);
-                variational_params(i_cell_idx).log_alpha_gain = variational_params_path.log_alpha_gain(i_cell,iter);
-                variational_params(i_cell_idx).log_beta_gain = variational_params_path.log_alpha_gain(i_cell,iter);
+                variational_params(i_cell_idx).alpha = variational_params_path.alpha(i_cell,iter);
+                variational_params(i_cell_idx).beta = variational_params_path.beta(i_cell,iter);
+                variational_params(i_cell_idx).alpha_gain = variational_params_path.alpha_gain(i_cell,iter);
+                variational_params(i_cell_idx).beta_gain = variational_params_path.beta_gain(i_cell,iter);
             end
             
             prior_params.pi0= [variational_params(:).pi]';
-            prior_params.alpha0= exp([variational_params(:).log_alpha]');
-            prior_params.beta0 = exp([variational_params(:).log_beta]');
-            prior_params.alpha0_gain=  exp([variational_params(:).log_alpha_gain]');
-            prior_params.beta0_gain =exp([variational_params(:).log_beta_gain]');
+            prior_params.alpha0= [variational_params(:).alpha]';
+            prior_params.beta0 = [variational_params(:).beta]';
+            prior_params.alpha0_gain= [variational_params(:).alpha_gain]';
+            prior_params.beta0_gain =[variational_params(:).beta_gain]';
             
             designs_remained=stim_size_connected(:,neighbour_list);
             active_trials=find(sum(designs_remained,2)>stim_threshold);
@@ -525,41 +520,32 @@ while ((n_trials < trial_max) & (id_continue>0))
             %             S,epsilon,eta_logit,eta_beta,maxit,lklh_func);
             %
             
-            %cell_list(cluster_of_cells{i_cluster})
+           %cell_list(cluster_of_cells{i_cluster})
             variational_params_path.pi(neighbour_list,iter+1) = parameter_history.pi(:,end);
-            variational_params_path.log_alpha(neighbour_list,iter+1) = log(parameter_history.alpha(:,end));
-            variational_params_path.log_beta(neighbour_list,iter+1) = log(parameter_history.beta(:,end));
-            variational_params_path.log_alpha_gain(neighbour_list,iter+1) = log(parameter_history.alpha_gain(:,end));
-            variational_params_path.log_beta_gain(neighbour_list,iter+1) = log(parameter_history.beta_gain(:,end));
-            
-            % obtain estimates
-            mean_gamma_temp= (1-parameter_history.pi(:,end)).*...
-                (C_threshold+ (1-C_threshold)./(1+parameter_history.beta(:,end)./parameter_history.alpha(:,end)));
-           
-           
-            mean_gain_temp= (gain_bound.low+ (gain_bound.up-gain_bound.low)...
-                ./(1+parameter_history.beta_gain(:,end)./parameter_history.alpha_gain(:,end)));
-           
-             % approximated variance:
-%             sumab=parameter_history.alpha(:,end)+parameter_history.beta(:,end);
-%             var_gamma_temp=(parameter_history.alpha(:,end).*parameter_history.beta(:,end))./...
-%                 (sumab.*sumab.*(sumab+1));
-%             variance_gamma_connected(neighbour_list,1)=var_gamma_temp;
-%            
-            % mean_gamma_temp
-            %mean_gain_temp
-            %
-            % Needs to take gain into account (as gain and gamma are
-            % unidentifiable at no responses
-            
-           mean_gamma_connected(neighbour_list,1)=mean_gamma_temp;
-           mean_gamma_current(neighbour_list)=mean_gamma_temp;
-           mean_gain_current(neighbour_list)=mean_gain_temp;
-           gamma_path(neighbour_list,iter+1)=mean_gamma_temp;
-           
-            %length([mpp_remained.times])
+        variational_params_path.alpha(neighbour_list,iter+1) = parameter_history.alpha(:,end);
+        variational_params_path.beta(neighbour_list,iter+1) = parameter_history.beta(:,end);
+         variational_params_path.alpha_gain(neighbour_list,iter+1) = parameter_history.alpha_gain(:,end);
+        variational_params_path.beta_gain(neighbour_list,iter+1) = parameter_history.beta_gain(:,end);
+       
+        
+        [mean_gamma_temp, var_gamma_temp] = calculate_posterior_mean(...
+            parameter_history.alpha(:,end),parameter_history.beta(:,end),0,1);
+        [mean_gain_temp, ~] = calculate_posterior_mean(...
+            parameter_history.alpha_gain(:,end),parameter_history.beta_gain(:,end),gain_bound.low,gain_bound.up);
+        
+        
+        
+            variance_gamma_connected(neighbour_list)=var_gamma_temp;
+            var_gamma_path(neighbour_list,iter+1)=var_gamma_temp;
+            mean_gamma_connected(neighbour_list,1)=mean_gamma_temp;
+            mean_gamma_current(neighbour_list)=mean_gamma_temp;
+            mean_gain_current(neighbour_list)=mean_gain_temp;
+            gamma_path(neighbour_list,iter+1)=mean_gamma_temp;
+
         end
     end
+    change_gamma = sqrt(variance_gamma_connected);
+
         %------------------------------------------------------%
         
 % Debug 
