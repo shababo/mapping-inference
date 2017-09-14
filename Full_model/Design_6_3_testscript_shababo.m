@@ -49,7 +49,7 @@ for i_plane = 1:n_planes
 end
 
 %% Consider the second plane in this analysis
-this_plane =3;
+this_plane = 3;
 % plane 4 
 rng(12242,'twister');
 n_cell_this_plane = length(cell_group_list{this_plane});
