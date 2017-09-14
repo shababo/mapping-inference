@@ -32,9 +32,7 @@ cell_params.g=0.02;
 [prob_trace_full,v_trace_full] = get_first_spike_intensity(...
     linkfunc,...
     current_template,stim_grid,cell_params,delay_params);
-
 eff_stim_threshold=stim_grid(min(find(sum(prob_trace_full,2)>1e-1)));
-
 %% Put the cells into ten non-overlapping groups by their z-coordinates
 n_planes = 10;
 z_quantiles = quantile(cell_locations(:,3), (1:(n_planes))*0.1);
@@ -95,162 +93,156 @@ stim_threshold=eff_stim_threshold/gain_template;
 
 %% Designing experiment
 %-------------------------------------------------%
+
+% Online design:
 %% Parameters in the design stage
 
 % Design parameters
 n_spots_per_trial = 4;
+
+% Need to run sims to check how these parameters affect the results
+
 n_replicates=2; % conduct two replicates for each trial
 K_undefined=3; % each cell appears approximately 10*2 times
 K_disconnected=3; % each cell appears approximately 10*2 times
 K_connected=10; % each cell appears approximately 10*2 times
 
-single_spot_threshold=15; % switch to single spot stimulation if there are fewer than 8 cells in this group
+
+single_spot_threshold=15; % switch to single spot stimulation (this can be a function of n_spots_per_trial
+
 trial_max=2000;
-disconnected_threshold = 0.2;
-disconnected_confirm_threshold = 0.2;
 
 
-connected_threshold = 0.5;
-connected_confirm_threshold = 0.5;
-
-
+% threshold for the group movement:
+disconnected_threshold = 0.2;disconnected_confirm_threshold = 0.2;
+connected_threshold = 0.5;connected_confirm_threshold = 0.5;
+change_threshold=0.01; % for potentially connected cells (since the estimated gamma are important in this case)
 
 % Initialize the five cell groups
 undefined_cells= cell(0); undefined_cells{1}=ones(n_cell_this_plane,1);%A
 potentially_disconnected_cells= cell(0); potentially_disconnected_cells{1}=zeros(n_cell_this_plane,1);%B
 dead_cells= cell(0); dead_cells{1}=zeros(n_cell_this_plane,1);%D
 potentially_connected_cells= cell(0); potentially_connected_cells{1}=zeros(n_cell_this_plane,1);%C
-alive_cells= cell(0);
-alive_cells{1}=zeros(n_cell_this_plane,1);%E
+alive_cells= cell(0);alive_cells{1}=zeros(n_cell_this_plane,1);%E
 
-%weakly_identified_cells
 
 % Prior distribution
 prior_pi0=0.8;
 
-
 iter=1;
-mpp_undefined=cell(0);
-trials_locations_undefined=cell(0);
-trials_powers_undefined=cell(0);
+mpp_undefined=cell(0);trials_locations_undefined=cell(0);trials_powers_undefined=cell(0);
 
-mpp_disconnected=cell(0);
-trials_locations_disconnected=cell(0);
-trials_powers_disconnected=cell(0);
+mpp_disconnected=cell(0);trials_locations_disconnected=cell(0);trials_powers_disconnected=cell(0);
 
-mpp_connected=cell(0);
-trials_locations_connected=cell(0);
-trials_powers_connected=cell(0);
+mpp_connected=cell(0);trials_locations_connected=cell(0);trials_powers_connected=cell(0);
 
 designs_undefined=[];designs_connected=[];designs_disconnected=[];
 outputs_undefined=[];outputs_connected=[];outputs_disconnected=[];
 
 
 % Initialize the variational family
-var_pi_ini=0.01;
-var_log_alpha_initial=0;
-var_log_beta_initial=0;
-var_log_alpha_gain_initial=0;
-var_log_beta_gain_initial=0;
+var_pi_ini=0.01;% not used.
+var_alpha_initial=1;var_beta_initial=1.78;
+var_alpha_gain_initial=1;var_beta_gain_initial=1.78;
 
 variational_params_path.pi=var_pi_ini*ones(n_cell_this_plane,1);
-variational_params_path.log_alpha=var_log_alpha_initial*ones(n_cell_this_plane,1);
-variational_params_path.log_beta=var_log_alpha_initial*ones(n_cell_this_plane,1);
-variational_params_path.log_alpha_gain=var_log_alpha_gain_initial*ones(n_cell_this_plane,1);
-variational_params_path.log_beta_gain=var_log_alpha_gain_initial*ones(n_cell_this_plane,1);
+variational_params_path.alpha=var_alpha_initial*ones(n_cell_this_plane,1);
+variational_params_path.beta=var_beta_initial*ones(n_cell_this_plane,1);
+variational_params_path.alpha_gain=var_alpha_gain_initial*ones(n_cell_this_plane,1);
+variational_params_path.beta_gain=var_beta_gain_initial*ones(n_cell_this_plane,1);
 
-% Initialize the parameters in the VI
+% Initialize tuning parameters in the VI
 C_threshold = 0.01;maxit=1000;
-S=200;epsilon=0.01;eta_logit=0;eta_beta=0.01;
-background_rt=background_rate*time_max;
+S=200;epsilon=0.01;eta_logit=0;
+background_rt=background_rate*time_max; % raw probability of firing within a trial
 
+eta_beta=0.05;
 
+% Whether to output plots during the experiment
 visualized = 0;
 
 n_trials=0;
-gamma_estimates = 0.5*ones(n_cell_this_plane,1);% for drawing samples...
 
-id_continue=1;% an indicator
+
+gamma_estimates = 0.5*ones(n_cell_this_plane,1);% for drawing samples (not really used)
 prob_weight=0;
 
-lklh_func=@calculate_likelihood_sum_bernoulli;
+id_continue=1;% an indicator
+
+
+% lklh_func=@calculate_likelihood_sum_bernoulli; % likelihood function is
+% specificed when fitting the working model
+
 stim_threshold = 10;
-gain_bound.up=0.03;
-gain_bound.low=0.01;
 
+% bounds of the gamma:
+gain_bound.up=0.03;gain_bound.low=0.01;
+
+% Used in the random designs
 id_notconnected=false;
-loc_to_cell = 1:size( target_locations_selected,1);
-
+loc_to_cell = 1:size(target_locations_selected,1);
 connected=true;
- %  loc_to_cell_nuclei is from get_stim_locations 
+%  loc_to_cell_nuclei is from get_stim_locations
+
+% Initialize storage
 mean_gamma_current=zeros(n_cell_this_plane,1);
 mean_gain_current=gain_template*ones(n_cell_this_plane,1);
-change_threshold=0.05;
+
 gamma_path=zeros(n_cell_this_plane,1);
-% Online design:
+
+
+var_gamma_path=zeros(n_cell_this_plane,1);
+
+change_threshold = 0.05;
+%% Online design:
 while ((n_trials < trial_max) & (id_continue>0))
     % while not exceeding the set threshold of total trials
     % and there are new cells being excluded
     
-    
     % Conduct random trials
-    
     % On the undefined cells
-    mpp_undefined{iter}=[];
-    trials_locations_undefined{iter}=[];
-    trials_powers_undefined{iter}=[];
-    
+    mpp_undefined{iter}=[];trials_locations_undefined{iter}=[];trials_powers_undefined{iter}=[];
     if sum(undefined_cells{iter})>0
-        
         cell_list= find(undefined_cells{iter});
         gamma_estimates = 0.5*ones(length(cell_list),1);% for drawing samples...
-        
-        [trials_locations, trials_powers] = random_design(...
-            target_locations_selected,power_selected,...
-            inner_normalized_products,single_spot_threshold,...
-            gamma_estimates,prob_weight,...
-            id_notconnected, loc_to_cell,... 
-            cell_list,n_spots_per_trial,K_undefined,n_replicates);
+        [trials_locations, trials_powers] = random_design(target_locations_selected,power_selected,...
+            inner_normalized_products,single_spot_threshold,gamma_estimates,prob_weight,...
+            id_notconnected, loc_to_cell,cell_list,n_spots_per_trial,K_undefined,n_replicates);
         [cells_probabilities_undefined, ~] = get_prob_and_size(...
-            pi_target_selected,trials_locations,trials_powers,...
-            stim_unique,prob_trace);
-        
+            pi_target_selected,trials_locations,trials_powers,stim_unique,prob_trace);
         % Generate mpp given the trials
         [mpp_temp] = draw_samples(...
             trials_locations, trials_powers, pi_target_selected, background_rate,...
             v_th_known, v_reset_known, g_truth, gain_truth,gamma_truth,...
             current_template, funcs, delay_params,stim_threshold,time_max);
-        mpp_undefined{iter}=mpp_temp;
-        trials_locations_undefined{iter}=trials_locations;
-        trials_powers_undefined{iter}=trials_powers;
+        mpp_undefined{iter}=mpp_temp;trials_locations_undefined{iter}=trials_locations;trials_powers_undefined{iter}=trials_powers;
+        for i_trial = 1:size(cells_probabilities_undefined,1)
+            outputs_undefined(i_trial,1)=length(mpp_undefined{iter}(i_trial).times);
+        end
+        n_trials=n_trials+i_trial;
     end
     %-------
     % Conduct trials on group B, the potentially disconnected cells
-    mpp_disconnected{iter}=[];
-    trials_locations_disconnected{iter}=[];
-    trials_powers_disconnected{iter}=[];
+    mpp_disconnected{iter}=[];trials_locations_disconnected{iter}=[];trials_powers_disconnected{iter}=[];
     if sum(potentially_disconnected_cells{iter})>0
         % Find cells with close to zero gammas
         cell_list= find(potentially_disconnected_cells{iter});
         gamma_estimates_confirm = 0.5*ones(length(cell_list),1);% for drawing samples...
-        [trials_locations,  trials_powers] = random_design(...
-            target_locations_selected,power_selected,...
-            inner_normalized_products,single_spot_threshold,...
-            gamma_estimates_confirm,0,...
-             id_notconnected, loc_to_cell,... 
-            cell_list,n_spots_per_trial,K_disconnected,n_replicates);
+        [trials_locations,  trials_powers] = random_design(target_locations_selected,power_selected,...
+            inner_normalized_products,single_spot_threshold,gamma_estimates_confirm,0,...
+            id_notconnected, loc_to_cell,cell_list,n_spots_per_trial,K_disconnected,n_replicates);
         [cells_probabilities_disconnected, ~] = get_prob_and_size(...
-            pi_target_selected,trials_locations,trials_powers,...
-            stim_unique,prob_trace);
-        
-        % Conduct trials
+            pi_target_selected,trials_locations,trials_powers,stim_unique,prob_trace);
+        % Generate mpp given the trials
         [mpp_temp] = draw_samples(...
             trials_locations, trials_powers, pi_target_selected, background_rate,...
             v_th_known, v_reset_known, g_truth, gain_truth,gamma_truth,...
             current_template,  funcs,    delay_params,stim_threshold,time_max);
-        mpp_disconnected{iter}=mpp_temp;
-        trials_locations_disconnected{iter}=trials_locations;
-        trials_powers_disconnected{iter}=trials_powers;
+        mpp_disconnected{iter}=mpp_temp;trials_locations_disconnected{iter}=trials_locations;trials_powers_disconnected{iter}=trials_powers;
+        for i_trial = 1:size(cells_probabilities_disconnected,1)
+            outputs_disconnected(i_trial,1)=length(mpp_disconnected{iter}(i_trial).times);
+        end
+        n_trials=n_trials+i_trial;
     end
     
     %-------
@@ -262,20 +254,16 @@ while ((n_trials < trial_max) & (id_continue>0))
         % Find cells with close to zero gammas
         cell_list= find(potentially_connected_cells{iter});
         gamma_estimates_confirm = 0.5*ones(length(cell_list),1);% for drawing samples...
-        [trials_locations,  trials_powers] = random_design(...
-            target_locations_nuclei,power_nuclei,...
-            inner_normalized_products,single_spot_threshold,...
-            gamma_estimates_confirm,0,...
-            connected,  loc_to_cell_nuclei,... 
-            cell_list,1,K_connected,n_replicates);
+        [trials_locations,  trials_powers] = random_design(target_locations_nuclei,power_nuclei,...
+            inner_normalized_products,single_spot_threshold,gamma_estimates_confirm,0,...
+            connected,  loc_to_cell_nuclei, cell_list,1,K_connected,n_replicates);
         %[cells_probabilities_connected, ~] = get_prob_and_size(...
         %    pi_target_nuclei,trials_locations,trials_powers,...
         %    stim_unique,prob_trace);
         [~, stim_size_connected] = get_prob_and_size(...
-            pi_target_nuclei,trials_locations,trials_powers,...
-            stim_unique,prob_trace);
+            pi_target_nuclei,trials_locations,trials_powers,stim_unique,prob_trace);
         
-        % Conduct trials
+        % Generate mpp given the trials
         [mpp_temp] = draw_samples(...
             trials_locations, trials_powers, pi_target_nuclei, background_rate,...
             v_th_known, v_reset_known, g_truth, gain_truth,gamma_truth,...
@@ -283,67 +271,39 @@ while ((n_trials < trial_max) & (id_continue>0))
         mpp_connected{iter}=mpp_temp;
         trials_locations_connected{iter}=trials_locations;
         trials_powers_connected{iter}=trials_powers;
-    end
-    
-    
-    %------------------------------------------%
-    % Transform the data
-    % no need to record the probabilities all the time..
-    
-    %cells_probabilities_undefined;
-    if sum(undefined_cells{iter})>0
-        for i_trial = 1:size(cells_probabilities_undefined,1)
-            outputs_undefined(i_trial,1)=length(mpp_undefined{iter}(i_trial).times);
-        end
-        n_trials=n_trials+i_trial;
-    end
-    if  sum(potentially_disconnected_cells{iter})>0
-        %cells_probabilities_disconnected;
-        for i_trial = 1:size(cells_probabilities_disconnected,1)
-            outputs_disconnected(i_trial,1)=length(mpp_disconnected{iter}(i_trial).times);
-        end
-        n_trials=n_trials+i_trial;
-    end
-    if  sum(potentially_connected_cells{iter})>0
-        %cells_probabilities_disconnected;
-%         for i_trial = 1:size(stim_size_connected,1)
-%             outputs_connected(i_trial,1)=length(mpp_connected{iter}(i_trial).times);
-%         end
         n_trials=n_trials+size(stim_size_connected,1);
     end
     
     %------------------------------------------%
     % Analysis:
     
-    variational_params_path.log_alpha_gain(:,iter+1)=0;
-    variational_params_path.log_alpha_gain(:,iter+1)=0;
+    % Initialize the path of variational families with infor from previous
+    % iteratin
     variational_params_path.pi(:,iter+1)=var_pi_ini*ones(n_cell_this_plane,1);
-    variational_params_path.log_alpha(:,iter+1)=variational_params_path.log_alpha(:,iter);
-    variational_params_path.log_beta(:,iter+1)=variational_params_path.log_beta(:,iter);
-    variational_params_path.log_alpha_gain(:,iter+1)=variational_params_path.log_alpha_gain(:,iter);
-    variational_params_path.log_beta_gain(:,iter+1)=variational_params_path.log_beta_gain(:,iter);
+    variational_params_path.alpha(:,iter+1)=variational_params_path.alpha(:,iter);
+    variational_params_path.beta(:,iter+1)=variational_params_path.beta(:,iter);
+    variational_params_path.alpha_gain(:,iter+1)=variational_params_path.alpha_gain(:,iter);
+    variational_params_path.beta_gain(:,iter+1)=variational_params_path.beta_gain(:,iter);
     
     
     %------------------------------------------------------%
     % Fit VI on Group A: the undefined cells
     mean_gamma_undefined=zeros(n_cell_this_plane,1);
-    
     if sum(undefined_cells{iter})>0
         cell_list= find(undefined_cells{iter});
+        
         % Update variational and prior distribution
         variational_params=struct([]);
         for i_cell_idx = 1:length(cell_list)
             i_cell=cell_list(i_cell_idx);
             variational_params(i_cell_idx).pi = variational_params_path.pi(i_cell,iter);
             variational_params(i_cell_idx).p_logit = log(variational_params(i_cell_idx).pi/(1-variational_params(i_cell_idx).pi));
-            variational_params(i_cell_idx).log_alpha = variational_params_path.log_alpha(i_cell,iter);
-            variational_params(i_cell_idx).log_beta = variational_params_path.log_beta(i_cell,iter);
+            variational_params(i_cell_idx).alpha = variational_params_path.alpha(i_cell,iter);
+            variational_params(i_cell_idx).beta = variational_params_path.beta(i_cell,iter);
         end
         prior_params.pi0= [variational_params(:).pi]';
-        prior_params.alpha0= exp([variational_params(:).log_alpha]');
-        prior_params.beta0 = exp([variational_params(:).log_beta]');
-        
-        
+        prior_params.alpha0= [variational_params(:).alpha]';
+        prior_params.beta0 = [variational_params(:).beta]';
         
         designs_remained=cells_probabilities_undefined(:,cell_list);
         active_trials=find(sum(designs_remained,2)>1e-3);
@@ -357,7 +317,7 @@ while ((n_trials < trial_max) & (id_continue>0))
         gamma_neighbours=mean_gamma_current(neighbour_list);
         
         lklh_func=@calculate_likelihood_bernoulli;
-        % calculate_likelihood_bernoulli for multiple events 
+        % calculate_likelihood_bernoulli for multiple events
         [parameter_history,~] = fit_working_model_vi(...
             designs_remained,outputs_remained,background_rt, ...
             variational_params,prior_params,C_threshold,...
@@ -366,12 +326,11 @@ while ((n_trials < trial_max) & (id_continue>0))
         
         % Record the variational parameters
         variational_params_path.pi(cell_list,iter+1) = parameter_history.pi(:,end);
-        variational_params_path.log_alpha(cell_list,iter+1) = log(parameter_history.alpha(:,end));
-        variational_params_path.log_beta(cell_list,iter+1) = log(parameter_history.beta(:,end));
+        variational_params_path.alpha(cell_list,iter+1) = parameter_history.alpha(:,end);
+        variational_params_path.beta(cell_list,iter+1) = parameter_history.beta(:,end);
         
-        mean_gamma_temp= (1-parameter_history.pi(:,end)).*...
-            (C_threshold+ (1-C_threshold)./(1+parameter_history.beta(:,end)./parameter_history.alpha(:,end)));
-        mean_gamma_undefined=zeros(n_cell_this_plane,1);
+        [mean_gamma_temp, ~] = calculate_posterior_mean(parameter_history.alpha(:,end),parameter_history.beta(:,end),0,1);
+        
         mean_gamma_undefined(cell_list,1)=mean_gamma_temp;
         mean_gamma_current(cell_list)=mean_gamma_temp;
         gamma_path(cell_list,iter+1)=mean_gamma_temp;
@@ -381,6 +340,7 @@ while ((n_trials < trial_max) & (id_continue>0))
     %----------------------------------------------------------------%
     % Fit the VI on Group B: potentially disconnected cells
     mean_gamma_disconnected=ones(n_cell_this_plane,1);
+    
     if sum(potentially_disconnected_cells{iter})>0
         cell_list= find(potentially_disconnected_cells{iter});
         variational_params=struct([]);
@@ -388,26 +348,26 @@ while ((n_trials < trial_max) & (id_continue>0))
             i_cell=cell_list(i_cell_idx);
             variational_params(i_cell_idx).pi = variational_params_path.pi(i_cell,iter);
             variational_params(i_cell_idx).p_logit = log(variational_params(i_cell_idx).pi/(1-variational_params(i_cell_idx).pi));
-            variational_params(i_cell_idx).log_alpha = variational_params_path.log_alpha(i_cell,iter);
-            variational_params(i_cell_idx).log_beta = variational_params_path.log_beta(i_cell,iter);
+            variational_params(i_cell_idx).alpha = variational_params_path.alpha(i_cell,iter);
+            variational_params(i_cell_idx).beta = variational_params_path.beta(i_cell,iter);
         end
         
         prior_params.pi0= [variational_params(:).pi]';
-        prior_params.alpha0= exp([variational_params(:).log_alpha]');
-        prior_params.beta0 = exp([variational_params(:).log_beta]');
-        % Include only the remaining cells
+        prior_params.alpha0= [variational_params(:).alpha]';
+        prior_params.beta0 = [variational_params(:).beta]';
         
+        % Include only the remaining cells
         designs_remained=cells_probabilities_disconnected(:,cell_list);
         active_trials=find(sum(designs_remained,2)>1e-3);
         designs_remained=designs_remained(active_trials,:);
         outputs_remained=outputs_disconnected(active_trials,:);
         
-         % find neighbours that are not in cell_list:
+        % find neighbours that are not in cell_list:
         neighbour_list=find(sum(cell_neighbours(cell_list,:),1)>0)';
         neighbour_list=setdiff(neighbour_list,cell_list);
         designs_neighbours=cells_probabilities_disconnected(active_trials,neighbour_list);
         gamma_neighbours=mean_gamma_current(neighbour_list);
-       
+        
         lklh_func=@calculate_likelihood_bernoulli;
         [parameter_history,~] = fit_working_model_vi(...
             designs_remained,outputs_remained,background_rt, ...
@@ -415,16 +375,12 @@ while ((n_trials < trial_max) & (id_continue>0))
             designs_neighbours,gamma_neighbours,...
             S,epsilon,eta_logit,eta_beta,maxit,lklh_func);
         
-        % Record the variational parameters
         variational_params_path.pi(cell_list,iter+1) = parameter_history.pi(:,end);
-        variational_params_path.log_alpha(cell_list,iter+1) = log(parameter_history.alpha(:,end));
-        variational_params_path.log_beta(cell_list,iter+1) = log(parameter_history.beta(:,end));
+        variational_params_path.alpha(cell_list,iter+1) = parameter_history.alpha(:,end);
+        variational_params_path.beta(cell_list,iter+1) = parameter_history.beta(:,end);
         
+        [mean_gamma_temp, ~] = calculate_posterior_mean(parameter_history.alpha(:,end),parameter_history.beta(:,end),0,1);
         
-        % obtain estimates
-        mean_gamma_temp= (1-parameter_history.pi(:,end)).*...
-            (C_threshold+ (1-C_threshold)./(1+parameter_history.beta(:,end)./parameter_history.alpha(:,end)));
-        mean_gamma_disconnected=ones(n_cell_this_plane,1);
         mean_gamma_disconnected(cell_list,1)=mean_gamma_temp;
         mean_gamma_current(cell_list)=mean_gamma_temp;
         gamma_path(cell_list,iter+1)=mean_gamma_temp;
@@ -477,39 +433,36 @@ while ((n_trials < trial_max) & (id_continue>0))
         
         % Now fit the vi model for each of the cluster:
         for i_cluster= 1:n_cluster
-            
             neighbour_list=find(sum(cell_neighbours(cell_list(cluster_of_cells{i_cluster}),:),1)>0)';
             variational_params=struct([]);
             for i_cell_idx = 1:length(neighbour_list)
                 i_cell=neighbour_list(i_cell_idx);
                 variational_params(i_cell_idx).pi = variational_params_path.pi(i_cell,iter);
                 variational_params(i_cell_idx).p_logit = log(variational_params(i_cell_idx).pi/(1-variational_params(i_cell_idx).pi));
-                variational_params(i_cell_idx).log_alpha = variational_params_path.log_alpha(i_cell,iter);
-                variational_params(i_cell_idx).log_beta = variational_params_path.log_beta(i_cell,iter);
-                variational_params(i_cell_idx).log_alpha_gain = variational_params_path.log_alpha_gain(i_cell,iter);
-                variational_params(i_cell_idx).log_beta_gain = variational_params_path.log_alpha_gain(i_cell,iter);
+                variational_params(i_cell_idx).alpha = variational_params_path.alpha(i_cell,iter);
+                variational_params(i_cell_idx).beta = variational_params_path.beta(i_cell,iter);
+                variational_params(i_cell_idx).alpha_gain = variational_params_path.alpha_gain(i_cell,iter);
+                variational_params(i_cell_idx).beta_gain = variational_params_path.beta_gain(i_cell,iter);
             end
             
             prior_params.pi0= [variational_params(:).pi]';
-            prior_params.alpha0= exp([variational_params(:).log_alpha]');
-            prior_params.beta0 = exp([variational_params(:).log_beta]');
-            prior_params.alpha0_gain=  exp([variational_params(:).log_alpha_gain]');
-            prior_params.beta0_gain =exp([variational_params(:).log_beta_gain]');
+            prior_params.alpha0= [variational_params(:).alpha]';
+            prior_params.beta0 = [variational_params(:).beta]';
+            prior_params.alpha0_gain= [variational_params(:).alpha_gain]';
+            prior_params.beta0_gain =[variational_params(:).beta_gain]';
             
             designs_remained=stim_size_connected(:,neighbour_list);
             active_trials=find(sum(designs_remained,2)>stim_threshold);
             designs_remained=designs_remained(active_trials,:);
             mpp_remained=mpp_connected{iter}(active_trials);
-            
-%             
-%             % find neighbours that are not in cell_list:
-%             neighbour_list=find(sum(cell_neighbours(cell_list(cluster_of_cells{i_cluster}),:),1)>0)';
-%             neighbour_list=setdiff(neighbour_list,cell_list(cluster_of_cells{i_cluster}));
-%             designs_neighbours=stim_size_connected(active_trials,neighbour_list);
-%             gamma_neighbours=mean_gamma_current(neighbour_list);
-%               gain_neighbours=mean_gain_current(neighbour_list);
-%       
-        designs_neighbours=[];        gamma_neighbours=[];         gain_neighbours=[];
+            %             % find neighbours that are not in cell_list:
+            %             neighbour_list=find(sum(cell_neighbours(cell_list(cluster_of_cells{i_cluster}),:),1)>0)';
+            %             neighbour_list=setdiff(neighbour_list,cell_list(cluster_of_cells{i_cluster}));
+            %             designs_neighbours=stim_size_connected(active_trials,neighbour_list);
+            %             gamma_neighbours=mean_gamma_current(neighbour_list);
+            %               gain_neighbours=mean_gain_current(neighbour_list);
+            %
+            designs_neighbours=[];        gamma_neighbours=[];         gain_neighbours=[];
             [parameter_history] = fit_full_model_vi(...
                 designs_remained, mpp_remained, background_rate, ...
                 prob_trace_full,    stim_grid,...
@@ -518,179 +471,97 @@ while ((n_trials < trial_max) & (id_continue>0))
                 designs_neighbours,gamma_neighbours,gain_neighbours,...
                 S,epsilon,eta_logit,eta_beta,maxit);
             
-                
-            %      lklh_func=@calculate_likelihood_bernoulli;
-            %     [parameter_history,~] = fit_working_model_vi(...
-            %             designs_remained,outputs_remained,background_rt, ...
-            %             variational_params,prior_params,C_threshold,...
-            %             S,epsilon,eta_logit,eta_beta,maxit,lklh_func);
-            %
-            
             %cell_list(cluster_of_cells{i_cluster})
             variational_params_path.pi(neighbour_list,iter+1) = parameter_history.pi(:,end);
-            variational_params_path.log_alpha(neighbour_list,iter+1) = log(parameter_history.alpha(:,end));
-            variational_params_path.log_beta(neighbour_list,iter+1) = log(parameter_history.beta(:,end));
-            variational_params_path.log_alpha_gain(neighbour_list,iter+1) = log(parameter_history.alpha_gain(:,end));
-            variational_params_path.log_beta_gain(neighbour_list,iter+1) = log(parameter_history.beta_gain(:,end));
-            
-            % obtain estimates
-            mean_gamma_temp= (1-parameter_history.pi(:,end)).*...
-                (C_threshold+ (1-C_threshold)./(1+parameter_history.beta(:,end)./parameter_history.alpha(:,end)));
-           
-           
-            mean_gain_temp= (gain_bound.low+ (gain_bound.up-gain_bound.low)...
-                ./(1+parameter_history.beta_gain(:,end)./parameter_history.alpha_gain(:,end)));
-           
-             % approximated variance:
-%             sumab=parameter_history.alpha(:,end)+parameter_history.beta(:,end);
-%             var_gamma_temp=(parameter_history.alpha(:,end).*parameter_history.beta(:,end))./...
-%                 (sumab.*sumab.*(sumab+1));
-%             variance_gamma_connected(neighbour_list,1)=var_gamma_temp;
-%            
-            % mean_gamma_temp
-            %mean_gain_temp
-            %
-            % Needs to take gain into account (as gain and gamma are
-            % unidentifiable at no responses
-            
-           mean_gamma_connected(neighbour_list,1)=mean_gamma_temp;
-           mean_gamma_current(neighbour_list)=mean_gamma_temp;
-           mean_gain_current(neighbour_list)=mean_gain_temp;
-           gamma_path(neighbour_list,iter+1)=mean_gamma_temp;
-           
-            %length([mpp_remained.times])
+        variational_params_path.alpha(neighbour_list,iter+1) = parameter_history.alpha(:,end);
+        variational_params_path.beta(neighbour_list,iter+1) = parameter_history.beta(:,end);
+         variational_params_path.alpha_gain(neighbour_list,iter+1) = parameter_history.alpha_gain(:,end);
+        variational_params_path.beta_gain(neighbour_list,iter+1) = parameter_history.beta_gain(:,end);
+       
+        
+        [mean_gamma_temp, var_gamma_temp] = calculate_posterior_mean(...
+            parameter_history.alpha(:,end),parameter_history.beta(:,end),0,1);
+        [mean_gain_temp, ~] = calculate_posterior_mean(...
+            parameter_history.alpha_gain(:,end),parameter_history.beta_gain(:,end),gain_bound.low,gain_bound.up);
+        
+        
+        
+            variance_gamma_connected(neighbour_list)=var_gamma_temp;
+            var_gamma_path(neighbour_list,iter+1)=var_gamma_temp;
+            mean_gamma_connected(neighbour_list,1)=mean_gamma_temp;
+            mean_gamma_current(neighbour_list)=mean_gamma_temp;
+            mean_gain_current(neighbour_list)=mean_gain_temp;
+            gamma_path(neighbour_list,iter+1)=mean_gamma_temp;
+        
         end
     end
-        %------------------------------------------------------%
-        
-% Debug 
-%         etimes1=[mpp_remained(trials_locations==16).times];
-%         etimes2=[mpp_remained(trials_locations==14).times];
-%         
-%         figure(2)
-%         scatter(etimes1,0.07*ones(length(etimes1),1),'MarkerFaceColor','r')
-%         hold on;
-%          line(1:time_max, reshape(probs(:,1,1), [time_max 1]),'Color','r','LineStyle','-')
-%          line(1:time_max, reshape(probs(:,1,2), [time_max 1]),'Color','r','LineStyle','--')
-%         
-%          
-%          scatter(etimes2,0.05*ones(length(etimes2),1),'MarkerFaceColor','b')
-%          line(1:time_max, reshape(probs(:,2,1), [time_max 1]),'Color','b','LineStyle','-')
-%          line(1:time_max, reshape(probs(:,2,2), [time_max 1]),'Color','b','LineStyle','--')
-%         
-%          
-%        hold off;
-%        
-% %        lines( reshape(probs(:,ii,j)
-%        ylim([0 0.1])
-       
-       %
-%        gain_check = mean_gain_temp';
-%         gamma_check=mean_gamma_temp;
-%        gain_check=gain_truth([14 16])';
-%        gamma_check=gamma_truth([14 16]);
-%        est_stim_received=designs_remained.*(ones(size(designs_remained,1),1)*gain_check);
-%         % estimate the number of events:
-% %        est_events = mean_gamma_temp;
-% %        for i_cell_temp = 1:length(est_events)
-% %            est_events(i_cell_temp)=0;
-% %            for i_trial = 1:size(designs_remained,1)
-% %                est_events(i_cell_temp)=est_events(i_cell_temp)+stim_to_prob(...
-% %                    est_stim_received(i_trial,i_cell_temp),stim_unique,prob_trace);
-% %            end
-% %        end
-%     % 
-%     stim_set=unique(est_stim_received,'rows');
-%     probs=zeros(time_max,size(stim_set,1),size(stim_set,2));
-%     for ii = 1:size(stim_set,1)
-%        for j= 1:size(stim_set,2)
-%                stim_index=max(1,round(stim_set(ii,j)*stim_scale));
-%    probs(:,ii,j)=gamma_check(j)*prob_trace_full(stim_index,:);
-%            
-%        end
+%     if vf_type == 1
+%     change_gamma =abs(gamma_path(:,iter+1)-gamma_path(:,iter));
+%     elseif vf_type == 2
+        change_gamma = sqrt(variance_gamma_connected);
 %     end
-%             
-%             
-% 
 
-        %
-        
-        %------------------------------------------------------%
-        % Moving the cell between groups
-        % mean_gamma_undefined & undefined_cells{iter} % A
-        % mean_gamma_disconnected & potentially_disconnected_cells{iter} %B
-        % mean_gamma_connected & potentially_connected_cells{iter} %C
-        
-        undefined_to_disconnected = intersect(find(mean_gamma_undefined<disconnected_threshold),find( undefined_cells{iter}));
-        undefined_to_connected = intersect(find(mean_gamma_undefined>connected_threshold),find( undefined_cells{iter}));
-        % cells move together with their neighbours
-        undefined_to_disconnected=find(sum(cell_neighbours(undefined_to_disconnected,:),1)>0)';
-        undefined_to_connected =find(sum(cell_neighbours(undefined_to_connected,:),1)>0);
-        % if there are conflicts, move them to the potentially connected cells
-        undefined_to_disconnected=setdiff(undefined_to_disconnected,undefined_to_connected);
-        
-        disconnected_to_undefined = intersect(find(mean_gamma_disconnected>disconnected_confirm_threshold),...
-            find(potentially_disconnected_cells{iter}));
-        disconnected_to_dead = intersect(find(mean_gamma_disconnected<disconnected_confirm_threshold),...
-            find(potentially_disconnected_cells{iter}));
-        
-        disconnected_to_undefined=find(sum(cell_neighbours(disconnected_to_undefined,:),1)>0);
-        % if there are conflicts, move them to the potentially connected cells
-        disconnected_to_dead=setdiff(disconnected_to_dead,disconnected_to_undefined);
-        
-        
-        connected_to_dead = intersect(find(mean_gamma_connected<disconnected_confirm_threshold),...
-            find(potentially_connected_cells{iter}));
-        connected_to_alive = intersect(find(mean_gamma_connected>connected_confirm_threshold),...
-            find(potentially_connected_cells{iter}));
-        change_gamma =abs(gamma_path(:,iter+1)-gamma_path(:,iter));
-        connected_to_alive = intersect(find(change_gamma<change_threshold),...
-            connected_to_alive);
-        
-        % Eliminate the weakly identifiable pairs if they are both assign to a
-        % group:
-        %moved_cells = [connected_to_dead; connected_to_alive]';
-        %cells_and_neighbours=find(sum(cell_neighbours(moved_cells,:),1)>0);
-        %neighbours_not_included=intersect(find(potentially_connected_cells{iter}), setdiff(cells_and_neighbours,moved_cells));
-        %blacklist=find(sum(cell_neighbours(neighbours_not_included,:),1)>0);
-        %connected_to_dead=setdiff(connected_to_dead ,blacklist);
-        %connected_to_alive=setdiff(connected_to_alive,blacklist);
-        
-        % Update the cell lists:
-        undefined_cells{iter+1}=undefined_cells{iter};
-        undefined_cells{iter+1}(undefined_to_disconnected)=0;undefined_cells{iter+1}(undefined_to_connected)=0;
-        undefined_cells{iter+1}(disconnected_to_undefined)=1;
-        
-        potentially_disconnected_cells{iter+1}=potentially_disconnected_cells{iter};
-        potentially_disconnected_cells{iter+1}(disconnected_to_dead)=0;potentially_disconnected_cells{iter+1}(disconnected_to_undefined)=0;
-        potentially_disconnected_cells{iter+1}(undefined_to_disconnected)=1;
-        
-        
-        potentially_connected_cells{iter+1}=potentially_connected_cells{iter};
-        potentially_connected_cells{iter+1}(connected_to_dead)=0;potentially_connected_cells{iter+1}(connected_to_alive)=0;
-        potentially_connected_cells{iter+1}(undefined_to_connected)=1;
-        
-        dead_cells{iter+1}=dead_cells{iter};
-        dead_cells{iter+1}(disconnected_to_dead)=1;dead_cells{iter+1}(connected_to_dead)=1;
-        
-        alive_cells{iter+1}=alive_cells{iter};
-        alive_cells{iter+1}(connected_to_alive)=1;
-        
-        %
-        iter=iter+1;
-        %
-        if sum(dead_cells{iter}+alive_cells{iter})==n_cell_this_plane
-            id_continue=0;% terminate
-        else
-            id_continue=1;
-        end
-        % Plot the progress
-        
-        fprintf('Number of trials so far: %d; number of cells killed: %d\n',n_trials, sum(dead_cells{iter}+alive_cells{iter}))
-       
-        
-        
+
+    %------------------------------------------------------%
+    % Moving the cell between groups
+    % mean_gamma_undefined & undefined_cells{iter} % A
+    % mean_gamma_disconnected & potentially_disconnected_cells{iter} %B
+    % mean_gamma_connected & potentially_connected_cells{iter} %C
+    
+    undefined_to_disconnected = intersect(find(mean_gamma_undefined<disconnected_threshold),find( undefined_cells{iter}));
+    undefined_to_connected = intersect(find(mean_gamma_undefined>connected_threshold),find( undefined_cells{iter}));
+    % cells move together with their neighbours
+    undefined_to_disconnected=find(sum(cell_neighbours(undefined_to_disconnected,:),1)>0)';
+    undefined_to_connected =find(sum(cell_neighbours(undefined_to_connected,:),1)>0);
+    % if there are conflicts, move them to the potentially connected cells
+    undefined_to_disconnected=setdiff(undefined_to_disconnected,undefined_to_connected);
+    
+    disconnected_to_undefined = intersect(find(mean_gamma_disconnected>disconnected_confirm_threshold),...
+        find(potentially_disconnected_cells{iter}));
+    disconnected_to_dead = intersect(find(mean_gamma_disconnected<disconnected_confirm_threshold),...
+        find(potentially_disconnected_cells{iter}));
+    
+    disconnected_to_undefined=find(sum(cell_neighbours(disconnected_to_undefined,:),1)>0);
+    % if there are conflicts, move them to the potentially connected cells
+    disconnected_to_dead=setdiff(disconnected_to_dead,disconnected_to_undefined);
+    
+    
+    connected_to_dead = intersect(find(mean_gamma_connected<disconnected_confirm_threshold),...
+        find(potentially_connected_cells{iter}));
+    connected_to_alive = intersect(find(mean_gamma_connected>connected_confirm_threshold),...
+        find(potentially_connected_cells{iter}));
+    connected_to_alive = intersect(find(change_gamma<change_threshold),...
+        connected_to_alive);
+    
+    % Update the cell lists:
+    undefined_cells{iter+1}=undefined_cells{iter};
+    undefined_cells{iter+1}(undefined_to_disconnected)=0;undefined_cells{iter+1}(undefined_to_connected)=0;
+    undefined_cells{iter+1}(disconnected_to_undefined)=1;
+    
+    potentially_disconnected_cells{iter+1}=potentially_disconnected_cells{iter};
+    potentially_disconnected_cells{iter+1}(disconnected_to_dead)=0;potentially_disconnected_cells{iter+1}(disconnected_to_undefined)=0;
+    potentially_disconnected_cells{iter+1}(undefined_to_disconnected)=1;
+    
+    potentially_connected_cells{iter+1}=potentially_connected_cells{iter};
+    potentially_connected_cells{iter+1}(connected_to_dead)=0;potentially_connected_cells{iter+1}(connected_to_alive)=0;
+    potentially_connected_cells{iter+1}(undefined_to_connected)=1;
+    
+    dead_cells{iter+1}=dead_cells{iter};
+    dead_cells{iter+1}(disconnected_to_dead)=1;dead_cells{iter+1}(connected_to_dead)=1;
+    
+    alive_cells{iter+1}=alive_cells{iter};
+    alive_cells{iter+1}(connected_to_alive)=1;
+    
+    %
+    iter=iter+1;
+    %
+    if sum(dead_cells{iter}+alive_cells{iter})==n_cell_this_plane
+        id_continue=0;% terminate
+    else
+        id_continue=1;
     end
+    fprintf('Number of trials so far: %d; number of cells confirmed: %d\n',n_trials, sum(dead_cells{iter}+alive_cells{iter}))
+end
     %%
       [find(gamma_truth>0) find(alive_cells{iter})]
   
@@ -799,7 +670,9 @@ while ((n_trials < trial_max) & (id_continue>0))
     %% ---------------------------------------
     % Column II: heatmaps of trials
     iter_II=4;
-    
+    find(potentially_disconnected_cells{iter_II})
+    find(potentially_connected_cells{iter_II})
+    find(undefined_cells{iter_II})
     %%
     % II.a trials for undeifned cells 
     figure(201)
@@ -1091,7 +964,7 @@ facecolor='k';
         cell_list=find(sum(transparencies)>4);
     facecolor='k';
     
-    for i_trial = 1:size(trials_locations_undefined{iter_II},1)
+    for i_trial = 1:size(trials_locations_connected{iter_II},1)
         if ~isempty(mpp_connected{iter_II}(i_trial).times)
            for i_event = 1:length(mpp_connected{iter_II}(i_trial).times)
                x_sp=[mpp_connected{iter_II}(i_trial).times(i_event) mpp_connected{iter_II}(i_trial).times(i_event)];
@@ -1118,7 +991,7 @@ facecolor='k';
     end
        xlim([-2 i_cell+12]);
       xticks([1 4 6 8 10.5  11+(1:length(cell_list)) ])
-      xticklabels({'Time (1/20 ms):' string([3 9 12]) 'Cells:'  string(cell_list)})
+      xticklabels({'Time (ms):' string([3 9 12]) 'Cells:'  string(cell_list)})
         ylim([0 i_trial]);
     ylabel('Trials');
   hold on;
@@ -1181,10 +1054,23 @@ facecolor='k';
     
     
     cell_list=find(undefined_cells{iter_II});
-    alpha_current=exp(variational_params_path.log_alpha(cell_list,iter_II));
-    beta_current=exp(variational_params_path.log_beta(cell_list,iter_II));
-    
-    gamma_mean = alpha_current./(alpha_current+beta_current);
+    if vf_type == 1
+        alpha_current=exp(variational_params_path.log_alpha(cell_list,iter_II));
+        beta_current=exp(variational_params_path.log_beta(cell_list,iter_II));
+        gamma_mean = alpha_current./(alpha_current+beta_current);
+        
+    elseif vf_type==2
+        alpha_current=variational_params_path.log_alpha(cell_list,iter_II);
+        beta_current=exp(variational_params_path.log_beta(cell_list,iter_II));
+        gamma_mean= zeros(length(cell_list),1);gamma_var= zeros(length(cell_list),1);
+        for i_temp = 1:length(cell_list)
+            gamma_i=beta_current(i_temp)*normal_samples+alpha_current(i_temp);
+            gamma_i=exp(gamma_i)./(1+exp(gamma_i));
+            gamma_mean(i_temp)=mean(gamma_i);
+            gamma_var(i_temp)=var(gamma_i);
+        end
+        
+    end
     xgrid=0:0.02:1;
     
     figure(401)
@@ -1200,7 +1086,13 @@ facecolor='k';
             color_codes = [0 0 0 0.2]; %black 
         end
         line([gamma_mean(i_cell) gamma_mean(i_cell)],[4 5],'LineStyle','-','LineWidth',1,'Color',color_codes)
+        if vf_type == 1
         line(xgrid,betapdf(xgrid,alpha_current(i_cell),beta_current(i_cell)),'Color',color_codes );
+        elseif vf_type == 2
+        xlogit=log(xgrid./(1-xgrid));
+            line(xgrid,normpdf(xlogit,alpha_current(i_cell),beta_current(i_cell)),'Color',color_codes );
+            
+        end 
         hold on;
     end
     line([connected_threshold connected_threshold],[3 5],'LineStyle','-','LineWidth',1,'Color',[0 1 0])
@@ -1223,10 +1115,23 @@ facecolor='k';
        %%
          % IV.b potentially disconnected cells  
     cell_list=find(potentially_disconnected_cells{iter_II});
-    alpha_current=exp(variational_params_path.log_alpha(cell_list,iter_II));
-    beta_current=exp(variational_params_path.log_beta(cell_list,iter_II));
     
-    gamma_mean = alpha_current./(alpha_current+beta_current);
+     if vf_type == 1
+        alpha_current=exp(variational_params_path.log_alpha(cell_list,iter_II));
+        beta_current=exp(variational_params_path.log_beta(cell_list,iter_II));
+        gamma_mean = alpha_current./(alpha_current+beta_current);     
+    elseif vf_type==2
+        alpha_current=variational_params_path.log_alpha(cell_list,iter_II);
+        beta_current=exp(variational_params_path.log_beta(cell_list,iter_II));
+        gamma_mean= zeros(length(cell_list),1);gamma_var= zeros(length(cell_list),1);
+        for i_temp = 1:length(cell_list)
+            gamma_i=beta_current(i_temp)*normal_samples+alpha_current(i_temp);
+            gamma_i=exp(gamma_i)./(1+exp(gamma_i));
+            gamma_mean(i_temp)=mean(gamma_i);
+            gamma_var(i_temp)=var(gamma_i);
+        end
+        
+    end
     xgrid=0:0.02:1;
     figure(402)
     ax1=axes('Position',[0 0 1 1],'Visible','off');
@@ -1239,7 +1144,13 @@ facecolor='k';
             color_codes = [0 0 0 0.2]; %black 
         end
         line([gamma_mean(i_cell) gamma_mean(i_cell)],[4 5],'LineStyle','-','LineWidth',1,'Color',color_codes)
+         if vf_type == 1
         line(xgrid,betapdf(xgrid,alpha_current(i_cell),beta_current(i_cell)),'Color',color_codes );
+        elseif vf_type == 2
+        xlogit=log(xgrid./(1-xgrid));
+            line(xgrid,normpdf(xlogit,alpha_current(i_cell),beta_current(i_cell)),'Color',color_codes );
+            
+        end 
         hold on;
     end
     line([disconnected_threshold disconnected_threshold],[3 5],'LineStyle','-','LineWidth',1,'Color',[1 0 0])
@@ -1264,23 +1175,40 @@ facecolor='k';
     % IV.b Potentially connected cells 
       % Fitted values
   cell_list=find(potentially_connected_cells{iter_II});
-  alpha_current=exp(variational_params_path.log_alpha(cell_list,iter_II));
-  beta_current=exp(variational_params_path.log_beta(cell_list,iter_II));
-  gamma_mean = alpha_current./(alpha_current+beta_current);
   
-   %cell_list_old=find(potentially_connected_cells{iter_II-1});
-  alpha_current_old=exp(variational_params_path.log_alpha(cell_list,iter_II-1));
-  beta_current_old=exp(variational_params_path.log_beta(cell_list,iter_II-1));
-  gamma_mean_old = alpha_current_old./(alpha_current_old+beta_current_old);
-  
-  gamma_change = abs(gamma_mean-gamma_mean_old);
- change_threshold=0.06;
+  if vf_type == 1
+      alpha_current=exp(variational_params_path.log_alpha(cell_list,iter_II));
+      beta_current=exp(variational_params_path.log_beta(cell_list,iter_II));
+      gamma_mean = alpha_current./(alpha_current+beta_current);
+      
+      
+      %cell_list_old=find(potentially_connected_cells{iter_II-1});
+      alpha_current_old=exp(variational_params_path.log_alpha(cell_list,iter_II-1));
+      beta_current_old=exp(variational_params_path.log_beta(cell_list,iter_II-1));
+      gamma_mean_old = alpha_current_old./(alpha_current_old+beta_current_old);
+      
+      gamma_change = abs(gamma_mean-gamma_mean_old);
+  elseif vf_type==2
+      alpha_current=variational_params_path.log_alpha(cell_list,iter_II);
+      beta_current=exp(variational_params_path.log_beta(cell_list,iter_II));
+      gamma_mean= zeros(length(cell_list),1);gamma_var= zeros(length(cell_list),1);
+      for i_temp = 1:length(cell_list)
+          gamma_i=beta_current(i_temp)*normal_samples+alpha_current(i_temp);
+          gamma_i=exp(gamma_i)./(1+exp(gamma_i));
+          gamma_mean(i_temp)=mean(gamma_i);
+          gamma_var(i_temp)=var(gamma_i);
+      end
+      gamma_change=sqrt(gamma_var);
+      
+  end
+    
   xgrid=0:0.02:1; 
   figure(403)
     ax1=axes('Position',[0 0 1 1],'Visible','off');
     ax2=axes('Position',[0.1 0.2 .8 .8],'Visible','off');
     facecolor='k';
        for i_cell = 1:length(cell_list)
+           
         if gamma_mean(i_cell)>connected_threshold & gamma_change(i_cell)<change_threshold
             color_codes = [0 0 1 0.4]; %blue
         elseif gamma_mean(i_cell)<disconnected_threshold
@@ -1289,13 +1217,19 @@ facecolor='k';
             color_codes = [0 1 0 0.4]; %green
         end
        line([gamma_mean(i_cell) gamma_mean(i_cell)],[4 5],'LineStyle','-','LineWidth',1,'Color',color_codes)
-       line(xgrid,betapdf(xgrid,alpha_current(i_cell),beta_current(i_cell)),'Color',color_codes );
-       line(xgrid,betapdf(xgrid,alpha_current_old(i_cell),beta_current_old(i_cell)),...
-           'LineStyle','--','Color',color_codes );
        
+        if vf_type == 1
+       line(xgrid,betapdf(xgrid,alpha_current(i_cell),beta_current(i_cell)),'Color',color_codes );
+       %line(xgrid,betapdf(xgrid,alpha_current_old(i_cell),beta_current_old(i_cell)),...
+       %    'LineStyle','--','Color',color_codes );
+        elseif vf_type == 2
+        xlogit=log(xgrid./(1-xgrid));
+            line(xgrid,normpdf(xlogit,alpha_current(i_cell),beta_current(i_cell)),'Color',color_codes );
+            
+        end 
        hold on;
        end
-    line([connected_threshold connected_threshold],[3 5],'LineStyle','-','LineWidth',1,'Color',[0 1 0])
+    line([connected_threshold connected_threshold],[3 5],'LineStyle','-','LineWidth',1,'Color',[0 0 1])
     line([disconnected_threshold disconnected_threshold],[3 5],'LineStyle','-','LineWidth',1,'Color',[1 0 0])
     
     %      target_locations_selected
@@ -1312,135 +1246,177 @@ facecolor='k';
    text(0.2,0.06,title_text,'fontsize',15)
        saveas(403,strcat('./Figures/work_flow/','FigureIVc','.jpg'));
 
-    %% --------------------------------------
-    % Column V: new trials (not needed)
-    
-    iter_V=iter_II+1;
-    
-    %%
-    % V.a trials for undeifned cells 
-    figure(501)
-           for i_cell = 1:length(cell_group_list{this_plane})
-                cell_index =cell_group_list{this_plane}(i_cell);
-                
-                    if undefined_cells{iter_V}(i_cell)==1
-                        facecolor='k';markershape='o';markeralpha=0.4;
-                    elseif dead_cells{iter_V}(i_cell)==1
-                        facecolor='r';markershape='x';markeralpha=0.2;
-                    elseif alive_cells{iter_V}(i_cell)==1
-                      facecolor='b';markershape='o';markeralpha=0.2;
-                    elseif potentially_connected_cells{iter_V}(i_cell)==1
-                      facecolor='g';markershape='o';markeralpha=0.2;
-                    elseif potentially_disconnected_cells{iter_V}(i_cell)==1
-                      facecolor='r';markershape='o';markeralpha=0.2;
-                    end
-                    
-                    scatter(cell_locations(cell_index,2),...
-                        cell_locations(cell_index,1),...
-                        'Marker',markershape,'SizeData',150,...
-                        'MarkerFaceColor',facecolor, 'MarkerEdgeColor',facecolor,...
-                        'MarkerFaceAlpha',markeralpha)
-                  
-                
-                hold on;
-            end
-            %xlabel(strcat(num2str(n_total_trial(iter)), ' trials'));
-            xlim([-160 160]);
-ylim([-160 160]);
+       %%
+       
+       %% Draw the plots:
+final_iter=iter;
+%% Final fits
 
-facecolor='k';
-    for i_trial = 1:size(trials_locations_undefined{iter_V},1)
-           scatter(target_locations_selected(trials_locations_undefined{iter_V}(i_trial,:),2),...
-                        target_locations_selected(trials_locations_undefined{iter_V}(i_trial,:),1),...
-                        'Marker','d','SizeData',60,...
-                        'MarkerFaceColor',facecolor, 'MarkerEdgeColor',facecolor,...
-                        'MarkerFaceAlpha',0.2)
-    end
-%      target_locations_selected
-   saveas(501,strcat('./Figures/work_flow/','FigureVa','.jpg'));
-
+  if vf_type == 1
+        alpha_current=exp(variational_params_path.log_alpha(:,final_iter));
+        beta_current=exp(variational_params_path.log_beta(:,final_iter));
+        gamma_mean = alpha_current./(alpha_current+beta_current);     
+    elseif vf_type==2
+        alpha_current=variational_params_path.log_alpha(:,final_iter);
+        beta_current=exp(variational_params_path.log_beta(:,final_iter));
+        gamma_mean= zeros(n_cell_this_plane,1);
+        for i_temp = 1:n_cell_this_plane
+            gamma_i=beta_current(i_temp)*normal_samples+alpha_current(i_temp);
+            gamma_i=exp(gamma_i)./(1+exp(gamma_i));
+            gamma_mean(i_temp)=mean(gamma_i);
+        end
+        
+        alpha_current=variational_params_path.log_alpha_gain(:,final_iter);
+        beta_current=exp(variational_params_path.log_beta_gain(:,final_iter));
+        gain_mean= zeros(n_cell_this_plane,1);
+        for i_temp = 1:n_cell_this_plane
+            gain_i=beta_current(i_temp)*normal_samples+alpha_current(i_temp);
+            gain_i=exp(gain_i)./(1+exp(gain_i));
+            gain_i = gain_i*(gain_bound.up-gain_bound.low) +gain_bound.low;
+            gain_mean(i_temp)=mean(gain_i);
+        end
+        
+        
+  end
+  gamma_mean(gamma_mean<disconnected_threshold)=0;
+  
+  %%
     
-    %%
-    % II.b trials for disconnected cells
-    figure(502)
+figure(1)
+scatter(gamma_truth,gamma_mean,'Marker','o','SizeData',25,...
+    'MarkerFaceColor','b', 'MarkerEdgeColor','b', 'MarkerFaceAlpha',0.8)
+x=[0 1];y=[0 1];
+hold on;
+line(x,y,'Color','red','LineStyle','--')
+hold off;
+
+xlim([0 1]);
+ylim([0 1]);
+
+xlabel('True synaptic success rate');
+ylabel('Estimated synaptic success rate');
+saveas(1,strcat('./Figures/Toy/','Gamma_truth_vs_fits','.jpg'));
+
+
+%%
+figure(2)
+scatter(gain_truth(find(gamma_truth>0)),gain_mean(find(gamma_truth>0)),'Marker','o','SizeData',25,...
+    'MarkerFaceColor','g', 'MarkerEdgeColor','g', 'MarkerFaceAlpha',0.8)
+x=[0 1];y=[0 1];
+hold on;
+line(x,y,'Color','red','LineStyle','--')
+hold off;
+
+xlim([0.01 0.03]);
+ylim([0.01 0.03]);
+
+xlabel('True optical gain');
+ylabel('Estimated optical gain');
+saveas(2,strcat('./Figures/Toy/','Gain_truth_vs_fits','.jpg'));
+
+%% Number of trials v.s. dead cells and alive cells
+n_dead_cells = zeros(final_iter,1);
+n_alive_cells = zeros(final_iter,1);
+n_trial_proc=zeros(final_iter,1);
+for i=2:final_iter
+    n_dead_cells(i)=sum(dead_cells{i});
+    n_alive_cells(i)=sum(alive_cells{i});
+    n_trial_proc(i)=length(mpp_undefined{i-1})+length(mpp_connected{i-1})+length(mpp_disconnected{i-1});
+end
+n_total_trial=cumsum(n_trial_proc);
+
+%%
+figure(3)
+
+plot(n_total_trial,n_dead_cells,'Color','red','LineStyle','-','LineWidth',3)
+
+hold on;
+line([15 80],[50 50],'Color','red','LineStyle','-','LineWidth',3)
+text(85,50,'Number of disconnected cells')
+
+line(n_total_trial,n_alive_cells,'Color','blue','LineStyle','-','LineWidth',3)
+line([15 80],[43 43],'Color','blue','LineStyle','-','LineWidth',3)
+text(85,43,'Number of connected cells')
+xlim([0 max(n_total_trial)]);
+ylim([0 n_cell_this_plane]);
+
+xlabel('Number of trials');
+ylabel('Cell counts');
+
+hold off;
+
+saveas(3,strcat('./Figures/Toy/','Cell_counts_vs_ntrial','.jpg'));
+
+
+%% Plot the change over course
+for iter = 1:final_iter
+    figure(iter)
+    scatter(cell_locations(cell_group_list{this_plane},2),...
+        cell_locations(cell_group_list{this_plane},1),...
+        'Marker','o','SizeData',1,...
+        'MarkerFaceColor','r', 'MarkerEdgeColor','r', 'MarkerFaceAlpha',0.2)
+    hold on;
     for i_cell = 1:length(cell_group_list{this_plane})
         cell_index =cell_group_list{this_plane}(i_cell);
         
-        if undefined_cells{iter_V}(i_cell)==1
-            facecolor='k';markershape='o';markeralpha=0.2;
-        elseif dead_cells{iter_V}(i_cell)==1
-            facecolor='r';markershape='x';markeralpha=0.2;
-        elseif alive_cells{iter_V}(i_cell)==1
-            facecolor='b';markershape='o';markeralpha=0.2;
-        elseif potentially_connected_cells{iter_V}(i_cell)==1
-            facecolor='g';markershape='o';markeralpha=0.2;
-        elseif potentially_disconnected_cells{iter_V}(i_cell)==1
-            facecolor='r';markershape='o';markeralpha=0.4;
+        if undefined_cells{iter}(i_cell)==1
+            facecolor='k';markershape='o';
+        elseif dead_cells{iter}(i_cell)==1
+            facecolor='r';markershape='x';
+        elseif alive_cells{iter}(i_cell)==1
+            facecolor='b';markershape='o';
+        elseif potentially_connected_cells{iter}(i_cell)==1
+            facecolor='g';markershape='o';
+        elseif potentially_disconnected_cells{iter}(i_cell)==1
+            facecolor='r';markershape='o';
         end
         
         scatter(cell_locations(cell_index,2),...
             cell_locations(cell_index,1),...
-            'Marker',markershape,'SizeData',150,...
+            'Marker',markershape,'SizeData',200,...
             'MarkerFaceColor',facecolor, 'MarkerEdgeColor',facecolor,...
-            'MarkerFaceAlpha',markeralpha)
+            'MarkerFaceAlpha',0.6)
         
         
         hold on;
     end
-    %xlabel(strcat(num2str(n_total_trial(iter)), ' trials'));
+    xlabel(strcat(num2str(n_total_trial(iter)), ' trials'));
     xlim([-160 160]);
     ylim([-160 160]);
     
-    facecolor='r';
-    for i_trial = 1:size(trials_locations_disconnected{iter_V},1)
-        scatter(target_locations_selected(trials_locations_disconnected{iter_V}(i_trial,:),2),...
-            target_locations_selected(trials_locations_disconnected{iter_V}(i_trial,:),1),...
-            'Marker','d','SizeData',60,...
-            'MarkerFaceColor',facecolor, 'MarkerEdgeColor',facecolor,...
-            'MarkerFaceAlpha',0.2)
-    end
-    %      target_locations_selected
+    %xlabel('X (um)');
+    %ylabel('Y (um)');
+    %             axis off;
     
-       saveas(502,strcat('./Figures/work_flow/','FigureVb','.jpg'));
-
-
-    %%
-    % II.c trials for connected cells (3D)
- figure(503)
-    for i_cell = 1:length(cell_group_list{this_plane})
-        cell_index =cell_group_list{this_plane}(i_cell);
-        
-        if undefined_cells{iter_V}(i_cell)==1
-            facecolor='k';markershape='o';markeralpha=0.2;
-        elseif dead_cells{iter_V}(i_cell)==1
-            facecolor='r';markershape='x';markeralpha=0.2;
-        elseif alive_cells{iter_V}(i_cell)==1
-            facecolor='b';markershape='o';markeralpha=0.2;
-        elseif potentially_connected_cells{iter_V}(i_cell)==1
-            facecolor='g';markershape='o';markeralpha=0.5;
-        elseif potentially_disconnected_cells{iter_V}(i_cell)==1
-            facecolor='r';markershape='o';markeralpha=0.2;
+    
+    txt=cell([5 1]);
+    txt{1}='Undefined';
+    txt{2}='Disconnected';
+    txt{3}='Connected';
+    txt{4}='Pot. connected';
+    txt{5}='Pot. disconnected';
+    xcord=[-150 -150 -150 -150 -150];
+    ycord=[150 130 110 90 70];
+    for i=1:5
+        if i==1
+            facecolor='k';markershape='o';
+        elseif i==2
+            facecolor='r';markershape='x';
+        elseif i==3
+            facecolor='b';markershape='o';
+        elseif i==4
+            facecolor='g';markershape='o';
+        elseif i==5
+            facecolor='r';markershape='o';
         end
-        
-        scatter3(-cell_locations(cell_index,2),...
-            cell_locations(cell_index,1),cell_locations(cell_index,3),...
-            'Marker',markershape,'SizeData',50,...
+        scatter(xcord(i),ycord(i),...
+            'Marker',markershape,'SizeData',200,...
             'MarkerFaceColor',facecolor, 'MarkerEdgeColor',facecolor,...
-            'MarkerFaceAlpha',markeralpha)
-        hold on;
+            'MarkerFaceAlpha',0.6)
+        text(xcord(i)+10,ycord(i),txt{i})
     end
-    facecolor='g';
-    for i_trial = 1:size(trials_locations_connected{iter_V},1)
-           scatter3(-target_locations_nuclei(trials_locations_connected{iter_V}(i_trial,:),2),...
-                        target_locations_nuclei(trials_locations_connected{iter_V}(i_trial,:),1),...
-                        target_locations_nuclei(trials_locations_connected{iter_V}(i_trial,:),3),...
-                        'Marker','d','SizeData',50,...
-                        'MarkerFaceColor',facecolor, 'MarkerEdgeColor',facecolor,...
-                        'MarkerFaceAlpha',0.2)
-    end
-    %xlabel(strcat(num2str(n_total_trial(iter)), ' trials'));
-    view(-30,40)
-    xlim([-150 150]);
-    ylim([-150 150]);
-    zlim([45 65]); 
-       saveas(503,strcat('./Figures/work_flow/','FigureVc','.jpg'));
+    hold off;
+    
+    saveas(iter,strcat('./Figures/Toy/','Cell_map', num2str(iter),'.jpg'));
+    
+end
