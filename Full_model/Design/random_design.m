@@ -23,7 +23,7 @@ if n_remaining_cell < single_spot_threshold | n_spots_per_trial==1
          for i_cell =1:n_remaining_cell % generate trials for each cell
             % Generate random locations on z-plane where the cell sits
             related_locations = find(loc_to_cell == remaining_cell_list(i_cell) );
-            trials_temp=randsample(related_locations,K);
+            trials_temp=randsample(related_locations,K,true);
             
              trials_locations(n_replicates*K*(i_cell-1)+(1:(n_replicates*K)),:)=...
                  reshape([trials_temp; trials_temp],[n_replicates*K 1]);
