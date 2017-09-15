@@ -42,7 +42,7 @@ params.stim_grid = (1:1000)/stim_scale;
 params.eff_stim_threshold=stim_grid(min(find(sum(params.template_cell.prob_trace_full,2)>1e-1)));
 
 %----------- Design parameters
-
+params.design.num_groups = 3;
 params.design.n_spots_per_trial = 3;
 params.design.n_replicates=1; % conduct two replicates for each trial
 params.design.K_undefined=6; % each cell appears approximately 10*2 times
