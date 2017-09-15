@@ -1,4 +1,4 @@
-function params = init_oed
+function params = init_oed(load_map)
 
 % parameters
 
@@ -93,8 +93,11 @@ params.design.change_threshold=0.05;
 % some experimental params
 params.exp.power_levels = '50'; % this should be a space delimited string
 params.exp.z_width = 30;
-params.exp.ratio_map = evalin('base','ratio_map');
-params.exp.pockels_lut = evalin('base','pockels_lut');
-params.exp.max_ratio_ref = max(params.exp.pockels_lut)/params.design.n_spots_per_trial;
+if load_map
+    params.exp.ratio_map = evalin('base','ratio_map');
+    params.exp.pockels_lut = evalin('base','pockels_lut');
+    
+    params.exp.max_ratio_ref = max(params.exp.pockels_lut)/params.design.n_spots_per_trial;
+end
 params.exp.max_spike_freq = .5; % don't revisit cells on average sooner than this in Hz
 
