@@ -21,7 +21,7 @@ end
 r1=5;r2=10;r3=15;num_per_grid=12;
 
 num_per_grid_dense = 16;
-stim_threshold = params.eff_stim_threshold/gain_template;
+stim_threshold = params.eff_stim_threshold/params.template_cell.gain_template;
 
 pi_target_selected = cell(data.n_planes,1);
 inner_normalized_products = cell(data.n_planes,1);

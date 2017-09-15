@@ -36,7 +36,7 @@ params.stim_grid = (1:1000)/stim_scale;
 % cell_params.g=0.02;
 [params.template_cell.prob_trace_full,params.template_cell.v_trace_full] = get_first_spike_intensity(...
     params.template_cell.linkfunc,...
-    params.current_template,stim_grid,params.template_cell,params.delay);
+    params.current_template,params.stim_grid,params.template_cell,params.delay);
 
 %
 params.eff_stim_threshold=stim_grid(min(find(sum(params.template_cell.prob_trace_full,2)>1e-1)));
