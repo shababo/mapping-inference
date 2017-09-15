@@ -1,13 +1,25 @@
-function [ trials_locations,  trials_powers] = random_design(...
+function [ trials_locations,  trials_powers, pockels_ratio_refs] = random_design(...
     target_locations_selected,power_selected,...
     inner_normalized_products,single_spot_threshold,...
     gamma_estimates,prob_weight,...
     connected, loc_to_cell,...
-    remaining_cell_list,n_spots_per_trial,K,n_replicates)
+    remaining_cell_list,n_spots_per_trial,K,n_replicates,...
+    varargin)
+
 
 % connected: indicator whether we are designing trials for potentially
 % connected cells 
 
+if ~isempty(varargin) && ~isempty(varargin{1})
+    use_power_map = varargin{1};
+else
+    use_power_map = 0;
+end
+
+if use_power_map
+    ratio_map = varargin{2};
+    ratio_limit = varargin{3};
+end
 
 n_remaining_cell=length(remaining_cell_list);
 loc_counts=zeros(n_remaining_cell,1);
@@ -46,6 +58,7 @@ if n_remaining_cell < single_spot_threshold | n_spots_per_trial==1
     end
 
 else
+    
     n_unique_trials = round(K*n_remaining_cell/n_spots_per_trial);
     trials_locations =zeros(n_unique_trials *n_replicates,n_spots_per_trial);
     trials_powers =zeros(n_unique_trials*n_replicates,n_spots_per_trial);
@@ -55,15 +68,34 @@ else
     % Set the probability to be inversely proportional to the
     % gamma_estimates, since we want to eliminate more disconnected cells
     probability_weights = (1-gamma_estimates)*prob_weight+(1-prob_weight);
-    
-    for i_trial =1:n_unique_trials
+    pockels_ratio_refs = zeros(n_unique_trials,1);
+    for i_trial = 1:n_unique_trials
         prob_initial = probability_weights;
-        prob_initial=prob_initial./(loc_counts+0.1);
-        prob_initial=prob_initial/sum(prob_initial);
+        prob_initial = prob_initial./(loc_counts+0.1);
+        prob_initial = prob_initial/sum(prob_initial);
+            
         for i_spot = 1:n_spots_per_trial
-            if sum(prob_initial)>0.1
+            
+           if use_power_map
+               power_test = pockels_ratio_refs(i_trial) < ratio_limit;
+           else
+               power_test = 1;
+           end
+           
+            if sum(prob_initial)>0.1 && power_test
                 temp_index = ...
                     randsample(1:n_remaining_cell,1,true,prob_initial);
+                if use_power_map
+                    this_loc = target_locations_selected(temp_index,:);
+                    pockels_ratio_refs(i_trial) = pockels_ratio_refs(i_trial) + ...
+                                                                 round(ratio_map(round(this_loc(1))+ceil(size(ratio_map,1)/2),...
+                                                                 round(this_loc(2))+ceil(size(ratio_map,2)/2))*10000)/10000;
+                    if pockels_ratio_refs(i_trial) > ratio_limit
+                        this_trial_locations(1,i_spot)=NaN;
+                        this_trial_powers(1,i_spot)=NaN;
+                        continue
+                    end
+                end
                 loc_counts(temp_index)=loc_counts(temp_index)+1;
                 temp_loc =  remaining_cell_list(temp_index);
                 this_trial_locations(1,i_spot)=temp_loc;

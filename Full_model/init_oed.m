@@ -1,4 +1,4 @@
-function data = init_oed
+function params = init_oed
 
 % parameters
 
@@ -43,7 +43,7 @@ params.eff_stim_threshold=stim_grid(min(find(sum(prob_trace_full,2)>1e-1)));
 
 %----------- Design parameters
 
-params.design.n_spots_per_trial = 4;
+params.design.n_spots_per_trial = 3;
 params.design.n_replicates=2; % conduct two replicates for each trial
 params.design.K_undefined=3; % each cell appears approximately 10*2 times
 params.design.K_disconnected=3; % each cell appears approximately 10*2 times
@@ -93,5 +93,3 @@ params.design.connected=true;
 params.design.change_threshold=0.05;
 gamma_path=zeros(n_cell_this_plane,1);var_gamma_path=zeros(n_cell_this_plane,1);
 
-
-data.params = params;
