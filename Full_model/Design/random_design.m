@@ -33,6 +33,7 @@ if ~do_replicates
 end
 
 pockels_ratio_refs = [];
+pockels_ratios = [];
 
 n_remaining_cell=length(remaining_cell_list);
 loc_counts=zeros(n_remaining_cell,1);
@@ -67,7 +68,9 @@ if n_remaining_cell < single_spot_threshold | n_spots_per_trial==1
         end
         
     else % stim at the chosen locations
-        
+        if ~do_replicates
+            K = 1;
+        end
         for i_cell =1:n_remaining_cell % generate trials for each cell
             
             this_trial_locations=remaining_cell_list(i_cell);
@@ -111,7 +114,7 @@ else
         for i_spot = 1:n_spots_per_trial
             
            if use_power_map
-               power_test = pockels_ratio_refs(i_trial) < ratio_limit;
+               power_test = pockels_ratio_refs(end) < ratio_limit;
            else
                power_test = 1;
            end
@@ -123,8 +126,8 @@ else
                     this_loc = target_locations_selected(temp_index,:);
                     pockels_ratios(i_trial,i_spot) = round(ratio_map(round(this_loc(1))+ceil(size(ratio_map,1)/2),...
                                                                  round(this_loc(2))+ceil(size(ratio_map,2)/2))*10000);
-                    pockels_ratio_refs(i_trial) = pockels_ratio_refs(i_trial) + pockels_ratios(i_trial,i_spot)/10000;
-                    if pockels_ratio_refs(i_trial) > ratio_limit
+                    pockels_ratio_refs(end) = pockels_ratio_refs(end) + pockels_ratios(i_trial,i_spot)/10000;
+                    if pockels_ratio_refs(end) > ratio_limit
                         this_trial_locations(1,i_spot)=NaN;
                         this_trial_powers(1,i_spot)=NaN;
                         continue

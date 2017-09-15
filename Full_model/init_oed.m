@@ -44,10 +44,10 @@ params.eff_stim_threshold=stim_grid(min(find(sum(params.template_cell.prob_trace
 %----------- Design parameters
 
 params.design.n_spots_per_trial = 3;
-params.design.n_replicates=2; % conduct two replicates for each trial
-params.design.K_undefined=3; % each cell appears approximately 10*2 times
-params.design.K_disconnected=3; % each cell appears approximately 10*2 times
-params.design.K_connected=10; % each cell appears approximately 10*2 times
+params.design.n_replicates=1; % conduct two replicates for each trial
+params.design.K_undefined=6; % each cell appears approximately 10*2 times
+params.design.K_disconnected=6; % each cell appears approximately 10*2 times
+params.design.K_connected=20; % each cell appears approximately 10*2 times
 
 params.design.single_spot_threshold=15; % switch to single spot stimulation if there are fewer than N cells in this group
 params.design.trial_max=2000;
@@ -93,10 +93,11 @@ params.design.connected=true;
 params.design.change_threshold=0.05;
 
 % some experimental params
-params.exp.power_level = 50;
+params.exp.power_levels = '50'; % this should be a space delimited string
 params.exp.z_width = 30;
 params.exp.ratio_map = evalin('base','ratio_map');
 params.exp.pockels_lut = evalin('base','pockels_lut');
 params.exp.max_ratio_ref = max(params.exp.pockels_lut)/...
     ((params.exp.power_level+15)*params.design.n_spots_per_trial);
+params.exp.max_spike_freq = .5; % don't revisit cells on average sooner than this in Hz
 
