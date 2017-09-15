@@ -2,7 +2,6 @@ function params = init_oed
 
 % parameters
 
-params.n_cell = size(cell_locations,1);
 
 %----------- Delay parameters
 params.delay.type=2; %1: normal; 2: gamma
@@ -26,20 +25,21 @@ params.template_cell.linkfunc = {@link_sig, @derlink_sig, @invlink_sig,@derinvli
 load('./Environments/l23_template_cell.mat');
 temp=l23_average_shape;temp_max = max(max(max(temp)));
 params.template_cell.shape_template=temp/temp_max;
+params.stim_unique = (1:1000)/10;
 
 [params.template_cell.prob_trace]=get_firing_probability(...
-    linkfunc,current_template,stim_unique,params.template_cell,delay_params);
+    params.template_cell.linkfunc,params.current_template,params.stim_unique,params.template_cell,params.delay);
 
 % Calculate the firing intensity
 params.stim_scale=200;
 params.stim_grid = (1:1000)/stim_scale;
 % cell_params.g=0.02;
 [params.template_cell.prob_trace_full,params.template_cell.v_trace_full] = get_first_spike_intensity(...
-    linkfunc,...
-    current_template,stim_grid,params.template_cell,delay_params);
+    params.template_cell.linkfunc,...
+    params.current_template,stim_grid,params.template_cell,params.delay);
 
 %
-params.eff_stim_threshold=stim_grid(min(find(sum(prob_trace_full,2)>1e-1)));
+params.eff_stim_threshold=stim_grid(min(find(sum(params.template_cell.prob_trace_full,2)>1e-1)));
 
 %----------- Design parameters
 
@@ -91,5 +91,12 @@ params.design.connected=true;
  %  loc_to_cell_nuclei is from get_stim_locations 
 
 params.design.change_threshold=0.05;
-gamma_path=zeros(n_cell_this_plane,1);var_gamma_path=zeros(n_cell_this_plane,1);
+
+% some experimental params
+params.exp.power_level = 50;
+params.exp.z_width = 30;
+params.exp.ratio_map = evalin('base','ratio_map');
+params.exp.pockels_lut = evalin('base','pockels_lut');
+params.exp.max_ratio_ref = max(params.exp.pockels_lut)/...
+    ((params.exp.power_level+15)*params.design.n_spots_per_trial);
 

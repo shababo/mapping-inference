@@ -1,4 +1,4 @@
-function [ trials_locations,  trials_powers, pockels_ratio_refs] = random_design(...
+function [ trials_locations,  trials_powers, target_locations_key, pockels_ratio_refs, pockels_ratios] = random_design(...
     target_locations_selected,power_selected,...
     inner_normalized_products,single_spot_threshold,...
     gamma_estimates,prob_weight,...
@@ -21,6 +21,19 @@ if use_power_map
     ratio_limit = varargin{3};
 end
 
+if length(varargin) > 4 && ~isempty(varargin{4})
+    do_replicates = varargin{4};
+else
+    do_replicates = 1;
+end
+
+if ~do_replicates
+    n_replicates = 1;
+%     K = 1;
+end
+
+pockels_ratio_refs = [];
+
 n_remaining_cell=length(remaining_cell_list);
 loc_counts=zeros(n_remaining_cell,1);
 if n_remaining_cell < single_spot_threshold | n_spots_per_trial==1
@@ -37,10 +50,20 @@ if n_remaining_cell < single_spot_threshold | n_spots_per_trial==1
             related_locations = find(loc_to_cell == remaining_cell_list(i_cell) );
             trials_temp=randsample(related_locations,K,true);
             
-             trials_locations(n_replicates*K*(i_cell-1)+(1:(n_replicates*K)),:)=...
-                 reshape([trials_temp; trials_temp],[n_replicates*K 1]);
+            trials_locations(n_replicates*K*(i_cell-1)+(1:(n_replicates*K)),:)=...
+                 reshape(repmat(trials_temp,1,n_replicates),[n_replicates*K 1]);
             trials_powers(n_replicates*K*(i_cell-1)+(1:(n_replicates*K)),:)=...
                 power_selected(trials_locations(n_replicates*K*(i_cell-1)+(1:(n_replicates*K)),:));
+            
+            if use_power_map 
+                for i = 1:length(trials_temp)
+                    for j = 1:n_replicates
+                        this_loc = target_locations_selected(trials_temp(i),:);
+                        pockels_ratio_refs(end + 1) = round(ratio_map(round(this_loc(1))+ceil(size(ratio_map,1)/2),...
+                                 round(this_loc(2))+ceil(size(ratio_map,2)/2))*10000)/10000;
+                    end
+                end
+            end
         end
         
     else % stim at the chosen locations
@@ -53,9 +76,20 @@ if n_remaining_cell < single_spot_threshold | n_spots_per_trial==1
                 ones(n_replicates*K,1)*this_trial_locations;
             trials_powers(n_replicates*K*(i_cell-1)+(1:(n_replicates*K)),:)=...
                 ones(n_replicates*K,1)*this_trial_powers;
+            if use_power_map 
+                for i = 1:length(this_trial_locations)
+                    for j = 1:n_replicates*K
+                        this_loc = target_locations_selected(this_trial_locations(i),:);
+                        pockels_ratio_refs(end + 1) = round(ratio_map(round(this_loc(1))+ceil(size(ratio_map,1)/2),...
+                                 round(this_loc(2))+ceil(size(ratio_map,2)/2))*10000)/10000;
+                    end
+                end
+            end
         end
         
     end
+    
+    
 
 else
     
@@ -68,12 +102,12 @@ else
     % Set the probability to be inversely proportional to the
     % gamma_estimates, since we want to eliminate more disconnected cells
     probability_weights = (1-gamma_estimates)*prob_weight+(1-prob_weight);
-    pockels_ratio_refs = zeros(n_unique_trials,1);
+    pockels_ratios = zeros(n_unique_trials,n_spots_per_trial);
     for i_trial = 1:n_unique_trials
         prob_initial = probability_weights;
         prob_initial = prob_initial./(loc_counts+0.1);
         prob_initial = prob_initial/sum(prob_initial);
-            
+        pockels_ratio_refs(end+1) = 0
         for i_spot = 1:n_spots_per_trial
             
            if use_power_map
@@ -85,11 +119,11 @@ else
             if sum(prob_initial)>0.1 && power_test
                 temp_index = ...
                     randsample(1:n_remaining_cell,1,true,prob_initial);
-                if use_power_map
+                if use_power_map % NOT CODED FOR USE WITH REPLICATING WITHIN THIS FUNCTION!
                     this_loc = target_locations_selected(temp_index,:);
-                    pockels_ratio_refs(i_trial) = pockels_ratio_refs(i_trial) + ...
-                                                                 round(ratio_map(round(this_loc(1))+ceil(size(ratio_map,1)/2),...
-                                                                 round(this_loc(2))+ceil(size(ratio_map,2)/2))*10000)/10000;
+                    pockels_ratios(i_trial,i_spot) = round(ratio_map(round(this_loc(1))+ceil(size(ratio_map,1)/2),...
+                                                                 round(this_loc(2))+ceil(size(ratio_map,2)/2))*10000);
+                    pockels_ratio_refs(i_trial) = pockels_ratio_refs(i_trial) + pockels_ratios(i_trial,i_spot)/10000;
                     if pockels_ratio_refs(i_trial) > ratio_limit
                         this_trial_locations(1,i_spot)=NaN;
                         this_trial_powers(1,i_spot)=NaN;
@@ -109,11 +143,21 @@ else
             end
             
         end
-        trials_locations(n_replicates*(i_trial-1)+(1:n_replicates),:)=ones(n_replicates,1)*this_trial_locations;
-        trials_powers(n_replicates*(i_trial-1)+(1:n_replicates),:)=ones(n_replicates,1)*this_trial_powers;
+
+            trials_locations(n_replicates*(i_trial-1)+(1:n_replicates),:)=ones(n_replicates,1)*this_trial_locations;
+            trials_powers(n_replicates*(i_trial-1)+(1:n_replicates),:)=ones(n_replicates,1)*this_trial_powers;
+
     end
     
     
+end
+
+target_locations_key = zeros(size(trials_locations,1),3,n_spots_per_trial);
+for i = 1:size(trials_locations,1)
+    for k = 1:n_spots_per_trial
+        target_ind = trials_locations(i,k);
+        target_locations_key(i,:,k) = target_locations_selected(target_ind,:);
+    end
 end
 
 end

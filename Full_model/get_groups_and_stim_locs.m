@@ -1,10 +1,11 @@
-function data = get_groups_and_stim_locs(cell_locations,params,z_locs,z_slice_width)
+function data = get_groups_and_stim_locs(cell_locations,params,z_locs)
 
 data.cell_locations = cell_locations;
 data.z_locs = z_locs;
 data.n_cell = size(cell_locations,1);
 
 % break up into z groups
+z_slice_width = params.exp.z_slice_width;
 z_borders = z_locs+floor(z_slice_width/2);
 data.n_planes = length(z_locs);
 
@@ -41,7 +42,7 @@ for i = 1:data.n_planes
     target_locations_all{i},cell_neighbours{i},...
     target_locations_nuclei{i}, power_nuclei{i},pi_target_nuclei{i}, loc_to_cell_nuclei{i}] = ...
         get_stim_locations(...
-        cell_list,cell_locations,power_level,...
+        cell_list,cell_locations,params.exp.power_level,...
         r1,r2,r3,num_per_grid,num_per_grid_dense,shape_template,...
         stim_unique,prob_trace,stim_threshold);
 end
