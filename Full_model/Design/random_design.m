@@ -110,11 +110,11 @@ else
         prob_initial = probability_weights;
         prob_initial = prob_initial./(loc_counts+0.1);
         prob_initial = prob_initial/sum(prob_initial);
-        pockels_ratio_refs(end+1) = 0
+        pockels_ratio_refs(end+1) = 0;
         for i_spot = 1:n_spots_per_trial
             
            if use_power_map
-               power_test = pockels_ratio_refs(end) < ratio_limit;
+               power_test = pockels_ratio_refs(end) < ratio_limit/power_selected(1); % hack here since all same power...
            else
                power_test = 1;
            end
@@ -127,7 +127,7 @@ else
                     pockels_ratios(i_trial,i_spot) = round(ratio_map(round(this_loc(1))+ceil(size(ratio_map,1)/2),...
                                                                  round(this_loc(2))+ceil(size(ratio_map,2)/2))*10000);
                     pockels_ratio_refs(end) = pockels_ratio_refs(end) + pockels_ratios(i_trial,i_spot)/10000;
-                    if pockels_ratio_refs(end) > ratio_limit
+                    if pockels_ratio_refs(end) > ratio_limit/power_selected(temp_loc) % this doesn't actually work for differnet powers per spot...
                         this_trial_locations(1,i_spot)=NaN;
                         this_trial_powers(1,i_spot)=NaN;
                         continue
