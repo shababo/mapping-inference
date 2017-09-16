@@ -1,7 +1,11 @@
-function params = init_oed
+function params = init_oed(varargin)
 
 % parameters
-
+if ~isempty(varargin) && ~isempty(varargin{1})
+    load_map = varargin{1};
+else
+    load_map = 0;
+end
 
 %----------- Delay parameters
 params.delay.type=2; %1: normal; 2: gamma
@@ -96,8 +100,13 @@ params.design.change_threshold=0.05;
 % some experimental params
 params.exp.power_levels = '50'; % this should be a space delimited string
 params.exp.z_width = 30;
-params.exp.ratio_map = evalin('base','ratio_map');
-params.exp.pockels_lut = evalin('base','pockels_lut');
-params.exp.max_ratio_ref = max(params.exp.pockels_lut(2,:));
+
+if load_map
+    params.exp.ratio_map = evalin('base','ratio_map');
+    params.exp.pockels_lut = evalin('base','pockels_lut');
+    
+    params.exp.max_ratio_ref = max(params.exp.pockels_lut)/params.design.n_spots_per_trial;
+end
+
 params.exp.max_spike_freq = .5; % don't revisit cells on average sooner than this in Hz
 
