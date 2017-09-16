@@ -1,20 +1,24 @@
 function data = get_groups_and_stim_locs(cell_locations,params,z_locs)
 
+if ~isfield(params.exp,'foe_bounds')
+    params.exp.foe_bounds = [-148 148; -148 148];
+end
+
 data.cell_locations = cell_locations;
 data.z_locs = z_locs;
 data.n_cell = size(cell_locations,1);
 
 % break up into z groups
-z_slice_width = params.exp.z_slice_width;
+z_slice_width = params.exp.z_width;
 z_borders = z_locs+floor(z_slice_width/2);
 data.n_planes = length(z_locs);
 
-cell_group_idx = zeros(n_cell,1);
+cell_group_idx = zeros(data.n_cell,1);
 for i_cell = 1:size(cell_locations,1)
     cell_group_idx(i_cell)= sum(cell_locations(i_cell,3)>z_borders)+1;
 end
-data.cell_group_list = cell(n_planes,1);
-for i_plane = 1:n_planes
+data.cell_group_list = cell(data.n_planes,1);
+for i_plane = 1:data.n_planes
     data.cell_group_list{i_plane} = find(cell_group_idx==i_plane);
 end
 
@@ -34,18 +38,35 @@ power_nuclei = cell(data.n_planes,1);
 pi_target_nuclei = cell(data.n_planes,1);
 loc_to_cell_nuclei = cell(data.n_planes,1);
 
+stim_threshold = params.eff_stim_threshold/params.template_cell.gain_template;
 for i = 1:data.n_planes
 
     n_cell_this_plane = length(data.cell_group_list{i});
- 
-    [pi_target_selected{i}, inner_normalized_products{i},target_locations_selected{i},power_selected{i},...
+    
+    [pi_target_selected{i}, inner_normalized_products{i},targ_locs_tmp,power_selected{i},...
     target_locations_all{i},cell_neighbours{i},...
-    target_locations_nuclei{i}, power_nuclei{i},pi_target_nuclei{i}, loc_to_cell_nuclei{i}] = ...
+    targ_loc_nuc_tmp, power_nuclei{i},pi_target_nuclei{i}, loc_to_cell_nuclei{i}] = ...
         get_stim_locations(...
-        cell_list,cell_locations,params.exp.power_level,...
-        r1,r2,r3,num_per_grid,num_per_grid_dense,shape_template,...
-        stim_unique,prob_trace,stim_threshold);
+        data.cell_group_list{i},cell_locations,params.exp.user_power_level,...
+        r1,r2,r3,num_per_grid,num_per_grid_dense,params.template_cell.shape_template,...
+        params.stim_unique,params.template_cell.prob_trace,stim_threshold);
+    
+    targ_locs_tmp(targ_locs_tmp(:,1) < params.exp.foe_bounds(1,1),1) = params.exp.foe_bounds(1,1);
+    targ_locs_tmp(targ_locs_tmp(:,1) > params.exp.foe_bounds(1,2),1) = params.exp.foe_bounds(1,2);
+    targ_locs_tmp(targ_locs_tmp(:,2) < params.exp.foe_bounds(2,1),2) = params.exp.foe_bounds(2,1);
+    targ_locs_tmp(targ_locs_tmp(:,2) > params.exp.foe_bounds(2,2),2) = params.exp.foe_bounds(2,2);
+    
+    targ_loc_nuc_tmp(targ_loc_nuc_tmp(:,1) < params.exp.foe_bounds(1,1),1) = params.exp.foe_bounds(1,1);
+    targ_loc_nuc_tmp(targ_loc_nuc_tmp(:,1) > params.exp.foe_bounds(1,2),1) = params.exp.foe_bounds(1,2);
+    targ_loc_nuc_tmp(targ_loc_nuc_tmp(:,2) < params.exp.foe_bounds(2,1),2) = params.exp.foe_bounds(2,1);
+    targ_loc_nuc_tmp(targ_loc_nuc_tmp(:,2) > params.exp.foe_bounds(2,2),2) = params.exp.foe_bounds(2,2);
+    
+    target_locations_selected{i} = targ_locs_tmp;
+    target_locations_nuclei{i} = targ_loc_nuc_tmp;
 end
+
+
+
 
 data.pi_target_selected = pi_target_selected;
 data.inner_normalized_products = inner_normalized_products;
