@@ -16,7 +16,7 @@ params.bg_rate = 1e-4;
 
 %----------- Load the current template
 load('chrome-template-3ms.mat');
-params.time.downsamp=1;params.time.max_time=200;
+params.time.downsamp=1;params.time.max_time=200;params.time.min_time = 40;
 params.current_template=template(1:params.time.downsamp:params.time.max_time);
 params.t_vect= 1:1:params.time.max_time;
 
@@ -55,6 +55,8 @@ params.design.K_connected=3; % each cell appears approximately 10*2 times
 params.design.reps_undefined_single=6;
 params.design.reps_disconnected_single=6;
 params.design.reps_connected=6;
+
+params.design.stim_loc_type = 1;
 
 params.design.single_spot_threshold=15; % switch to single spot stimulation if there are fewer than N cells in this group
 params.design.trial_max=2000;
@@ -100,13 +102,15 @@ params.design.change_threshold=0.05;
 % some experimental params
 params.exp.power_levels = '50'; % this should be a space delimited string
 params.exp.z_width = 30;
+params.exp.z_depths = '20 40';% this should be a space delimited string
 
 if load_map
     params.exp.ratio_map = evalin('base','ratio_map');
     params.exp.pockels_lut = evalin('base','pockels_lut');
     
-    params.exp.max_ratio_ref = max(params.exp.pockels_lut)/params.design.n_spots_per_trial;
+    params.exp.max_ratio_ref = max(params.exp.pockels_lut(2,:));
 end
 
 params.exp.max_spike_freq = .5; % don't revisit cells on average sooner than this in Hz
+params.exp.foe_bounds = [-148 148; -148 148];
 
