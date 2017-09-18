@@ -96,7 +96,9 @@ for i_cell_index=1:length(unidentified_cells)
     grid_locs=[grid_locs;bsxfun(@plus,grid_jitters*r1,nucleus_loc)];
     grid_locs=[grid_locs;bsxfun(@plus,grid_jitters*r2,nucleus_loc)];
     grid_locs=[grid_locs;bsxfun(@plus,grid_jitters*r3,nucleus_loc)];
+
     target_idx=(i_cell_index-1)*(3*num_per_grid_dense+1) +(1: (3*num_per_grid_dense+1));
+
     target_locations_dense(target_idx,:) = grid_locs;
 end
 target_locations_dense(:,3)= mean(cell_locations(target_cell_list.primary,3));

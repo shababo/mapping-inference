@@ -6,7 +6,7 @@ function this_cell = analyze_opto_response(this_cell)
 
 load(this_cell.filename)
 % package up and preprocess raw data
-% start_trial = this_cell.start_trial;
+start_trial = this_cell.start_trial;
 cc_trials = this_cell.cc_trials;
 cc_spike_thresh = this_cell.cc_spike_thresh;
 ca_trials = this_cell.ca_trials;
@@ -14,21 +14,37 @@ ca_spike_thresh = this_cell.ca_spike_thresh;
 do_cc = this_cell.do_cc;
 do_vc = this_cell.do_vc;
 % stim_start = this_cell.stim_start;
-cell_pos_offset = this_cell.cell_pos_offset;
+cell_pos = this_cell.cell_pos;
 do_hpf = this_cell.hpass_filt;
 first_spike_only = this_cell.first_spike;
 cell_ch = this_cell.cell_ch;
 intrinsics_trial = this_cell.intrinsics_trial;
-vc_shape_trials = this_cell.vc_shape_trials;
-vc_power_curve_trial = this_cell.vc_power_curve_trial;
 
+if isfield(this_cell,'vc_shape_trials')
+    vc_shape_trials = this_cell.vc_shape_trials;
+else
+    vc_shape_trials = (1:this_cell.shape_z)+(length(cc_trials)+length(ca_trials) + 4);
+end
+vc_power_curve_trial = this_cell.vc_power_curve_trial;
+if this_cell.vers == 2
+    targ_dist_lims = this_cell.targ_dist_lims;
+    stim_z = this_cell.stim_z;
+end
 trial_dur = this_cell.trial_dur;
 
-[this_cell.spike_data, this_cell.voltage_data, this_cell.current_data, this_cell.intrinsics] = ...
-    preprocess_opto_response(data,cell_ch,cc_spike_thresh,...
-    ca_trials,ca_spike_thresh,do_cc,cc_trials,intrinsics_trial,do_vc,...
-    vc_shape_trials,vc_power_curve_trial,cell_pos_offset,first_spike_only,...
-    trial_dur,do_hpf);
+if this_cell.vers == 1
+    [this_cell.spike_data, this_cell.voltage_data, this_cell.current_data, this_cell.intrinsics] = ...
+        preprocess_opto_response(data,cell_ch,cc_spike_thresh,...
+        ca_trials,ca_spike_thresh,do_cc,cc_trials,intrinsics_trial,do_vc,...
+        vc_shape_trials,vc_power_curve_trial,cell_pos_offset,first_spike_only,...
+        trial_dur,do_hpf,start_trial);
+elseif this_cell.vers == 2
+    [this_cell.spike_data, this_cell.voltage_data, this_cell.current_data, this_cell.intrinsics] = ...
+        preprocess_opto_response_v2(data,cell_ch,cc_spike_thresh,...
+        ca_trials,ca_spike_thresh,do_cc,cc_trials,intrinsics_trial,do_vc,...
+        vc_shape_trials,vc_power_curve_trial,cell_pos,first_spike_only,...
+        trial_dur,do_hpf,targ_dist_lims,stim_z);
+end
 
 % [spike_data, voltage_data, current_data, intrinsics] = ...
 %     preprocess_opto_response(data,cell_ch,cc_spike_thresh,...
@@ -50,7 +66,7 @@ downsamp = 1;
 
 %     these_spikes = this_cell.voltage_data;
 % else
-num_spike_locs = length(ca_trials);
+num_spike_locs = length(this_cell.spike_data);
 if num_spike_locs
     these_spikes = this_cell.spike_data;
     % end
@@ -59,8 +75,8 @@ if num_spike_locs
     % if isfield(this_cell.current_data,'current_shape')
     %     current_template = this_cell.current_data.current_shape;
     % else
-        disp('using general template')
-        load('chrome-template-3ms.mat','template');
+    disp('using general template')
+    load('chrome-template-3ms.mat','template');
     %     current_template = template(100:1001);
     % end
     current_template = template(1:trial_dur);
@@ -104,7 +120,7 @@ if num_spike_locs
         k = fit_locs(kk)
         data_spike_times = these_spikes(k).spike_times;
         powers = these_spikes(k).powers;
-        powers = powers(1:end-1);%-1 % don't do highest power - never useful
+%         powers = powers(1:end-1);%-1 % don't do highest power - never useful
         distances(k) = norm(these_spikes(k).location);
 
         if do_cc
@@ -119,17 +135,22 @@ if num_spike_locs
 %                 these_spikes(k).location = [0 0 0];
 %                 distances(k) = 0;
             end
-            this_loc = these_spikes(k).location;
+            this_loc = round(these_spikes(k).location);
 
             location_ind = [find(this_loc(1) == upres_x_locs) ...
                             find(this_loc(2) == upres_y_locs) ...
                             find(this_loc(3) == upres_z_locs)];
-            location_gain = l23_average_shape_norm(location_ind(1),location_ind(2),location_ind(3));
+            if length(location_ind) < 3
+                location_gain = 0;
+            else
+                location_gain = l23_average_shape_norm(location_ind(1),location_ind(2),location_ind(3));
+            end
         else
             location_gain = 1;
         end
+        
+        
         for i = 1:length(powers)
-
 
             for j = 1:length(data_spike_times{i})
                 responses(count,:) = zeros(1,length(current_template(1:downsamp:end)));
@@ -158,8 +179,8 @@ if num_spike_locs
     % g = [.000001 .000005 .00001 .0005 .0001]*downsamp;
 
     % g = [.001 .002 .003 .004 .005]*downsamp;
-    g = [.025]*downsamp;
-%     g = [.005 .010 .015 .020 .025 .03]*downsamp; % MAIN ONE
+%     g = [.025]*downsamp;
+    g = [.05 .1 .2 .3 .5]*downsamp; % MAIN ONE
 
     this_cell.glm_params.g = g;
     this_cell.glm_params.downsamp = downsamp;
@@ -222,16 +243,20 @@ if num_spike_locs
     %     location_gain = l23_average_shape_norm(location_ind(1),location_ind(2),location_ind(3));
         params_sim.gain = ...
     ...%         this_cell.glm_out(min_ind).glm_result.beta(k+2)*sim_scale;
-            this_cell.gain(k)*sim_scale;
+            this_cell.gain(k)*sim_scale;% + .01;
         if this_cell.use_shape
 
-            this_loc = these_spikes(k).location;
+            this_loc = round(these_spikes(k).location);
 
             location_ind = [find(this_loc(1) == upres_x_locs) ...
                             find(this_loc(2) == upres_y_locs) ...
                             find(this_loc(3) == upres_z_locs)];
 
-            location_gain = l23_average_shape_norm(location_ind(1),location_ind(2),location_ind(3));
+            if length(location_ind) < 3
+                location_gain = 0;
+            else
+                location_gain = l23_average_shape_norm(location_ind(1),location_ind(2),location_ind(3))
+            end
         else
             location_gain = 1;
         end

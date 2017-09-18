@@ -1,13 +1,14 @@
 clear l23_cells
+clear base_cell
 base_cell.start_trial = 1;
 base_cell.cc_spike_thresh = 8;
-base_cell.ca_num_spike_locs = 5;
+base_cell.ca_trials = 1:5;
 base_cell.ca_spike_thresh = 6;
 base_cell.do_cc = 0;
-base_cell.cc_num_spike_locs = 0;
+base_cell.cc_trials = [];
 base_cell.do_vc = 1;
 base_cell.stim_start = 100;
-base_cell.cell_pos = [50 50 0];
+base_cell.cell_pos_offset = [50 50 0];
 base_cell.hpass_filt = 1;
 base_cell.exclude_trials = 1;
 base_cell.filename = '';
@@ -19,6 +20,11 @@ base_cell.glm_sim_scale = 1;
 base_cell.trial_dur = .010*20000;
 base_cell.use_shape = 1;
 base_cell.fit_locs = [];
+base_cell.vers = 1;
+base_cell.shape_z = 7;
+base_cell.cell_ch = 1;
+base_cell.intrinsics_trial = length(base_cell.ca_trials)+2;
+
 
 this_cell = 1;
 l23_cells(this_cell) = base_cell;
@@ -189,49 +195,53 @@ l23_cells(this_cell).ca_spike_thresh = 10;
 this_cell = 26;
 l23_cells(this_cell) = base_cell;
 l23_cells(this_cell).filename = '4_21_slice2_cell2.mat';
-l23_cells(this_cell).ca_num_spike_locs = 1;
+l23_cells(this_cell).ca_trials = 1;
 l23_cells(this_cell).do_cc = 1;
-l23_cells(this_cell).cc_num_spike_locs = 10;
+l23_cells(this_cell).cc_trials = 4:13;
 l23_cells(this_cell).do_vc = 1;
 
 this_cell = 27;
 l23_cells(this_cell) = base_cell;
 l23_cells(this_cell).filename = '3_30_slice2_cell1.mat';
-l23_cells(this_cell).ca_num_spike_locs = 10;
+l23_cells(this_cell).ca_trials = 1:10;
 l23_cells(this_cell).do_cc = 1;
-l23_cells(this_cell).cc_num_spike_locs = 10;
+l23_cells(this_cell).cc_trials = 4:13;
 l23_cells(this_cell).cc_spike_thresh = 20;
+l23_cells(this_cell).shape_z = 9;
 
 this_cell = 28;
 l23_cells(this_cell) = base_cell;
 l23_cells(this_cell).filename = '3_30_slice2_cell2.mat';
-l23_cells(this_cell).ca_num_spike_locs = 10;
+l23_cells(this_cell).ca_trials = 1:10;
 l23_cells(this_cell).do_cc = 1;
-l23_cells(this_cell).cc_num_spike_locs = 10;
+l23_cells(this_cell).cc_trials = 13:22;
 l23_cells(this_cell).cc_spike_thresh = 20;
+l23_cells(this_cell).shape_z = 9;
 
 this_cell = 29;
 l23_cells(this_cell) = base_cell;
 l23_cells(this_cell).filename = '3_30_slice2_cell3.mat';
-l23_cells(this_cell).ca_num_spike_locs = 10;
+l23_cells(this_cell).ca_trials = 1:10;
 l23_cells(this_cell).do_cc = 1;
-l23_cells(this_cell).cc_num_spike_locs = 10;
+l23_cells(this_cell).cc_trials = 13:22;
 l23_cells(this_cell).cc_spike_thresh = 20;
+l23_cells(this_cell).shape_z = 9;
 
 this_cell = 30;
 l23_cells(this_cell) = base_cell;
 l23_cells(this_cell).filename = '3_30_slice4_cell2.mat';
-l23_cells(this_cell).ca_num_spike_locs = 10;
+l23_cells(this_cell).ca_trials = 1:10;
 l23_cells(this_cell).do_cc = 1;
-l23_cells(this_cell).cc_num_spike_locs = 10;
+l23_cells(this_cell).cc_trials = 13:22;
 l23_cells(this_cell).cc_spike_thresh = 20;
+l23_cells(this_cell).shape_z = 9;
 
 this_cell = 31;
 l23_cells(this_cell) = base_cell;
 l23_cells(this_cell).filename = '4_21_slice3_cell2.mat';
-l23_cells(this_cell).ca_num_spike_locs = 1;
+l23_cells(this_cell).ca_trials = 1;
 l23_cells(this_cell).do_cc = 1;
-l23_cells(this_cell).cc_num_spike_locs = 10;
+l23_cells(this_cell).cc_trials = 4:13;
 l23_cells(this_cell).do_vc = 0;
 l23_cells(this_cell).cc_spike_thresh = 20;
 l23_cells(this_cell).ca_spike_thresh = -15;
@@ -239,9 +249,9 @@ l23_cells(this_cell).ca_spike_thresh = -15;
 this_cell = 32;
 l23_cells(this_cell) = base_cell;
 l23_cells(this_cell).filename = '4_25_slice1_cell1.mat';
-l23_cells(this_cell).ca_num_spike_locs = 1;
+l23_cells(this_cell).ca_trials = 1;
 l23_cells(this_cell).do_cc = 1;
-l23_cells(this_cell).cc_num_spike_locs = 6;
+l23_cells(this_cell).cc_trials = 4:9;
 l23_cells(this_cell).do_vc = 0;
 l23_cells(this_cell).cc_spike_thresh = 20;
 l23_cells(this_cell).ca_spike_thresh = -25;
@@ -249,9 +259,9 @@ l23_cells(this_cell).ca_spike_thresh = -25;
 this_cell = 33;
 l23_cells(this_cell) = base_cell;
 l23_cells(this_cell).filename = '4_25_slice1_cell2.mat';
-l23_cells(this_cell).ca_num_spike_locs = 1;
+l23_cells(this_cell).ca_trials = 1;
 l23_cells(this_cell).do_cc = 1;
-l23_cells(this_cell).cc_num_spike_locs = 6;
+l23_cells(this_cell).cc_trials = 4:9;
 l23_cells(this_cell).do_vc = 0;
 l23_cells(this_cell).cc_spike_thresh = 20;
 l23_cells(this_cell).ca_spike_thresh = -25;
@@ -259,68 +269,169 @@ l23_cells(this_cell).ca_spike_thresh = -25;
 this_cell = 34;
 l23_cells(this_cell) = base_cell;
 l23_cells(this_cell).filename = '4_25_slice2_cell1.mat';
-l23_cells(this_cell).ca_num_spike_locs = 1;
+l23_cells(this_cell).ca_trials = 1;
 l23_cells(this_cell).do_cc = 1;
-l23_cells(this_cell).cc_num_spike_locs = 6;
+l23_cells(this_cell).cc_trials = 4:9;
 l23_cells(this_cell).do_vc = 0;
 l23_cells(this_cell).cc_spike_thresh = 20;
 
 this_cell = 35;
 l23_cells(this_cell) = base_cell;
 l23_cells(this_cell).filename = '4_25_slice2_cell2.mat';
-l23_cells(this_cell).ca_num_spike_locs = 1;
+l23_cells(this_cell).ca_trials = 1;
 l23_cells(this_cell).do_cc = 1;
-l23_cells(this_cell).cc_num_spike_locs = 6;
+l23_cells(this_cell).cc_trials = 4:9;
 l23_cells(this_cell).do_vc = 0;
 l23_cells(this_cell).cc_spike_thresh = 20;
 
 this_cell = 36;
 l23_cells(this_cell) = base_cell;
 l23_cells(this_cell).filename = '4_25_slice2_cell3.mat';
-l23_cells(this_cell).ca_num_spike_locs = 1;
+l23_cells(this_cell).ca_trials = 1;
 l23_cells(this_cell).do_cc = 1;
-l23_cells(this_cell).cc_num_spike_locs = 6;
+l23_cells(this_cell).cc_trials = 4:9;
 l23_cells(this_cell).do_vc = 0;
 l23_cells(this_cell).cc_spike_thresh = 20;
 
 this_cell = 37;
 l23_cells(this_cell) = base_cell;
 l23_cells(this_cell).filename = '4_25_slice3_cell1.mat';
-l23_cells(this_cell).ca_num_spike_locs = 1;
+l23_cells(this_cell).ca_trials = 1;
 l23_cells(this_cell).do_cc = 1;
-l23_cells(this_cell).cc_num_spike_locs = 6;
+l23_cells(this_cell).cc_trials = 4:9;
 l23_cells(this_cell).do_vc = 0;
 l23_cells(this_cell).cc_spike_thresh = 20;
 
 this_cell = 38;
 l23_cells(this_cell) = base_cell;
 l23_cells(this_cell).filename = '4_25_slice3_cell2.mat';
-l23_cells(this_cell).ca_num_spike_locs = 1;
+l23_cells(this_cell).ca_trials = 1;
 l23_cells(this_cell).do_cc = 1;
-l23_cells(this_cell).cc_num_spike_locs = 6;
+l23_cells(this_cell).cc_trials = 4:9;
 l23_cells(this_cell).do_vc = 0;
 l23_cells(this_cell).cc_spike_thresh = 20;
 
+for i = 1:length(l23_cells)
+    l23_cells(i).intrinsics_trial = length(l23_cells(i).ca_trials)+2;
+    l23_cells(i).vc_power_curve_trial = ...
+        length(l23_cells(i).ca_trials)+length(l23_cells(i).cc_trials)+1;
+end
+%%
+clear l23_cells
+clear base_cell
+base_cell.start_trial = 1;
+base_cell.cc_spike_thresh = 8;
+% base_cell.ca_trials = 5;
+base_cell.ca_trials = 1;
+base_cell.ca_spike_thresh = 30;
+base_cell.do_cc = 0;
+base_cell.cc_trials = [];
+base_cell.cc_trials = 0;
+base_cell.do_vc = 0;
+base_cell.stim_start = 0;
+% base_cell.cell_pos = [50 50 0];
+base_cell.hpass_filt = 1;
+base_cell.exclude_trials = 1;
+base_cell.filename = '';
+base_cell.type = 'l23pyr';
+base_cell.fluor = NaN;
+base_cell.first_spike = 1;
+base_cell.fit_cc = 0;
+base_cell.glm_sim_scale = 1;
+base_cell.trial_dur = .008*20000;
+base_cell.use_shape = 1;
+base_cell.fit_locs = [];
+base_cell.targ_dist_lims = 30;
+base_cell.cell_ch = 1;
+base_cell.intrinsics_trial = [];
+base_cell.vc_shape_trials = [];
+base_cell.vc_power_curve_trial = [];
+base_cell.cell_pos = [0 0 0];
+base_cell.stim_z = 0;
+base_cell.vers = 2;
+clear l23_cells
 
+this_cell = 1;
+l23_cells(this_cell) = base_cell;
+l23_cells(this_cell).filename = '9_1_slice2_cell1.mat';
+% l23_cells(this_cell).hpass_filt = 0;
+l23_cells(this_cell).cell_pos = round([-86.5139   32.2049   98.6320]);
+l23_cells(this_cell).ca_spike_thresh = 100;
+l23_cells(this_cell).stim_z = 96.50;
+
+this_cell = 2;
+l23_cells(this_cell) = base_cell;
+l23_cells(this_cell).filename = '9_1_slice2_cell2_3.mat';
+% l23_cells(this_cell).hpass_filt = 0;
+l23_cells(this_cell).cell_pos = round([58.9128   74.6422   73.4170]);
+l23_cells(this_cell).ca_spike_thresh = 60;
+l23_cells(this_cell).ca_trials = 1:4;
+l23_cells(this_cell).stim_z = 68.3;
+
+this_cell = 3;
+l23_cells(this_cell) = base_cell;
+l23_cells(this_cell).filename = '9_1_slice3_cell1_2.mat';
+l23_cells(this_cell).hpass_filt = 0;
+l23_cells(this_cell).cell_pos = round([-47.4432    3.6871   76.8553]);
+l23_cells(this_cell).ca_spike_thresh = 100;
+l23_cells(this_cell).ca_trials = 1:3;
+l23_cells(this_cell).stim_z = 68.8;
+l23_cells(this_cell).cell_ch = 2;
+l23_cells(this_cell).targ_dist_lims = 30;
+% l23_cells(this_cell).use_shape = 0;
+
+this_cell = 4;
+l23_cells(this_cell) = base_cell;
+l23_cells(this_cell).filename = '9_1_slice3_cell3_4.mat';
+l23_cells(this_cell).hpass_filt = 0;
+l23_cells(this_cell).cell_pos = round([-63.5382  -69.3412   68.1000]);
+l23_cells(this_cell).ca_spike_thresh = 100;
+l23_cells(this_cell).ca_trials = 1:2;
+l23_cells(this_cell).stim_z = 68.1;
+l23_cells(this_cell).cell_ch = 2;
+% l23_cells(this_cell).use_shape = 0;
+
+this_cell = 5;
+l23_cells(this_cell) = base_cell;
+l23_cells(this_cell).filename = '9_1_slice4_cell1_2.mat';
+l23_cells(this_cell).hpass_filt = 0;
+l23_cells(this_cell).cell_pos = round([-51.2645   52.7177   93.6223]);
+l23_cells(this_cell).ca_spike_thresh = 100;
+l23_cells(this_cell).ca_trials = 1:4;
+l23_cells(this_cell).stim_z = 91.8;
+l23_cells(this_cell).cell_ch = 1;
+% l23_cells(this_cell).use_shape = 0;
+
+this_cell = 6;
+l23_cells(this_cell) = base_cell;
+l23_cells(this_cell).filename = '9_1_slice4_cell3_4.mat';
+l23_cells(this_cell).hpass_filt = 0;
+l23_cells(this_cell).cell_pos = round([-53.1939    7.1960   64.3566]);
+l23_cells(this_cell).ca_spike_thresh = 20;
+l23_cells(this_cell).ca_trials = 6:9;
+l23_cells(this_cell).stim_z = 63.1;
+l23_cells(this_cell).cell_ch = 2;
+% l23_cells(this_cell).use_shape = 0;
 
 %%
 
-cell_to_run = 1:38;%cell_select;%[26:38];
-cell_to_run = setdiff(cell_to_run,[16]);
+cell_to_run = 1:length(l23_cells);%cell_select;%[26:38];
+% cell_to_run = setdiff(cell_to_run,[16]);
 % cell_to_run = 26:30;
-cell_to_run = 27;
-cell_to_run = find([l23_cells.do_vc]);
+% cell_to_run = 27;
+% cell_to_run = find([l23_cells.do_vc]);
 % cell_analyzed_bu = cell_analyzed;
-% clear l23_cell_analyzed13 <-- multispike, 14 is one spike
+% clear l23_cell_analyzed_shape %% <-- multispike, 14 is one spike
 % clear l23_cell_analyzed_10ms_fulldata_noshape
 for i = 1:length(cell_to_run)
     
     this_cell = cell_to_run(i)
-    l23_cell_analyzed_10ms_fulldata_centavgshape(this_cell) = ...
+    l23_cell_analyzed_shape(this_cell).v_th = ...
         analyze_opto_response(l23_cells(this_cell));
-
-
-    
+%        l23_cell_analyzed_shape(this_cell).v_reset; 
+%     l23_cell_analyzed_shape(this_cell).th_gain_ratio = ...
+...%         analyze_opto_response(l23_cells(this_cell));
+%        l23_cell_analyzed_shape(this_cell).v_th/l23_cell_analyzed_shape(this_cell).gain(1);
 end
 
 
@@ -560,7 +671,7 @@ cell_select = find(~[l23_cells.do_cc]);
 % cell_select = cell_select([1 2 5 6]);
 colors = parula(length(cell_select));
 count = 1;
-these_cells_analyzed = l23_cell_analyzed_10ms_fulldata_noshape;
+these_cells_analyzed = l23_cell_analyzed_shape;
 for i = 1:length(cell_select)
     this_cell = cell_select(i);
 %     subplot(ceil(length(cell_select)/4),4,i)
@@ -569,8 +680,10 @@ for i = 1:length(cell_select)
     else
         spike_data = these_cells_analyzed(this_cell).spike_data;
     end
-    for j = 1:length(spike_data)
-        subplot(length(cell_select),10,(i-1)*10 + j)
+    [dists,order] = sort([spike_data.distance])
+    for jj = 1:length(order)
+        j = order(jj)
+        subplot(length(cell_select),10,(i-1)*10 + jj)
         plot(spike_data(j).powers(1:size(these_cells_analyzed(this_cell).glm_sim.spike_count_means,2)),...
             spike_data(j).num_spike_means(1:size(these_cells_analyzed(this_cell).glm_sim.spike_count_means,2)),'ko')
 
@@ -585,11 +698,14 @@ for i = 1:length(cell_select)
 %         title(mat2str(spike_data(j).location))
         ylim([0 3.0])
         xlim([0 110])
-        set(gca,'xticklabel',{})
-        set(gca,'yticklabel',{})
-        if j == 1
-            ylabel([num2str(this_cell)])
+%         set(gca,'xticklabel',{})
+%         
+        if jj == 1
+            ylabel('Num Spikes')
+        else
+            set(gca,'yticklabel',{})
         end
+        title(['Dist: ' num2str(spike_data(j).distance)])
     end
 %         g_vals(i) = l23_cell_analyzed17(this_cell).g;
     
@@ -611,8 +727,10 @@ for i = 1:length(cell_select)
     else
         spike_data = these_cells_analyzed(this_cell).spike_data;
     end
-    for j = 1:length(spike_data)
-        subplot(length(cell_select),10,(i-1)*10 + j)
+    [dists,order] = sort([spike_data.distance])
+    for jj = 1:length(order)
+        j = order(jj)
+        subplot(length(cell_select),10,(i-1)*10 + jj)
         plot(spike_data(j).powers(1:size(these_cells_analyzed(this_cell).glm_sim.spike_time_means,2)),...
             spike_data(j).spike_times_means(1:size(these_cells_analyzed(this_cell).glm_sim.spike_time_means,2))/20,'ko')
         hold on
@@ -627,11 +745,14 @@ for i = 1:length(cell_select)
 %         title(mat2str(spike_data(j).location))
         ylim([0 400]/20)
         xlim([0 110])
-        set(gca,'xticklabel',{})
-        set(gca,'yticklabel',{})
-        if j == 1
+%         set(gca,'xticklabel',{})
+        
+        if jj == 1
             ylabel([num2str(this_cell)])
+        else
+            set(gca,'yticklabel',{})
         end
+        title(['Dist: ' num2str(spike_data(j).distance)])
     end
 %         g_vals(i) = l23_cell_analyzed17(this_cell).g;
 
@@ -1066,11 +1187,11 @@ for jj = 1: length(analysis_to_run)
         responses = zeros(size(this_lambda));
     %     this_lambda = this_lambda(:);
         if this_analysis(cell_i).do_cc
-            num_spike_locs = this_analysis(cell_i).cc_num_spike_locs;
+            num_spike_locs = this_analysis(cell_i).cc_trials;
 
             these_spikes = this_analysis(cell_i).voltage_data;
         else
-            num_spike_locs = this_analysis(cell_i).ca_num_spike_locs;
+            num_spike_locs = this_analysis(cell_i).ca_trials;
             these_spikes = this_analysis(cell_i).spike_data;
         end
         count = 1;
@@ -1249,6 +1370,8 @@ ylim([0 1.1])
 xlim([0 x_max])
 ylabel('Mean Spike Count')
 title('Spiking Statistics')
+
+
 subplot(312)
 
 f = fit(x_times(~isnan(all_data_y_times))',all_data_y_times(~isnan(all_data_y_times))','exp1');%,'SmoothingParam',0.07);
@@ -1434,7 +1557,159 @@ test_2D_only_inter = ...
 figure; imagesc(test_2D_only_inter)
 figure; imagesc(squeeze(this_shape(:,5,:))')
 
+%% plot gain vs. distance
 
+figure
+for i = 1:length(cell_to_run)
+    
+    this_cell = l23_cell_analyzed(cell_to_run(i));
+    distances = [];
+    gains = [];
+    for j = 1:length(this_cell.spike_data)
+        if sum(this_cell.spike_data(j).num_spike_means) > .5
+            distances = [distances; this_cell.spike_data(j).distance];
+            gains = [gains; this_cell.gain(j)];
+        end
+    end
+%     good_locs = find(this_cell.spike_data
+%     [distances, order] = sort(distances);
+%     gains = gains(order);
+    plot(distances,gains,'o-')
+    hold on;
+end
+hold off
 
+ylim([0 .05])
 
+%% plot gain vs. fluor and tissue depth
 
+figure
+gains = [];
+fluors = [];
+depths = [];
+cell_to_run = 1:6;
+for i = 1:length(cell_to_run)
+    
+    this_cell = l23_cell_analyzed_shape(cell_to_run(i));
+    gains = [gains; 1/this_cell.th_gain_ratio];
+    fluors = [fluors; this_cell.intrinsics.fluor_vals];
+    depths = [depths - 20; this_cell.intrinsics.tissue_depth];
+    scatter3(this_cell.intrinsics.fluor_vals,this_cell.intrinsics.tissue_depth - 20,1/this_cell.th_gain_ratio);
+    hold on
+end
+
+xlabel('fluor')
+ylabel('tissue depth')
+zlabel('optical rheobase (gain/v_{th})')
+
+A = [fluors depths ones(size(depths))];
+b = gains;
+plane_fit = inv(A'*A)*A'*b;
+
+[X,Y] = meshgrid(200:10:1200,(20:1:70) - 20);
+Z = plane_fit(1)*X + plane_fit(2)*Y + plane_fit(3);
+
+mesh(X,Y,Z,'facealpha',0)
+
+%% compare mapping lif-glm data with calibration exp
+
+fitset1 = l23_cell_analyzed_shape;
+fitset2 = l23_cell_analyzed_10ms_fulldata_centavgshape;
+
+symbs = ['xo'];
+colors = ['rb'];
+
+figure
+all_powers = [];
+all_counts = [];
+for i = 1:length(fitset2)
+    
+    if ~isempty(fitset2(i).spike_data)
+        
+        these_spikes = fitset2(i).spike_data;
+        
+        if isfield(these_spikes,'distance')
+            [min_dist, min_loc] = min([these_spikes.distance]);
+        else
+            locs = reshape([these_spikes.location],3,length([these_spikes.location])/3)';
+            for j = 1:size(locs,1)
+                distances(j) = norm(locs(j,:));
+            end
+            [min_dist, min_loc] = min(distances);
+        end
+        all_powers = [all_powers these_spikes(min_loc).powers];
+        all_counts = [all_counts these_spikes(min_loc).num_spike_means];
+        scatter(these_spikes(min_loc).powers + ...
+            3*rand(size(these_spikes(min_loc).powers)),...
+            these_spikes(min_loc).num_spike_means,...
+            [symbs(2) colors(2)])
+        
+        hold on
+    end
+end
+
+xval = min(all_powers):.01:max(all_powers);
+fsigm = @(param,xval) param(1)+(param(2)-param(1))./(1+exp((param(3)-xval)*param(4)));
+[param]=sigm_fit(all_powers,all_counts,[0 1 NaN NaN],[],0);
+plot(xval,fsigm(param,xval),colors(2),'Linewidth',2)
+
+hold on
+
+all_powers = [];
+all_counts = [];
+for i = 1:length(fitset1)
+    
+    if ~isempty(fitset1(i).spike_data)
+        
+        these_spikes = fitset1(i).spike_data;
+        
+        [min_dist, min_loc] = min([these_spikes.distance]);
+        all_powers = [all_powers these_spikes(min_loc).powers];
+        all_counts = [all_counts these_spikes(min_loc).num_spike_means];
+        scatter(these_spikes(min_loc).powers + ...
+            3*rand(size(these_spikes(min_loc).powers)),...
+            these_spikes(min_loc).num_spike_means,...
+            [symbs(1) colors(1)])
+        
+        hold on
+    end
+end
+
+[sorted_counts, sort_order] = sort(all_counts);
+xval = min(all_powers):.01:max(all_powers);
+fsigm = @(param,xval) param(1)+(param(2)-param(1))./(1+exp((param(3)-xval)*param(4)));
+[param]=sigm_fit(all_powers(sort_order),sorted_counts,[0 1 NaN NaN],[],0);
+plot(xval,fsigm(param,xval),colors(1),'Linewidth',2)
+
+            
+            
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
