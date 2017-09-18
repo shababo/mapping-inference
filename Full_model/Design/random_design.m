@@ -26,10 +26,10 @@ if n_remaining_cell < single_spot_threshold | n_spots_per_trial==1
             trials_temp=randsample(related_locations,K,true);
             
              trials_locations(n_replicates*K*(i_cell-1)+(1:(n_replicates*K)),:)=...
-                 reshape([trials_temp; trials_temp],[n_replicates*K 1]);
+                 reshape(ones(n_replicates,1)*trials_temp,[n_replicates*K 1]);
             trials_powers(n_replicates*K*(i_cell-1)+(1:(n_replicates*K)),:)=...
                 power_selected(trials_locations(n_replicates*K*(i_cell-1)+(1:(n_replicates*K)),:));
-        end
+         end
         
     else % stim at the chosen locations
         
