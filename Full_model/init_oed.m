@@ -18,7 +18,7 @@ params.bg_rate = 1e-4;
 
 %----------- Load the current template
 load('chrome-template-3ms.mat');
-params.time.downsamp=1;params.time.max_time=200;params.time.min_time = 40;
+params.time.downsamp=1;params.time.max_time=200;params.time.min_time = 45;
 params.current_template=template(1:params.time.downsamp:params.time.max_time);
 params.t_vect= 1:1:params.time.max_time;
 
