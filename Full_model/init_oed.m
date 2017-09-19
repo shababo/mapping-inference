@@ -7,6 +7,8 @@ else
     load_map = 0;
 end
 
+params.savedir = 'C:\data\Shababo';
+
 %----------- Delay parameters
 params.delay.type=2; %1: normal; 2: gamma
 params.delay.mean=58; params.delay.std=15;
@@ -57,7 +59,7 @@ params.design.reps_disconnected_single=6;
 params.design.reps_connected=6;
 
 params.design.single_spot_threshold=15; % switch to single spot stimulation if there are fewer than N cells in this group
-params.design.trial_max=2000;
+params.design.trial_max=20000;
 params.design.disconnected_threshold = 0.2;
 params.design.disconnected_confirm_threshold = 0.2;
 
