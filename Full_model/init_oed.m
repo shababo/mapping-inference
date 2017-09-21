@@ -7,7 +7,14 @@ else
     load_map = 0;
 end
 
+
 params.savedir = 'C:\data\Shababo';
+
+clock_array = clock;
+params.map_id = [num2str(clock_array(2)) '_' num2str(clock_array(3)) ...
+    '_' num2str(clock_array(4)) ...
+    '_' num2str(clock_array(5))];
+params.fullsavefile = fullfile(params.savedir,[params.map_id '_data.mat']);
 
 %----------- Delay parameters
 params.delay.type=2; %1: normal; 2: gamma
@@ -51,12 +58,12 @@ params.eff_stim_threshold=params.stim_grid(min(find(sum(params.template_cell.pro
 params.design.num_groups = 3;
 params.design.n_spots_per_trial = 3;
 params.design.n_replicates=1; % conduct two replicates for each trial
-params.design.K_undefined=6; % each cell appears approximately 10*2 times
-params.design.K_disconnected=1; % each cell appears approximately 10*2 times
-params.design.K_connected=3; % each cell appears approximately 10*2 times
-params.design.reps_undefined_single=6;
-params.design.reps_disconnected_single=6;
-params.design.reps_connected=6;
+params.design.K_undefined=18; % each cell appears approximately 10*2 times
+params.design.K_disconnected=18; % each cell appears approximately 10*2 times
+params.design.K_connected=4; % each cell appears approximately 10*2 times
+params.design.reps_undefined_single=18;
+params.design.reps_disconnected_single=18;
+params.design.reps_connected=4;
 
 params.design.stim_loc_type = 1;
 
@@ -84,7 +91,7 @@ params.design.var_alpha_gain_initial=1;params.design.var_beta_gain_initial=1.78;
 % Initialize the parameters in the VI
 params.design.C_threshold = 0.01;params.design.maxit=1000;
 params.design.S=200;params.design.epsilon=0.01;params.design.eta_logit=0;params.design.eta_beta=0.05;
-params.design.background_rt=params.bg_rate*params.time.max_time;
+params.design.background_rt=params.bg_rate*(params.time.max_time - params.time.min_time);
 
 
 params.design.prob_weight=0;

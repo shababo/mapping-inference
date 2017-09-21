@@ -118,10 +118,10 @@ else
 %            else
 %                power_test = 1;
 %            end
-           
+            try_count = 0;
+            loc_found = 0;
             if sum(prob_initial)>0.1
-                try_count = 0;
-                loc_found = 0;
+
                 while try_count < 10 && ~loc_found
                     temp_index = ...
                         randsample(1:n_remaining_cell,1,true,prob_initial);
