@@ -1,5 +1,22 @@
 function data = run_vi_online(data)
 
+params = data.params;
+i = data.design.i;
+
+cell_group_list = data.cells_targets.cell_group_list{i};
+n_cell_this_plane = length(cell_group_list);
+
+% pi_target_selected = data.cells_targets.pi_target_selected{i};
+% inner_normalized_products = data.cells_targets.inner_normalized_products{i};
+% target_locations_selected = data.cells_targets.target_locations_selected{i};
+% power_selected = data.cells_targets.power_selected{i};
+% target_locations_all = data.cells_targets.target_locations_all{i};
+cell_neighbours = data.cells_targets.cell_neighbours{i};
+% target_locations_nuclei = data.cells_targets.target_locations_nuclei{i};
+% power_nuclei = data.cells_targets.power_nuclei{i};
+% pi_target_nuclei = data.cells_targets.pi_target_nuclei{i};
+% loc_to_cell_nuclei = data.cells_targets.loc_to_cell_nuclei{i};
+
 oasis_data = data.oasis_data;
 full_seq = data.full_seq;
 for trial_i = 1:size(oasis_data,1)
