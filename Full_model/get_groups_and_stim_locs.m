@@ -10,12 +10,13 @@ data.n_cell = size(cell_locations,1);
 
 % break up into z groups
 z_slice_width = params.exp.z_width;
-z_borders = z_locs+floor(z_slice_width/2);
+z_borders = [z_locs(1)-floor(z_slice_width/2) z_locs+floor(z_slice_width/2)];
+
 data.n_planes = length(z_locs);
 
 cell_group_idx = zeros(data.n_cell,1);
 for i_cell = 1:size(cell_locations,1)
-    cell_group_idx(i_cell)= sum(cell_locations(i_cell,3)>z_borders)+1;
+    cell_group_idx(i_cell)= sum(cell_locations(i_cell,3)>z_borders);
 end
 data.cell_group_list = cell(data.n_planes,1);
 for i_plane = 1:data.n_planes
@@ -38,6 +39,8 @@ power_nuclei = cell(data.n_planes,1);
 pi_target_nuclei = cell(data.n_planes,1);
 loc_to_cell_nuclei = cell(data.n_planes,1);
 
+
+
 stim_threshold = params.eff_stim_threshold/params.template_cell.gain_template;
 for i = 1:data.n_planes
 
@@ -50,7 +53,7 @@ for i = 1:data.n_planes
         get_stim_locations(...
         target_cell_list,cell_locations,params.exp.user_power_level,...
         r1,r2,r3,num_per_grid,num_per_grid_dense,params.template_cell.shape_template,...
-        params.stim_unique,params.template_cell.prob_trace,stim_threshold,params.design.stim_loc_type);
+        params.stim_unique,params.template_cell.prob_trace,stim_threshold,params.design.stim_loc_type,z_locs(i),params.exp.arbitrary_z);
     
     targ_locs_tmp(targ_locs_tmp(:,1) < params.exp.foe_bounds(1,1),1) = params.exp.foe_bounds(1,1);
     targ_locs_tmp(targ_locs_tmp(:,1) > params.exp.foe_bounds(1,2),1) = params.exp.foe_bounds(1,2);

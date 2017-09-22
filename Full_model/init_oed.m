@@ -110,8 +110,9 @@ params.design.change_threshold=0.05;
 
 % some experimental params
 params.exp.power_levels = '50'; % this should be a space delimited string
-params.exp.z_width = 30;
-params.exp.z_depths = '20 40';% this should be a space delimited string
+params.exp.z_width = 20;
+params.exp.z_depths = '30 50';% this should be a space delimited string
+params.exp.arbitrary_z = 0;
 
 if load_map
     params.exp.ratio_map = evalin('base','ratio_map');
@@ -122,4 +123,5 @@ end
 
 params.exp.max_spike_freq = .5; % don't revisit cells on average sooner than this in Hz
 params.exp.foe_bounds = [-148 148; -148 148];
+
 

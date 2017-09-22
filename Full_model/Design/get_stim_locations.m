@@ -5,7 +5,19 @@ function [pi_target_selected, inner_normalized_products,target_locations_selecte
     target_cell_list,cell_locations,power_level,...
     r1,r2,r3,num_per_grid,num_per_grid_dense,shape_template,...
     stim_unique,prob_trace,stim_threshold,...
-    grid_type) % type = 1: circles; type = 2: line;
+    grid_type,varargin) % type = 1: circles; type = 2: line;
+
+if ~isempty(varargin) && ~isempty(varargin{1})
+    z_depth = varargin{1};
+else
+    z_depth = mean(cell_locations(target_cell_list.primary,3));
+end
+
+if length(varargin) > 1 && ~isempty(varargin{2})
+    connected_arbitrary_z = varargin{2};
+else
+    connected_arbitrary_z = 0;
+end
 
 %target_locations_3d_selected,power_3d_selected,pi_target_3d, inner_normalized_products_3d] = 
 
@@ -29,7 +41,9 @@ for i_cell_index=1:length(target_cell_list.primary)
     target_idx=(i_cell_index-1)*(2*num_per_grid+1) +(1: (2*num_per_grid+1));
     target_locations(target_idx,:) = grid_locs;
 end
-target_locations(:,3)= mean(cell_locations(target_cell_list.primary,3));
+
+target_locations(:,3)= z_depth;
+
 
 %plot(target_locations{this_plane}(:,2),target_locations{this_plane}(:,1),'.')
 
@@ -101,7 +115,9 @@ for i_cell_index=1:length(unidentified_cells)
 
     target_locations_dense(target_idx,:) = grid_locs;
 end
-target_locations_dense(:,3)= mean(cell_locations(target_cell_list.primary,3));
+target_locations_dense(:,3)= z_depth;
+
+
 
 cell_params.locations =  cell_locations(related_cell_list,:);
 cell_params.shape_gain = ones(length(related_cell_list),1);
@@ -191,6 +207,9 @@ end
     cell_params.shape_gain = ones(length(related_cell_list),1);
     cell_template = struct();
     cell_template.shape= shape_template;
+    if ~connected_arbitrary_z
+        target_locations_nuclei(:,3) = z_depth;
+    end
     [pi_target_nuclei, ~] = get_weights_v2(cell_params, ...
         cell_template,target_locations_nuclei);
     power_nuclei=power_level(1)*ones(length(loc_to_cell_nuclei),1);
@@ -253,6 +272,9 @@ elseif grid_type == 2
     cell_params.shape_gain = ones(length(related_cell_list),1);
     cell_template = struct();
     cell_template.shape= shape_template;
+    if ~connected_arbitrary_z
+        target_locations_nuclei(:,3) = z_depth;
+    end
     [pi_target_nuclei, ~] = get_weights_v2(cell_params, ...
         cell_template,target_locations_nuclei);
     power_nuclei=power_level(1)*ones(length(loc_to_cell_nuclei),1);

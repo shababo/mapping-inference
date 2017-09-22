@@ -27,19 +27,19 @@ for trial_i = 1:size(oasis_data,1)
     group_trial_id = full_seq(trial_i).group_target_index;
     switch full_seq(trial_i).group
         case 1
-            locations = data.design.trials_locations_undefined{i}{data.design.iter}(group_trial_id,:);
+            locations = data.design.trials_locations_undefined{i}{iter}(group_trial_id,:);
         case 2
-            locations = data.design.trials_locations_disconnected{i}{data.design.iter}(group_trial_id,:);
+            locations = data.design.trials_locations_disconnected{i}{iter}(group_trial_id,:);
         case 3
-            locations = data.design.trials_locations_connected{i}{data.design.iter}(group_trial_id,:);
+            locations = data.design.trials_locations_connected{i}{iter}(group_trial_id,:);
     end
 
     mpp(trial_i).locations = locations;
 end
 assignin('base','mpp',mpp)
-data.design.mpp_undefined{i}{data.design.iter} = mpp([mpp.group] == 1);
-data.design.mpp_disconnected{i}{data.design.iter} = mpp([mpp.group] == 2);
-data.design.mpp_connected{i}{data.design.iter} = mpp([mpp.group] == 3);
+data.design.mpp_undefined{i}{iter} = mpp([mpp.group] == 1);
+data.design.mpp_disconnected{i}{iter} = mpp([mpp.group] == 1);
+data.design.mpp_connected{i}{iter} = mpp([mpp.group] == 1);
 
 %------------------------------------------%
 % Transform the data
@@ -49,27 +49,27 @@ data.design.mpp_connected{i}{data.design.iter} = mpp([mpp.group] == 3);
 %         assignin('base','data.design.mpp_undefined{i}',data.design.mpp_undefined{i})
 %         assignin('base','data.design.cells_probabilities_undefined',data.design.cells_probabilities_undefined)
 
-if sum(data.design.undefined_cells{i}{data.design.iter})>0
+if sum(data.design.undefined_cells{i}{iter})>0
     for i_trial = 1:size(data.design.cells_probabilities_undefined,1)
-        outputs_undefined(i_trial,1)=length(data.design.mpp_undefined{i}{data.design.iter}(i_trial).times);
+        outputs_undefined(i_trial,1)=length(data.design.mpp_undefined{i}{iter}(i_trial).times);
     end
     binary_resp = sort(outputs_undefined > 0);
     undefined_baseline = mean(binary_resp(1:ceil(length(binary_resp/15))));
     data.design.n_trials{i}=data.design.n_trials{i}+i_trial;
 end
-if  sum(data.design.potentially_disconnected_cells{i}{data.design.iter})>0
+if  sum(data.design.potentially_disconnected_cells{i}{iter})>0
     %data.design.cells_probabilities_disconnected;
     for i_trial = 1:size(data.design.cells_probabilities_disconnected,1)
-        outputs_disconnected(i_trial,1)=length(data.design.mpp_disconnected{i}{data.design.iter}(i_trial).times);
+        outputs_disconnected(i_trial,1)=length(data.design.mpp_disconnected{i}{iter}(i_trial).times);
     end
     binary_resp = sort(outputs_disconnected > 0);
     disconnected_baseline = mean(binary_resp(1:ceil(length(binary_resp/15))));
     data.design.n_trials{i}=data.design.n_trials{i}+i_trial;
 end
-if  sum(data.design.potentially_connected_cells{i}{data.design.iter})>0
+if  sum(data.design.potentially_connected_cells{i}{iter})>0
     %data.design.cells_probabilities_disconnected;
 %         for i_trial = 1:size(data.design.stim_size_connected,1)
-%             outputs_connected(i_trial,1)=length(data.design.mpp_connected{i}{data.design.iter}(i_trial).times);
+%             outputs_connected(i_trial,1)=length(data.design.mpp_connected{i}{iter}(i_trial).times);
 %         end
     data.design.n_trials{i}=data.design.n_trials{i}+size(data.design.stim_size_connected,1);
 end
@@ -77,27 +77,27 @@ end
 %------------------------------------------%
 % Analysis:
 
-data.design.variational_params_path{i}.pi(:,data.design.iter+1)=params.design.var_pi_ini*ones(n_cell_this_plane,1);
-data.design.variational_params_path{i}.alpha(:,data.design.iter+1)=data.design.variational_params_path{i}.alpha(:,data.design.iter);
-data.design.variational_params_path{i}.beta(:,data.design.iter+1)=data.design.variational_params_path{i}.beta(:,data.design.iter);
-data.design.variational_params_path{i}.alpha_gain(:,data.design.iter+1)=data.design.variational_params_path{i}.alpha_gain(:,data.design.iter);
-data.design.variational_params_path{i}.beta_gain(:,data.design.iter+1)=data.design.variational_params_path{i}.beta_gain(:,data.design.iter);
+these_vi_params_path_loc.pi(:,iter+1)=params.design.var_pi_ini*ones(n_cell_this_plane,1);
+these_vi_params_path_loc.alpha(:,iter+1)=these_vi_params_path_loc.alpha(:,iter);
+these_vi_params_path_loc.beta(:,iter+1)=these_vi_params_path_loc.beta(:,iter);
+these_vi_params_path_loc.alpha_gain(:,iter+1)=these_vi_params_path_loc.alpha_gain(:,iter);
+these_vi_params_path_loc.beta_gain(:,iter+1)=these_vi_params_path_loc.beta_gain(:,iter);
 
 
 %------------------------------------------------------%
 % Fit VI on Group A: the undefined cells
 data.design.mean_gamma_undefined=zeros(n_cell_this_plane,1);
 
-if sum(data.design.undefined_cells{i}{data.design.iter})>0
-    cell_list= find(data.design.undefined_cells{i}{data.design.iter});
+if sum(data.design.undefined_cells{i}{iter})>0
+    cell_list= find(data.design.undefined_cells{i}{iter});
     % Update variational and prior distribution
    variational_params=struct([]);
     for i_cell_idx = 1:length(cell_list)
         i_cell=cell_list(i_cell_idx);
-        variational_params(i_cell_idx).pi = data.design.variational_params_path{i}.pi(i_cell,data.design.iter);
+        variational_params(i_cell_idx).pi = these_vi_params_path_loc.pi(i_cell,iter);
         variational_params(i_cell_idx).p_logit = log(variational_params(i_cell_idx).pi/(1-variational_params(i_cell_idx).pi));
-        variational_params(i_cell_idx).alpha = data.design.variational_params_path{i}.alpha(i_cell,data.design.iter);
-        variational_params(i_cell_idx).beta = data.design.variational_params_path{i}.beta(i_cell,data.design.iter);
+        variational_params(i_cell_idx).alpha = these_vi_params_path_loc.alpha(i_cell,iter);
+        variational_params(i_cell_idx).beta = these_vi_params_path_loc.beta(i_cell,iter);
     end
     prior_params.pi0= [variational_params(:).pi]';
     prior_params.alpha0= [variational_params(:).alpha]';
@@ -124,15 +124,15 @@ if sum(data.design.undefined_cells{i}{data.design.iter})>0
         params.design.eta_beta,params.design.maxit,lklh_func);
 
     % Record the variational parameters
-    data.design.variational_params_path{i}.pi(cell_list,data.design.iter+1) = parameter_history.pi(:,end);
-    data.design.variational_params_path{i}.alpha(cell_list,data.design.iter+1) = parameter_history.alpha(:,end);
-    data.design.variational_params_path{i}.beta(cell_list,data.design.iter+1) = parameter_history.beta(:,end);
+    these_vi_params_path_loc.pi(cell_list,iter+1) = parameter_history.pi(:,end);
+    these_vi_params_path_loc.alpha(cell_list,iter+1) = parameter_history.alpha(:,end);
+    these_vi_params_path_loc.beta(cell_list,iter+1) = parameter_history.beta(:,end);
 
     [mean_gamma_temp, ~] = calculate_posterior_mean(parameter_history.alpha(:,end),parameter_history.beta(:,end),0,1);
 
     data.design.mean_gamma_undefined(cell_list,1)=mean_gamma_temp;
     data.design.mean_gamma_current{i}(cell_list)=mean_gamma_temp;
-    data.design.gamma_path{i}(cell_list,data.design.iter+1)=mean_gamma_temp;
+    data.design.gamma_path{i}(cell_list,iter+1)=mean_gamma_temp;
 
 end
 %-------------------------------------------------------------%
@@ -140,15 +140,15 @@ end
 %----------------------------------------------------------------%
 % Fit the VI on Group B: potentially disconnected cells
 data.design.mean_gamma_disconnected=ones(n_cell_this_plane,1);
-if sum(data.design.potentially_disconnected_cells{i}{data.design.iter})>0
-    cell_list= find(data.design.potentially_disconnected_cells{i}{data.design.iter});
+if sum(data.design.potentially_disconnected_cells{i}{iter})>0
+    cell_list= find(data.design.potentially_disconnected_cells{i}{iter});
     variational_params=struct([]);
     for i_cell_idx = 1:length(cell_list)
         i_cell=cell_list(i_cell_idx);
-        variational_params(i_cell_idx).pi = data.design.variational_params_path{i}.pi(i_cell,data.design.iter);
+        variational_params(i_cell_idx).pi = these_vi_params_path_loc.pi(i_cell,iter);
         variational_params(i_cell_idx).p_logit = log(variational_params(i_cell_idx).pi/(1-variational_params(i_cell_idx).pi));
-        variational_params(i_cell_idx).alpha = data.design.variational_params_path{i}.alpha(i_cell,data.design.iter);
-        variational_params(i_cell_idx).beta = data.design.variational_params_path{i}.beta(i_cell,data.design.iter);
+        variational_params(i_cell_idx).alpha = these_vi_params_path_loc.alpha(i_cell,iter);
+        variational_params(i_cell_idx).beta = these_vi_params_path_loc.beta(i_cell,iter);
     end
 
     prior_params.pi0= [variational_params(:).pi]';
@@ -176,15 +176,15 @@ if sum(data.design.potentially_disconnected_cells{i}{data.design.iter})>0
         params.design.eta_beta,params.design.maxit,lklh_func);
 
     % Record the variational parameters
-    data.design.variational_params_path{i}.pi(cell_list,data.design.iter+1) = parameter_history.pi(:,end);
-    data.design.variational_params_path{i}.alpha(cell_list,data.design.iter+1) = parameter_history.alpha(:,end);
-    data.design.variational_params_path{i}.beta(cell_list,data.design.iter+1) = parameter_history.beta(:,end);
+    these_vi_params_path_loc.pi(cell_list,iter+1) = parameter_history.pi(:,end);
+    these_vi_params_path_loc.alpha(cell_list,iter+1) = parameter_history.alpha(:,end);
+    these_vi_params_path_loc.beta(cell_list,iter+1) = parameter_history.beta(:,end);
 
     [mean_gamma_temp, ~] = calculate_posterior_mean(parameter_history.alpha(:,end),parameter_history.beta(:,end),0,1);
 
     data.design.mean_gamma_disconnected(cell_list,1)=mean_gamma_temp;
     data.design.mean_gamma_current{i}(cell_list)=mean_gamma_temp;
-    data.design.gamma_path{i}(cell_list,data.design.iter+1)=mean_gamma_temp;
+    data.design.gamma_path{i}(cell_list,iter+1)=mean_gamma_temp;
 end
 %---------------------------------------------%
 
@@ -194,12 +194,12 @@ end
 data.design.mean_gamma_connected=zeros(n_cell_this_plane,1);
 data.design.variance_gamma_connected=ones(n_cell_this_plane,1);
 lklh_func=@lif_glm_firstspike_loglikelihood_for_VI;
-if sum(data.design.potentially_connected_cells{i}{data.design.iter})>0
-    cell_list= find(data.design.potentially_connected_cells{i}{data.design.iter});
+if sum(data.design.potentially_connected_cells{i}{iter})>0
+    cell_list= find(data.design.potentially_connected_cells{i}{iter});
     designs_remained=data.design.stim_size_connected(:,cell_list);
 
     % Break the trials into unrelated clusters
-    if sum(data.design.potentially_connected_cells{i}{data.design.iter})>1
+    if sum(data.design.potentially_connected_cells{i}{iter})>1
         % Use inner product:
         adj_corr= abs( designs_remained'*designs_remained)./size(designs_remained,1);
         adj_corr=1*(adj_corr> (params.eff_stim_threshold/params.template_cell.gain_template/2)^2);
@@ -231,21 +231,23 @@ if sum(data.design.potentially_connected_cells{i}{data.design.iter})>0
         cluster_of_cells{1}=1;
     end
 
-
+    these_vi_params_path = data.design.variational_params_path{i};
+    iter = data.design.iter;
+    
     % Now fit the vi model for each of the cluster:
-    for i_cluster= 1:n_cluster
+    parfor i_cluster= 1:n_cluster
 
         neighbour_list=find(sum(cell_neighbours(cell_list(cluster_of_cells{i_cluster}),:),1)>0)';
-
+        these_vi_params_path_loc = these_vi_params_path;
         variational_params=struct([]);
         for i_cell_idx = 1:length(neighbour_list)
             i_cell=neighbour_list(i_cell_idx);
-            variational_params(i_cell_idx).pi = data.design.variational_params_path{i}.pi(i_cell,data.design.iter);
+            variational_params(i_cell_idx).pi = these_vi_params_path_loc.pi(i_cell,iter);
             variational_params(i_cell_idx).p_logit = log(variational_params(i_cell_idx).pi/(1-variational_params(i_cell_idx).pi));
-            variational_params(i_cell_idx).alpha = data.design.variational_params_path{i}.alpha(i_cell,data.design.iter);
-            variational_params(i_cell_idx).beta = data.design.variational_params_path{i}.beta(i_cell,data.design.iter);
-            variational_params(i_cell_idx).alpha_gain = data.design.variational_params_path{i}.alpha_gain(i_cell,data.design.iter);
-            variational_params(i_cell_idx).beta_gain = data.design.variational_params_path{i}.beta_gain(i_cell,data.design.iter);
+            variational_params(i_cell_idx).alpha = these_vi_params_path_loc.alpha(i_cell,iter);
+            variational_params(i_cell_idx).beta = these_vi_params_path_loc.beta(i_cell,iter);
+            variational_params(i_cell_idx).alpha_gain = these_vi_params_path_loc.alpha_gain(i_cell,iter);
+            variational_params(i_cell_idx).beta_gain = these_vi_params_path_loc.beta_gain(i_cell,iter);
         end
 
         prior_params.pi0= [variational_params(:).pi]';
@@ -257,7 +259,7 @@ if sum(data.design.potentially_connected_cells{i}{data.design.iter})>0
         designs_remained=data.design.stim_size_connected(:,neighbour_list);
         active_trials=find(sum(designs_remained,2)>params.design.stim_threshold);
         designs_remained=designs_remained(active_trials,:);
-        mpp_remained=data.design.mpp_connected{i}{data.design.iter}(active_trials);
+        mpp_remained=data.design.mpp_connected{i}{iter}(active_trials);
 
 %             
 %             % find neighbours that are not in cell_list:
@@ -286,11 +288,11 @@ if sum(data.design.potentially_connected_cells{i}{data.design.iter})>0
         %
 
        %cell_list(cluster_of_cells{i_cluster})
-        data.design.variational_params_path{i}.pi(neighbour_list,data.design.iter+1) = parameter_history.pi(:,end);
-        data.design.variational_params_path{i}.alpha(neighbour_list,data.design.iter+1) = parameter_history.alpha(:,end);
-        data.design.variational_params_path{i}.beta(neighbour_list,data.design.iter+1) = parameter_history.beta(:,end);
-        data.design.variational_params_path{i}.alpha_gain(neighbour_list,data.design.iter+1) = parameter_history.alpha_gain(:,end);
-        data.design.variational_params_path{i}.beta_gain(neighbour_list,data.design.iter+1) = parameter_history.beta_gain(:,end);
+        these_vi_params_path_loc.pi(neighbour_list,iter+1) = parameter_history.pi(:,end);
+        these_vi_params_path_loc.alpha(neighbour_list,iter+1) = parameter_history.alpha(:,end);
+        these_vi_params_path_loc.beta(neighbour_list,iter+1) = parameter_history.beta(:,end);
+        these_vi_params_path_loc.alpha_gain(neighbour_list,iter+1) = parameter_history.alpha_gain(:,end);
+        these_vi_params_path_loc.beta_gain(neighbour_list,iter+1) = parameter_history.beta_gain(:,end);
 
 
     [mean_gamma_temp, var_gamma_temp] = calculate_posterior_mean(...
@@ -301,11 +303,11 @@ if sum(data.design.potentially_connected_cells{i}{data.design.iter})>0
 
 
         data.design.variance_gamma_connected(neighbour_list)=var_gamma_temp;
-        data.design.var_gamma_path(neighbour_list,data.design.iter+1)=var_gamma_temp;
+        data.design.var_gamma_path(neighbour_list,iter+1)=var_gamma_temp;
         data.design.mean_gamma_connected(neighbour_list,1)=mean_gamma_temp;
         data.design.mean_gamma_current{i}(neighbour_list)=mean_gamma_temp;
         data.design.mean_gain_current{i}(neighbour_list)=mean_gain_temp;
-        data.design.gamma_path{i}(neighbour_list,data.design.iter+1)=mean_gamma_temp;
+        data.design.gamma_path{i}(neighbour_list,iter+1)=mean_gamma_temp;
 
     end
 end
@@ -368,7 +370,7 @@ data.design.change_gamma = sqrt(data.design.variance_gamma_connected);
 
 %------------------------------------------------------%
 % Moving the cell between groups
-% data.design.mean_gamma_undefined & data.design.undefined_cells{i}{data.design.iter} % A
-% data.design.mean_gamma_disconnected & data.design.potentially_disconnected_cells{i}{data.design.iter} %B
-% data.design.mean_gamma_connected & data.design.potentially_connected_cells{i}{data.design.iter} %C
+% data.design.mean_gamma_undefined & data.design.undefined_cells{i}{iter} % A
+% data.design.mean_gamma_disconnected & data.design.potentially_disconnected_cells{i}{iter} %B
+% data.design.mean_gamma_connected & data.design.potentially_connected_cells{i}{iter} %C
 
