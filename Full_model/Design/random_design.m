@@ -77,7 +77,7 @@ if n_remaining_cell < single_spot_threshold || n_spots_per_trial==1
             this_trial_powers=power_selected(this_trial_locations);
             trials_locations(n_replicates*K*(i_cell-1)+(1:(n_replicates*K)),:)=...
                 ones(n_replicates*K,1)*this_trial_locations;
-            trials_powers(n_replicates*K*(i_cell-1)+(1:(n_replicates*K)),:)=...
+            trials_powersX(n_replicates*K*(i_cell-1)+(1:(n_replicates*K)),:)=...
                 ones(n_replicates*K,1)*this_trial_powers;
             if use_power_map 
                 for i = 1:length(this_trial_locations)
@@ -121,10 +121,12 @@ else
             try_count = 0;
             loc_found = 0;
             if sum(prob_initial)>0.1
-
+                prob_initial_thresh = prob_initial;
+                thresh = median(prob_initial);
+                prob_initial_thresh(prob_initial < thresh) = 0;
                 while try_count < 10 && ~loc_found
                     temp_index = ...
-                        randsample(1:n_remaining_cell,1,true,prob_initial);
+                        randsample(1:n_remaining_cell,1,true,prob_initial_thresh);
                         temp_loc =  remaining_cell_list(temp_index);
                     if use_power_map % NOT CODED FOR USE WITH REPLICATING WITHIN THIS FUNCTION!
                         this_loc = target_locations_selected(temp_index,:);

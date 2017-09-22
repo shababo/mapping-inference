@@ -39,8 +39,6 @@ power_nuclei = cell(data.n_planes,1);
 pi_target_nuclei = cell(data.n_planes,1);
 loc_to_cell_nuclei = cell(data.n_planes,1);
 
-
-
 stim_threshold = params.eff_stim_threshold/params.template_cell.gain_template;
 for i = 1:data.n_planes
 

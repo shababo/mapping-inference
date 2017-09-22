@@ -18,7 +18,11 @@ cell_neighbours = data.cells_targets.cell_neighbours{i};
 % loc_to_cell_nuclei = data.cells_targets.loc_to_cell_nuclei{i};
 
 oasis_data = data.oasis_data;
-full_seq = data.full_seq;
+if ~params.design.do_connected_vi
+    full_seq = data.full_seq([data.full_seq.group] ~= 3);
+else
+    full_seq = data.full_seq;
+end
 for trial_i = 1:size(oasis_data,1)
     mpp(trial_i).group = full_seq(trial_i).group;
     mpp(trial_i).times = ...

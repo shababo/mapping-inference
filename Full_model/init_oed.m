@@ -107,6 +107,8 @@ params.design.connected=true;
  %  loc_to_cell_nuclei is from get_stim_locations 
 
 params.design.change_threshold=0.05;
+params.design.do_connected_vi = 1;
+
 
 % some experimental params
 params.exp.power_levels = '50'; % this should be a space delimited string
