@@ -39,6 +39,7 @@ for trial_i = 1:size(oasis_data,1)
     end
 
     mpp(trial_i).locations = locations;
+    mpp(trial_i).group_target_index = full_seq(trial_i).group_target_index;
 end
 assignin('base','mpp',mpp)
 data.design.mpp_undefined{i}{data.design.iter} = mpp([mpp.group] == 1);
@@ -75,7 +76,7 @@ if  sum(data.design.potentially_connected_cells{i}{data.design.iter})>0
 %         for i_trial = 1:size(data.design.stim_size_connected,1)
 %             outputs_connected(i_trial,1)=length(data.design.mpp_connected{i}{data.design.iter}(i_trial).times);
 %         end
-    data.design.n_trials{i}=data.design.n_trials{i}+size(data.design.stim_size_connected,1);
+    data.design.n_trials{i}=data.design.n_trials{i}+size(data.design.stim_size_connected{i}{data.design.iter},1);
 end
 
 %------------------------------------------%
@@ -106,8 +107,12 @@ if sum(data.design.undefined_cells{i}{data.design.iter})>0
     prior_params.pi0= [variational_params(:).pi]';
     prior_params.alpha0= [variational_params(:).alpha]';
     prior_params.beta0 = [variational_params(:).beta]';
-
-    designs_remained=data.design.cells_probabilities_undefined(:,cell_list);
+    
+    trial_inds = [data.design.mpp_undefined{i}{data.design.iter}.group_target_index];
+    cells_probabilities_undefined = data.design.cells_probabilities_undefined{i}{data.design.iter}(trial_inds,:);
+%     cells_probabilities_undefined = cells_probabilities_undefined([data.design.mpp_undefined{i}{data.design.iter}(i_trial).times,:);
+    designs_remained=cells_probabilities_undefined(:,cell_list);
+    
     active_trials=find(sum(designs_remained,2)>1e-3);
     designs_remained=designs_remained(active_trials,:);
     outputs_remained=outputs_undefined(active_trials,:);
@@ -115,7 +120,7 @@ if sum(data.design.undefined_cells{i}{data.design.iter})>0
     % find neighbours that are not in cell_list:
     neighbour_list=find(sum(cell_neighbours(cell_list,:),1)>0)';
     neighbour_list=setdiff(neighbour_list,cell_list);
-    designs_neighbours=data.design.cells_probabilities_undefined(active_trials,neighbour_list);
+    designs_neighbours=cells_probabilities_undefined(active_trials,neighbour_list);
     gamma_neighbours=data.design.mean_gamma_current{i}(neighbour_list);
 
     lklh_func=@calculate_likelihood_bernoulli;
@@ -159,8 +164,10 @@ if sum(data.design.potentially_disconnected_cells{i}{data.design.iter})>0
     prior_params.alpha0= [variational_params(:).alpha]';
     prior_params.beta0 = [variational_params(:).beta]';
     % Include only the remaining cells
-
-    designs_remained=data.design.cells_probabilities_disconnected(:,cell_list);
+    
+    trial_inds = [data.design.mpp_disconnected{i}{data.design.iter}.group_target_index];
+    cells_probabilities_disconnected = data.design.cells_probabilities_disconnected{i}{data.design.iter}(trial_inds,:);
+    designs_remained=cells_probabilities_disconnected(:,cell_list);
     active_trials=find(sum(designs_remained,2)>1e-3);
     designs_remained=designs_remained(active_trials,:);
     outputs_remained=outputs_disconnected(active_trials,:);
@@ -168,7 +175,7 @@ if sum(data.design.potentially_disconnected_cells{i}{data.design.iter})>0
      % find neighbours that are not in cell_list:
     neighbour_list=find(sum(cell_neighbours(cell_list,:),1)>0)';
     neighbour_list=setdiff(neighbour_list,cell_list);
-    designs_neighbours=data.design.cells_probabilities_disconnected(active_trials,neighbour_list);
+    designs_neighbours=cells_probabilities_disconnected(active_trials,neighbour_list);
     gamma_neighbours=data.design.mean_gamma_current{i}(neighbour_list);
 
     lklh_func=@calculate_likelihood_bernoulli;
@@ -200,7 +207,11 @@ data.design.variance_gamma_connected=ones(n_cell_this_plane,1);
 lklh_func=@lif_glm_firstspike_loglikelihood_for_VI;
 if sum(data.design.potentially_connected_cells{i}{data.design.iter})>0
     cell_list= find(data.design.potentially_connected_cells{i}{data.design.iter});
-    designs_remained=data.design.stim_size_connected(:,cell_list);
+    
+    trial_inds = [data.design.mpp_connected{i}{data.design.iter}.group_target_index];
+    stim_size_connected = data.design.cells_probabilities_connected{i}{data.design.iter}(trial_inds,:);
+    
+    designs_remained=stim_size_connected(:,cell_list);
 
     % Break the trials into unrelated clusters
     if sum(data.design.potentially_connected_cells{i}{data.design.iter})>1
@@ -220,7 +231,7 @@ if sum(data.design.potentially_connected_cells{i}{data.design.iter})>0
             else
                 this_id = cell_cluster_ind(i_cell_idx);
             end
-            cell_cluster_ind( find(cc_corr(:,i_cell_idx)))=this_id;
+            cell_cluster_ind(find(cc_corr(:,i_cell_idx)))=this_id;
         end
         % Now turn the cell_cluster_ind into list of cells
         n_cluster=max(cell_cluster_ind);
@@ -258,7 +269,7 @@ if sum(data.design.potentially_connected_cells{i}{data.design.iter})>0
         prior_params.alpha0_gain= [variational_params(:).alpha_gain]';
         prior_params.beta0_gain =[variational_params(:).beta_gain]';
 
-        designs_remained=data.design.stim_size_connected(:,neighbour_list);
+        designs_remained=stim_size_connected(:,neighbour_list);
         active_trials=find(sum(designs_remained,2)>params.design.stim_threshold);
         designs_remained=designs_remained(active_trials,:);
         mpp_remained=data.design.mpp_connected{i}{data.design.iter}(active_trials);
