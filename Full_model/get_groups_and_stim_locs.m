@@ -10,7 +10,7 @@ data.n_cell = size(cell_locations,1);
 
 % break up into z groups
 z_slice_width = params.exp.z_width;
-z_borders = [z_locs(1)-floor(z_slice_width/2) z_locs+floor(z_slice_width/2)];
+z_borders = [z_locs(1)-floor(z_slice_width/2); z_locs+floor(z_slice_width/2)];
 
 data.n_planes = length(z_locs);
 
