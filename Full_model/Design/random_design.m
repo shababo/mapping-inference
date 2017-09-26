@@ -3,11 +3,11 @@ function [ trials_locations,  trials_powers] = random_design(...
     inner_normalized_products,single_spot_threshold,...
     gamma_estimates,prob_weight,...
     connected, loc_to_cell,...
-    remaining_cell_list,n_spots_per_trial,K,n_replicates)
+    remaining_cell_list,n_spots_per_trial,K,n_replicates,...
+    power_level)
 
 % connected: indicator whether we are designing trials for potentially
 % connected cells 
-
 
 n_remaining_cell=length(remaining_cell_list);
 loc_counts=zeros(n_remaining_cell,1);
@@ -28,7 +28,8 @@ if n_remaining_cell < single_spot_threshold | n_spots_per_trial==1
              trials_locations(n_replicates*K*(i_cell-1)+(1:(n_replicates*K)),:)=...
                  reshape(ones(n_replicates,1)*trials_temp,[n_replicates*K 1]);
             trials_powers(n_replicates*K*(i_cell-1)+(1:(n_replicates*K)),:)=...
-                power_selected(trials_locations(n_replicates*K*(i_cell-1)+(1:(n_replicates*K)),:));
+               randsample(power_level,n_replicates*K,true);
+        %power_selected(trials_locations(n_replicates*K*(i_cell-1)+(1:(n_replicates*K)),:));
          end
         
     else % stim at the chosen locations
@@ -55,7 +56,7 @@ else
     % Set the probability to be inversely proportional to the
     % gamma_estimates, since we want to eliminate more disconnected cells
     probability_weights = (1-gamma_estimates)*prob_weight+(1-prob_weight);
-    
+    n_spots_per_cell = length(loc_to_cell)/max(loc_to_cell);
     for i_trial =1:n_unique_trials
         prob_initial = probability_weights;
         prob_initial=prob_initial./(loc_counts+0.1);
@@ -65,7 +66,9 @@ else
                 temp_index = ...
                     randsample(1:n_remaining_cell,1,true,prob_initial);
                 loc_counts(temp_index)=loc_counts(temp_index)+1;
-                temp_loc =  remaining_cell_list(temp_index);
+                temp_spot = randsample(1:n_spots_per_cell,1);
+                
+                temp_loc =  n_spots_per_cell*(remaining_cell_list(temp_index)-1)+temp_spot;
                 this_trial_locations(1,i_spot)=temp_loc;
                 this_trial_powers(1,i_spot)=power_selected(temp_loc);
                 prob_initial = ...

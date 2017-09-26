@@ -72,7 +72,8 @@ neighbour_plane = [this_plane-1 this_plane+1];
 n_cell_this_plane=length(cell_group_list{this_plane});
 target_cell_list=struct([]);
 target_cell_list(1).primary=cell_group_list{this_plane};
-target_cell_list(1).secondary=[cell_group_list{neighbour_plane(1)}; cell_group_list{neighbour_plane(1)}];
+target_cell_list(1).secondary=[cell_group_list{neighbour_plane(1)}; cell_group_list{neighbour_plane(2)}];
+% target_cell_list(1).secondary=[];
 related_cell_list=[target_cell_list.primary; target_cell_list.secondary]; 
 
 
@@ -94,7 +95,7 @@ l23_average_shape = temp/temp_max;shape_template=l23_average_shape;
 r1=5;r2=10;r3=15;num_per_grid=12;
 num_per_grid_dense=16;
 stim_threshold=eff_stim_threshold/gain_template;
-grid_type = 2; % 1: circles; 2: lines;
+grid_type = 1; % 1: circles; 2: lines;
 [pi_target_selected, inner_normalized_products,target_locations_selected,power_selected,...
     target_locations_all,cell_neighbours,...
     target_locations_nuclei, power_nuclei,pi_target_nuclei, loc_to_cell_nuclei] = ...
@@ -126,7 +127,7 @@ K_disconnected=5; % each cell appears approximately 10*2 times
 K_connected=10; % each cell appears approximately 10*2 times
 
 
-single_spot_threshold=15; % switch to single spot stimulation (this can be a function of n_spots_per_trial
+single_spot_threshold=9; % switch to single spot stimulation (this can be a function of n_spots_per_trial
 
 trial_max=2000;
 
@@ -603,9 +604,6 @@ end
     x=cell_locations(:,1);
     y=cell_locations(:,2);
     z=cell_locations(:,3);
-    
-
-    figure(101)
     figure(101)
    ax1=axes('Position',[0 0 1 1],'Visible','off');
    ax2=axes('Position',[0.1 0.2 .8 .8],'Visible','off');
@@ -635,13 +633,13 @@ end
    ax2=axes('Position',[0.1 0.2 .8 .8],'Visible','off');
    
    sc2=scatter3(ax2,-y,x,z,...
-       'MarkerEdgeColor','b',...
+       'MarkerEdgeColor','w',...
        'MarkerFaceColor','b',...
        'MarkerFaceAlpha',0.2);
    hold on;
    sc1=scatter3(ax2,-y(cell_group_list{this_plane}),x(cell_group_list{this_plane}),...
        z(cell_group_list{this_plane}),...
-       'MarkerEdgeColor','k',...
+       'MarkerEdgeColor','w',...
        'MarkerFaceColor','k',...
        'MarkerFaceAlpha',0.8);
    hold on;
@@ -652,7 +650,7 @@ end
    
    [x_coord, y_coord] = meshgrid(-150:10:150);
    z_coord= mean(cell_locations(cell_group_list{this_plane},3))*ones(size(x_coord,1),size(x_coord,2));
-   surf(ax2,-y_coord,x_coord,z_coord,'FaceColor','r','FaceAlpha',0.5,'EdgeColor','none');
+   surf(ax2,-y_coord,x_coord,z_coord,'FaceColor','r','FaceAlpha',0.5,'EdgeColor','w');
    hold on;
    
    title_text = {'I.b selected cells'};
@@ -675,12 +673,12 @@ end
     scatter(-cell_locations(cell_group_list{this_plane},2),...
         cell_locations(cell_group_list{this_plane},1),...
         'Marker','o','SizeData',60,...
-        'MarkerFaceColor','k', 'MarkerEdgeColor','k', 'MarkerFaceAlpha',0.5)
+        'MarkerFaceColor','k', 'MarkerEdgeColor','w', 'MarkerFaceAlpha',0.5)
     hold on;
     scatter(-target_locations_selected(:,2),...
         target_locations_selected(:,1),...
         'Marker','d','SizeData',60,...
-        'MarkerFaceColor','r', 'MarkerEdgeColor','r', 'MarkerFaceAlpha',0.5)
+        'MarkerFaceColor','y', 'MarkerEdgeColor','w', 'MarkerFaceAlpha',0.5)
     
      xlim([-160 160]);
     ylim([-160 160]);
@@ -737,12 +735,12 @@ end
             xlim([-160 160]);
 ylim([-160 160]);
 
-facecolor='k';
+facecolor='y';
     for i_trial = 1:size(trials_locations_undefined{iter_II},1)
            scatter(target_locations_selected(trials_locations_undefined{iter_II}(i_trial,:),2),...
                         target_locations_selected(trials_locations_undefined{iter_II}(i_trial,:),1),...
                         'Marker','d','SizeData',60,...
-                        'MarkerFaceColor',facecolor, 'MarkerEdgeColor',facecolor,...
+                        'MarkerFaceColor',facecolor, 'MarkerEdgeColor','w',...
                         'MarkerFaceAlpha',0.2)
     end
      axis off;
@@ -790,12 +788,12 @@ facecolor='k';
     xlim([-160 160]);
     ylim([-160 160]);
     axis off;
-    facecolor='r';
+    facecolor='y';
     for i_trial = 1:size(trials_locations_disconnected{iter_II},1)
         scatter(target_locations_selected(trials_locations_disconnected{iter_II}(i_trial,:),2),...
             target_locations_selected(trials_locations_disconnected{iter_II}(i_trial,:),1),...
             'Marker','d','SizeData',60,...
-            'MarkerFaceColor',facecolor, 'MarkerEdgeColor',facecolor,...
+            'MarkerFaceColor',facecolor, 'MarkerEdgeColor','w',...
             'MarkerFaceAlpha',0.2)
     end
     %      target_locations_selected
@@ -836,13 +834,13 @@ facecolor='k';
             'MarkerFaceAlpha',markeralpha)
         hold on;
     end
-    facecolor='g';
+    facecolor='y';
     for i_trial = 1:size(trials_locations_connected{iter_II},1)
            scatter3(-target_locations_nuclei(trials_locations_connected{iter_II}(i_trial,:),2),...
                         target_locations_nuclei(trials_locations_connected{iter_II}(i_trial,:),1),...
                         target_locations_nuclei(trials_locations_connected{iter_II}(i_trial,:),3),...
                         'Marker','d','SizeData',50,...
-                        'MarkerFaceColor',facecolor, 'MarkerEdgeColor',facecolor,...
+                        'MarkerFaceColor',facecolor, 'MarkerEdgeColor','w',...
                         'MarkerFaceAlpha',0.2)
     end
     %xlabel(strcat(num2str(n_total_trial(iter)), ' trials'));
@@ -875,11 +873,17 @@ facecolor='k';
         outputs_undefined(i_trial,1)=1*(1-isempty(mpp_undefined{iter_II}(i_trial).times));
     end
     
+    % sort the list by the min cell index:
+    min_cell_index = zeros(size(cells_probabilities_undefined,1),1);
+    for i_trial = 1:size(cells_probabilities_undefined,1)
+        min_cell_index(i_trial)= min(find(cells_probabilities_undefined(i_trial,:)>0.2)); 
+    end
+    [~,cell_index_rank] = sort(min_cell_index);
         cell_list=find(sum(cells_probabilities_undefined,1)>0.1);
     facecolor='k';
     for i_trial = 1:size(trials_locations_undefined{iter_II},1)
         scatter(-1,...
-            i_trial,...
+            cell_index_rank(i_trial),...
             'Marker','s','SizeData',20,...
             'MarkerFaceColor','b', 'MarkerEdgeColor','w',...
             'MarkerFaceAlpha',max(outputs_undefined(i_trial),0.01))
@@ -888,7 +892,7 @@ facecolor='k';
            i_cell_idx=cell_list(i_cell);
            if cells_probabilities_undefined(i_trial,i_cell_idx)>0.01
        scatter(i_cell+4,...
-            i_trial,...
+            cell_index_rank(i_trial),...
             'Marker','s','SizeData',20,...
             'MarkerFaceColor',facecolor, 'MarkerEdgeColor','w',...
             'MarkerFaceAlpha',min(max(cells_probabilities_undefined(i_trial,i_cell_idx),0.01),1))
@@ -936,6 +940,13 @@ facecolor='k';
         outputs_disconnected(i_trial,1)=1*(1-isempty(mpp_disconnected{iter_II}(i_trial).times));
     end
     
+     % sort the list by the min cell index:
+    min_cell_index = zeros(size(cells_probabilities_disconnected,1),1);
+    for i_trial = 1:size(cells_probabilities_disconnected,1)
+        min_cell_index(i_trial)= min(find(cells_probabilities_disconnected(i_trial,:)>0.2)); 
+    end
+    [~,cell_index_rank] = sort(min_cell_index);
+  
   figure(302)
     ax1=axes('Position',[0 0 1 1],'Visible','off');
    ax2=axes('Position',[0.1 0.2 .8 .8],'Visible','off');
@@ -945,8 +956,8 @@ facecolor='k';
     facecolor='k';
     for i_trial = 1:size(trials_locations_disconnected{iter_II},1)
         scatter(-1,...
-            i_trial,...
-            'Marker','s','SizeData',20,...
+           cell_index_rank(i_trial),...
+             'Marker','s','SizeData',20,...
             'MarkerFaceColor','b', 'MarkerEdgeColor','w',...
             'MarkerFaceAlpha',max(outputs_disconnected(i_trial),0.01))
         hold on;
@@ -955,7 +966,7 @@ facecolor='k';
             i_cell_idx=cell_list(i_cell);
            if cells_probabilities_disconnected(i_trial,i_cell_idx)>0.01
        scatter(1.3*i_cell+4,...
-            i_trial,...
+            cell_index_rank(i_trial),...
             'Marker','s','SizeData',20,...
             'MarkerFaceColor',facecolor, 'MarkerEdgeColor','w',...
             'MarkerFaceAlpha',min(max(cells_probabilities_disconnected(i_trial,i_cell_idx),0.01),1))
@@ -990,15 +1001,29 @@ facecolor='k';
             stim_unique,prob_trace);
            
         transparencies= stim_size_connected/max(max(stim_size_connected));
+            % sort the list by the min cell index:
+             
         cell_list=find(sum(transparencies)>4);
+        cell_list=find(potentially_connected_cells{iter_II});
     facecolor='k';
-    
+  
+    %loc_to_cell_nuclei(trials_locations_connected{iter_II});
+    stim_size_rank = zeros(size(stim_size_connected,1),1);
+    for i_cell = 1:length(cell_list)
+        i_cell_index=cell_list(i_cell);
+        index_list = (i_cell-1)*K_connected + (1:K_connected);
+            max_stim=transparencies(index_list,i_cell_index);
+            [~,temp_rank] = sort(max_stim);
+            stim_size_rank(index_list)=  (i_cell-1)*K_connected+temp_rank;
+    end
+    %transparencies(stim_size_rank(index_list),i_cell_index)
+    %mpp_connected{iter_II}(stim_size_rank(1:10)).times
     for i_trial = 1:size(trials_locations_connected{iter_II},1)
         if ~isempty(mpp_connected{iter_II}(i_trial).times)
            for i_event = 1:length(mpp_connected{iter_II}(i_trial).times)
                x_sp=[mpp_connected{iter_II}(i_trial).times(i_event) mpp_connected{iter_II}(i_trial).times(i_event)];
                x_sp=x_sp/(time_max/10);
-               y_sp=[i_trial+0.2 i_trial+0.8];
+               y_sp=stim_size_rank(i_trial)+[0.2 0.8];
                line(x_sp,y_sp,'LineWidth',2)
                
            end
@@ -1009,7 +1034,7 @@ facecolor='k';
            i_cell_idx = cell_list(i_cell);
            %if transparencies(i_trial,i_cell)>0.2
        scatter(i_cell+11,...
-            i_trial,...
+            stim_size_rank(i_trial),...
             'Marker','s','SizeData',20,...
             'MarkerFaceColor',facecolor, 'MarkerEdgeColor','w',...
             'MarkerFaceAlpha', transparencies(i_trial,i_cell_idx))
@@ -1083,23 +1108,13 @@ facecolor='k';
     
     
     cell_list=find(undefined_cells{iter_II});
-    if vf_type == 1
-        alpha_current=exp(variational_params_path.log_alpha(cell_list,iter_II));
-        beta_current=exp(variational_params_path.log_beta(cell_list,iter_II));
-        gamma_mean = alpha_current./(alpha_current+beta_current);
-        
-    elseif vf_type==2
-        alpha_current=variational_params_path.log_alpha(cell_list,iter_II);
-        beta_current=exp(variational_params_path.log_beta(cell_list,iter_II));
-        gamma_mean= zeros(length(cell_list),1);gamma_var= zeros(length(cell_list),1);
-        for i_temp = 1:length(cell_list)
-            gamma_i=beta_current(i_temp)*normal_samples+alpha_current(i_temp);
-            gamma_i=exp(gamma_i)./(1+exp(gamma_i));
-            gamma_mean(i_temp)=mean(gamma_i);
-            gamma_var(i_temp)=var(gamma_i);
-        end
-        
-    end
+    
+    alpha_current=variational_params_path.alpha(cell_list,iter_II);
+    beta_current=variational_params_path.beta(cell_list,iter_II);
+    [gamma_mean, gamma_var] = calculate_posterior_mean(...
+        variational_params_path.alpha(cell_list,iter_II),variational_params_path.beta(cell_list,iter_II),0,1);
+    
+    
     xgrid=0:0.02:1;
     
     figure(401)
@@ -1107,29 +1122,30 @@ facecolor='k';
     ax2=axes('Position',[0.1 0.2 .8 .8],'Visible','off');
     axes(ax2)
     for i_cell = 1:length(cell_list)
-        if gamma_mean(i_cell)>connected_threshold
-            color_codes = [0 1 0 0.4]; %green
-        elseif gamma_mean(i_cell)<disconnected_threshold
-            color_codes = [1 0 0 0.4]; %red
-        else
-            color_codes = [0 0 0 0.2]; %black 
-        end
-        line([gamma_mean(i_cell) gamma_mean(i_cell)],[4 5],'LineStyle','-','LineWidth',1,'Color',color_codes)
-        if vf_type == 1
-        line(xgrid,betapdf(xgrid,alpha_current(i_cell),beta_current(i_cell)),'Color',color_codes );
-        elseif vf_type == 2
+%         if gamma_mean(i_cell)>connected_threshold
+%             color_codes = [0 1 0 0.4]; %green
+%         elseif gamma_mean(i_cell)<disconnected_threshold
+%             color_codes = [1 0 0 0.4]; %red
+%         else
+%             color_codes = [0 0 0 0.2]; %black 
+%         end
+%         line([gamma_mean(i_cell) gamma_mean(i_cell)],[4 5],'LineStyle','-','LineWidth',1,'Color',color_codes)
+%         if vf_type == 1
+%         line(xgrid,betapdf(xgrid,alpha_current(i_cell),beta_current(i_cell)),'Color',color_codes );
+%         elseif vf_type == 2
+color_codes='k';
         xlogit=log(xgrid./(1-xgrid));
             line(xgrid,normpdf(xlogit,alpha_current(i_cell),beta_current(i_cell)),'Color',color_codes );
             
-        end 
+%         end 
         hold on;
     end
-    line([connected_threshold connected_threshold],[3 5],'LineStyle','-','LineWidth',1,'Color',[0 1 0])
-    line([disconnected_threshold disconnected_threshold],[3 5],'LineStyle','-','LineWidth',1,'Color',[1 0 0])
+%     line([connected_threshold connected_threshold],[3 5],'LineStyle','-','LineWidth',1,'Color',[0 1 0])
+%     line([disconnected_threshold disconnected_threshold],[3 5],'LineStyle','-','LineWidth',1,'Color',[1 0 0])
     
     %      target_locations_selected
     xlim([0 1]);
-    ylim([0 5]);
+    ylim([0 1]);
     axis on;
     ylabel('Density');
     xlabel('\gamma and E(\gamma)')
@@ -1144,49 +1160,37 @@ facecolor='k';
        %%
          % IV.b potentially disconnected cells  
     cell_list=find(potentially_disconnected_cells{iter_II});
-    
-     if vf_type == 1
-        alpha_current=exp(variational_params_path.log_alpha(cell_list,iter_II));
-        beta_current=exp(variational_params_path.log_beta(cell_list,iter_II));
-        gamma_mean = alpha_current./(alpha_current+beta_current);     
-    elseif vf_type==2
-        alpha_current=variational_params_path.log_alpha(cell_list,iter_II);
-        beta_current=exp(variational_params_path.log_beta(cell_list,iter_II));
-        gamma_mean= zeros(length(cell_list),1);gamma_var= zeros(length(cell_list),1);
-        for i_temp = 1:length(cell_list)
-            gamma_i=beta_current(i_temp)*normal_samples+alpha_current(i_temp);
-            gamma_i=exp(gamma_i)./(1+exp(gamma_i));
-            gamma_mean(i_temp)=mean(gamma_i);
-            gamma_var(i_temp)=var(gamma_i);
-        end
-        
-    end
+        alpha_current=variational_params_path.alpha(cell_list,iter_II);
+    beta_current=variational_params_path.beta(cell_list,iter_II);
+    [gamma_mean, gamma_var] = calculate_posterior_mean(...
+        variational_params_path.alpha(cell_list,iter_II),variational_params_path.beta(cell_list,iter_II),0,1);
     xgrid=0:0.02:1;
     figure(402)
     ax1=axes('Position',[0 0 1 1],'Visible','off');
     ax2=axes('Position',[0.1 0.2 .8 .8],'Visible','off');
     axes(ax2)
     for i_cell = 1:length(cell_list)
-        if gamma_mean(i_cell)<disconnected_threshold
-            color_codes = [1 0 0 0.4]; %red
-        else
-            color_codes = [0 0 0 0.2]; %black 
-        end
-        line([gamma_mean(i_cell) gamma_mean(i_cell)],[4 5],'LineStyle','-','LineWidth',1,'Color',color_codes)
-         if vf_type == 1
-        line(xgrid,betapdf(xgrid,alpha_current(i_cell),beta_current(i_cell)),'Color',color_codes );
-        elseif vf_type == 2
+%         if gamma_mean(i_cell)<disconnected_threshold
+%             color_codes = [1 0 0 0.4]; %red
+%         else
+%             color_codes = [0 0 0 0.2]; %black 
+%         end
+%         line([gamma_mean(i_cell) gamma_mean(i_cell)],[4 5],'LineStyle','-','LineWidth',1,'Color',color_codes)
+%          if vf_type == 1
+%         line(xgrid,betapdf(xgrid,alpha_current(i_cell),beta_current(i_cell)),'Color',color_codes );
+%         elseif vf_type == 2
+color_codes='r';
         xlogit=log(xgrid./(1-xgrid));
             line(xgrid,normpdf(xlogit,alpha_current(i_cell),beta_current(i_cell)),'Color',color_codes );
             
-        end 
+%         end 
         hold on;
     end
-    line([disconnected_threshold disconnected_threshold],[3 5],'LineStyle','-','LineWidth',1,'Color',[1 0 0])
+%     line([disconnected_threshold disconnected_threshold],[3 5],'LineStyle','-','LineWidth',1,'Color',[1 0 0])
     
     %      target_locations_selected
      xlim([0 1]);
-    ylim([0 5]);
+    ylim([0 1]);
     axis on;
     ylabel('Density');
     xlabel('\gamma and E(\gamma)')
@@ -1204,32 +1208,10 @@ facecolor='k';
     % IV.b Potentially connected cells 
       % Fitted values
   cell_list=find(potentially_connected_cells{iter_II});
-  
-  if vf_type == 1
-      alpha_current=exp(variational_params_path.log_alpha(cell_list,iter_II));
-      beta_current=exp(variational_params_path.log_beta(cell_list,iter_II));
-      gamma_mean = alpha_current./(alpha_current+beta_current);
-      
-      
-      %cell_list_old=find(potentially_connected_cells{iter_II-1});
-      alpha_current_old=exp(variational_params_path.log_alpha(cell_list,iter_II-1));
-      beta_current_old=exp(variational_params_path.log_beta(cell_list,iter_II-1));
-      gamma_mean_old = alpha_current_old./(alpha_current_old+beta_current_old);
-      
-      gamma_change = abs(gamma_mean-gamma_mean_old);
-  elseif vf_type==2
-      alpha_current=variational_params_path.log_alpha(cell_list,iter_II);
-      beta_current=exp(variational_params_path.log_beta(cell_list,iter_II));
-      gamma_mean= zeros(length(cell_list),1);gamma_var= zeros(length(cell_list),1);
-      for i_temp = 1:length(cell_list)
-          gamma_i=beta_current(i_temp)*normal_samples+alpha_current(i_temp);
-          gamma_i=exp(gamma_i)./(1+exp(gamma_i));
-          gamma_mean(i_temp)=mean(gamma_i);
-          gamma_var(i_temp)=var(gamma_i);
-      end
-      gamma_change=sqrt(gamma_var);
-      
-  end
+        alpha_current=variational_params_path.alpha(cell_list,iter_II);
+    beta_current=variational_params_path.beta(cell_list,iter_II);
+    [gamma_mean, gamma_var] = calculate_posterior_mean(...
+        variational_params_path.alpha(cell_list,iter_II),variational_params_path.beta(cell_list,iter_II),0,1);
     
   xgrid=0:0.02:1; 
   figure(403)
@@ -1238,32 +1220,33 @@ facecolor='k';
     facecolor='k';
        for i_cell = 1:length(cell_list)
            
-        if gamma_mean(i_cell)>connected_threshold & gamma_change(i_cell)<change_threshold
-            color_codes = [0 0 1 0.4]; %blue
-        elseif gamma_mean(i_cell)<disconnected_threshold
-            color_codes = [1 0 0 0.4]; %red
-        else
-            color_codes = [0 1 0 0.4]; %green
-        end
-       line([gamma_mean(i_cell) gamma_mean(i_cell)],[4 5],'LineStyle','-','LineWidth',1,'Color',color_codes)
-       
-        if vf_type == 1
-       line(xgrid,betapdf(xgrid,alpha_current(i_cell),beta_current(i_cell)),'Color',color_codes );
-       %line(xgrid,betapdf(xgrid,alpha_current_old(i_cell),beta_current_old(i_cell)),...
+%         if gamma_mean(i_cell)>connected_threshold & gamma_change(i_cell)<change_threshold
+%             color_codes = [0 0 1 0.4]; %blue
+%         elseif gamma_mean(i_cell)<disconnected_threshold
+%             color_codes = [1 0 0 0.4]; %red
+%         else
+%             color_codes = [0 1 0 0.4]; %green
+%         end
+%        line([gamma_mean(i_cell) gamma_mean(i_cell)],[4 5],'LineStyle','-','LineWidth',1,'Color',color_codes)
+%        
+%         if vf_type == 1
+%        line(xgrid,betapdf(xgrid,alpha_current(i_cell),beta_current(i_cell)),'Color',color_codes );
+%        %line(xgrid,betapdf(xgrid,alpha_current_old(i_cell),beta_current_old(i_cell)),...
        %    'LineStyle','--','Color',color_codes );
-        elseif vf_type == 2
+%         elseif vf_type == 2
+color_codes='g';
         xlogit=log(xgrid./(1-xgrid));
             line(xgrid,normpdf(xlogit,alpha_current(i_cell),beta_current(i_cell)),'Color',color_codes );
             
-        end 
+%         end 
        hold on;
        end
-    line([connected_threshold connected_threshold],[3 5],'LineStyle','-','LineWidth',1,'Color',[0 0 1])
-    line([disconnected_threshold disconnected_threshold],[3 5],'LineStyle','-','LineWidth',1,'Color',[1 0 0])
+%     line([connected_threshold connected_threshold],[3 5],'LineStyle','-','LineWidth',1,'Color',[0 0 1])
+%     line([disconnected_threshold disconnected_threshold],[3 5],'LineStyle','-','LineWidth',1,'Color',[1 0 0])
     
     %      target_locations_selected
       xlim([0 1]);
-    ylim([0 5]);
+    ylim([0 1]);
     axis on;
     ylabel('Density');
     xlabel('\gamma and E(\gamma)')
@@ -1575,9 +1558,6 @@ for j=1:3
 end
 
 %% Now draw the change of gamma & gain for the disconnected cells 
-
-
-
 figure(1)
 cell_list=find(gamma_truth(cell_group_list{this_plane}));
 hold on;
@@ -1753,4 +1733,147 @@ end
 
 % saveas(iter,strcat('./Figures/Toy/','Cell_map', num2str(iter),'.jpg'));
 
+    end
+
+%% More plots in the overleaf report:
+
+
+    %%
+    x=cell_locations(:,1);
+    y=cell_locations(:,2);
+    z=cell_locations(:,3);
+    
+    figure(102)
+   
+%    sc1=scatter3(-y,x,z,...
+%        'MarkerEdgeColor','b',...
+%        'MarkerFaceColor','b',...
+%        'MarkerFaceAlpha',0.2);
+%    hold on;
+%     
+%   
+hold on;
+   other_cell_list = setdiff(1:n_cell,related_cell_list);
+   sc1=scatter3(-y( other_cell_list ),x( other_cell_list ),...
+       z( other_cell_list ),...
+       'MarkerEdgeColor','w',...
+       'MarkerFaceColor','g',...
+       'MarkerFaceAlpha',0.2)
+   sc2=scatter3(-y(target_cell_list.primary),x(target_cell_list.primary),...
+       z(target_cell_list.primary),...
+       'MarkerEdgeColor','w',...
+       'MarkerFaceColor','k',...
+       'MarkerFaceAlpha',0.8)
+    sc3=scatter3(-y(target_cell_list.secondary),x(target_cell_list.secondary),...
+       z(target_cell_list.secondary),...
+       'MarkerEdgeColor','w',...
+       'MarkerFaceColor','b',...
+       'MarkerFaceAlpha',0.3)
+   view(-30,10)
+   xlim([-150 150]);
+   ylim([-150 150]);
+   zlim([0 150]);
+   
+   [x_coord, y_coord] = meshgrid(-150:10:150);
+   z_coord= mean(cell_locations(cell_group_list{this_plane},3))*ones(size(x_coord,1),size(x_coord,2));
+   surf(-y_coord,x_coord,z_coord,'FaceColor','r','FaceAlpha',0.2,'EdgeColor','w');
+   
+   title_text = {'I.b selected cells'};
+%    axes(ax1)
+%    text(ax2,-50,0,-50,title_text)
+%      text(ax2,-40,80,-50,title_text,'fontsize',15)
+ 
+   %scatter3(-50,-50,-50,'MarkerSize',20,'Marker','o','MarkerFaceColor','k','MarkerEdgeColor','k','MarkerFaceAlpha',0.8);
+   
+    hold off;
+     saveas(102,strcat('./Figures/Overleaf/','layers','.jpg'));
+
+    %% Plot to show the pruning process 
+    figure(103)
+     scatter(target_locations_all(:,2),...
+            target_locations_all(:,1),...
+            'Marker','o','SizeData',1,...
+            'MarkerFaceColor','k', 'MarkerEdgeColor','w',...
+            'MarkerFaceAlpha', 0.2)
+      hold on;
+      
+      
+    scatter(target_locations_selected(:,2),...
+            target_locations_selected(:,1),...
+            'Marker','d','SizeData',30,...
+            'MarkerFaceColor','r', 'MarkerEdgeColor','w',...
+            'MarkerFaceAlpha', 0.8)
+        
+    axis off;
+        hold off;
+%     target_locations_all,cell_neighbours,...
+%     target_locations_nuclei, power_nuclei,pi_target_nuclei, loc_to_cell_nuclei
+  saveas(103,strcat('./Figures/Overleaf/','selectedlocations','.jpg'));
+
+    
+%% Draw the pruning process:
+x_grid= -150:15:150;
+n_grid=length(x_grid);
+target_locations_temp=zeros(n_grid^2,3);
+for i=1:n_grid
+    for j=1:n_grid
+    target_locations_temp( (i-1)*n_grid+j,1)=x_grid(i);
+    target_locations_temp( (i-1)*n_grid+j,2)=x_grid(j);
+    target_locations_temp( (i-1)*n_grid+j,3)=target_locations_selected(1,3);    
+    end
+end
+cell_params.locations =  cell_locations(related_cell_list,:);
+cell_params.shape_gain = ones(length(related_cell_list),1);
+cell_template = struct();
+cell_template.shape= shape_template;
+[pi_temp, inner_normalized_products_temp] = get_weights_v2(cell_params, ...
+    cell_template,target_locations_temp);
+
+rng(16,'twister');
+this_trial_locations=zeros(n_spots_per_trial,1);
+prob_initial = zeros([n_grid^2 n_spots_per_trial]);
+
+prob_initial(:,1) = rand([n_grid^2 1]);
+
+for i_spot = 1:n_spots_per_trial
+    prob_initial(:,i_spot)=prob_initial(:,i_spot)/sum(prob_initial(:,i_spot));    
+    temp_index = ...
+            randsample(1:n_grid^2,1,true,prob_initial(:,i_spot));
+        this_trial_locations(i_spot)=temp_index;
+        prob_initial(:,i_spot+1) = ...
+            prob_initial(:,i_spot) - inner_normalized_products_temp(:,temp_index)*prob_initial(temp_index,i_spot);
+        prob_initial(:,i_spot+1) = max(0,prob_initial(:,i_spot+1));
+        
+end
+
+
+%
+for i=1:n_spots_per_trial
+    figure(i)
+    hold on;
+    
+    % for i_spot = 1:n_grid^2
+    size_spot = 40*prob_initial(:,i)/max(prob_initial(:,i));
+    scatter(target_locations_temp(:,2),...
+        target_locations_temp(:,1),...
+        'Marker','o','SizeData',size_spot+0.1,...
+        'MarkerFaceColor','k', 'MarkerEdgeColor','w',...
+        'MarkerFaceAlpha', 0.2)
+    %end
+        scatter(  cell_locations(related_cell_list,2),...
+        cell_locations(related_cell_list,1),...
+        'Marker','o','SizeData',30,...
+        'MarkerFaceColor','b', 'MarkerEdgeColor','w',...
+        'MarkerFaceAlpha', 0.6)
+
+    scatter(target_locations_temp(this_trial_locations(i),2),...
+        target_locations_temp(this_trial_locations(i),1),...
+        'Marker','d','SizeData',60,...
+        'MarkerFaceColor','r', 'MarkerEdgeColor','r',...
+        'MarkerFaceAlpha', 0.8)
+    
+    axis off;
+    hold off;
+    saveas(i,strcat('./Figures/Overleaf/','subtraction', num2str(i),'.jpg'));
+    
 end
