@@ -55,7 +55,7 @@ data.design.mpp_connected{i}{data.design.iter} = mpp([mpp.group] == 3);
 %         assignin('base','data.design.cells_probabilities_undefined',data.design.cells_probabilities_undefined)
 
 if sum(data.design.undefined_cells{i}{data.design.iter})>0
-    for i_trial = 1:size(data.design.cells_probabilities_undefined,1)
+    for i_trial = 1:length(data.design.mpp_undefined{i}{data.design.iter})
         outputs_undefined(i_trial,1)=length(data.design.mpp_undefined{i}{data.design.iter}(i_trial).times);
     end
     binary_resp = sort(outputs_undefined > 0);
@@ -64,7 +64,7 @@ if sum(data.design.undefined_cells{i}{data.design.iter})>0
 end
 if  sum(data.design.potentially_disconnected_cells{i}{data.design.iter})>0
     %data.design.cells_probabilities_disconnected;
-    for i_trial = 1:size(data.design.cells_probabilities_disconnected,1)
+    for i_trial = 1:length(data.design.mpp_disconnected{i}{data.design.iter})
         outputs_disconnected(i_trial,1)=length(data.design.mpp_disconnected{i}{data.design.iter}(i_trial).times);
     end
     binary_resp = sort(outputs_disconnected > 0);
@@ -76,7 +76,7 @@ if  sum(data.design.potentially_connected_cells{i}{data.design.iter})>0
 %         for i_trial = 1:size(data.design.stim_size_connected,1)
 %             outputs_connected(i_trial,1)=length(data.design.mpp_connected{i}{data.design.iter}(i_trial).times);
 %         end
-    data.design.n_trials{i}=data.design.n_trials{i}+size(data.design.stim_size_connected{i}{data.design.iter},1);
+    data.design.n_trials{i}=data.design.n_trials{i}+length(data.design.mpp_connected{i}{data.design.iter});
 end
 
 %------------------------------------------%
@@ -209,7 +209,7 @@ if sum(data.design.potentially_connected_cells{i}{data.design.iter})>0
     cell_list= find(data.design.potentially_connected_cells{i}{data.design.iter});
     
     trial_inds = [data.design.mpp_connected{i}{data.design.iter}.group_target_index];
-    stim_size_connected = data.design.cells_probabilities_connected{i}{data.design.iter}(trial_inds,:);
+    stim_size_connected = data.design.stim_size_connected{i}{data.design.iter}(trial_inds,:);
     
     designs_remained=stim_size_connected(:,cell_list);
 
