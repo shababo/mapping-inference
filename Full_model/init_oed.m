@@ -124,7 +124,7 @@ if load_map
 end
 
 params.exp.max_spike_freq = .5; % don't revisit cells on average sooner than this in Hz
-params.exp.max_stim_freq = 19;
+params.exp.max_stim_freq = 15;
 params.exp.foe_bounds = [-148 148; -148 148];
 
 
