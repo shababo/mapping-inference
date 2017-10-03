@@ -1,7 +1,7 @@
 
 % close all
-trials = 3:18;
-loc_id = 1;
+trials = 3:8;
+loc_id = 2;
 % trials = 4;
 
 cell_group_list = exp_data.cells_targets.cell_group_list{loc_id};
@@ -30,7 +30,7 @@ group_names = {'undefined_cells','potentially_disconnected_cells',...
 iter = length(exp_data.design.(group_names{1}){loc_id});
 figure
 for i = 1:25
-    subplot(5,5,i)
+    subplot(3,3,i)
      iter = i
     for i = 1:length(group_names) 
     
@@ -122,7 +122,7 @@ target_locs = [];
 stim_inds = [];
 deorder = [];
 num_trials = 0;
-spacing = 3;
+spacing = 5;
 % power_curve_num = power_curve_num(end-1:end);
 
 mpp_pow = cell(length(power_curve_num),1);
@@ -152,3 +152,8 @@ for i = 1:length(power_curve_num)
 %     title(['Event Counts, Power = ' num2str(power_curve_num(i)) ' mW'])
 %     caxis([0 2])
 end
+
+%%
+
+these_cells = exp_data.cells_targets.cell_group_list{loc_id};
+these_cell_locs = exp_data.cells_targets.cell_locations(these_cells,:);
