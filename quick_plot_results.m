@@ -1,9 +1,22 @@
 
-% close all
+close all
+
+%%
 trials = 3:8;
 loc_id = 2;
-% trials = 4;
+map_id = exp_data.params.map_id;
 
+group_colors = [0 0 1;
+                1 .8 .8;
+                .8 1 .8;
+                1 0 0;
+                0 1 0];
+            
+group_names = {'undefined_cells','potentially_disconnected_cells',...
+                'potentially_connected_cells','dead_cells','alive_cells'};
+
+
+%%
 cell_group_list = exp_data.cells_targets.cell_group_list{loc_id};
 cell_group_locs = exp_data.cells_targets.cell_locations(cell_group_list,:);
 multispot_targs = exp_data.cells_targets.target_locations_selected{loc_id};
@@ -19,14 +32,8 @@ scatter(single_targs(:,2),-single_targs(:,1),8*ones(size(single_targs(:,1))),'r'
 
 %%
 
-group_colors = [0 0 1;
-                1 .8 .8;
-                .8 1 .8;
-                1 0 0;
-                0 1 0];
-            
-group_names = {'undefined_cells','potentially_disconnected_cells',...
-                'potentially_connected_cells','dead_cells','alive_cells'};
+
+
 iter = length(exp_data.design.(group_names{1}){loc_id});
 figure
 for i = 1:25
@@ -46,14 +53,7 @@ for i = 1:25
 end
 %%
 
-group_colors = [0 0 1;
-                1 .8 .8;
-                .8 1 .8;
-                1 0 0;
-                0 1 0];
-            
-group_names = {'undefined_cells','potentially_disconnected_cells',...
-                'potentially_connected_cells','dead_cells','alive_cells'};
+
 iter = length(exp_data.design.(group_names{1}){loc_id});
 figure
 for i = 1:25
@@ -78,10 +78,17 @@ this_stim_key = cell(length(trials),1);
 power_curve_num = cell(length(trials),1);
 stim_starts = cell(length(trials),1);
 
+stims_per_trial = [];
+
 full_stim_key = [];
 clear full_seq
-% full_seq = struct();
+clear mpp
+
+trunc_oasis = 1;
+
 count = 1;
+
+
 for i = 1:length(trials)
     cur_trial = trials(i);
     this_seq{i} = data.trial_metadata(cur_trial).sequence;
@@ -89,11 +96,34 @@ for i = 1:length(trials)
     this_stim_key{i} = data.trial_metadata(cur_trial).stim_key;
     power_curve_num{i} = unique([this_seq{i}.target_power]);
     stim_starts{i} = [data.trial_metadata(cur_trial).sequence.start];
+    
+    datafilename = [map_id '_z' num2str(loc_id) '_iter' num2str(i) '.mat'];
+    oasisfilename = [map_id '_z' num2str(loc_id) '_iter' num2str(i) '_detect.mat'];
+    load(datafilename)
+    load(oasisfilename)
+    oasis_data = reshape(event_process,size(traces'))'; 
+    
     for j = 1:length(this_seq{i})
         if i == 1 && j == 1
             full_seq(1) = this_seq{i}(j);
+            if trunc_oasis
+                mpp(1).times = ...
+                    find(oasis_data(j,exp_data.params.time.min_time:exp_data.params.time.max_time))...
+                     + exp_data.params.time.min_time - 1;
+            else
+                mpp(1).times = ...
+                    find(oasis_data(j,:));
+            end
         else
             full_seq(end+1) = this_seq{i}(j);
+            if trunc_oasis
+                mpp(end+1).times = ...
+                    find(oasis_data(j,exp_data.params.time.min_time:exp_data.params.time.max_time))...
+                     + exp_data.params.time.min_time - 1;
+            else
+                mpp(end+1).times = ...
+                    find(oasis_data(j,:));
+            end
         end
         full_seq(end).precomputed_target_index = ...
             full_seq(end).precomputed_target_index + size(full_stim_key,1);
@@ -101,8 +131,9 @@ for i = 1:length(trials)
     if size(this_stim_key{i},3) == 1
         this_stim_key{i} = cat(3,this_stim_key{i},nan([size(this_stim_key{i}) 2]));
     end
-    full_stim_key = [full_stim_key; this_stim_key{i}];
-    mpp(i)
+    full_stim_key = [full_stim_key; this_stim_key{i}];  
+    
+%     mpp(i)
 end
 power_curve_num = unique([power_curve_num{:}]);
 maps = cell(length(power_curve_num),1);
@@ -141,11 +172,15 @@ for i = 1:length(power_curve_num)
 %     deorder = [deorder find(on_cell_trials' & [full_seq.target_power] == power_curve_num(i))]; 
     traces_pow{2} = traces_ch2(on_cell_trials' & [full_seq.target_power] == power_curve_num(i),:);
     this_seq_power = full_seq(on_cell_trials' & [full_seq.target_power] == power_curve_num(i));
-%     mpp_pow{i} = mpp(on_cell_trials' & [full_seq.target_power] == power_curve_num(i));
+    mpp_pow{i}{1} = mpp(on_cell_trials' & [full_seq.target_power] == power_curve_num(i));
+    mpp_pow{i}{2} = mpp(on_cell_trials' & [full_seq.target_power] == power_curve_num(i));
+    color_these_trials{i}{1} = group_colors([this_seq_power.group],:);
+    color_these_trials{i}{2} = group_colors([this_seq_power.group],:);
 %     mpp_pow{i} = mpp(num_trials+(1:length(this_seq_power)));
-    mpp_pow{i} = [];
+%     mpp_pow{i} = [];
     num_trials = num_trials + length(this_seq_power);
-    [maps{i}, mpp_maps{i}] = see_grid_multi(traces_pow,mpp_pow{i},this_seq_power,full_stim_key,spacing,1,1);
+    [maps{i}, mpp_maps{i}] = ...
+        see_grid_multi(traces_pow,mpp_pow{i},this_seq_power,full_stim_key,spacing,1,1,1,color_these_trials{i});
 %     title(['Power = ' num2str(power_curve_num(i)) ' mW'])
 %     xlim(xlims); ylim(ylims);
 %     get_mean_events_image(mpp_maps{i}, 2000, 1, 1);
