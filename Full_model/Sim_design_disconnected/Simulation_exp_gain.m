@@ -8,11 +8,11 @@ while ((n_trials < trial_max) & (id_continue>0))
     if sum(undefined_cells{iter})>0
         cell_list= find(undefined_cells{iter});
         gamma_estimates = 0.5*ones(length(cell_list),1);% for drawing samples...
-        [trials_locations, trials_powers] = random_design(target_locations_selected,power_selected,...
+        [trials_locations, trials_powers] = random_design_v2(target_locations_selected,power_selected,power_sd,...
             inner_normalized_products,single_spot_threshold,gamma_estimates,prob_weight,...
             id_notconnected, loc_to_cell,cell_list,n_spots_per_trial,K_undefined,n_replicates,...
             power_level);
-        [cells_probabilities_undefined, ~] = get_prob_and_size(...
+        [~,stim_size_undefined] = get_prob_and_size(...
             pi_target_selected,trials_locations,trials_powers,stim_unique,prob_trace);
         
         % Generate mpp given the trials
@@ -22,11 +22,12 @@ while ((n_trials < trial_max) & (id_continue>0))
             current_template, funcs, delay_params,stim_threshold,time_max);
         mpp_undefined{iter}=mpp_temp;trials_locations_undefined{iter}=trials_locations;trials_powers_undefined{iter}=trials_powers;
         
-        for i_trial = 1:size(cells_probabilities_undefined,1)
+        for i_trial = 1:size(stim_size_undefined,1)
             outputs_undefined(i_trial,1)=length(mpp_undefined{iter}(i_trial).times);
         end
         n_trials=n_trials+i_trial;
     end
+  
     %-------
     % Conduct trials on group B, the potentially disconnected cells
     mpp_disconnected{iter}=[];trials_locations_disconnected{iter}=[];trials_powers_disconnected{iter}=[];
@@ -34,11 +35,12 @@ while ((n_trials < trial_max) & (id_continue>0))
         % Find cells with close to zero gammas
         cell_list= find(potentially_disconnected_cells{iter});
         gamma_estimates_confirm = 0.5*ones(length(cell_list),1);% for drawing samples...
-        [trials_locations,  trials_powers] = random_design(target_locations_selected,power_selected,...
+        [trials_locations,  trials_powers] = random_design_v2(target_locations_selected,power_selected,power_sd,...
             inner_normalized_products,single_spot_threshold,gamma_estimates_confirm,0,...
             id_notconnected, loc_to_cell,cell_list,n_spots_per_trial,K_disconnected,n_replicates,...
             power_level);
-        [cells_probabilities_disconnected, ~] = get_prob_and_size(...
+       
+        [~,stim_size_disconnected] = get_prob_and_size(...
             pi_target_selected,trials_locations,trials_powers,stim_unique,prob_trace);
         % Generate mpp given the trials
         [mpp_temp] = draw_samples(...
@@ -46,7 +48,7 @@ while ((n_trials < trial_max) & (id_continue>0))
             v_th_known_related, v_reset_known_related, g_related, gain_related,gamma_related,...
             current_template,  funcs,    delay_params,stim_threshold,time_max);
         mpp_disconnected{iter}=mpp_temp;trials_locations_disconnected{iter}=trials_locations;trials_powers_disconnected{iter}=trials_powers;
-        for i_trial = 1:size(cells_probabilities_disconnected,1)
+        for i_trial = 1:size(stim_size_disconnected,1)
             outputs_disconnected(i_trial,1)=length(mpp_disconnected{iter}(i_trial).times);
         end
         n_trials=n_trials+i_trial;
@@ -66,7 +68,8 @@ while ((n_trials < trial_max) & (id_continue>0))
         else
             power_level_temp=power_level';
         end
-        [trials_locations,  trials_powers] = random_design(target_locations_nuclei,power_nuclei,...
+        [trials_locations,  trials_powers] = random_design_v2(...
+            target_locations_nuclei,power_nuclei,power_sd,...
             inner_normalized_products,single_spot_threshold,gamma_estimates_confirm,0,...
             connected,  loc_to_cell_nuclei, cell_list,1,K_connected,n_replicates,...
             power_level_temp);
@@ -91,60 +94,66 @@ while ((n_trials < trial_max) & (id_continue>0))
     % Analysis:
     
     % Initialize the path of variational families with infor from previous
-    % iteratin
     variational_params_path.alpha(:,iter+1)=variational_params_path.alpha(:,iter);
     variational_params_path.beta(:,iter+1)=variational_params_path.beta(:,iter);
     variational_params_path.alpha_gain(:,iter+1)=variational_params_path.alpha_gain(:,iter);
     variational_params_path.beta_gain(:,iter+1)=variational_params_path.beta_gain(:,iter);
+    gamma_path(:,iter+1)=gamma_path(:,iter);
+    gain_path(:,iter+1)=gain_path(:,iter);
     
     
     %------------------------------------------------------%
     % Fit VI on Group A: the undefined cells
     mean_gamma_undefined=zeros(length(related_cell_list),1);
     if sum(undefined_cells{iter})>0
-%         cell_list= find(undefined_cells{iter});
-        cell_list= find(sum(cells_probabilities_undefined>prob_lower_bound,1)>0);
-        % Update variational and prior distribution
+        cell_list_target= find(undefined_cells{iter});
+        cell_list=1:n_cell_this_plane;
+        active_trials=find(sum(stim_size_undefined(:,cell_list),2)>stim_threshold);
         variational_params=struct([]);
         for i_cell_idx = 1:length(cell_list)
             i_cell=cell_list(i_cell_idx);
             variational_params(i_cell_idx).alpha = variational_params_path.alpha(i_cell,iter);
             variational_params(i_cell_idx).beta = variational_params_path.beta(i_cell,iter);
+            variational_params(i_cell_idx).alpha_gain = variational_params_path.alpha_gain(i_cell,iter);
+            variational_params(i_cell_idx).beta_gain = variational_params_path.beta_gain(i_cell,iter);
         end
         prior_params.pi0= 0.01*ones(length(cell_list),1);
-             prior_params.alpha0= [variational_params(:).alpha]';
+        prior_params.alpha0= [variational_params(:).alpha]';
         prior_params.beta0 = [variational_params(:).beta]';
+        prior_params.alpha0_gain= [variational_params(:).alpha_gain]';
+        prior_params.beta0_gain =[variational_params(:).beta_gain]';
         
-        designs_remained=cells_probabilities_undefined(:,cell_list);
-        active_trials=find(sum(designs_remained,2)>1e-3);
-        designs_remained=designs_remained(active_trials,:);
-        outputs_remained=outputs_undefined(active_trials,:);
+        designs_remained=stim_size_undefined(active_trials,cell_list);
+        mpp_remained=mpp_undefined{iter}(active_trials);
         
-        % find neighbours that are not in cell_list:
-        % We will treat the gammas in this list as fixed. 
-%         neighbour_list=find(sum(cell_neighbours(cell_list,:),1)>0)';
-%         neighbour_list=setdiff(neighbour_list,cell_list);
-%         designs_neighbours=cells_probabilities_undefined(active_trials,neighbour_list);
-%         gamma_neighbours=mean_gamma_current(neighbour_list);
-        gamma_neighbours=[];designs_neighbours=[];
-
         lklh_func=@calculate_likelihood_bernoulli;
-        % calculate_likelihood_bernoulli for multiple events
-        [parameter_history,~] = fit_working_model_vi(...
-            designs_remained,outputs_remained,background_rt, ...
-            variational_params,prior_params,C_threshold,...
-            designs_neighbours,gamma_neighbours,...
+        %             lklh_func=@lif_glm_firstevent_loglikelihood_for_VI;
+        designs_neighbours=[];        gamma_neighbours=[];         gain_neighbours=[];
+        [parameter_history] = fit_working_model_vi_gain(...
+            designs_remained, mpp_remained, background_rate, ...
+            prob_trace_full,    stim_grid,...
+            stim_scale,eff_stim_threshold,gain_bound,...
+            variational_params,prior_params,C_threshold,stim_threshold,...
+            designs_neighbours,gamma_neighbours,gain_neighbours,...
             S,epsilon,eta_logit,eta_beta,maxit,lklh_func);
         
-        % Record the variational parameters
-        variational_params_path.alpha(cell_list,iter+1) = parameter_history.alpha(:,end);
-        variational_params_path.beta(cell_list,iter+1) = parameter_history.beta(:,end);
         
-        [mean_gamma_temp, ~] = calculate_posterior_mean(parameter_history.alpha(:,end),parameter_history.beta(:,end),0,1);
+        [mean_gamma_temp, var_gamma_temp] = calculate_posterior_mean(...
+            parameter_history.alpha(:,end),parameter_history.beta(:,end),0,1);
+        [mean_gain_temp, ~] = calculate_posterior_mean(...
+            parameter_history.alpha_gain(:,end),parameter_history.beta_gain(:,end),gain_bound.low,gain_bound.up);
         
-        mean_gamma_undefined(cell_list,1)=mean_gamma_temp;
-        mean_gamma_current(cell_list)=mean_gamma_temp;
-        gamma_path(cell_list,iter+1)=mean_gamma_temp;
+                %cell_list(cluster_of_cells{i_cluster})
+        variational_params_path.alpha(cell_list_target,iter+1) = parameter_history.alpha(cell_list_target,end);
+        variational_params_path.beta(cell_list_target,iter+1) = parameter_history.beta(cell_list_target,end);
+         variational_params_path.alpha_gain(cell_list_target,iter+1) = parameter_history.alpha_gain(cell_list_target,end);
+        variational_params_path.beta_gain(cell_list_target,iter+1) = parameter_history.beta_gain(cell_list_target,end);
+   
+        var_gamma_path(cell_list_target,iter+1)=var_gamma_temp(cell_list_target);
+        mean_gamma_undefined(cell_list_target,1)=mean_gamma_temp(cell_list_target);
+        mean_gamma_current(cell_list_target)=mean_gamma_temp(cell_list_target);
+        mean_gain_current(cell_list_target)=mean_gain_temp(cell_list_target);
+        gamma_path(cell_list_target,iter+1)=mean_gamma_temp(cell_list_target);
     end
     %-------------------------------------------------------------%
     
@@ -154,46 +163,55 @@ while ((n_trials < trial_max) & (id_continue>0))
     
     if sum(potentially_disconnected_cells{iter})>0
 %         cell_list= find(potentially_disconnected_cells{iter});
-        cell_list= find(sum(cells_probabilities_disconnected>prob_lower_bound,1)>0);
+        cell_list_target= find(potentially_disconnected_cells{iter});
+        cell_list= 1:n_cell_this_plane;
         
+        active_trials=find(sum(stim_size_disconnected(:,cell_list),2)>stim_threshold);
         variational_params=struct([]);
         for i_cell_idx = 1:length(cell_list)
             i_cell=cell_list(i_cell_idx);
             variational_params(i_cell_idx).alpha = variational_params_path.alpha(i_cell,iter);
             variational_params(i_cell_idx).beta = variational_params_path.beta(i_cell,iter);
+            variational_params(i_cell_idx).alpha_gain = variational_params_path.alpha_gain(i_cell,iter);
+            variational_params(i_cell_idx).beta_gain = variational_params_path.beta_gain(i_cell,iter);
         end
         prior_params.pi0= 0.01*ones(length(cell_list),1);
         prior_params.alpha0= [variational_params(:).alpha]';
         prior_params.beta0 = [variational_params(:).beta]';
+        prior_params.alpha0_gain= [variational_params(:).alpha_gain]';
+        prior_params.beta0_gain =[variational_params(:).beta_gain]';
         
-        % Include only the remaining cells
-        designs_remained=cells_probabilities_disconnected(:,cell_list);
-        active_trials=find(sum(designs_remained,2)>1e-3);
-        designs_remained=designs_remained(active_trials,:);
-        outputs_remained=outputs_disconnected(active_trials,:);
+        designs_remained=stim_size_disconnected(active_trials,cell_list);
+        mpp_remained=mpp_disconnected{iter}(active_trials);
         
-        % find neighbours that are not in cell_list:
-%         neighbour_list=find(sum(cell_neighbours(cell_list,:),1)>0)';
-%         neighbour_list=setdiff(neighbour_list,cell_list);
-%         designs_neighbours=cells_probabilities_disconnected(active_trials,neighbour_list);
-%         gamma_neighbours=mean_gamma_current(neighbour_list);
-         gamma_neighbours=[];designs_neighbours=[];
-         
         lklh_func=@calculate_likelihood_bernoulli;
-        [parameter_history,~] = fit_working_model_vi(...
-            designs_remained,outputs_remained,background_rt, ...
-            variational_params,prior_params,C_threshold,...
-            designs_neighbours,gamma_neighbours,...
+        %             lklh_func=@lif_glm_firstevent_loglikelihood_for_VI;
+        designs_neighbours=[];        gamma_neighbours=[];         gain_neighbours=[];
+        [parameter_history] = fit_working_model_vi_gain(...
+            designs_remained, mpp_remained, background_rate, ...
+            prob_trace_full,    stim_grid,...
+            stim_scale,eff_stim_threshold,gain_bound,...
+            variational_params,prior_params,C_threshold,stim_threshold,...
+            designs_neighbours,gamma_neighbours,gain_neighbours,...
             S,epsilon,eta_logit,eta_beta,maxit,lklh_func);
         
-        variational_params_path.alpha(cell_list,iter+1) = parameter_history.alpha(:,end);
-        variational_params_path.beta(cell_list,iter+1) = parameter_history.beta(:,end);
+                 %cell_list(cluster_of_cells{i_cluster})
+        variational_params_path.alpha(cell_list_target,iter+1) = parameter_history.alpha(cell_list_target,end);
+        variational_params_path.beta(cell_list_target,iter+1) = parameter_history.beta(cell_list_target,end);
+         variational_params_path.alpha_gain(cell_list_target,iter+1) = parameter_history.alpha_gain(cell_list_target,end);
+        variational_params_path.beta_gain(cell_list_target,iter+1) = parameter_history.beta_gain(cell_list_target,end);
+   
+        [mean_gamma_temp, var_gamma_temp] = calculate_posterior_mean(...
+            parameter_history.alpha(:,end),parameter_history.beta(:,end),0,1);
+        [mean_gain_temp, ~] = calculate_posterior_mean(...
+            parameter_history.alpha_gain(:,end),parameter_history.beta_gain(:,end),gain_bound.low,gain_bound.up);
         
-        [mean_gamma_temp, ~] = calculate_posterior_mean(parameter_history.alpha(:,end),parameter_history.beta(:,end),0,1);
-        
-        mean_gamma_disconnected(cell_list,1)=mean_gamma_temp;
-        mean_gamma_current(cell_list)=mean_gamma_temp;
-        gamma_path(cell_list,iter+1)=mean_gamma_temp;
+       
+        var_gamma_path(cell_list_target,iter+1)=var_gamma_temp(cell_list_target);
+        mean_gamma_disconnected(cell_list_target,1)=mean_gamma_temp(cell_list_target);
+        mean_gamma_current(cell_list_target)=mean_gamma_temp(cell_list_target);
+        mean_gain_current(cell_list_target)=mean_gain_temp(cell_list_target);
+        gamma_path(cell_list_target,iter+1)=mean_gamma_temp(cell_list_target);
     end
     %---------------------------------------------%
     
@@ -257,6 +275,7 @@ while ((n_trials < trial_max) & (id_continue>0))
                 variational_params(i_cell_idx).alpha_gain = variational_params_path.alpha_gain(i_cell,iter);
                 variational_params(i_cell_idx).beta_gain = variational_params_path.beta_gain(i_cell,iter);
             end
+            
             prior_params.pi0= 0.01*ones(length(neighbour_list),1);
             prior_params.alpha0= [variational_params(:).alpha]';
             prior_params.beta0 = [variational_params(:).beta]';
@@ -275,7 +294,7 @@ while ((n_trials < trial_max) & (id_continue>0))
             %             gamma_neighbours=mean_gamma_current(neighbour_list);
             %               gain_neighbours=mean_gain_current(neighbour_list);
             %
-           lklh_func=@lif_glm_firstspike_loglikelihood_for_VI;
+              lklh_func=@lif_glm_firstspike_loglikelihood_for_VI;
 %             lklh_func=@lif_glm_firstevent_loglikelihood_for_VI;
             designs_neighbours=[];        gamma_neighbours=[];         gain_neighbours=[];
             [parameter_history] = fit_full_model_vi(...
@@ -285,7 +304,9 @@ while ((n_trials < trial_max) & (id_continue>0))
                 variational_params,prior_params,C_threshold,stim_threshold,...
                 designs_neighbours,gamma_neighbours,gain_neighbours,...
                 S,epsilon,eta_logit,eta_beta,maxit,lklh_func);
+       
             
+            %cell_list(cluster_of_cells{i_cluster})
         variational_params_path.alpha(neighbour_list,iter+1) = parameter_history.alpha(:,end);
         variational_params_path.beta(neighbour_list,iter+1) = parameter_history.beta(:,end);
          variational_params_path.alpha_gain(neighbour_list,iter+1) = parameter_history.alpha_gain(:,end);
@@ -302,7 +323,6 @@ while ((n_trials < trial_max) & (id_continue>0))
             mean_gamma_current(neighbour_list)=mean_gamma_temp;
             mean_gain_current(neighbour_list)=mean_gain_temp;
             gamma_path(neighbour_list,iter+1)=mean_gamma_temp;
-            gain_path(neighbour_list,iter+1)=mean_gain_temp;
         
         end
     end
@@ -312,7 +332,20 @@ while ((n_trials < trial_max) & (id_continue>0))
         change_gamma = sqrt(variance_gamma_connected);
 %     end
 
-
+    % Update the power:
+    gain_path(:,iter+1)=mean_gain_current;
+    stimulation_required =  spiked_stim_threshold./mean_gain_current;
+    temp_power_level=stimulation_required./diag(pi_target_selected);
+    % if the cells have low gammas, increase the power level! 
+    power_selected(mean_gamma_current > 2*disconnected_threshold)=temp_power_level(mean_gamma_current > 2*disconnected_threshold);
+    power_selected=min(100,max(10,power_selected));
+    power_selected(mean_gamma_current < 2*disconnected_threshold)=0;
+    % if the cells have high gammas, update the power level accordingly 
+    power_sd=10*ones(length(power_selected),1); % this should be related to the posterior distribution
+    if random_power_for_gain == 1
+       power_selected(:)=0;
+    end
+       
     %------------------------------------------------------%
     % Moving the cell between groups
     % mean_gamma_undefined & undefined_cells{iter} % A
@@ -368,11 +401,15 @@ while ((n_trials < trial_max) & (id_continue>0))
     
     alive_cells{iter+1}=alive_cells{iter};
     alive_cells{iter+1}(connected_to_alive)=1;
-     if sum(undefined_cells{iter+1})<single_spot_threshold
+    
+    % if there are only a few cells in the undefined group, move them to
+    % the pot. connected groups:
+    if sum(undefined_cells{iter+1})<single_spot_threshold
         potentially_connected_cells{iter+1}(find(undefined_cells{iter+1}))=1;
         undefined_cells{iter+1}(:)=0;
     end
-   
+    
+    
     iter=iter+1;
     %
     if sum(dead_cells{iter}+alive_cells{iter})==n_cell_this_plane

@@ -6,6 +6,7 @@ n_replicates=1; % conduct two replicates for each trial
 K_undefined=5; % each cell appears approximately 10*2 times
 K_disconnected=5; % each cell appears approximately 10*2 times
 K_connected=10; % each cell appears approximately 10*2 times
+
 single_spot_threshold=9; % switch to single spot stimulation (this can be a function of n_spots_per_trial
 trial_max=2000;
 % threshold for the group movement:
@@ -68,8 +69,9 @@ connected=true;
 mean_gamma_current=zeros(length(related_cell_list),1);
 mean_gain_current=gain_template*ones(length(related_cell_list),1);
 gamma_path=zeros(length(related_cell_list),1);
-var_gamma_path=zeros(length(related_cell_list),1);
 gain_path=zeros(length(related_cell_list),1);
+var_gamma_path=zeros(length(related_cell_list),1);
+
 change_threshold = 0.05;
 prob_lower_bound = 0.01;
 
