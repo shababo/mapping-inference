@@ -1,22 +1,11 @@
-function [pi_target_selected, inner_normalized_products,target_locations_selected,...
-    target_locations_nuclei,pi_target_nuclei, loc_to_cell_nuclei] = ...
+function [pi_target_selected, inner_normalized_products,target_locations_selected,power_selected,...
+    target_locations_all,cell_neighbours,...
+    target_locations_nuclei, power_nuclei,pi_target_nuclei, loc_to_cell_nuclei] = ...
     get_stim_locations(...
-    target_cell_list,cell_locations,...
-    r1,r2,num_per_grid,num_per_grid_dense,shape_template,...
-    grid_type,varargin) % type = 1: circles; type = 2: line;
-%  line design is not available for now 
-
-if ~isempty(varargin) && ~isempty(varargin{1})
-    z_depth = varargin{1};
-else
-    z_depth = mean(cell_locations(target_cell_list.primary,3));
-end
-
-if length(varargin) > 1 && ~isempty(varargin{2})
-    connected_arbitrary_z = varargin{2};
-else
-    connected_arbitrary_z = 0;
-end
+    target_cell_list,cell_locations,power_level,...
+    r1,r2,r3,num_per_grid,num_per_grid_dense,shape_template,...
+    stim_unique,prob_trace,stim_threshold,...
+    grid_type) % type = 1: circles; type = 2: line;
 
 %target_locations_3d_selected,power_3d_selected,pi_target_3d, inner_normalized_products_3d] = 
 
@@ -40,50 +29,14 @@ for i_cell_index=1:length(target_cell_list.primary)
     target_idx=(i_cell_index-1)*(2*num_per_grid+1) +(1: (2*num_per_grid+1));
     target_locations(target_idx,:) = grid_locs;
 end
+target_locations(:,3)= mean(cell_locations(target_cell_list.primary,3));
 
-target_locations(:,3)= z_depth;
-
-cell_params.locations =  cell_locations(related_cell_list,:);
-cell_params.shape_gain = ones(length(related_cell_list),1);
-cell_template = struct();
-cell_template.shape= shape_template;
-% [pi_target, inner_normalized_products] = get_weights_v2(cell_params, ...
-%     cell_template,target_locations);
-[pi_target_selected, inner_normalized_products] = get_weights_v2(cell_params, ...
-    cell_template,target_locations);
-
-target_locations_selected=target_locations;
-%--------------------------------------------------%
-% Construct stim sets for the connected cells
+%plot(target_locations{this_plane}(:,2),target_locations{this_plane}(:,1),'.')
 
 
-grid_jitters = zeros(num_per_grid_dense,3);
-for i_grid = 1:num_per_grid_dense
-    grid_jitters(i_grid,:)=[sin(2*pi*i_grid/num_per_grid_dense) cos(2*pi*i_grid/num_per_grid_dense) 0];
-end
 
-    loc_to_cell_nuclei= zeros(length(target_cell_list.primary)*(2*size(grid_jitters,1)+1),1);
-    target_locations_nuclei = zeros(length(target_cell_list.primary)*(2*size(grid_jitters,1)+1),3);
-    for i_cell_index=1:length( target_cell_list.primary)
-        i_cell= target_cell_list.primary(i_cell_index);
-        nucleus_loc = cell_locations(i_cell,:);
-        grid_locs=nucleus_loc;
-        grid_locs=[grid_locs;bsxfun(@plus,grid_jitters*r1,nucleus_loc)];
-        grid_locs=[grid_locs;bsxfun(@plus,grid_jitters*r2,nucleus_loc)];
-        target_idx=(i_cell_index-1)*(2*size(grid_jitters,1)+1) +(1: (2*size(grid_jitters,1)+1));
-        target_locations_nuclei(target_idx,:) = grid_locs;
-        loc_to_cell_nuclei(target_idx)=i_cell_index;
-    end
-    cell_params.locations =  cell_locations(related_cell_list,:);
-    cell_params.shape_gain = ones(length(related_cell_list),1);
-    cell_template = struct();
-    cell_template.shape= shape_template;
-    if ~connected_arbitrary_z
-        target_locations_nuclei(:,3) = z_depth;
-    end
-    [pi_target_nuclei, ~] = get_weights_v2(cell_params, ...
-        cell_template,target_locations_nuclei);
     
+end
 
 
 %----------------------------------------------------------------%
