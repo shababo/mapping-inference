@@ -49,7 +49,7 @@ if n_remaining_cell < single_spot_threshold || n_spots_per_trial==1
          for i_cell =1:n_remaining_cell % generate trials for each cell
             % Generate random locations on z-plane where the cell sits
             related_locations = find(loc_to_cell == remaining_cell_list(i_cell) );
-            trials_temp=randsample(related_locations,K,true);
+            trials_temp=[1; randsample(related_locations(2:end),K-1,false)];
             
             trials_locations(n_replicates*K*(i_cell-1)+(1:(n_replicates*K)),:)=...
                  reshape(repmat(trials_temp,1,n_replicates),[n_replicates*K 1]);
@@ -118,22 +118,46 @@ else
 %            else
 %                power_test = 1;
 %            end
-           
+            try_count = 0;
+            loc_found = 0;
             if sum(prob_initial)>0.1
-                temp_index = ...
-                    randsample(1:n_remaining_cell,1,true,prob_initial);
-                    temp_loc =  remaining_cell_list(temp_index);
-                if use_power_map % NOT CODED FOR USE WITH REPLICATING WITHIN THIS FUNCTION!
-                    this_loc = target_locations_selected(temp_index,:);
-                    ratio_this_loc = round(ratio_map(round(this_loc(1))+ceil(size(ratio_map,1)/2),...
-                                                                 round(this_loc(2))+ceil(size(ratio_map,2)/2))*10000);
-                    total_ratio_tmp = pockels_ratio_refs(end) + ratio_this_loc/10000;
-                    if total_ratio_tmp > ratio_limit/power_selected(temp_loc)/i_spot % this doesn't actually work for differnet powers per spot...
-                        this_trial_locations(1,i_spot)=NaN;
-                        this_trial_powers(1,i_spot)=NaN;
-                        continue
+                prob_initial_thresh = prob_initial;
+                thresh = median(prob_initial);
+                prob_initial_thresh(prob_initial < thresh) = 0;
+                while try_count < 10 && ~loc_found
+                    temp_index = ...
+                        randsample(1:n_remaining_cell,1,true,prob_initial_thresh);
+                        temp_loc =  remaining_cell_list(temp_index);
+                    if use_power_map % NOT CODED FOR USE WITH REPLICATING WITHIN THIS FUNCTION!
+                        this_loc = target_locations_selected(temp_index,:);
+                        ratio_this_loc = round(ratio_map(round(this_loc(1))+ceil(size(ratio_map,1)/2),...
+                                                                     round(this_loc(2))+ceil(size(ratio_map,2)/2))*10000);
+                        total_ratio_tmp = pockels_ratio_refs(end) + ratio_this_loc/10000;
+                        if ~(total_ratio_tmp > ratio_limit/power_selected(temp_loc)/i_spot) % this doesn't actually work for differnet powers per spot...
+%                             this_trial_locations(1,i_spot)=NaN;
+%                             this_trial_powers(1,i_spot)=NaN;
+%                             try_count = try_count + 1;
+%                         else
+%                             loc_counts(temp_index)=loc_counts(temp_index)+1;
+%                             pockels_ratios(i_trial,i_spot) = ratio_this_loc;
+%                             pockels_ratio_refs(end) = total_ratio_tmp;
+%                             this_trial_locations(1,i_spot)=temp_loc;
+%                             this_trial_powers(1,i_spot)=power_selected(temp_loc);
+%                             prob_initial = ...
+%                                 prob_initial - inner_normalized_products(remaining_cell_list,temp_loc)*prob_initial(temp_index);
+%                             prob_initial = max(0,prob_initial);
+                            loc_found = 1;
+                        end
+                    else
+                       loc_found = 1; 
                     end
+                    try_count = try_count + 1;
                 end
+            end
+            if ~loc_found
+                this_trial_locations(1,i_spot)=NaN;
+                this_trial_powers(1,i_spot)=NaN;
+            else
                 loc_counts(temp_index)=loc_counts(temp_index)+1;
                 pockels_ratios(i_trial,i_spot) = ratio_this_loc;
                 pockels_ratio_refs(end) = total_ratio_tmp;
@@ -142,9 +166,7 @@ else
                 prob_initial = ...
                     prob_initial - inner_normalized_products(remaining_cell_list,temp_loc)*prob_initial(temp_index);
                 prob_initial = max(0,prob_initial);
-            else
-                this_trial_locations(1,i_spot)=NaN;
-                this_trial_powers(1,i_spot)=NaN;
+                loc_found = 1;
             end
             
         end

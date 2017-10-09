@@ -7,6 +7,15 @@ else
     load_map = 0;
 end
 
+
+params.savedir = 'C:\data\Shababo';
+
+clock_array = clock;
+params.map_id = [num2str(clock_array(2)) '_' num2str(clock_array(3)) ...
+    '_' num2str(clock_array(4)) ...
+    '_' num2str(clock_array(5))];
+params.fullsavefile = fullfile(params.savedir,[params.map_id '_data.mat']);
+
 %----------- Delay parameters
 params.delay.type=2; %1: normal; 2: gamma
 params.delay.mean=58; params.delay.std=15;
@@ -16,7 +25,7 @@ params.bg_rate = 1e-4;
 
 %----------- Load the current template
 load('chrome-template-3ms.mat');
-params.time.downsamp=1;params.time.max_time=200;
+params.time.downsamp=1;params.time.max_time=300;params.time.min_time = 45;
 params.current_template=template(1:params.time.downsamp:params.time.max_time);
 params.t_vect= 1:1:params.time.max_time;
 
@@ -49,15 +58,17 @@ params.eff_stim_threshold=params.stim_grid(min(find(sum(params.template_cell.pro
 params.design.num_groups = 3;
 params.design.n_spots_per_trial = 3;
 params.design.n_replicates=1; % conduct two replicates for each trial
-params.design.K_undefined=6; % each cell appears approximately 10*2 times
-params.design.K_disconnected=1; % each cell appears approximately 10*2 times
-params.design.K_connected=3; % each cell appears approximately 10*2 times
-params.design.reps_undefined_single=6;
-params.design.reps_disconnected_single=6;
-params.design.reps_connected=6;
+params.design.K_undefined=8; % each cell appears approximately 10*2 times
+params.design.K_disconnected=8; % each cell appears approximately 10*2 times
+params.design.K_connected=4; % each cell appears approximately 10*2 times
+params.design.reps_undefined_single=8;
+params.design.reps_disconnected_single=8;
+params.design.reps_connected=4;
+
+params.design.stim_loc_type = 1;
 
 params.design.single_spot_threshold=15; % switch to single spot stimulation if there are fewer than N cells in this group
-params.design.trial_max=2000;
+params.design.trial_max=20000;
 params.design.disconnected_threshold = 0.2;
 params.design.disconnected_confirm_threshold = 0.2;
 
@@ -80,7 +91,7 @@ params.design.var_alpha_gain_initial=1;params.design.var_beta_gain_initial=1.78;
 % Initialize the parameters in the VI
 params.design.C_threshold = 0.01;params.design.maxit=1000;
 params.design.S=200;params.design.epsilon=0.01;params.design.eta_logit=0;params.design.eta_beta=0.05;
-params.design.background_rt=params.bg_rate*params.time.max_time;
+params.design.background_rt=params.bg_rate*(params.time.max_time - params.time.min_time);
 
 
 params.design.prob_weight=0;
@@ -96,17 +107,24 @@ params.design.connected=true;
  %  loc_to_cell_nuclei is from get_stim_locations 
 
 params.design.change_threshold=0.05;
+params.design.do_connected_vi = 1;
+
 
 % some experimental params
 params.exp.power_levels = '50'; % this should be a space delimited string
-params.exp.z_width = 30;
+params.exp.z_width = 20;
+params.exp.z_depths = '30 50';% this should be a space delimited string
+params.exp.arbitrary_z = 0;
 
 if load_map
     params.exp.ratio_map = evalin('base','ratio_map');
     params.exp.pockels_lut = evalin('base','pockels_lut');
     
-    params.exp.max_ratio_ref = max(params.exp.pockels_lut)/params.design.n_spots_per_trial;
+    params.exp.max_ratio_ref = max(params.exp.pockels_lut(2,:));
 end
 
 params.exp.max_spike_freq = .5; % don't revisit cells on average sooner than this in Hz
+params.exp.max_stim_freq = 15;
+params.exp.foe_bounds = [-148 148; -148 148];
+
 
