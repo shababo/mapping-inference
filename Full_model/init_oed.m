@@ -75,7 +75,7 @@ params.design.reps_connected=4;
 
 params.design.stim_loc_type = 1;
 
-params.design.single_spot_threshold=15; % switch to single spot stimulation if there are fewer than N cells in this group
+params.design.single_spot_threshold=9; % switch to single spot stimulation if there are fewer than N cells in this group
 params.design.trial_max=20000;
 params.design.disconnected_threshold = 0.2;
 params.design.disconnected_confirm_threshold = 0.2;
@@ -84,7 +84,7 @@ params.design.disconnected_confirm_threshold = 0.2;
 params.design.connected_threshold = 0.5;
 params.design.connected_confirm_threshold = 0.5;
 
-
+params.design.n_MC_samples = 25;
 
 
 % Prior distribution
@@ -114,7 +114,7 @@ params.design.connected=true;
 
  %  loc_to_cell_nuclei is from get_stim_locations 
 
-params.design.change_threshold=0.05;
+params.design.change_threshold=0.01;
 params.design.do_connected_vi = 1;
 
 % for std thresh experiments
@@ -131,7 +131,7 @@ if load_map
     params.exp.ratio_map = evalin('base','ratio_map');
     params.exp.pockels_lut = evalin('base','pockels_lut');
     
-    params.exp.max_ratio_ref = max(params.exp.pockels_lut(2,:));
+    params.exp.max_power_ref = max(params.exp.pockels_lut(2,:));
 end
 
 params.exp.max_spike_freq = .5; % don't revisit cells on average sooner than this in Hz
