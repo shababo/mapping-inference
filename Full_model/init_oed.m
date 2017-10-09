@@ -1,3 +1,4 @@
+
 function params = init_oed(varargin)
 
 % parameters
@@ -29,6 +30,9 @@ params.time.downsamp=1;params.time.max_time=300;params.time.min_time = 45;
 params.current_template=template(1:params.time.downsamp:params.time.max_time);
 params.t_vect= 1:1:params.time.max_time;
 
+params.power_level = [25 50 75 100];
+params.num_power_level=length(power_level);
+
 %----------- Build template cell
 params.template_cell.gain_template=0.02;
 params.template_cell.g=0.02;params.template_cell.v_th_known=15;
@@ -38,21 +42,25 @@ params.template_cell.linkfunc = {@link_sig, @derlink_sig, @invlink_sig,@derinvli
 load('l23_template_cell.mat');
 temp=l23_average_shape;temp_max = max(max(max(temp)));
 params.template_cell.shape_template=temp/temp_max;
-params.stim_unique = (1:1000)/10;
+params.stim_scale=4/params.template_cell.gain_template;
+params.stim_grid = (1:1000)/params.stim_scale;
+params.stim_unique = (1:1000)/params.stim_scale/params.template_cell.gain_template;
 
-[params.template_cell.prob_trace]=get_firing_probability(...
-    params.template_cell.linkfunc,params.current_template,params.stim_unique,params.template_cell,params.delay);
+% [params.template_cell.prob_trace]=get_firing_probability(...
+%     params.template_cell.linkfunc,params.current_template,params.stim_unique,params.template_cell,params.delay);
 
 % Calculate the firing intensity
-params.stim_scale=200;
-params.stim_grid = (1:1000)/params.stim_scale;
+
+
 % cell_params.g=0.02;
 [params.template_cell.prob_trace_full,params.template_cell.v_trace_full] = get_first_spike_intensity(...
     params.template_cell.linkfunc,...
     params.current_template,params.stim_grid,params.template_cell,params.delay);
-
+params.template_cell.prob_trace=sum(params.template_cell.prob_trace_full,2);
 %
-params.eff_stim_threshold=params.stim_grid(min(find(sum(params.template_cell.prob_trace_full,2)>1e-1)));
+% params.eff_stim_threshold=params.stim_grid(min(find(sum(params.template_cell.prob_trace_full,2)>1e-1)));
+params.eff_stim_threshold=params.stim_grid(min(find(params.template_cell.prob_trace>0.01)));
+params.fire_stim_threshold=params.stim_grid(min(find(params.template_cell.prob_trace>0.99)));
 
 %----------- Design parameters
 params.design.num_groups = 3;
