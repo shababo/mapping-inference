@@ -82,13 +82,12 @@ else
     for i_loc = 1:size(pi_target_selected,2)
         for k=1:length(power_level)
             for i_cell = 1:size(pi_target_selected,1)
-                if pi_target_selected(i_cell,i_loc)>5e-2
+                if pi_target_selected(i_cell,i_loc)<
                 stimulation_received=pi_target_selected(i_cell,i_loc)*power_level(k);
                 effective_stim= stimulation_received*gain_samples(:,i_cell);
                 stim_index=max(1,round(effective_stim*stim_scale));
                 prob_collapsed=sum(prob_trace_full(stim_index,:),2);
                 firing_prob(i_loc,k,i_cell)=mean(prob_collapsed);
-                end
             end
         end
     end
@@ -175,9 +174,8 @@ else
                 % power:
                 if rand(1) < gamma_current(i_cell)
                      this_trial_powers(1,i_spot)=...
-                    fire_stim_threshold./(pi_target_selected(temp_index,loc_optimal(temp_index))...
+                    fire_stim_threshold./(pi_target(temp_index,loc_optimal(temp_index))...
                     *gain_samples(randsample(1:n_MC_samples,1),temp_index));
-                this_trial_powers(1,i_spot)=max(min(power_level),min(this_trial_powers(1,i_spot),max(power_level)));
                 end
                 prob_initial = ...
                     prob_initial - inner_normalized_products(remaining_cell_list,temp_loc)*prob_initial(temp_index);

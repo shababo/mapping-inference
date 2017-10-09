@@ -240,7 +240,7 @@ while (changes > epsilon & iter<maxit)
         %--------------------------------------------------------%
         
     end
-    fprintf('Iteration: %d; Sample drawn; ',iter);
+    fprintf('Iteration: %d;',iter);
 %     t3=toc;time_record(2)=time_record(2)+t3-t2;
     
     for s=1:S
@@ -283,7 +283,7 @@ while (changes > epsilon & iter<maxit)
    
     end
     
-    fprintf(' Likelihood calculated;');
+%     fprintf(' Likelihood calculated;');
     for i_cell = 1:n_cell
         sum_of_logs = loglklh(i_cell,:)+logprior(i_cell,:)-logvariational(i_cell,:);
         
@@ -330,7 +330,7 @@ while (changes > epsilon & iter<maxit)
         
         end
     end
-    fprintf('Gradients obtained;');
+%     fprintf('Gradients obtained;');
     
 %     t7=toc;time_record(6)=time_record(6)+t7-t6;
 if vf_type == 1
@@ -376,7 +376,7 @@ end
     
     fprintf('Change: %d;\n',changes)
 end
-
+fprintf('\n',changes)
 end
 
 %% Debug section:

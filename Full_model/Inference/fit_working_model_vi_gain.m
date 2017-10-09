@@ -164,7 +164,7 @@ while (changes > epsilon & iter<maxit)
             effective_stim= stim_temp.*gain_temp;
             stimulated_cells = find(effective_stim>eff_stim_threshold/2);
             effective_stim=effective_stim(stimulated_cells );
-            stim_index=max(1,round(effective_stim*stim_scale));
+            stim_index=min(size(prob_trace_full,1), max(1,round(effective_stim*stim_scale)));
             if ~isempty(stimulated_cells)
                 prob_this_trial= prob_trace_full(stim_index,:);
                 prob_this_trial=[background_rate*ones(1, size(prob_this_trial,2)); prob_this_trial];
@@ -254,7 +254,7 @@ while (changes > epsilon & iter<maxit)
     
     change_history(iter)=changes;
     
-    %     fprintf('Change: %d;\n',changes)
+        fprintf('Change: %d;\n',changes)
 end
 
 end
