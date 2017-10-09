@@ -21,7 +21,7 @@ if use_power_map
     ratio_limit = varargin{3};
 end
 
-if length(varargin) > 3 && ~isempty(varargin{4})
+if length(varargin) > 4 && ~isempty(varargin{4})
     do_replicates = varargin{4};
 else
     do_replicates = 1;
@@ -37,7 +37,7 @@ pockels_ratios = [];
 
 n_remaining_cell=length(remaining_cell_list);
 loc_counts=zeros(n_remaining_cell,1);
-if n_remaining_cell < single_spot_threshold || n_spots_per_trial==1
+if n_remaining_cell < single_spot_threshold | n_spots_per_trial==1
     
     n_spots_per_trial=1;
     this_trial_locations=zeros(1,1);
@@ -113,30 +113,30 @@ else
         pockels_ratio_refs(end+1) = 0;
         for i_spot = 1:n_spots_per_trial
             
-%            if use_power_map
-%                power_test = pockels_ratio_refs(end) < ratio_limit/power_selected(1)/i_spot; % hack here since all same power...
-%            else
-%                power_test = 1;
-%            end
+           if use_power_map
+               power_test = pockels_ratio_refs(end) < ratio_limit/power_selected(1); % hack here since all same power...
+           else
+               power_test = 1;
+           end
            
-            if sum(prob_initial)>0.1
+           assignin('base','prob_initial',prob_initial)
+           assignin('base','pwo
+            if sum(prob_initial)>0.1 && power_test
                 temp_index = ...
                     randsample(1:n_remaining_cell,1,true,prob_initial);
-                    temp_loc =  remaining_cell_list(temp_index);
                 if use_power_map % NOT CODED FOR USE WITH REPLICATING WITHIN THIS FUNCTION!
                     this_loc = target_locations_selected(temp_index,:);
-                    ratio_this_loc = round(ratio_map(round(this_loc(1))+ceil(size(ratio_map,1)/2),...
+                    pockels_ratios(i_trial,i_spot) = round(ratio_map(round(this_loc(1))+ceil(size(ratio_map,1)/2),...
                                                                  round(this_loc(2))+ceil(size(ratio_map,2)/2))*10000);
-                    total_ratio_tmp = pockels_ratio_refs(end) + ratio_this_loc/10000;
-                    if total_ratio_tmp > ratio_limit/power_selected(temp_loc)/i_spot % this doesn't actually work for differnet powers per spot...
+                    pockels_ratio_refs(end) = pockels_ratio_refs(end) + pockels_ratios(i_trial,i_spot)/10000;
+                    if pockels_ratio_refs(end) > ratio_limit/power_selected(temp_loc) % this doesn't actually work for differnet powers per spot...
                         this_trial_locations(1,i_spot)=NaN;
                         this_trial_powers(1,i_spot)=NaN;
                         continue
                     end
                 end
                 loc_counts(temp_index)=loc_counts(temp_index)+1;
-                pockels_ratios(i_trial,i_spot) = ratio_this_loc;
-                pockels_ratio_refs(end) = total_ratio_tmp;
+                temp_loc =  remaining_cell_list(temp_index);
                 this_trial_locations(1,i_spot)=temp_loc;
                 this_trial_powers(1,i_spot)=power_selected(temp_loc);
                 prob_initial = ...
@@ -161,12 +161,10 @@ target_locations_key = zeros(size(trials_locations,1),3,n_spots_per_trial);
 for i = 1:size(trials_locations,1)
     for k = 1:n_spots_per_trial
         target_ind = trials_locations(i,k);
-        if isnan(target_ind)
-            target_locations_key(i,:,k) = NaN;
-        else
-            target_locations_key(i,:,k) = target_locations_selected(target_ind,:);
-        end
+        target_locations_key(i,:,k) = target_locations_selected(target_ind,:);
     end
 end
 
 end
+
+
