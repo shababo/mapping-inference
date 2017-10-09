@@ -2,7 +2,7 @@
 close all
 
 %%
-trials = 3:8;
+trials = 18:22;
 loc_id = 2;
 map_id = exp_data.params.map_id;
 
@@ -84,12 +84,14 @@ full_stim_key = [];
 clear full_seq
 clear mpp
 
-trunc_oasis = 1;
+plot_oasis = 1;
+trunc_oasis = 0;
 
 count = 1;
 
 
 for i = 1:length(trials)
+    
     cur_trial = trials(i);
     this_seq{i} = data.trial_metadata(cur_trial).sequence;
     stims_per_trial(i) = length(this_seq{i});
@@ -97,11 +99,15 @@ for i = 1:length(trials)
     power_curve_num{i} = unique([this_seq{i}.target_power]);
     stim_starts{i} = [data.trial_metadata(cur_trial).sequence.start];
     
-    datafilename = [map_id '_z' num2str(loc_id) '_iter' num2str(i) '.mat'];
-    oasisfilename = [map_id '_z' num2str(loc_id) '_iter' num2str(i) '_detect.mat'];
-    load(datafilename)
-    load(oasisfilename)
-    oasis_data = reshape(event_process,size(traces'))'; 
+    if plot_oasis
+        datafilename = [map_id '_z' num2str(loc_id) '_iter' num2str(i) '.mat'];
+        oasisfilename = [map_id '_z' num2str(loc_id) '_iter' num2str(i) '_detect.mat'];
+        load(datafilename)
+        load(oasisfilename)
+        oasis_data = reshape(event_process,size(traces'))'; 
+    else
+        oasis_data = zeros(length(this_seq{i}),1000);
+    end
     
     for j = 1:length(this_seq{i})
         if i == 1 && j == 1
@@ -174,13 +180,14 @@ for i = 1:length(power_curve_num)
     this_seq_power = full_seq(on_cell_trials' & [full_seq.target_power] == power_curve_num(i));
     mpp_pow{i}{1} = mpp(on_cell_trials' & [full_seq.target_power] == power_curve_num(i));
     mpp_pow{i}{2} = mpp(on_cell_trials' & [full_seq.target_power] == power_curve_num(i));
-    color_these_trials{i}{1} = group_colors([this_seq_power.group],:);
-    color_these_trials{i}{2} = group_colors([this_seq_power.group],:);
+%     color_these_trials{i}{1} = group_colors([this_seq_power.group],:);
+%     color_these_trials{i}{2} = group_colors([this_seq_power.group],:);
 %     mpp_pow{i} = mpp(num_trials+(1:length(this_seq_power)));
-%     mpp_pow{i} = [];
+%     mpp_pow{i}{1} = [];mpp_pow{i}{1} = [];
     num_trials = num_trials + length(this_seq_power);
     [maps{i}, mpp_maps{i}] = ...
-        see_grid_multi(traces_pow,mpp_pow{i},this_seq_power,full_stim_key,spacing,1,1,1,color_these_trials{i});
+        see_grid_multi(traces_pow,mpp_pow{i},this_seq_power,full_stim_key,spacing,1,1,1);
+%     see_grid_multi(traces_pow,mpp_pow{i},this_seq_power,full_stim_key,spacing,1,1,1,color_these_trials{i});
 %     title(['Power = ' num2str(power_curve_num(i)) ' mW'])
 %     xlim(xlims); ylim(ylims);
 %     get_mean_events_image(mpp_maps{i}, 2000, 1, 1);
