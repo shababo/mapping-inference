@@ -32,8 +32,8 @@ h_dalpha=zeros(n_cell,S);
 h_beta=zeros(n_cell,S);
 
 %parameter_history=struct([]);
-parameter_history.pi=zeros(n_cell,1);
-parameter_history.p_logit=zeros(n_cell,1);
+% parameter_history.pi=zeros(n_cell,1);
+% parameter_history.p_logit=zeros(n_cell,1);
 parameter_history.alpha=zeros(n_cell,1);
 parameter_history.beta=zeros(n_cell,1);
 change_history=zeros(1,1);
@@ -41,13 +41,13 @@ change_history=zeros(1,1);
 gamma_sample_mat=zeros(n_cell,S);
 
 if vf_type ==1
-    v_pi =[variational_params(:).pi]';
-    v_p_logit =[variational_params(:).p_logit]';
+%     v_pi =[variational_params(:).pi]';
+%     v_p_logit =[variational_params(:).p_logit]';
     v_log_alpha=log([variational_params(:).alpha]');
     v_log_beta=log([variational_params(:).beta]');
 elseif vf_type == 2
-    v_pi =[variational_params(:).pi]';
-    v_p_logit =[variational_params(:).p_logit]';
+%     v_pi =[variational_params(:).pi]';
+%     v_p_logit =[variational_params(:).p_logit]';
     v_log_alpha=[variational_params(:).alpha]';
     v_log_beta=log([variational_params(:).beta]');
 end
@@ -82,19 +82,19 @@ while (changes > epsilon & iter<maxit)
     if vf_type == 1
         v_alpha = exp(v_log_alpha);
         v_beta = exp(v_log_beta);
-        v_pi_old = v_pi;v_p_logit_old=v_p_logit;
+%         v_pi_old = v_pi;v_p_logit_old=v_p_logit;
         v_log_alpha_old = v_log_alpha;v_log_beta_old = v_log_beta;
         v_alpha_old=v_alpha;v_beta_old=v_beta;
     elseif vf_type == 2
         v_alpha = v_log_alpha;
         v_beta = exp(v_log_beta);
-        v_pi_old = v_pi;v_p_logit_old=v_p_logit;
+%         v_pi_old = v_pi;v_p_logit_old=v_p_logit;
         v_log_alpha_old = v_log_alpha;v_log_beta_old = v_log_beta;
         v_alpha_old=v_alpha;v_beta_old=v_beta; 
     end
     
-    parameter_history.pi(:,iter)=v_pi;
-    parameter_history.p_logit(:,iter)=v_p_logit;
+%     parameter_history.pi(:,iter)=v_pi;
+%     parameter_history.p_logit(:,iter)=v_p_logit;
     parameter_history.alpha(:,iter)=v_alpha;
     parameter_history.beta(:,iter)=v_beta;
     
@@ -120,14 +120,14 @@ while (changes > epsilon & iter<maxit)
         % Draw samples from the variational distribution given the current
         % parameters
         if vf_type == 1
-            gamma_spike = rand(n_cell,1) > v_pi;
+%             gamma_spike = rand(n_cell,1) > v_pi;
             gamma_slab = betarnd(v_alpha,v_beta,[n_cell 1])*(1-C_threshold) +C_threshold;
-            gamma_sample = gamma_spike.*gamma_slab;
+            gamma_sample = gamma_slab;
         elseif vf_type == 2
-            gamma_spike = rand(n_cell,1) > v_pi;
+%             gamma_spike = rand(n_cell,1) > v_pi;
             temp=normrnd(v_alpha,v_beta,[n_cell 1]);
             gamma_slab = exp(temp)./(1+exp(temp))*(1-C_threshold) +C_threshold;
-            gamma_sample = gamma_spike.*gamma_slab;
+            gamma_sample = gamma_slab;
         end
         
         %bound gamma from 1 to avoid singularity
@@ -151,13 +151,11 @@ while (changes > epsilon & iter<maxit)
         % Calculate the probability of the variational distribution given the
         % current sample of gamma
         if vf_type == 1
-        logvariational(:,s)=log(max(0.001,v_pi)).*(gamma_sample==0)+...
-            log(max(0.001, 1-v_pi)).*(gamma_sample>0)+ ...
-            (gamma_sample>0).*log( min(1000,max(0.0001,...
+        logvariational(:,s)=  (gamma_sample>0).*log( min(1000,max(0.0001,...
             betapdf((gamma_sample-C_threshold)/(1-C_threshold) ,v_alpha,v_beta)/(1-C_threshold))));
         
-            dqdp_logit(:,s)= (gamma_sample==0)./(1+exp(v_p_logit))-...
-            (gamma_sample>0).*exp(v_p_logit)./(1+exp(v_p_logit));
+%             dqdp_logit(:,s)= (gamma_sample==0)./(1+exp(v_p_logit))-...
+%             (gamma_sample>0).*exp(v_p_logit)./(1+exp(v_p_logit));
         dqdalpha(:,s)= (gamma_sample>0).*(log(max(0.001,(gamma_sample-C_threshold)/(1-C_threshold) )) +...
             psi_minus_alpha).*v_alpha;
         dqdalpha(gamma_sample==0,s)=0;
@@ -169,14 +167,12 @@ while (changes > epsilon & iter<maxit)
             
         % Calculate the probability of the variational distribution given the
         % current sample of gamma & gain 
-        logit_gamma = log( 1./ ( (1-C_threshold)./(gamma_sample-C_threshold)-1 ));
-        logvariational(:,s)=log(max(0.001,v_pi)).*(gamma_sample==0)+...
-            log(max(0.001, 1-v_pi)).*(gamma_sample>0)+ ...
-            (gamma_sample>0).*log( min(1000,max(0.0001,...
+%         logit_gamma = log( 1./ ( (1-C_threshold)./(gamma_sample-C_threshold)-1 ));
+        logvariational(:,s)=   (gamma_sample>0).*log( min(1000,max(0.0001,...
            normpdf(logit_gamma,v_alpha,v_beta)./(gamma_sample.*(1-gamma_sample))/(1-C_threshold)  )));
         
-        dqdp_logit(:,s)= (gamma_sample==0)./(1+exp(v_p_logit))-...
-            (gamma_sample>0).*exp(v_p_logit)./(1+exp(v_p_logit));
+%         dqdp_logit(:,s)= (gamma_sample==0)./(1+exp(v_p_logit))-...
+%             (gamma_sample>0).*exp(v_p_logit)./(1+exp(v_p_logit));
         
         dqdalpha(:,s)= (gamma_sample>0).*(-mu_by_sigma2+logit_gamma.*sigma_inv2);
         dqdalpha(gamma_sample==0,s)=0;
@@ -223,26 +219,25 @@ while (changes > epsilon & iter<maxit)
     for i_cell = 1:n_cell
         sum_of_logs = loglklh(i_cell,:)+logprior(i_cell,:)-logvariational(i_cell,:);
         
-        f_p_logit(i_cell,:)=sum_of_logs.*dqdp_logit(i_cell,:);
+%         f_p_logit(i_cell,:)=sum_of_logs.*dqdp_logit(i_cell,:);
         f_alpha(i_cell,:)= sum_of_logs.*dqdalpha(i_cell,:);
         f_beta(i_cell,:)= sum_of_logs.*dqdbeta(i_cell,:);
         
-        h_p_logit(i_cell,:)=dqdp_logit(i_cell,:);
+%         h_p_logit(i_cell,:)=dqdp_logit(i_cell,:);
         h_alpha(i_cell,:)= dqdalpha(i_cell,:);
         h_beta(i_cell,:)= dqdbeta(i_cell,:);
         
         % Calculate the constant a
-        a_constant = (quick_cov(f_p_logit(i_cell,:),h_p_logit(i_cell,:))+...
-            quick_cov(f_alpha(i_cell,:),h_alpha(i_cell,:))+quick_cov(f_beta(i_cell,:),h_beta(i_cell,:)))/...
-            (quick_cov(h_p_logit(i_cell,:),h_p_logit(i_cell,:))+quick_cov(h_alpha(i_cell,:),h_alpha(i_cell,:))+...
+        a_constant = (quick_cov(f_alpha(i_cell,:),h_alpha(i_cell,:))+quick_cov(f_beta(i_cell,:),h_beta(i_cell,:)))/...
+            (quick_cov(h_alpha(i_cell,:),h_alpha(i_cell,:))+...
             quick_cov(h_beta(i_cell,:),h_beta(i_cell,:)));
         %v_pi = v_pi+eta*mean(dELBOdpi,2);
         if iter < 20
-            v_p_logit(i_cell) = v_p_logit(i_cell)+eta_logit*mean(f_p_logit(i_cell,:)-a_constant*h_p_logit(i_cell,:));
+%             v_p_logit(i_cell) = v_p_logit(i_cell)+eta_logit*mean(f_p_logit(i_cell,:)-a_constant*h_p_logit(i_cell,:));
             v_log_alpha(i_cell) = v_log_alpha(i_cell)+eta_beta*mean(f_alpha(i_cell,:)-a_constant*h_alpha(i_cell,:));
             v_log_beta(i_cell) = v_log_beta(i_cell)+eta_beta*mean(f_beta(i_cell,:)-a_constant*h_beta(i_cell,:));
         else
-            v_p_logit(i_cell) = v_p_logit(i_cell)+(eta_beta/sqrt(iter*log(iter)))*mean(f_p_logit(i_cell,:)-a_constant*h_p_logit(i_cell,:));
+%             v_p_logit(i_cell) = v_p_logit(i_cell)+(eta_beta/sqrt(iter*log(iter)))*mean(f_p_logit(i_cell,:)-a_constant*h_p_logit(i_cell,:));
             v_log_alpha(i_cell) = v_log_alpha(i_cell)+(eta_beta/sqrt(iter*log(iter)))*mean(f_alpha(i_cell,:)-a_constant*h_alpha(i_cell,:));
             v_log_beta(i_cell) = v_log_beta(i_cell)+(eta_beta/sqrt(iter*log(iter)))*mean(f_beta(i_cell,:)-a_constant*h_beta(i_cell,:));
         end
@@ -252,7 +247,7 @@ while (changes > epsilon & iter<maxit)
     %     t7=toc;time_record(6)=time_record(6)+t7-t6;
     
     if vf_type == 1
-    v_pi = exp(v_p_logit)./(1+exp(v_p_logit));
+%     v_pi = exp(v_p_logit)./(1+exp(v_p_logit));
     v_log_alpha=min(log(100),max(log(1e-2),v_log_alpha));
     v_log_beta=min(log(100),max(log(1e-2),v_log_beta));
     
@@ -260,7 +255,7 @@ while (changes > epsilon & iter<maxit)
     v_beta = exp(v_log_beta);
    elseif vf_type == 2
     
-    v_pi = exp(v_p_logit)./(1+exp(v_p_logit));
+%     v_pi = exp(v_p_logit)./(1+exp(v_p_logit));
     v_log_beta=min(log(100),max(log(1e-2),v_log_beta));
     
     v_beta = exp(v_log_beta);
@@ -275,10 +270,9 @@ while (changes > epsilon & iter<maxit)
     %     mean_gamma_old= (1-v_pi_old).*(C_threshold+ (1-C_threshold)*v_alpha_old./(v_alpha_old+v_beta_old));
     
     %changes = sqrt(sum((mean_gamma-mean_gamma_old).^2)/sum(mean_gamma_old.^2 ));
-    changes=  sum(abs(v_pi_old-v_pi))+...
-        sum(abs(v_log_alpha_old-v_log_alpha))+...
+    changes=          sum(abs(v_log_alpha_old-v_log_alpha))+...
         sum(abs(v_log_beta_old-v_log_beta)) ;
-    changes= changes/(sum(abs(v_log_alpha_old))+sum(abs(v_log_beta_old))+sum(abs(v_pi_old)));
+    changes= changes/(sum(abs(v_log_alpha_old))+sum(abs(v_log_beta_old)));
     
     change_history(iter)=changes;
     
