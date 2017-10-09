@@ -109,6 +109,9 @@ params.design.connected=true;
 params.design.change_threshold=0.05;
 params.design.do_connected_vi = 1;
 
+% for std thresh experiments
+params.design.std_thresh = [.75 .75];
+params.design.min_targ = 10;
 
 % some experimental params
 params.exp.power_levels = '50'; % this should be a space delimited string
