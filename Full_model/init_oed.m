@@ -31,7 +31,7 @@ params.current_template=template(1:params.time.downsamp:params.time.max_time);
 params.t_vect= 1:1:params.time.max_time;
 
 params.power_level = [25 50 75 100];
-params.num_power_level=length(power_level);
+params.num_power_level=length(params.power_level);
 
 %----------- Build template cell
 params.template_cell.gain_template=0.02;
@@ -118,8 +118,8 @@ params.design.change_threshold=0.01;
 params.design.do_connected_vi = 1;
 
 % for std thresh experiments
-params.design.std_thresh = [.75 .75];
-params.design.min_targ = 10;
+params.design.std_thresh = [0 .50];
+params.design.min_targs = 10;
 
 % some experimental params
 params.exp.power_levels = '50'; % this should be a space delimited string
