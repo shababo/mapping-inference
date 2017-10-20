@@ -31,7 +31,7 @@ params.current_template=template(1:params.time.downsamp:params.time.max_time);
 params.t_vect= 1:1:params.time.max_time;
 
 params.power_level = [25 50 75 100];
-params.num_power_level=length(power_level);
+params.num_power_level=length(params.power_level);
 
 %----------- Build template cell
 params.template_cell.gain_template=0.02;
