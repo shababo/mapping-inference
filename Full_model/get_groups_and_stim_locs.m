@@ -23,6 +23,9 @@ for i_plane = 1:data.n_planes
     data.cell_group_list{i_plane} = find(cell_group_idx==i_plane);
 end
 
+assignin('base','cell_group_list',data.cell_group_list)
+assignin('base','cell_locations',cell_locations)
+
 pi_target_selected = cell(data.n_planes,1);
 inner_normalized_products = cell(data.n_planes,1);
 target_locations_selected = cell(data.n_planes,1);

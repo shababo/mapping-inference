@@ -21,7 +21,7 @@ end
 %target_locations_3d_selected,power_3d_selected,pi_target_3d, inner_normalized_products_3d] = 
 
 % The list of all related cells :
-related_cell_list=[target_cell_list.primary; target_cell_list.secondary]; 
+related_cell_list=[target_cell_list.primary; target_cell_list.secondary];
 
 grid_jitters = zeros(num_per_grid,2);
 for i_grid = 1:num_per_grid

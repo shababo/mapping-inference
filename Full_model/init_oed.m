@@ -133,7 +133,7 @@ params.design.min_targs = 10;
 % some experimental params
 params.exp.power_levels = '50'; % this should be a space delimited string
 params.exp.z_width = 20;
-params.exp.z_depths = '30 50 70 90 10';% this should be a space delimited string
+params.exp.z_depths = '10 30 50 70 90';% this should be a space delimited string
 params.exp.arbitrary_z = 0;
 
 if load_map
