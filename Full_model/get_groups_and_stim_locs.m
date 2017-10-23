@@ -23,11 +23,6 @@ for i_plane = 1:data.n_planes
     data.cell_group_list{i_plane} = find(cell_group_idx==i_plane);
 end
 
-r1=5;r2=10;num_per_grid=12;
-
-num_per_grid_dense = 16;
-stim_threshold = params.eff_stim_threshold/params.template_cell.gain_template;
-
 pi_target_selected = cell(data.n_planes,1);
 inner_normalized_products = cell(data.n_planes,1);
 target_locations_selected = cell(data.n_planes,1);
@@ -40,7 +35,6 @@ pi_target_nuclei = cell(data.n_planes,1);
 loc_to_cell_nuclei = cell(data.n_planes,1);
 loc_to_cell = cell(data.n_planes,1);
 
-stim_threshold = params.eff_stim_threshold/params.template_cell.gain_template;
 for i = 1:data.n_planes
 
     n_cell_this_plane = length(data.cell_group_list{i});
@@ -50,7 +44,7 @@ for i = 1:data.n_planes
     targ_loc_nuc_tmp, pi_target_nuclei{i}, loc_to_cell_nuclei{i}] = ...
         get_stim_locations(...
         target_cell_list,cell_locations,...
-        r1,r2,num_per_grid,num_per_grid_dense,params.template_cell.shape_template,...
+        params.r1,params.r2,params.num_per_grid,params.num_per_grid_dense,params.template_cell.shape_template,...
         params.design.stim_loc_type,z_locs(i),params.exp.arbitrary_z);
     
     targ_locs_tmp(targ_locs_tmp(:,1) < params.exp.foe_bounds(1,1),1) = params.exp.foe_bounds(1,1);
@@ -68,7 +62,7 @@ for i = 1:data.n_planes
     
     loc_to_cell{i} = zeros(size(pi_target_selected,2),1);
     for i_cell = 1:length(target_cell_list.primary)
-        loc_to_cell{i}( (i_cell-1)*(2*num_per_grid+1)+ (1:(2*num_per_grid+1)))=i_cell;     
+        loc_to_cell{i}( (i_cell-1)*(2*params.num_per_grid+1)+ (1:(2*params.num_per_grid+1)))=i_cell;     
     end  
 end
 

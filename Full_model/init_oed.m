@@ -30,7 +30,7 @@ params.time.downsamp=1;params.time.max_time=300;params.time.min_time = 45;
 params.current_template=template(1:params.time.downsamp:params.time.max_time);
 params.t_vect= 1:1:params.time.max_time;
 
-params.power_level = [25 50 75 100];
+params.power_level = [20:10:100];
 params.num_power_level=length(params.power_level);
 
 %----------- Build template cell
@@ -74,6 +74,9 @@ params.design.reps_disconnected_single=8;
 params.design.reps_connected=4;
 
 params.design.stim_loc_type = 1;
+params.r1=5;params.r2=10;
+params.num_per_grid=12;
+params.num_per_grid_dense = 16;
 
 params.design.single_spot_threshold=9; % switch to single spot stimulation if there are fewer than N cells in this group
 params.design.trial_max=20000;
@@ -96,9 +99,10 @@ params.design.gain_bound.up=0.03;
 params.design.gain_bound.low=0.005;
 
 params.design.var_pi_ini=0.01;% not used.
-params.design.var_alpha_initial=1;params.design.var_beta_initial=1.78;
+params.design.var_alpha_initial=1;
+params.design.var_beta_initial=1.78;
 params.design.var_alpha_gain_initial=...
-    log( (0.02 - params.gain_bound.low)./(params.gain_bound.up-0.02));
+    log( (0.02 - params.design.gain_bound.low)./(params.design.gain_bound.up-0.02));
 params.design.var_beta_gain_initial=0.5;
 
 % Initialize the parameters in the VI
@@ -119,7 +123,7 @@ params.design.connected=true;
 
  %  loc_to_cell_nuclei is from get_stim_locations 
 
-params.design.change_threshold=0.01;
+params.design.change_threshold=0.05;
 params.design.do_connected_vi = 1;
 
 % for std thresh experiments

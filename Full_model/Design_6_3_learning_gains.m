@@ -516,14 +516,14 @@ while ((n_trials < trial_max) & (id_continue>0))
             variational_params=struct([]);
             for i_cell_idx = 1:length(neighbour_list)
                 i_cell=neighbour_list(i_cell_idx);
-                 variational_params(i_cell_idx).alpha = variational_params_path.alpha(i_cell,iter);
+                variational_params(i_cell_idx).alpha = variational_params_path.alpha(i_cell,iter);
                 variational_params(i_cell_idx).beta = variational_params_path.beta(i_cell,iter);
                 variational_params(i_cell_idx).alpha_gain = variational_params_path.alpha_gain(i_cell,iter);
                 variational_params(i_cell_idx).beta_gain = variational_params_path.beta_gain(i_cell,iter);
             end
             
             prior_params.pi0= 0.01*ones(length(neighbour_list),1);
-        prior_params.alpha0= [variational_params(:).alpha]';
+            prior_params.alpha0= [variational_params(:).alpha]';
             prior_params.beta0 = [variational_params(:).beta]';
             prior_params.alpha0_gain= [variational_params(:).alpha_gain]';
             prior_params.beta0_gain =[variational_params(:).beta_gain]';
