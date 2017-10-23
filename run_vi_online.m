@@ -46,38 +46,7 @@ data.design.mpp_undefined{i}{data.design.iter} = mpp([mpp.group] == 1);
 data.design.mpp_disconnected{i}{data.design.iter} = mpp([mpp.group] == 2);
 data.design.mpp_connected{i}{data.design.iter} = mpp([mpp.group] == 3);
 
-%------------------------------------------%
-% Transform the data
-% no need to record the probabilities all the time..
 
-%data.design.cells_probabilities_undefined;
-%         assignin('base','data.design.mpp_undefined{i}',data.design.mpp_undefined{i})
-%         assignin('base','data.design.cells_probabilities_undefined',data.design.cells_probabilities_undefined)
-
-% if sum(data.design.undefined_cells{i}{data.design.iter})>0
-%     for i_trial = 1:length(data.design.mpp_undefined{i}{data.design.iter})
-%         outputs_undefined(i_trial,1)=length(data.design.mpp_undefined{i}{data.design.iter}(i_trial).times);
-%     end
-%     binary_resp = sort(outputs_undefined > 0);
-%     undefined_baseline = mean(binary_resp(1:ceil(length(binary_resp/15))));
-%     data.design.n_trials{i}=data.design.n_trials{i}+i_trial;
-% end
-% if  sum(data.design.potentially_disconnected_cells{i}{data.design.iter})>0
-%     %data.design.cells_probabilities_disconnected;
-%     for i_trial = 1:length(data.design.mpp_disconnected{i}{data.design.iter})
-%         outputs_disconnected(i_trial,1)=length(data.design.mpp_disconnected{i}{data.design.iter}(i_trial).times);
-%     end
-%     binary_resp = sort(outputs_disconnected > 0);
-%     disconnected_baseline = mean(binary_resp(1:ceil(length(binary_resp/15))));
-%     data.design.n_trials{i}=data.design.n_trials{i}+i_trial;
-% end
-% if  sum(data.design.potentially_connected_cells{i}{data.design.iter})>0
-%     %data.design.cells_probabilities_disconnected;
-% %         for i_trial = 1:size(data.design.stim_size_connected,1)
-% %             outputs_connected(i_trial,1)=length(data.design.mpp_connected{i}{data.design.iter}(i_trial).times);
-% %         end
-%     data.design.n_trials{i}=data.design.n_trials{i}+length(data.design.mpp_connected{i}{data.design.iter});
-% end
 
 %------------------------------------------%
 % Analysis:
@@ -92,7 +61,7 @@ data.design.variational_params_path{i}.beta_gain(:,data.design.iter+1)=data.desi
 %------------------------------------------------------%
 % Fit VI on Group A: the undefined cells
 data.design.mean_gamma_undefined=zeros(n_cell_this_plane,1);
-
+data.design.mean_gain_current=params.template_cell.gain_template*ones(n_cell_this_plane,1);
 if sum(data.design.undefined_cells{i}{data.design.iter})>0
 %     cell_list= find(data.design.undefined_cells{i}{data.design.iter});
     cell_list = find(sum(data.design.stim_size_undefined{i}{data.design.iter}>10,1)>0);
@@ -323,36 +292,32 @@ if sum(data.design.potentially_connected_cells{i}{data.design.iter})>0
         %
 
        %cell_list(cluster_of_cells{i_cluster})
-        data.design.variational_params_path{i}.alpha(neighbour_list,data.design.iter+1) = parameter_history.alpha(:,end);
-        data.design.variational_params_path{i}.beta(neighbour_list,data.design.iter+1) = parameter_history.beta(:,end);
-        data.design.variational_params_path{i}.alpha_gain(neighbour_list,data.design.iter+1) = parameter_history.alpha_gain(:,end);
-        data.design.variational_params_path{i}.beta_gain(neighbour_list,data.design.iter+1) = parameter_history.beta_gain(:,end);
+
 
 
         [mean_gamma_temp, var_gamma_temp] = calculate_posterior_mean(...
             parameter_history.alpha(:,end),parameter_history.beta(:,end),0,1);
-        [mean_gain_temp, ~] = calculate_posterior_mean(...
+        [mean_gain_temp, var_gain_temp] = calculate_posterior_mean(...
             parameter_history.alpha_gain(:,end),parameter_history.beta_gain(:,end),params.design.gain_bound.low,params.design.gain_bound.up);
-
-
-
+        
+        % Record the variational parameters
+        data.design.variational_params_path{i}.alpha(neighbour_list,data.design.iter+1) = parameter_history.alpha(:,end);
+        data.design.variational_params_path{i}.beta(neighbour_list,data.design.iter+1) = parameter_history.beta(:,end);
+        data.design.variational_params_path{i}.alpha_gain(neighbour_list,data.design.iter+1) = parameter_history.alpha_gain(:,end);
+        data.design.variational_params_path{i}.beta_gain(neighbour_list,data.design.iter+1) = parameter_history.beta_gain(:,end);
+    
         data.design.variance_gamma_connected(neighbour_list)=var_gamma_temp;
         data.design.mean_gamma_connected(neighbour_list,1)=mean_gamma_temp;
-        data.design.var_gamma_path(neighbour_list,data.design.iter+1)=var_gamma_temp;
-        
         data.design.mean_gamma_current{i}(neighbour_list)=mean_gamma_temp;
-        data.design.mean_gain_current{i}(neighbour_list)=mean_gain_temp;
+        data.design.mean_gain_current(neighbour_list)=mean_gain_temp;
+        
         data.design.gamma_path{i}(neighbour_list,data.design.iter+1)=mean_gamma_temp;
-
-        variance_gamma_connected(neighbour_list)=var_gamma_temp;
-        mean_gamma_connected(neighbour_list,1)=mean_gamma_temp;
-        mean_gamma_current(neighbour_list)=mean_gamma_temp;
-        mean_gain_current(neighbour_list)=mean_gain_temp;
-
-        gamma_path(neighbour_list,iter+1)=mean_gamma_temp;
-        var_gamma_path(neighbour_list,iter+1)=var_gamma_temp;
-        gain_path(neighbour_list,iter+1)=mean_gamma_temp;
-        var_gain_path(neighbour_list,iter+1)=var_gamma_temp;
+        data.design.var_gamma_path{i}(neighbour_list,data.design.iter+1)=var_gamma_temp;
+        data.design.gain_path{i}(neighbour_list,data.design.iter+1)=mean_gain_temp;
+        data.design.var_gain_path{i}(neighbour_list,iter+1)=var_gain_temp;
+        
+        data.design.mean_gamma_connected(cell_list,1)=mean_gamma_temp;
+        data.design.mean_gamma_current{i}(cell_list)=mean_gamma_temp;
 
     end
 end
