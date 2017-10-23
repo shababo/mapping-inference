@@ -92,11 +92,17 @@ params.design.prior_pi0=0.8;
 
 
 % Initialize the variational family
+params.design.gain_bound.up=0.03;
+params.design.gain_bound.low=0.005;
+
 params.design.var_pi_ini=0.01;% not used.
 params.design.var_alpha_initial=1;params.design.var_beta_initial=1.78;
-params.design.var_alpha_gain_initial=1;params.design.var_beta_gain_initial=1.78;
+params.design.var_alpha_gain_initial=...
+    log( (0.02 - params.gain_bound.low)./(params.gain_bound.up-0.02));
+params.design.var_beta_gain_initial=0.5;
 
 % Initialize the parameters in the VI
+
 params.design.C_threshold = 0.01;params.design.maxit=1000;
 params.design.S=200;params.design.epsilon=0.01;params.design.eta_logit=0;params.design.eta_beta=0.05;
 params.design.background_rt=params.bg_rate*(params.time.max_time - params.time.min_time);
@@ -106,8 +112,7 @@ params.design.prob_weight=0;
 
 params.design.lklh_func=@calculate_likelihood_sum_bernoulli;
 params.design.stim_threshold = 10;
-params.design.gain_bound.up=0.03;
-params.design.gain_bound.low=0.01;
+
 
 params.design.id_notconnected=false;
 params.design.connected=true;
@@ -124,7 +129,7 @@ params.design.min_targs = 10;
 % some experimental params
 params.exp.power_levels = '50'; % this should be a space delimited string
 params.exp.z_width = 20;
-params.exp.z_depths = '30 50';% this should be a space delimited string
+params.exp.z_depths = '30 50 70 90 10';% this should be a space delimited string
 params.exp.arbitrary_z = 0;
 
 if load_map
