@@ -2,9 +2,9 @@
 close all
 
 %%
-trials = 3:26;
+trials = 2;
 duration = .030;
-loc_trials = {3:9,10:17,18:26};
+loc_trials = {1};
 loc_ids = [];
 for i = 1:length(loc_trials)
     loc_ids = [loc_ids i*ones(size(loc_trials{i}))];
@@ -134,7 +134,7 @@ full_stim_key = [];
 clear full_seq
 clear mpp
 
-plot_oasis = 1;
+plot_oasis = 0;
 trunc_oasis = 1;
 
 count = 1;
