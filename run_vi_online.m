@@ -11,7 +11,7 @@ n_cell_this_plane = data.design.n_cell_this_plane;
 % target_locations_selected = data.cells_targets.target_locations_selected{i};
 % power_selected = data.cells_targets.power_selected{i};
 % target_locations_all = data.cells_targets.target_locations_all{i};
-cell_neighbours = data.cells_targets.cell_neighbours{i};
+% cell_neighbours = data.cells_targets.cell_neighbours{i};
 % target_locations_nuclei = data.cells_targets.target_locations_nuclei{i};
 % power_nuclei = data.cells_targets.power_nuclei{i};
 % pi_target_nuclei = data.cells_targets.pi_target_nuclei{i};
@@ -101,8 +101,8 @@ if sum(data.design.undefined_cells{i}{data.design.iter})>0
     % calculate_likelihood_bernoulli for multiple events 
     [parameter_history] = fit_working_model_vi_gain(...
         designs_remained,mpp_remained,params.design.background_rt, ...
-        params.prob_trace_full,params.stim_grid,...
-        params.stim_scale,params.eff_stim_threshold,params.gain_bound,...
+        params.template_cell.prob_trace_full,params.stim_grid,...
+        params.stim_scale,params.eff_stim_threshold,params.design.gain_bound,...
         variational_params,prior_params,params.design.C_threshold,params.design.stim_threshold,...
         designs_neighbours,gamma_neighbours,gain_neighbours,...
         params.design.S,params.design.epsilon,params.design.eta_logit,...
@@ -114,10 +114,10 @@ if sum(data.design.undefined_cells{i}{data.design.iter})>0
         parameter_history.alpha_gain(:,end),parameter_history.beta_gain(:,end),params.design.gain_bound.low,params.design.gain_bound.up);
 
     % Record the variational parameters
-    data.design.variational_params_path.alpha(cell_list,data.design.iter+1) = parameter_history.alpha(:,end);
-    data.design.variational_params_path.beta(cell_list,data.design.iter+1) = parameter_history.beta(:,end);
-    data.design.variational_params_path.alpha_gain(cell_list,data.design.iter+1) = parameter_history.alpha_gain(:,end);
-    data.design.variational_params_path.beta_gain(cell_list,data.design.iter+1) = parameter_history.beta_gain(:,end);
+    data.design.variational_params_path{i}.alpha(cell_list,data.design.iter+1) = parameter_history.alpha(:,end);
+    data.design.variational_params_path{i}.beta(cell_list,data.design.iter+1) = parameter_history.beta(:,end);
+    data.design.variational_params_path{i}.alpha_gain(cell_list,data.design.iter+1) = parameter_history.alpha_gain(:,end);
+    data.design.variational_params_path{i}.beta_gain(cell_list,data.design.iter+1) = parameter_history.beta_gain(:,end);
 
     data.design.var_gamma_path{i}(cell_list,data.design.iter+1)=var_gamma_temp;
     data.design.gamma_path{i}(cell_list,data.design.iter+1)=mean_gamma_temp;
@@ -161,8 +161,8 @@ if sum(data.design.potentially_disconnected_cells{i}{data.design.iter})>0
     designs_neighbours=[];        gamma_neighbours=[];         gain_neighbours=[];
     [parameter_history,~] = fit_working_model_vi_gain(...
         designs_remained,mpp_remained,params.design.background_rt, ...
-        params.prob_trace_full,params.stim_grid,...
-        params.stim_scale,params.eff_stim_threshold,params.gain_bound,...
+        params.template_cell.prob_trace_full,params.stim_grid,...
+        params.stim_scale,params.eff_stim_threshold,params.design.gain_bound,...
         variational_params,prior_params,params.design.C_threshold,params.design.stim_threshold,...
         designs_neighbours,gamma_neighbours,gain_neighbours,...
         params.design.S,params.design.epsilon,params.design.eta_logit,...
@@ -181,15 +181,12 @@ if sum(data.design.potentially_disconnected_cells{i}{data.design.iter})>0
     
     data.design.mean_gamma_disconnected(cell_list,1)=mean_gamma_temp;
     data.design.mean_gamma_current{i}(cell_list)=mean_gamma_temp;
-    data.design.gamma_path{i}(cell_list,data.design.iter+1)=mean_gamma_temp;
     
     data.design.var_gamma_path{i}(cell_list,data.design.iter+1)=var_gamma_temp;
     data.design.gamma_path{i}(cell_list,data.design.iter+1)=mean_gamma_temp;
     data.design.gain_path{i}(cell_list,data.design.iter+1)=mean_gain_temp;
     data.design.var_gain_path{i}(cell_list,data.design.iter+1)=var_gain_temp;
 
-    data.design.mean_gamma_undefined(cell_list,1)=mean_gamma_temp;
-    data.design.mean_gamma_current{i}(cell_list)=mean_gamma_temp;
 end
 %---------------------------------------------%
 
@@ -316,8 +313,6 @@ if sum(data.design.potentially_connected_cells{i}{data.design.iter})>0
         data.design.gain_path{i}(neighbour_list,data.design.iter+1)=mean_gain_temp;
         data.design.var_gain_path{i}(neighbour_list,iter+1)=var_gain_temp;
         
-        data.design.mean_gamma_connected(cell_list,1)=mean_gamma_temp;
-        data.design.mean_gamma_current{i}(cell_list)=mean_gamma_temp;
 
     end
 end
