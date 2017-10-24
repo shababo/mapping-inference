@@ -69,10 +69,10 @@ params.design.n_spots_per_trial = 3;
 params.design.n_replicates=1; 
 params.design.K_undefined=8; 
 params.design.K_disconnected=12; 
-params.design.K_connected=8; 
+params.design.K_connected=4; 
 params.design.reps_undefined_single=8;
 params.design.reps_disconnected_single=12;
-params.design.reps_connected=2;
+params.design.reps_connected=4;
 
 params.design.stim_loc_type = 1;
 params.r1=5;params.r2=10;
