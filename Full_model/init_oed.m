@@ -43,8 +43,9 @@ load('l23_template_cell.mat');
 temp=l23_average_shape;temp_max = max(max(max(temp)));
 params.template_cell.shape_template=temp/temp_max;
 params.stim_scale=4/params.template_cell.gain_template;
-params.stim_grid = (1:1000)/params.stim_scale;
+params.stim_grid = (1:1000)/params.stim_scale/params.template_cell.gain_template;
 params.stim_unique = (1:1000)/params.stim_scale/params.template_cell.gain_template;
+
 
 % [params.template_cell.prob_trace]=get_firing_probability(...
 %     params.template_cell.linkfunc,params.current_template,params.stim_unique,params.template_cell,params.delay);
@@ -59,8 +60,8 @@ params.stim_unique = (1:1000)/params.stim_scale/params.template_cell.gain_templa
 params.template_cell.prob_trace=sum(params.template_cell.prob_trace_full,2);
 %
 % params.eff_stim_threshold=params.stim_grid(min(find(sum(params.template_cell.prob_trace_full,2)>1e-1)));
-params.eff_stim_threshold=params.stim_grid(min(find(params.template_cell.prob_trace>0.01)));
-params.fire_stim_threshold=params.stim_grid(min(find(params.template_cell.prob_trace>0.99)));
+params.eff_stim_threshold=params.stim_grid(min(find(params.template_cell.prob_trace>0.01)))*params.template_cell.gain_template;
+params.fire_stim_threshold=params.stim_grid(min(find(params.template_cell.prob_trace>0.99)))*params.template_cell.gain_template;
 
 %----------- Design parameters
 params.design.num_groups = 3;

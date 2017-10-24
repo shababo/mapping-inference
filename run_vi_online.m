@@ -144,7 +144,7 @@ if sum(data.design.potentially_disconnected_cells{i}{data.design.iter})>0
         variational_params(i_cell_idx).beta_gain = data.design.variational_params_path{i}.beta_gain(i_cell,data.design.iter);
     end
 
-    prior_params.pi0= [variational_params(:).pi]';
+    prior_params.pi0= 0.01*ones(length(cell_list),1);%[variational_params(:).pi]';
     prior_params.alpha0= [variational_params(:).alpha]';
     prior_params.beta0 = [variational_params(:).beta]';
     prior_params.alpha0_gain= [variational_params(:).alpha_gain]';
@@ -159,7 +159,7 @@ if sum(data.design.potentially_disconnected_cells{i}{data.design.iter})>0
 
     lklh_func=@calculate_likelihood_bernoulli;
     designs_neighbours=[];        gamma_neighbours=[];         gain_neighbours=[];
-    [parameter_history,~] = fit_working_model_vi_gain(...
+    [parameter_history] = fit_working_model_vi_gain(...
         designs_remained,mpp_remained,params.design.background_rt, ...
         params.template_cell.prob_trace_full,params.stim_grid,...
         params.stim_scale,params.eff_stim_threshold,params.design.gain_bound,...
@@ -208,7 +208,7 @@ if sum(data.design.potentially_connected_cells{i}{data.design.iter})>0
     if sum(data.design.potentially_connected_cells{i}{data.design.iter})>1
         % Use inner product:
         adj_corr= abs( designs_remained'*designs_remained)./size(designs_remained,1);
-        adj_corr=1*(adj_corr> (params.eff_stim_threshold/params.template_cell.gain_template/2)^2);
+        adj_corr=1*(adj_corred> (params.eff_stim_threshold/params.template_cell.gain_template/2)^2);
 
         cc_corr=expm(adj_corr);
         cell_cluster_ind=zeros(length(cell_list),1);
