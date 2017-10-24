@@ -59,7 +59,7 @@ if n_remaining_cell < single_spot_threshold || n_spots_per_trial==1
                     for j = 1:n_replicates
                         this_loc = target_locations_selected(trials_temp(i),:);
                         pockels_ratio_refs(end + 1) = round(ratio_map(round(this_loc(1))+ceil(size(ratio_map,1)/2),...
-                            round(this_loc(2))+ceil(size(ratio_map,2)/2))*10000)/10000/max_power_ref;
+                            round(this_loc(2))+ceil(size(ratio_map,2)/2))*10000)/10000;%/max_power_ref;
                     end
                 end
             end
@@ -106,7 +106,7 @@ else
         [max_value_loc,index_loc] = max(firing_prob_difference);
         % Pick the lowest power if the objectives are not too different from each
         % other
-        weighted_max_value_loc = max_value_loc;%./log(log(power_level));
+        weighted_max_value_loc = max_value_loc./log(power_level);
         [~,index_I]=max(weighted_max_value_loc);
         loc_optimal(i_cell_idx)=index_loc(index_I);
         power_optimal(i_cell_idx)=power_level(index_I);

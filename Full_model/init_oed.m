@@ -65,13 +65,13 @@ params.fire_stim_threshold=params.stim_grid(min(find(params.template_cell.prob_t
 %----------- Design parameters
 params.design.num_groups = 3;
 params.design.n_spots_per_trial = 3;
-params.design.n_replicates=1; % conduct two replicates for each trial
-params.design.K_undefined=8; % each cell appears approximately 10*2 times
-params.design.K_disconnected=8; % each cell appears approximately 10*2 times
-params.design.K_connected=4; % each cell appears approximately 10*2 times
+params.design.n_replicates=1; 
+params.design.K_undefined=8; 
+params.design.K_disconnected=12; 
+params.design.K_connected=8; 
 params.design.reps_undefined_single=8;
-params.design.reps_disconnected_single=8;
-params.design.reps_connected=4;
+params.design.reps_disconnected_single=12;
+params.design.reps_connected=2;
 
 params.design.stim_loc_type = 1;
 params.r1=5;params.r2=10;
@@ -131,7 +131,9 @@ params.design.std_thresh = [0 .50];
 params.design.min_targs = 10;
 
 % some experimental params
-params.exp.power_levels = '50'; % this should be a space delimited string
+% params.exp.power_levels = '20 30 40 50 60 70'; % this should be a space delimited string
+params.exp.power_levels = mat2str(params.power_level);
+params.exp.power_levels = params.exp.power_levels(2:end-1);
 params.exp.z_width = 20;
 params.exp.z_depths = '10 30 50 70 90';% this should be a space delimited string
 params.exp.arbitrary_z = 0;
