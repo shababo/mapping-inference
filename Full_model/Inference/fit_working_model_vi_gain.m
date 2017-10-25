@@ -161,7 +161,7 @@ while (changes > epsilon && iter<maxit)
                 gamma_temp=gamma_sample;
             end
             effective_stim= stim_temp.*gain_temp;
-            stimulated_cells = find(effective_stim>eff_stim_threshold/2);
+            	 = find(effective_stim>eff_stim_threshold/2);
             effective_stim=effective_stim(stimulated_cells );
             stim_index=min(size(prob_trace_full,1), max(1,round(effective_stim*stim_scale)))
             if ~isempty(stimulated_cells)
