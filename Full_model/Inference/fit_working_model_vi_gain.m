@@ -85,6 +85,9 @@ while (changes > epsilon && iter<maxit)
     sigma_inv3_gain= 1./(v_beta_gain.^3);
     
     for s= 1:S
+        
+        
+        
         % Draw samples from the variational distribution given the current
         % parameters
         temp=normrnd(v_alpha,v_beta,[n_cell 1]);
@@ -114,6 +117,8 @@ while (changes > epsilon && iter<maxit)
             +(gamma_sample>0).*log( min(1000,max(0.0001,...
             normpdf(logit_gain,prior_params.alpha0_gain,prior_params.beta0_gain)...
             ./( (gain_sample-gain_bound.low ).*(gain_bound.up-gain_sample)) *(gain_bound.up-gain_bound.low))));
+
+        
         %-----------------------------------------%
         % Need to change the following functions when changing the
         % variational families :
@@ -126,7 +131,7 @@ while (changes > epsilon && iter<maxit)
             +log( min(1000,max(0.0001,...
             normpdf(logit_gain,v_alpha_gain,v_beta_gain)...
             ./( (gain_sample-gain_bound.low ).*(gain_bound.up-gain_sample)) *(gain_bound.up-gain_bound.low))));
-        
+
         dqdalpha(:,s)= (-mu_by_sigma2+logit_gamma.*sigma_inv2);
         %         dqdalpha(gamma_sample==0,s)=0;
         dqdbeta(:,s)= (-sigma_inv+sigma_inv3.*(logit_gamma-v_alpha).^2).*v_beta;
@@ -143,6 +148,8 @@ while (changes > epsilon && iter<maxit)
     %     t3=toc;time_record(2)=time_record(2)+t3-t2;
     
     for s=1:S
+        
+        
         %         t3p=toc;
         gamma_sample=gamma_sample_mat(:,s);
         gain_sample=gain_sample_mat(:,s);
@@ -161,9 +168,9 @@ while (changes > epsilon && iter<maxit)
                 gamma_temp=gamma_sample;
             end
             effective_stim= stim_temp.*gain_temp;
-            	 = find(effective_stim>eff_stim_threshold/2);
+            stimulated_cells = find(effective_stim>eff_stim_threshold/2);
             effective_stim=effective_stim(stimulated_cells );
-            stim_index=min(size(prob_trace_full,1), max(1,round(effective_stim*stim_scale)))
+            stim_index=min(size(prob_trace_full,1), max(1,round(effective_stim*stim_scale)));
             if ~isempty(stimulated_cells)
                 prob_this_trial= prob_trace_full(stim_index,:);
                 prob_this_trial=[background_rate*ones(1, size(prob_this_trial,2)); prob_this_trial];
@@ -174,11 +181,15 @@ while (changes > epsilon && iter<maxit)
             n_events = length(mpp(i_trial).times);
             [lklh]= lklh_func(n_events,...
                 [1;gamma_temp(stimulated_cells)],prob_collapsed);
+
             
             loglklh_vec(i_trial)=log(lklh);
         end
         for i_cell = 1:n_cell
+%             i_cell
             loglklh(i_cell,s)=sum(loglklh_vec(relevant_trials{i_cell}));
+
+        
         end
         %          t6=toc;time_record(5)=time_record(5)+t6-t5;
         
@@ -210,6 +221,25 @@ while (changes > epsilon && iter<maxit)
             quick_cov(h_beta_gain(i_cell,:),h_beta_gain(i_cell,:))...
             +0.01); 
            
+%     grad_alpha = (eta_beta/sqrt(iter*log(iter)))*mean(f_alpha(i_cell,:)-a_constant*h_alpha(i_cell,:));
+%     grad_beta = (eta_beta/sqrt(iter*log(iter)))*mean(f_beta(i_cell,:)-a_constant*h_beta(i_cell,:));
+%     grad_alpha_gain=(eta_beta/sqrt(iter*log(iter)))*mean(f_alpha_gain(i_cell,:)-a_constant*h_alpha_gain(i_cell,:));
+%     grad_beta_gain=(eta_beta/sqrt(iter*log(iter)))*mean(f_beta_gain(i_cell,:)-a_constant*h_beta_gain(i_cell,:));
+%     grad_max = max(abs([grad_alpha grad_beta grad_alpha_gain grad_beta_gain]));
+%     
+%     if grad_max > eta_max
+%         grad_scale= grad_max/eta_max;
+%         grad_alpha = grad_alpha/grad_scale;
+%         grad_beta = grad_beta/grad_scale;
+%         grad_alpha_gain=grad_alpha_gain/grad_scale;
+%         grad_beta_gain=grad_beta_gain/grad_scale;
+%     end
+%     
+%     v_log_alpha(i_cell) = v_log_alpha(i_cell)+grad_alpha;
+%     v_log_beta(i_cell) = v_log_beta(i_cell)+grad_beta;
+%     v_log_alpha_gain(i_cell) = v_log_alpha_gain(i_cell)+grad_alpha_gain;
+%     v_log_beta_gain(i_cell) = v_log_beta_gain(i_cell)+grad_beta_gain;  
+    
     grad_alpha = (eta_beta/sqrt(iter*log(iter)))*mean(f_alpha(i_cell,:)-a_constant*h_alpha(i_cell,:));
     grad_beta = (eta_beta/sqrt(iter*log(iter)))*mean(f_beta(i_cell,:)-a_constant*h_beta(i_cell,:));
     grad_alpha_gain=(eta_beta/sqrt(iter*log(iter)))*mean(f_alpha_gain(i_cell,:)-a_constant*h_alpha_gain(i_cell,:));
@@ -227,7 +257,7 @@ while (changes > epsilon && iter<maxit)
     v_log_alpha(i_cell) = v_log_alpha(i_cell)+grad_alpha;
     v_log_beta(i_cell) = v_log_beta(i_cell)+grad_beta;
     v_log_alpha_gain(i_cell) = v_log_alpha_gain(i_cell)+grad_alpha_gain;
-    v_log_beta_gain(i_cell) = v_log_beta_gain(i_cell)+grad_beta_gain;    
+    v_log_beta_gain(i_cell) = v_log_beta_gain(i_cell)+grad_beta_gain;
     
     end
     %     fprintf('Gradients obtained;');
@@ -258,6 +288,6 @@ while (changes > epsilon && iter<maxit)
     change_history(iter)=changes;
     
         fprintf('Change: %d;\n',changes)
-        assignin('base','parameter_history',parameter_history)
+%         assignin('base','parameter_history',parameter_history)
 end
 
