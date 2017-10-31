@@ -33,7 +33,10 @@ while ((n_trials < trial_max))
          
          
      end
-    
+    if num_suggested_trials==0
+       break; 
+        
+    end
     
     %---------------------------------------------%
     % Design and conduct trials
