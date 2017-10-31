@@ -1,4 +1,4 @@
-function [twentyfifth, seventyfifth] = calculate_posterior_quatiles(alpha,beta,lower_bound,upper_bound)
+function [twentyfifth, seventyfifth] = calculate_posterior_quatiles(prob,alpha,beta,lower_bound,upper_bound)
 %  alpha=parameter_history.alpha(:,end);
 %  beta=parameter_history.beta(:,end);
 
@@ -8,8 +8,7 @@ if vf_type == 1
     var_temp=ones(length(alpha),1);
    
 elseif vf_type==2
-    normal_samples =norminv([0.25; 0.75]);% for evaluating mean & variance gamma 
-
+    normal_samples =norminv(prob);% 
     % obtain estimates
     twentyfifth=zeros(length(alpha),1);
     seventyfifth=zeros(length(alpha),1);

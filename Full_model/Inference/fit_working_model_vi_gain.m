@@ -15,6 +15,8 @@ function [parameter_history] = fit_working_model_vi_gain(...
 % mpp=mpp_temp;
 % stim_size=stim_size(:,find(cells_history{last_iter}));
 
+eta_max=5; % max change of gradient
+
 n_cell=size(stim_size,2);n_trial=size(stim_size,1);
 n_grid=size(prob_trace_full,2);
 
@@ -59,7 +61,7 @@ end
 changes=1;iter = 1;
 %
 % pickout the identifiable cells
-while (changes > epsilon & iter<maxit)
+while (changes > epsilon && iter<maxit)
     % Update the variational parameters using gradient descents
     v_alpha = v_log_alpha;v_beta = exp(v_log_beta);
     v_alpha_gain = v_log_alpha_gain;v_beta_gain = exp(v_log_beta_gain);
@@ -86,11 +88,13 @@ while (changes > epsilon & iter<maxit)
         % Draw samples from the variational distribution given the current
         % parameters
         temp=normrnd(v_alpha,v_beta,[n_cell 1]);
+        logit_gamma=temp;
         gamma_slab = exp(temp)./(1+exp(temp))*(1-C_threshold) +C_threshold;
         gamma_sample = gamma_slab;
         gamma_sample = max(gamma_sample,C_threshold+0.001);
         gamma_sample = min(gamma_sample,1-0.001);
         temp=normrnd(v_alpha_gain,v_beta_gain,[n_cell 1]);
+        logit_gain=temp;
         gain_sample = exp(temp)./(1+exp(temp))*(gain_bound.up-gain_bound.low) +gain_bound.low;
         % to avoid singularity
         gain_sample = max(gain_sample,gain_bound.low+0.001);
@@ -103,8 +107,6 @@ while (changes > epsilon & iter<maxit)
         
         % Calculate the probability of the variational distribution given the
         % current sample of gamma & gain
-        logit_gamma = log( 1./ ( (1-C_threshold)./(gamma_sample-C_threshold)-1 ));
-        logit_gain = log( 1./ ( (gain_bound.up-gain_bound.low)./(gain_sample-gain_bound.low) -1 ));
         logprior(:,s)=log(max(0.001,prior_params.pi0)).*(gamma_sample==0)+...
             log(max(0.001, 1-prior_params.pi0)).*(gamma_sample>0)+ ...
             (gamma_sample>0).*log( min(1000,max(0.0001,...
@@ -119,9 +121,6 @@ while (changes > epsilon & iter<maxit)
         
         % Calculate the probability of the variational distribution given the
         % current sample of gamma & gain
-        logit_gamma = log( 1./ ( (1-C_threshold)./(gamma_sample-C_threshold)-1 ));
-        logit_gain = log( 1./ ( (gain_bound.up-gain_bound.low)./(gain_sample-gain_bound.low) -1 ));
-        
         logvariational(:,s)=log( min(1000,max(0.0001,...
             normpdf(logit_gamma,v_alpha,v_beta)./(gamma_sample.*(1-gamma_sample))/(1-C_threshold)  )))...
             +log( min(1000,max(0.0001,...
@@ -209,23 +208,27 @@ while (changes > epsilon & iter<maxit)
             quick_cov(h_beta(i_cell,:),h_beta(i_cell,:))+...
             quick_cov(h_alpha_gain(i_cell,:),h_alpha_gain(i_cell,:))+...
             quick_cov(h_beta_gain(i_cell,:),h_beta_gain(i_cell,:))...
-            );
-        %v_pi = v_pi+eta*mean(dELBOdpi,2);
-        if iter < 20
-            v_log_alpha(i_cell) = v_log_alpha(i_cell)+eta_beta*mean(f_alpha(i_cell,:)-a_constant*h_alpha(i_cell,:));
-            v_log_beta(i_cell) = v_log_beta(i_cell)+eta_beta*mean(f_beta(i_cell,:)-a_constant*h_beta(i_cell,:));
-            v_log_alpha_gain(i_cell) = v_log_alpha_gain(i_cell)+...
-                eta_beta*mean(f_alpha_gain(i_cell,:)-a_constant*h_alpha_gain(i_cell,:));
-            v_log_beta_gain(i_cell) = v_log_beta_gain(i_cell)+...
-                eta_beta*mean(f_beta_gain(i_cell,:)-a_constant*h_beta_gain(i_cell,:));
-        else
-            v_log_alpha(i_cell) = v_log_alpha(i_cell)+(eta_beta/sqrt(iter*log(iter)))*mean(f_alpha(i_cell,:)-a_constant*h_alpha(i_cell,:));
-            v_log_beta(i_cell) = v_log_beta(i_cell)+(eta_beta/sqrt(iter*log(iter)))*mean(f_beta(i_cell,:)-a_constant*h_beta(i_cell,:));
-            v_log_alpha_gain(i_cell) = v_log_alpha_gain(i_cell)+...
-                (eta_beta/sqrt(iter*log(iter)))*mean(f_alpha_gain(i_cell,:)-a_constant*h_alpha_gain(i_cell,:));
-            v_log_beta_gain(i_cell) = v_log_beta_gain(i_cell)+...
-                (eta_beta/sqrt(iter*log(iter)))*mean(f_beta_gain(i_cell,:)-a_constant*h_beta_gain(i_cell,:));
-        end
+            +0.01); 
+           
+    grad_alpha = (eta_beta/sqrt(iter*log(iter)))*mean(f_alpha(i_cell,:)-a_constant*h_alpha(i_cell,:));
+    grad_beta = (eta_beta/sqrt(iter*log(iter)))*mean(f_beta(i_cell,:)-a_constant*h_beta(i_cell,:));
+    grad_alpha_gain=(eta_beta/sqrt(iter*log(iter)))*mean(f_alpha_gain(i_cell,:)-a_constant*h_alpha_gain(i_cell,:));
+    grad_beta_gain=(eta_beta/sqrt(iter*log(iter)))*mean(f_beta_gain(i_cell,:)-a_constant*h_beta_gain(i_cell,:));
+    grad_max = max(abs([grad_alpha grad_beta grad_alpha_gain grad_beta_gain]));
+    
+    if grad_max > eta_max
+        grad_scale= grad_max/eta_max;
+        grad_alpha = grad_alpha/grad_scale;
+        grad_beta = grad_beta/grad_scale;
+        grad_alpha_gain=grad_alpha_gain/grad_scale;
+        grad_beta_gain=grad_beta_gain/grad_scale;
+    end
+    
+    v_log_alpha(i_cell) = v_log_alpha(i_cell)+grad_alpha;
+    v_log_beta(i_cell) = v_log_beta(i_cell)+grad_beta;
+    v_log_alpha_gain(i_cell) = v_log_alpha_gain(i_cell)+grad_alpha_gain;
+    v_log_beta_gain(i_cell) = v_log_beta_gain(i_cell)+grad_beta_gain;    
+    
     end
     %     fprintf('Gradients obtained;');
     
@@ -258,15 +261,3 @@ while (changes > epsilon & iter<maxit)
 end
 
 end
-
-%% Debug section:
-%  [mean_gamma_temp, var_gamma_temp] = calculate_posterior_mean(...
-%         parameter_history.alpha(:,end),parameter_history.beta(:,end),0,1);
-%     [mean_gain_temp, var_gain_temp] = calculate_posterior_mean(...
-%         parameter_history.alpha_gain(:,end),parameter_history.beta_gain(:,end),gain_bound.low,gain_bound.up);
-%    
-% %
-% gamma_truth
-% mean_gamma_temp
-% gain_truth
-% mean_gain_temp

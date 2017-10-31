@@ -18,7 +18,7 @@ for i_stim = 1:num_stim_grid
         temp_trace(i_t) = temp2*temp1;
     end
     v_trace{i_stim}=temp_trace;
-    fprintf('%d voltage grid done;\n', i_stim);
+%     fprintf('%d voltage grid done;\n', i_stim);
 end
 
 delay_prob = zeros(delay_params.n_grid+1,1);
@@ -38,17 +38,12 @@ min_delay = 0;max_delay = delay_params.n_grid;
 % Evaluate the probability given the gain_grid
 prob_trace=zeros(num_stim_grid,n_grid);
 
-prob_firing=zeros([n_grid,1]);
-prob_first_spike=zeros([n_grid,1]);
-prob_first_spike_delayed=zeros([n_grid,1]);
-
 for i_stim = 1:num_stim_grid
     v_trace_one=v_trace{i_stim};
-    gain_one=cell_params.gain_template;
-    v_th_known_one=cell_params.v_th_known;
-    [prob_first_spike_delayed] = voltage_to_prob(gain_one,  v_trace_one,...
-        v_th_known_one,linkfunc,delay_params,min_delay,max_delay,delay_prob);
-    
+    optical_gain=cell_params.optical_gain;
+    v_thresh=cell_params.v_thresh;
+    [prob_first_spike_delayed] = voltage_to_prob(optical_gain,  v_trace_one,...
+        v_thresh,linkfunc,delay_params,min_delay,max_delay,delay_prob);
     prob_trace(i_stim,:) =prob_first_spike_delayed;
 end
 
