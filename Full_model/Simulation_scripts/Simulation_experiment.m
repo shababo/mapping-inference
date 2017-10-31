@@ -2,8 +2,10 @@
 iter=1;
 n_trials=0;
 tic
-tstart=toc;
 mpp_undefined=struct([]);mpp_connected=struct([]);
+computing_time=struct;
+computing_time(1).multi=[];
+computing_time(1).single=[];
 while ((n_trials < trial_max))
     
     variational_params=struct;
@@ -56,8 +58,11 @@ while ((n_trials < trial_max))
         n_trials=n_trials+length(mpp_temp);
     end
     
+    
+    
     %-------
     % Conduct trials on group C, the potentially connected cells
+    
     if num_trials_connected>0
         % Find cells with close to zero gammas
         cell_list= find(connected_cells{iter});
@@ -88,6 +93,7 @@ while ((n_trials < trial_max))
     variational_params_path(iter+1,:)=variational_params_path(iter,:);
     parameter_path(iter+1,:)=parameter_path(iter,:);
     
+tstart=toc;
     %------------------------------------------------------%
     % Fit VI on Group A: the undefined cells
     if sum(undefined_cells{iter})>0
@@ -127,13 +133,16 @@ while ((n_trials < trial_max))
         
         %----------------------------------------%
     end
+     tend=toc;
+computing_time(1).multi(iter)=tend-tstart;
+computing_time(1).single=[];
     %-------------------------------------------------------------%
     
   
     %----------------------------------------------%
     % Fit the VI on group C: potentially connected cells
     % This step is different, we shoul fit each neuron seperately if possible
-    
+     tstart=toc;
     if sum(connected_cells{iter})>0
         indicators_all = find(ismember([mpp_connected(:).batch],iter-(0:num_trace_back) ));
         mpp_all=mpp_connected(indicators_all);
@@ -175,6 +184,8 @@ while ((n_trials < trial_max))
             
         end
     end
+    tend=toc;
+    computing_time(1).single(iter)=tend-tstart;
     
     
     
@@ -219,7 +230,7 @@ while ((n_trials < trial_max))
             disconnected_to_dead=find(disconnected_indicators & disconnected_cells{iter});
             disconnected_to_connected=find( (~disconnected_indicators) & disconnected_cells{iter});
         else
-            disconnected_to_dead=find(disconnected_cells_current);
+            disconnected_to_dead=find(disconnected_cells{iter});
             disconnected_to_connected=[];
         end
     end
@@ -235,39 +246,3 @@ while ((n_trials < trial_max))
     fprintf('Number of trials: %d; Number of disconnected cells: %d; Number of connected cells: %d\n',n_trials,...
         sum(dead_cells{iter}),sum(alive_cells{iter}))
 end
-tend=toc;
-total_computing_time= tend-tstart;
-
-%%
-% find(connected_cells{iter})
-% gamma_path(find(connected_cells{iter}),end)
-% gamma_related(find(connected_cells{iter}))
-% low_quantile_gamma_path(find(connected_cells{iter}),end)
-% up_quantile_gamma_path(find(connected_cells{iter}),end)
-% 
-%%
-% length(find(dead_cells{iter}))
-% gamma_related(find(dead_cells{iter}))
-% up_quantile_gamma_path(find(dead_cells{iter}),end)
-% 
-% %%
-% 
-% find(alive_cells{iter})
-% gamma_related(find(alive_cells{iter}))
-% gamma_path(find(alive_cells{iter}),end)
-% 
-% gain_related(find(alive_cells{iter}))
-% gain_path(find(alive_cells{iter}),end)
-% var_gain_path(find(alive_cells{iter}),end)
-% 
-% low_quantile_gamma_path(find(alive_cells{iter}),end)
-% up_quantile_gamma_path(find(connected_cells{iter}),end)
-% 
-% %%
-% connected_index = find(gamma_related>0);
-% gamma_related(connected_index)
-% gain_related(connected_index)
-% 
-% up_quantile_gamma_path(connected_index,end)
-% low_quantile_gamma_path(connected_index,end)
-
