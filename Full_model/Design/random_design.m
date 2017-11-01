@@ -255,17 +255,18 @@ else
                     
                 else % optimized stimulation
                     this_trial_powers(1,i_spot)=power_optimal(temp_index);
-                end
                 
                 
                 % with probability proportional to its gamma, jitter the
                 % power:
-                if rand(1) < mean_gamma(i_cell)
+                if rand(1) < mean_gamma(temp_index)
                     this_trial_powers(1,i_spot)=...
                         fire_stim_threshold./(pi_target(temp_index,loc_optimal(temp_index))...
                         *gain_samples(randsample(1:n_MC_samples,1),temp_index));
                     this_trial_powers(1,i_spot)=max(min(power_level),min(this_trial_powers(1,i_spot),max(power_level)));
                 end
+                end
+                
                 prob_initial = ...
                     prob_initial - inner_normalized_products(remaining_cell_list,temp_loc)*prob_initial(temp_index);
                 prob_initial = max(0,prob_initial);

@@ -233,7 +233,7 @@ computing_time(1).single=[];
             disconnected_to_dead=find(disconnected_indicators & disconnected_cells{iter});
             disconnected_to_connected=find( (~disconnected_indicators) & disconnected_cells{iter});
         else
-            disconnected_to_dead=find(disconnected_cells{iter});
+            disconnected_to_dead=find(disconnected_cells{iter+1});
             disconnected_to_connected=[];
         end
     end
@@ -242,7 +242,10 @@ computing_time(1).single=[];
     disconnected_cells{iter+1}(disconnected_to_dead)=0;
     disconnected_cells{iter+1}(disconnected_to_connected)=0;
     connected_cells{iter+1}(disconnected_to_connected)=1; 
-
+    
+    if (sum(dead_cells{iter+1})+sum(alive_cells{iter+1}))  == length(alive_cells{iter+1})
+    connected_cells{iter+1}(find(alive_cells{iter+1}))=1;
+    end
     
     iter=iter+1;
     
