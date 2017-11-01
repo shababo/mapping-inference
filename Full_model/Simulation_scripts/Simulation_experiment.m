@@ -236,6 +236,9 @@ computing_time(1).single=[];
             disconnected_to_dead=find(disconnected_cells{iter+1});
             disconnected_to_connected=[];
         end
+    else
+        disconnected_to_dead=[];
+        disconnected_to_connected=[];
     end
     %-------------------------------------------------------------%
     dead_cells{iter+1}(disconnected_to_dead)=1;
