@@ -140,7 +140,7 @@ tstart=toc;
     end
      tend=toc;
 computing_time(1).multi(iter)=tend-tstart;
-computing_time(1).single=[];
+
     %-------------------------------------------------------------%
     
   
