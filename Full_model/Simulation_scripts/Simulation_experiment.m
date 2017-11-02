@@ -119,9 +119,9 @@ tstart=toc;
                 lklh_func=@calculate_loglikelihood_bernoulli;
             case 2% working model with spike & slab
                 lklh_func=@calculate_loglikelihood_bernoulli;
-            case 3 % full model with first event time
+            case 3 % full model with first spike
                 lklh_func=@lif_glm_firstspike_loglikelihood_for_VI;
-            case 4 % full model:
+            case 4 % full model with first event 
                 lklh_func=@lif_glm_firstevent_loglikelihood_for_VI;
             otherwise
         end

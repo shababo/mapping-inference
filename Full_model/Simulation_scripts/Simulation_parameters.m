@@ -66,7 +66,6 @@ end
 
 %% Select one plane as the primary plane
 %
-this_plane =4;
 n_cell_this_plane=sum([cell_params(:).group]==this_plane);
 target_cell_list=struct([]);
 target_cell_list(1).primary=find([cell_params(:).group]==this_plane);
