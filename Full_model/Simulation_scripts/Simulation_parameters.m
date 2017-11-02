@@ -14,7 +14,7 @@ switch cell_parameters_type
         gamma_truth = (rand([n_cell 1])<connected_proportion).*(0.5+0.3*rand([n_cell 1]));
         gain_truth=0.02+(rand([n_cell 1])-0.5)*0.01;
         disp('normal gains and gammas')
-    case 2 %
+    case 2 % normal gamma, extreme gains 
         gain_bound_truth.up=0.03;gain_bound_truth.low=0.005;
        
         gamma_truth = (rand([n_cell 1])<connected_proportion).*(0.5+0.3*rand([n_cell 1]));
@@ -24,19 +24,15 @@ switch cell_parameters_type
             gain_bound_truth.low;
         gain_truth=max(gain_bound_truth.low+0.0005,gain_truth);
         disp('log-normal gains, normal gammas')
-    case 3 %
-        weak_gamma_proportion=1;
+    case 3 % weak gamma, normal gains
+        weak_gamma_proportion=0.5; % some gammas are small 
         gamma_truth = (rand([n_cell 1])<connected_proportion).*(0.5+0.3*rand([n_cell 1]));
         n_connected=sum(gamma_truth>0);
         weak_index=randsample(find(gamma_truth>0), floor(weak_gamma_proportion*n_connected));
         gamma_truth(weak_index)=(0.15+0.1*rand([length(weak_index) 1]));
         gain_truth=0.02+(rand([n_cell 1])-0.5)*0.01;
         disp('normal gains, many weak gammas')
-    otherwise
         
-        gamma_truth = (rand([n_cell 1])<connected_proportion).*(0.5+0.3*rand([n_cell 1]));
-        gain_truth=0.02+(rand([n_cell 1])-0.5)*0.01;
-        disp('No inputs, use normal gains')
 end
 
 
