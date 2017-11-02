@@ -47,7 +47,7 @@ n_MC_samples=50;
 num_trials_per_batch=200;
 % tuning parameter: prior_info_type;
 run('./Simulation_tuning.m')
-
+spike_indicator=false;
 %%
 
 disconnected_params=struct([]);
