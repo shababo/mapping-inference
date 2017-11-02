@@ -47,6 +47,14 @@ else
     design_type_single = 1;
 end
 
+
+if length(varargin) > 6&& ~isempty(varargin{7})
+    weighted_design  = varargin{7};
+else
+    weighted_design = 1;
+end
+
+
 pockels_ratio_refs = [];
 pockels_ratios = [];
 
@@ -56,13 +64,18 @@ loc_counts=zeros(n_remaining_cell,1);
     [variational_params(remaining_cell_list).alpha],[variational_params(remaining_cell_list).beta],...
     gamma_bound.low,gamma_bound.up);
 mean_gamma=mean_gamma.*( 1./(exp([variational_params(remaining_cell_list).p_logit])+1));
-
+if weighted_design 
+   probability_weights = 1-mean_gamma;
+     
+else
+    probability_weights =ones(n_remaining_cell,1);
+end
+    
+    
 if n_spots_per_trial==1
     trials_locations=[];
     trials_powers=[];
-    %   probability_weights =ones(n_remaining_cell,1);
-    probability_weights =1-mean_gamma;
-    % Assign the amount of trials per cell based on their weights:
+     % Assign the amount of trials per cell based on their weights:
     num_trials_per_cell = round(num_trials*probability_weights/sum(probability_weights));
     num_trials_per_cell(num_trials_per_cell<K)=K;
     if design_type_single==1
@@ -197,7 +210,6 @@ else
     
     % Set the probability to be inversely proportional to the
     % gamma_estimates, since we want to eliminate more disconnected cells
-    probability_weights = 1-mean_gamma;
     pockels_ratios = zeros(num_trials,n_spots_per_trial);
     for i_trial = 1:num_trials
         prob_initial = probability_weights;
