@@ -275,10 +275,6 @@ else
                         *gain_samples(randsample(1:n_MC_samples,1),temp_index));
                     this_trial_powers(1,i_spot)=max(min(power_level),min(this_trial_powers(1,i_spot),max(power_level)));
                 end
-                    
-                else % otherwise
-                    this_trial_powers(1,i_spot)=randsample(power_level,1,true);
-                
                 end
                 
                 prob_initial = ...

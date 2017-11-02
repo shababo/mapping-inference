@@ -121,6 +121,8 @@ tstart=toc;
                 lklh_func=@calculate_loglikelihood_bernoulli;
             case 3 % full model with first event time
                 lklh_func=@lif_glm_firstspike_loglikelihood_for_VI;
+            case 4 % full model:
+                lklh_func=@lif_glm_firstevent_loglikelihood_for_VI;
             otherwise
         end
         [parameter_history] = fit_VI(...

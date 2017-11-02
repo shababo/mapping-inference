@@ -25,10 +25,11 @@ else
         prob_combs(j)=prod(cond_prob);
     end
     likelihood = sum(prob_combs);
-    if likelihood< 1e-20
+    
+end
+if likelihood< 1e-20
         likelihood=1e-20;
     end
-end
 loss=log(likelihood);
 end
 
