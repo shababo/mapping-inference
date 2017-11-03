@@ -13,7 +13,7 @@ switch spatial_density %
     case 3 % simulate twice as many neurons
         n_extra=ceil(n_cell);    
 end
-distance_neighbour=10; 
+
 
 extra_locations = 2*pi*rand(n_extra,3); % only need the first two columns 
 for i= 1:n_extra
