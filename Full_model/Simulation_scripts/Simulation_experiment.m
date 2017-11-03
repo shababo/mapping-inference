@@ -37,12 +37,23 @@ while ((n_trials < trial_max))
        break; 
         
     end
-    
+    if cell_killing==2
+        num_trials_undefined=num_trials_per_batch;
+        num_trials_connected=0;
+    elseif cell_killing==3
+        num_trials_undefined=0;
+        num_trials_connected=num_trials_per_batch;
+    end
     %---------------------------------------------%
     % Design and conduct trials
     % Undefined cells
     if num_trials_undefined>0
         cell_list=find(undefined_cells{iter});
+        
+        if cell_killing==2
+           cell_list=1:n_cells_this_plane; 
+        end
+        
         [trials_locations, trials_powers] = random_design(...
             num_trials_undefined, target_locations,power_level,loc_to_cell,related_cell_list,cell_list,...
             pi_target, inner_normalized_products,...
@@ -69,6 +80,10 @@ while ((n_trials < trial_max))
     if num_trials_connected>0
         % Find cells with close to zero gammas
         cell_list= find(connected_cells{iter});
+          
+        if cell_killing==3
+           cell_list=1:n_cells_this_plane; 
+        end
         [trials_locations,  trials_powers] = random_design(...
                  num_trials_connected, target_locations_nuclei,power_level,loc_to_cell_nuclei,...
                  related_cell_list,cell_list,pi_target_nuclei, [],...
@@ -99,7 +114,7 @@ while ((n_trials < trial_max))
 tstart=toc;
     %------------------------------------------------------%
     % Fit VI on Group A: the undefined cells
-    if sum(undefined_cells{iter})>0
+    if num_trials_undefined>0
         % Find stimulated cells in these trials
         
         indicators_remained = find(ismember([mpp_undefined(:).batch],iter-(0:num_trace_back) ));
@@ -139,7 +154,7 @@ tstart=toc;
         %----------------------------------------%
     end
      tend=toc;
-computing_time(1).multi(iter)=tend-tstart;
+     computing_time(1).multi(iter)=tend-tstart;
 
     %-------------------------------------------------------------%
     
@@ -148,14 +163,17 @@ computing_time(1).multi(iter)=tend-tstart;
     % Fit the VI on group C: potentially connected cells
     % This step is different, we shoul fit each neuron seperately if possible
      tstart=toc;
-    if sum(connected_cells{iter})>0
+    if num_trials_connected>0
         indicators_all = find(ismember([mpp_connected(:).batch],iter-(0:num_trace_back) ));
         mpp_all=mpp_connected(indicators_all);
         trials_locations=reshape([mpp_all(:).locations],1,[])';
         trials_powers=reshape([mpp_all(:).power],1,[])';
         stim_all = get_stim_size(pi_target_nuclei,trials_locations,trials_powers);
         cell_list= find(connected_cells{iter});
-       
+        if cell_killing==3
+           cell_list=1:n_cells_this_plane; 
+        end
+      
         [clusters_of_cells] = find_clusters(stim_all, cell_list,stim_threshold);
         % Now fit the vi model for each of the cluster:
         
@@ -204,9 +222,9 @@ computing_time(1).multi(iter)=tend-tstart;
         end
         
     end     
-
     
-[new_list]= move_cells(...
+    
+    [new_list]= move_cells(...
         connected_threshold,disconnected_threshold,single_spot_threshold,multispot_change_threshold,...
         dead_cells{iter},disconnected_cells{iter},undefined_cells{iter},connected_cells{iter},alive_cells{iter},...
         variational_params_path, parameter_path,assignment_type);
@@ -215,7 +233,7 @@ computing_time(1).multi(iter)=tend-tstart;
     undefined_cells{iter+1}=new_list.undefined_cells;
     connected_cells{iter+1}=new_list.connected_cells;
     alive_cells{iter+1}= new_list.alive_cells;
-    dead_cells{iter+1}=new_list.dead_cells; 
+    dead_cells{iter+1}=new_list.dead_cells;
     % Note: disconnected cells are determined to be dead if they pass the
     % following test:
     
