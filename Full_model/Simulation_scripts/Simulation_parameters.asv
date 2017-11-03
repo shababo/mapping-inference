@@ -13,17 +13,18 @@ switch spatial_density %
     case 3 % simulate twice as many neurons
         n_extra=ceil(n_cell);    
 end
-distance_neighbour=10; 
 
-extra_locations = 2*pi*rand(n_extra,3); % o
+
+extra_locations = 2*pi*rand(n_extra,3); % only need the first two columns 
 for i= 1:n_extra
     temp_cell=randsample(1:n_cell,1);
-    extra_locations(i,:)=cell_locations(i,:)+ [ ];
+    extra_locations(i,:)=cell_locations(temp_cell,:)+ ...
+        distance_neighbour*[sin(extra_locations(i,1))*sin(extra_locations(i,2)),cos(extra_locations(i,1))*sin(extra_locations(i,2)),cos(extra_locations(i,2))];
 end
 
-for i=1:3
-    extra_locations(:,i)=extra_locations(:,i)*range(cell_locations(:,i))+min(cell_locations(:,i));
-end
+% for i=1:3
+%     extra_locations(:,i)=extra_locations(:,i)*range(cell_locations(:,i))+min(cell_locations(:,i));
+% end
 
 cell_locations=[cell_locations;extra_locations];
 
@@ -93,6 +94,15 @@ for i_cell = 1:size(cell_locations,1)
     cell_params(i_cell).group= sum(cell_locations(i_cell,3)>z_thresholds)+1;
 end
 
+%% Calculate the z-planes:
+z_planes=zeros(n_planes,1);
+for i_plane = 1:n_planes
+    
+    temp_loc=reshape([cell_params([cell_params(:).group]==i_plane ).location],3,[])';
+    z_planes(i_plane)= mean(temp_loc(:,3)); 
+    
+end
+
 %% Select one plane as the primary plane
 %
 n_cell_this_plane=sum([cell_params(:).group]==this_plane);
@@ -102,6 +112,8 @@ target_cell_list(1).primary=find([cell_params(:).group]==this_plane);
 % include also the cells in neighbouring planes to account for their inputs
 % neighbour_plane = [this_plane-1 this_plane+1];
 % target_cell_list(1).secondary=find(ismember([cell_params(:).group],neighbour_plane));
+
+% Include cells that are close to the chosen plane:
 
 target_cell_list(1).secondary=[];
 %% For simulation

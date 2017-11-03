@@ -86,7 +86,6 @@ end
 
 %% Put the cells into ten non-overlapping groups by their z-coordinates
 
-n_planes = 10;
 z_thresholds = quantile(cell_locations(:,3), (1:(n_planes))*0.1);
 % alternatively, the thresholds can be determined by absolute depths
 
@@ -94,6 +93,20 @@ for i_cell = 1:size(cell_locations,1)
     cell_params(i_cell).group= sum(cell_locations(i_cell,3)>z_thresholds)+1;
 end
 
+%% Calculate the z-planes:
+z_planes=zeros(n_planes,1);
+for i_plane = 1:n_planes
+    
+    temp_loc=reshape([cell_params([cell_params(:).group]==i_plane ).location],3,[])';
+    z_planes(i_plane)= mean(temp_loc(:,3)); 
+end
+
+related_cells_by_plane=cell([n_planes,1]);
+temp_loc=reshape([cell_params(:).location],3,[])';
+all_z=temp_loc(:,3);
+for i_plane = 1:n_planes
+    related_cells_by_plane{i_plane}= find( abs(all_z-z_planes(i_plane))<distance_plane  ); 
+end
 %% Select one plane as the primary plane
 %
 n_cell_this_plane=sum([cell_params(:).group]==this_plane);
@@ -104,7 +117,11 @@ target_cell_list(1).primary=find([cell_params(:).group]==this_plane);
 % neighbour_plane = [this_plane-1 this_plane+1];
 % target_cell_list(1).secondary=find(ismember([cell_params(:).group],neighbour_plane));
 
-target_cell_list(1).secondary=[];
+% Include cells that are close to the chosen plane:
+
+target_cell_list(1).secondary=setdiff(related_cells_by_plane{this_plane},target_cell_list(1).primary);
+
+
 %% For simulation
 % related_cell_list=[target_cell_list.primary; target_cell_list.secondary];
 % v_th_known_related= v_th_known(related_cell_list);
