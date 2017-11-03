@@ -10,14 +10,21 @@ switch spatial_density %
         n_extra=0;
     case 2 % simulate 50% more neurons
         n_extra=ceil(n_cell/2);
-        
     case 3 % simulate twice as many neurons
-        n_extra=ceil(n_cell);
+        n_extra=ceil(n_cell);    
 end
-extra_locations = rand(n_extra,3);
-for i=1:3
-    extra_locations(:,i)=extra_locations(:,i)*range(cell_locations(:,i))+min(cell_locations(:,i));
+distance_neighbour=10; 
+
+extra_locations = 2*pi*rand(n_extra,3); % only need the first two columns 
+for i= 1:n_extra
+    temp_cell=randsample(1:n_cell,1);
+    extra_locations(i,:)=cell_locations(temp_cell,:)+ ...
+        distance_neighbour*[sin(extra_locations(i,1))*sin(extra_locations(i,2)),cos(extra_locations(i,1))*sin(extra_locations(i,2)),cos(extra_locations(i,2))];
 end
+
+% for i=1:3
+%     extra_locations(:,i)=extra_locations(:,i)*range(cell_locations(:,i))+min(cell_locations(:,i));
+% end
 
 cell_locations=[cell_locations;extra_locations];
 
