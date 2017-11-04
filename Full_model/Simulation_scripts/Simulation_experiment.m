@@ -171,7 +171,7 @@ tstart=toc;
         stim_all = get_stim_size(pi_target_nuclei,trials_locations,trials_powers);
         cell_list= find(connected_cells{iter});
         if cell_killing==3
-           cell_list=1:n_cells_this_plane; 
+           cell_list=1:length(undefined_cells{iter});
         end
       
         [clusters_of_cells] = find_clusters(stim_all, cell_list,stim_threshold);
