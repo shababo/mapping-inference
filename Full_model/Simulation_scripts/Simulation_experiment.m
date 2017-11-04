@@ -51,7 +51,7 @@ while ((n_trials < trial_max))
         cell_list=find(undefined_cells{iter});
         
         if cell_killing==2
-           cell_list=1:n_cells_this_plane; 
+           cell_list=1:length(undefined_cells{iter});
         end
         
         [trials_locations, trials_powers] = random_design(...
@@ -82,7 +82,7 @@ while ((n_trials < trial_max))
         cell_list= find(connected_cells{iter});
           
         if cell_killing==3
-           cell_list=1:n_cells_this_plane; 
+           cell_list=1:length(undefined_cells{iter});
         end
         [trials_locations,  trials_powers] = random_design(...
                  num_trials_connected, target_locations_nuclei,power_level,loc_to_cell_nuclei,...
@@ -182,6 +182,8 @@ tstart=toc;
             % find the trials that are relevant to thiscell
             active_trials=find(sum(stim_all(:,cell_list(clusters_of_cells{i_cluster})),2)>stim_threshold);
             neighbour_list= find(sum(stim_all(active_trials,:)>stim_threshold,1)>0);
+            if ~isempty(neighbour_list)
+                
             variational_params=variational_params_path(iter,neighbour_list);
             prior_params=variational_params_path(max(iter-num_trace_back,1),neighbour_list);
             designs_remained=stim_all(active_trials,neighbour_list);
@@ -193,6 +195,7 @@ tstart=toc;
             else
                 spike_indicator=false;
             end
+            
             [parameter_history] = fit_VI(...
                 designs_remained, mpp_remained, background_rate, ...
                 prob_trace_full,stim_scale,minimum_stim_threshold,...
@@ -204,7 +207,7 @@ tstart=toc;
             
             [parameter_temp] = calculate_posterior(parameter_history(end,:),gamma_bound,gain_bound,quantiles_prob,spike_indicator);
             parameter_path(iter+1,neighbour_list)=parameter_temp;
-            
+            end
         end
     end
     tend=toc;
