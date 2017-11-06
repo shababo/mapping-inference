@@ -119,7 +119,7 @@ target_cell_list(1).primary=find([cell_params(:).group]==this_plane);
 
 % Include cells that are close to the chosen plane:
 
-target_cell_list(1).secondary=setdiff(related_cells_by_plane{this_plane},target_cell_list(1).primary);
+target_cell_list(1).secondary=setdiff(related_cells_by_plane{this_plane},target_cell_list(1).primary)';
 
 
 %% For simulation

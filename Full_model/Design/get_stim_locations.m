@@ -22,7 +22,7 @@ else
 end
 
 % The list of all related cells :
-related_cell_list=[target_cell_list.primary; target_cell_list.secondary]; 
+related_cell_list=[target_cell_list.primary target_cell_list.secondary]; 
 related_cell_params=cell_params(related_cell_list);
 cell_template = struct();
 cell_template.shape= shape_template;
