@@ -16,7 +16,7 @@ n_cell_this_plane = data.design.n_cell_this_plane;
 % power_nuclei = data.cells_targets.power_nuclei{i};
 % pi_target_nuclei = data.cells_targets.pi_target_nuclei{i};
 % loc_to_cell_nuclei = data.cells_targets.loc_to_cell_nuclei{i};
-
+% params.time.max_time=500;params.time.min_time = 60;
 oasis_data = data.oasis_data;
 if ~params.design.do_connected_vi
     full_seq = data.full_seq([data.full_seq.group] ~= 3);
@@ -100,7 +100,7 @@ if sum(data.design.undefined_cells{i}{data.design.iter})>0
     lklh_func=@calculate_likelihood_bernoulli;
     % calculate_likelihood_bernoulli for multiple events 
     [parameter_history] = fit_working_model_vi_gain(...
-        designs_remained,mpp_remained,params.design.background_rt, ...
+        designs_remained,mpp_remained,params.bg_rate, ...
         params.template_cell.prob_trace_full,params.stim_grid,...
         params.stim_scale,params.eff_stim_threshold,params.design.gain_bound,...
         variational_params,prior_params,params.design.C_threshold,params.design.stim_threshold,...
@@ -144,7 +144,7 @@ if sum(data.design.potentially_disconnected_cells{i}{data.design.iter})>0
         variational_params(i_cell_idx).beta_gain = data.design.variational_params_path{i}.beta_gain(i_cell,data.design.iter);
     end
 
-    prior_params.pi0= [variational_params(:).pi]';
+    prior_params.pi0= 0.01*ones(length(cell_list),1);%[variational_params(:).pi]';
     prior_params.alpha0= [variational_params(:).alpha]';
     prior_params.beta0 = [variational_params(:).beta]';
     prior_params.alpha0_gain= [variational_params(:).alpha_gain]';
@@ -159,8 +159,8 @@ if sum(data.design.potentially_disconnected_cells{i}{data.design.iter})>0
 
     lklh_func=@calculate_likelihood_bernoulli;
     designs_neighbours=[];        gamma_neighbours=[];         gain_neighbours=[];
-    [parameter_history,~] = fit_working_model_vi_gain(...
-        designs_remained,mpp_remained,params.design.background_rt, ...
+    [parameter_history] = fit_working_model_vi_gain(...
+        designs_remained,mpp_remained,params.bg_rate, ...
         params.template_cell.prob_trace_full,params.stim_grid,...
         params.stim_scale,params.eff_stim_threshold,params.design.gain_bound,...
         variational_params,prior_params,params.design.C_threshold,params.design.stim_threshold,...
@@ -208,7 +208,7 @@ if sum(data.design.potentially_connected_cells{i}{data.design.iter})>0
     if sum(data.design.potentially_connected_cells{i}{data.design.iter})>1
         % Use inner product:
         adj_corr= abs( designs_remained'*designs_remained)./size(designs_remained,1);
-        adj_corr=1*(adj_corr> (params.eff_stim_threshold/params.template_cell.gain_template/2)^2);
+        adj_corr=1*(adj_corred> (params.eff_stim_threshold/params.template_cell.gain_template/2)^2);
 
         cc_corr=expm(adj_corr);
         cell_cluster_ind=zeros(length(cell_list),1);

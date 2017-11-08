@@ -28,7 +28,7 @@ params.bg_rate = 1e-4;
 
 %----------- Load the current template
 load('chrome-template-3ms.mat');
-params.time.downsamp=1;params.time.max_time=300;params.time.min_time = 45;
+params.time.downsamp=1;params.time.max_time=500;params.time.min_time = 60;
 params.current_template=template(1:params.time.downsamp:params.time.max_time);
 params.t_vect= 1:1:params.time.max_time;
 
@@ -45,8 +45,9 @@ load('l23_template_cell.mat');
 temp=l23_average_shape;temp_max = max(max(max(temp)));
 params.template_cell.shape_template=temp/temp_max;
 params.stim_scale=4/params.template_cell.gain_template;
-params.stim_grid = (1:1000)/params.stim_scale;
+params.stim_grid = (1:1000)/params.stim_scale/params.template_cell.gain_template;
 params.stim_unique = (1:1000)/params.stim_scale/params.template_cell.gain_template;
+
 
 % [params.template_cell.prob_trace]=get_firing_probability(...
 %     params.template_cell.linkfunc,params.current_template,params.stim_unique,params.template_cell,params.delay);
@@ -61,8 +62,8 @@ params.stim_unique = (1:1000)/params.stim_scale/params.template_cell.gain_templa
 params.template_cell.prob_trace=sum(params.template_cell.prob_trace_full,2);
 %
 % params.eff_stim_threshold=params.stim_grid(min(find(sum(params.template_cell.prob_trace_full,2)>1e-1)));
-params.eff_stim_threshold=params.stim_grid(min(find(params.template_cell.prob_trace>0.01)));
-params.fire_stim_threshold=params.stim_grid(min(find(params.template_cell.prob_trace>0.99)));
+params.eff_stim_threshold=params.stim_grid(min(find(params.template_cell.prob_trace>0.01)))*params.template_cell.gain_template;
+params.fire_stim_threshold=params.stim_grid(min(find(params.template_cell.prob_trace>0.99)))*params.template_cell.gain_template;
 
 %----------- Design parameters
 params.design.num_groups = 3;
@@ -70,10 +71,10 @@ params.design.n_spots_per_trial = 3;
 params.design.n_replicates=1; 
 params.design.K_undefined=8; 
 params.design.K_disconnected=12; 
-params.design.K_connected=8; 
+params.design.K_connected=4; 
 params.design.reps_undefined_single=8;
 params.design.reps_disconnected_single=12;
-params.design.reps_connected=2;
+params.design.reps_connected=4;
 
 params.design.stim_loc_type = 1;
 params.r1=5;params.r2=10;

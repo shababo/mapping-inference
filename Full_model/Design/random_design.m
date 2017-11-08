@@ -51,6 +51,7 @@ if n_remaining_cell < single_spot_threshold || n_spots_per_trial==1
             
             trials_locations(n_replicates*K*(i_cell-1)+(1:(n_replicates*K)),:)=...
                 reshape(repmat(trials_temp,1,n_replicates),[n_replicates*K 1]);
+%             randsample(power_level,n_replicates*K,true)'
             trials_powers(n_replicates*K*(i_cell-1)+(1:(n_replicates*K)),:)=...
                 randsample(power_level,n_replicates*K,true)';
             
