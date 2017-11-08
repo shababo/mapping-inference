@@ -2,9 +2,19 @@
 close all
 
 %%
-trials = 3:26;
+
+workloc = 1; % 0 is lab analysis computer, 1 is macbook pro
+switch workloc
+    case 0
+        mappingroot = '/media/shababo/data/';
+    case 1
+        mappingroot = '~/projects/mapping/data/';
+end
+
+
+trials = 1:2;
 duration = .030;
-loc_trials = {3:9,10:17,18:26};
+loc_trials = {1:2}; % each entry is a vector of trials that belong to that entry index location (e.g. {3:9,10:17,18:26})
 loc_ids = [];
 for i = 1:length(loc_trials)
     loc_ids = [loc_ids i*ones(size(loc_trials{i}))];
@@ -16,6 +26,8 @@ group_colors = [0 0 1;
                 .8 1 .8;
                 1 0 0;
                 0 1 0];
+            
+group_colors(:) = 0;
             
 group_names = {'undefined_cells','potentially_disconnected_cells',...
                 'potentially_connected_cells','dead_cells','alive_cells'};
@@ -92,7 +104,7 @@ nuc_locs_img = bsxfun(@plus,nuc_locs_img,[exp_data.image_zero_order_coord' 0]);
 nuc_locs_img(:,1:2) = nuc_locs_img(:,[2 1]);
 
 
-plot_nuclear_detect_3D(['/media/shababo/data/' exp_data.params.map_id '_stack.tif'],nuc_locs_img');
+plot_nuclear_detect_3D([mappingroot exp_data.params.map_id '_stack.tif'],nuc_locs_img');
 
 %% plot targets
 
@@ -118,7 +130,7 @@ nuc_locs_img = bsxfun(@plus,nuc_locs_img,[exp_data.image_zero_order_coord' 0]);
 nuc_locs_img(:,1:2) = nuc_locs_img(:,[2 1]);
 
 
-plot_nuclear_detect_3D(['/media/shababo/data/' exp_data.params.map_id '_stack.tif'],nuc_locs_img');
+plot_nuclear_detect_3D([mappingroot exp_data.params.map_id '_stack.tif'],nuc_locs_img');
 
 
 %%
@@ -137,7 +149,7 @@ clear mpp
 plot_oasis = 1;
 trunc_oasis = 1;
 
-count = 1;
+count = 1; 
 
 
 for i = 1:length(trials)
@@ -152,8 +164,8 @@ for i = 1:length(trials)
     
     if plot_oasis
         iter = i - length([loc_trials{1:loc_id-1}]);
-        datafilename = [map_id '_z' num2str(loc_id) '_iter' num2str(iter) '.mat'];
-        oasisfilename = [map_id '_z' num2str(loc_id) '_iter' num2str(iter) '_detect.mat'];
+        datafilename = [mappingroot map_id '_z' num2str(loc_id) '_iter' num2str(iter) '.mat'];
+        oasisfilename = [mappingroot map_id '_z' num2str(loc_id) '_iter' num2str(iter) '_detect.mat'];
         load(datafilename)
         load(oasisfilename)
         oasis_data = reshape(event_process,size(traces'))'; 

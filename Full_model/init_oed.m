@@ -1,6 +1,8 @@
 
 function params = init_oed(varargin)
 
+%params.is_sim
+
 % parameters
 if ~isempty(varargin) && ~isempty(varargin{1})
     load_map = varargin{1};
