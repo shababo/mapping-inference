@@ -1,35 +1,42 @@
-function [pi_dense,inner_normalized_products] = get_weights(...
-    A,locations,shape_mat,threshold,Z_dense)
-%% Pre-calculate the spatial marks as the stimulus convoluted with the cell shapes
-% Calculate the distance to the center of the stimulus:
-% Sum up the total effects for each cell 
-% Calculate the probability of firing for ALL neurons
-% We will use it in simulating the real spikes
-%tic;
-%tstart = toc;
-n_cell = size(locations,1);
-pi_dense = zeros(n_cell,size(Z_dense,1));
+function [pi_stim,inner_normalized_products] = get_weights(...
+    cell_params, shape_template,stim_locations,varargin)
+%
+
+if ~isempty(varargin)
+    simulation_indicator=varargin{1};
+else
+    simulation_indicator=true;
+end
+
+n_cell = length(cell_params);
+pi_stim = zeros(n_cell,size(stim_locations,1));
 for i_cell = 1:n_cell
-    center_dist = max(exp(-0.5*pdist2(locations(i_cell,:),Z_dense,'mahalanobis',A).^2));
-    % normalizing constant 
-    diff_mat_cell = pdist2(shape_mat{i_cell},locations(i_cell,:),'mahalanobis',A);
-    pi_mat = exp(-0.5*(diff_mat_cell.^2));
-    pi_norm= sum(pi_mat,1);
-    if center_dist > threshold
-        diff_mat_cell = pdist2(shape_mat{i_cell},Z_dense,'mahalanobis',A);
-        pi_dense_cell = exp(-0.5*(diff_mat_cell.^2));
-        pi_dense(i_cell,:) = sum(pi_dense_cell,1)/pi_norm;
+    
+    if simulation_indicator
+        this_cell_shape = shape_template(cell_params(i_cell).shape_truth).shape;
+    else
+        this_cell_shape = shape_template(cell_params(i_cell).shape).shape;
+    end
+    % nucleus is assumed to be at the center
+    center_idx=(size(this_cell_shape)+1)/2;
+    % Relative location to the cell
+    relative_dist = stim_locations-ones(size(stim_locations,1),1)*cell_params(i_cell).location;
+    relative_idx = round(bsxfun(@plus,relative_dist,center_idx));
+    for i_loc = 1:size(relative_idx,1)
+        condition_shape = (relative_idx(i_loc,1) > 0 & relative_idx(i_loc,1) < size(this_cell_shape,1))& ...
+            (relative_idx(i_loc,2) > 0 & relative_idx(i_loc,2) < size(this_cell_shape,2))& ...
+            (relative_idx(i_loc,3) > 0 & relative_idx(i_loc,3) < size(this_cell_shape,3));
+        if condition_shape
+            pi_stim(i_cell,i_loc)=this_cell_shape(relative_idx(i_loc,1),relative_idx(i_loc,2),relative_idx(i_loc,3));
+            if isnan(pi_stim(i_cell,i_loc))
+                pi_stim(i_cell,i_loc)=0;
+            end
+        end
     end
 end
 
-%tend= toc;
-%tend-tstart
-
-
-weights_mat_full = pi_dense;
 % Calculate the inner product of the induced probability
-inner_products = weights_mat_full'*weights_mat_full;
-
+inner_products = pi_stim'*pi_stim;
 self_products = diag(inner_products)*ones(1,size(inner_products,1));
 inner_normalized_products = inner_products./self_products;
 

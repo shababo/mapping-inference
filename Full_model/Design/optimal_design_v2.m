@@ -12,7 +12,7 @@ if i_batch  == 1
     num_sequence  = ceil(num_this_batch*num_sources/length(grid_index));
     
       idx = [];
-        
+       
         entropy_locations = ones(length(grid_index),1);
         for i = 1:num_peaks
             if i==1
@@ -35,8 +35,10 @@ if i_batch  == 1
             locations_trials(l,:)=locations_next;
             powers_trials(l,:)= randsample(1:num_power_level, num_sources,true);
             for m= 1:num_sources
-                idx_vec = powers_trials(l,m)+ (locations_next(m)-1)*num_power_level;
-                counts_freq(idx_vec)=counts_freq(idx_vec)+1;
+                %idx_vec = powers_trials(l,m)+ (locations_next(m)-1)*num_power_level;
+                %counts_freq(idx_vec)=counts_freq(idx_vec)+1;
+                
+                counts_freq(locations_next(m))=counts_freq(locations_next(m))+1;
             end
         
         end
@@ -137,6 +139,8 @@ else
         idx = [];
        
         entropy_locations = ones(length(grid_index),1);
+        weights_freq= freq_pen -counts_freq/max(counts_freq);
+             entropy_locations= weights_freq.*entropy_locations;
         for i = 1:num_peaks
             if i==1
                 temp_idx = randsample(grid_index,1);
@@ -158,8 +162,9 @@ else
             locations_trials(l,:)=locations_next;
             powers_trials(l,:)= randsample(1:num_power_level, num_sources,true);
             for m= 1:num_sources
-                idx_vec = powers_trials(l,m)+ (locations_next(m)-1)*num_power_level;
-                counts_freq(idx_vec)=counts_freq(idx_vec)+1;
+%                 idx_vec = powers_trials(l,m)+ (locations_next(m)-1)*num_power_level;
+%                 counts_freq(idx_vec)=counts_freq(idx_vec)+1;
+                counts_freq(locations_next(m))=counts_freq(locations_next(m))+1;
             end
         
         end

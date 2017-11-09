@@ -1,0 +1,16 @@
+function [good_cell] = test_celltype(parameter_path,disconnected_params,regular_params,som_params)
+%  alpha=parameter_history.alpha(:,end);
+%  beta=parameter_history.beta(:,end);
+current_gamma=[parameter_path(end,:).gamma_mean];
+logit_gamma = log(current_gamma./(1-current_gamma));
+
+log_regular=sum(log( disconnected_params.prop*normpdf(logit_gamma,disconnected_params.alpha,exp(disconnected_params.beta))./(current_gamma.*(1-current_gamma))+...
+    +regular_params.prop*normpdf(logit_gamma,regular_params.alpha,exp(regular_params.beta))./(current_gamma.*(1-current_gamma))...
+    ));
+log_som=sum(log(...
+    disconnected_params.prop*normpdf(logit_gamma,disconnected_params.alpha,exp(disconnected_params.beta))./(current_gamma.*(1-current_gamma))+...
+    +som_params.prop*normpdf(logit_gamma,som_params.alpha,exp(som_params.beta))./(current_gamma.*(1-current_gamma))...
+    ));
+good_cell=(log_regular-log_som) > log(2);
+
+end
