@@ -85,6 +85,9 @@ while (changes > epsilon && iter<maxit)
     sigma_inv3_gain= 1./(v_beta_gain.^3);
     
     for s= 1:S
+        
+        
+        
         % Draw samples from the variational distribution given the current
         % parameters
         temp=normrnd(v_alpha,v_beta,[n_cell 1]);
@@ -114,6 +117,8 @@ while (changes > epsilon && iter<maxit)
             +(gamma_sample>0).*log( min(1000,max(0.0001,...
             normpdf(logit_gain,prior_params.alpha0_gain,prior_params.beta0_gain)...
             ./( (gain_sample-gain_bound.low ).*(gain_bound.up-gain_sample)) *(gain_bound.up-gain_bound.low))));
+
+        
         %-----------------------------------------%
         % Need to change the following functions when changing the
         % variational families :
@@ -126,7 +131,7 @@ while (changes > epsilon && iter<maxit)
             +log( min(1000,max(0.0001,...
             normpdf(logit_gain,v_alpha_gain,v_beta_gain)...
             ./( (gain_sample-gain_bound.low ).*(gain_bound.up-gain_sample)) *(gain_bound.up-gain_bound.low))));
-        
+
         dqdalpha(:,s)= (-mu_by_sigma2+logit_gamma.*sigma_inv2);
         %         dqdalpha(gamma_sample==0,s)=0;
         dqdbeta(:,s)= (-sigma_inv+sigma_inv3.*(logit_gamma-v_alpha).^2).*v_beta;
@@ -143,6 +148,8 @@ while (changes > epsilon && iter<maxit)
     %     t3=toc;time_record(2)=time_record(2)+t3-t2;
     
     for s=1:S
+        
+        
         %         t3p=toc;
         gamma_sample=gamma_sample_mat(:,s);
         gain_sample=gain_sample_mat(:,s);
@@ -174,11 +181,15 @@ while (changes > epsilon && iter<maxit)
             n_events = length(mpp(i_trial).times);
             [lklh]= lklh_func(n_events,...
                 [1;gamma_temp(stimulated_cells)],prob_collapsed);
+
             
             loglklh_vec(i_trial)=log(lklh);
         end
         for i_cell = 1:n_cell
+%             i_cell
             loglklh(i_cell,s)=sum(loglklh_vec(relevant_trials{i_cell}));
+
+        
         end
         %          t6=toc;time_record(5)=time_record(5)+t6-t5;
         
@@ -227,7 +238,8 @@ while (changes > epsilon && iter<maxit)
     v_log_alpha(i_cell) = v_log_alpha(i_cell)+grad_alpha;
     v_log_beta(i_cell) = v_log_beta(i_cell)+grad_beta;
     v_log_alpha_gain(i_cell) = v_log_alpha_gain(i_cell)+grad_alpha_gain;
-    v_log_beta_gain(i_cell) = v_log_beta_gain(i_cell)+grad_beta_gain;    
+
+    v_log_beta_gain(i_cell) = v_log_beta_gain(i_cell)+grad_beta_gain;
     
     end
     %     fprintf('Gradients obtained;');
@@ -258,6 +270,6 @@ while (changes > epsilon && iter<maxit)
     change_history(iter)=changes;
     
         fprintf('Change: %d;\n',changes)
+%         assignin('base','parameter_history',parameter_history)
 end
 
-end

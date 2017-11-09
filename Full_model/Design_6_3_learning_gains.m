@@ -500,14 +500,14 @@ iter=1;
             variational_params=struct([]);
             for i_cell_idx = 1:length(neighbour_list)
                 i_cell=neighbour_list(i_cell_idx);
-                 variational_params(i_cell_idx).alpha = variational_params_path.alpha(i_cell,iter);
+                variational_params(i_cell_idx).alpha = variational_params_path.alpha(i_cell,iter);
                 variational_params(i_cell_idx).beta = variational_params_path.beta(i_cell,iter);
                 variational_params(i_cell_idx).alpha_gain = variational_params_path.alpha_gain(i_cell,iter);
                 variational_params(i_cell_idx).beta_gain = variational_params_path.beta_gain(i_cell,iter);
             end
             
             prior_params.pi0= 0.01*ones(length(neighbour_list),1);
-        prior_params.alpha0= [variational_params(:).alpha]';
+            prior_params.alpha0= [variational_params(:).alpha]';
             prior_params.beta0 = [variational_params(:).beta]';
             prior_params.alpha0_gain= [variational_params(:).alpha_gain]';
             prior_params.beta0_gain =[variational_params(:).beta_gain]';
@@ -534,7 +534,7 @@ iter=1;
        
         [mean_gamma_temp, var_gamma_temp] = calculate_posterior_mean(...
             parameter_history.alpha(:,end),parameter_history.beta(:,end),0,1);
-        [mean_gain_temp, ~] = calculate_posterior_mean(...
+        [mean_gain_temp, var_gain_temp] = calculate_posterior_mean(...
             parameter_history.alpha_gain(:,end),parameter_history.beta_gain(:,end),gain_bound.low,gain_bound.up);
         
             variance_gamma_connected(neighbour_list)=var_gamma_temp;
@@ -545,7 +545,7 @@ iter=1;
             gamma_path(neighbour_list,iter+1)=mean_gamma_temp;
             var_gamma_path(neighbour_list,iter+1)=var_gamma_temp;
             gain_path(neighbour_list,iter+1)=mean_gamma_temp;
-            var_gain_path(neighbour_list,iter+1)=var_gamma_temp;
+            var_gain_path(neighbour_list,iter+1)=var_gain_temp;
         end
     end
 %     if vf_type == 1

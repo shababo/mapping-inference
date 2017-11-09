@@ -18,7 +18,7 @@ end
 
 if use_power_map
     ratio_map = varargin{2};
-    ratio_limit = varargin{3};
+    max_power_ref = varargin{3};
 end
 
 if length(varargin) > 3 && ~isempty(varargin{4})
@@ -147,6 +147,7 @@ if n_spots_per_trial==1
                 end
             end
         end
+
     end
 else
     if design_type_multi == 1 % optimal stimulation
@@ -205,13 +206,37 @@ else
     trials_locations =zeros(num_trials,n_spots_per_trial);
     trials_powers =zeros(num_trials,n_spots_per_trial);
     n_stim_locations = size(target_locations,1);
-    this_trial_locations=zeros(1,n_spots_per_trial);
-    this_trial_powers=zeros(1,n_spots_per_trial);
+    % Select the optimal locations based on firing_prob:
+    for i_cell_idx = 1:n_remaining_cell
+        i_cell=remaining_cell_list(i_cell_idx); 
+        firing_prob_temp=firing_prob;
+        firing_prob_temp(:,:,i_cell_idx)=0;
+        firing_prob_difference= firing_prob(:,:,i_cell)-max(firing_prob_temp,[],3);
+        [max_value_loc,index_loc] = max(firing_prob_difference);
+        % Pick the lowest power if the objectives are not too different from each
+        % other
+        weighted_max_value_loc = max_value_loc./log(power_level);
+        [~,index_I]=max(weighted_max_value_loc);
+        loc_optimal(i_cell_idx)=index_loc(index_I);
+        power_optimal(i_cell_idx)=power_level(index_I);
+    end
+    
+    % Design trials using the optimal locations & power 
+    n_unique_trials = round(K*n_remaining_cell/n_spots_per_trial);
+    trials_locations =zeros(n_unique_trials*n_replicates,n_spots_per_trial);
+    trials_powers =zeros(n_unique_trials*n_replicates,n_spots_per_trial);
+    n_stim_locations = size(target_locations_selected,1);
+    
     
     % Set the probability to be inversely proportional to the
     % gamma_estimates, since we want to eliminate more disconnected cells
     pockels_ratios = zeros(num_trials,n_spots_per_trial);
     for i_trial = 1:num_trials
+
+    probability_weights = ones(n_remaining_cell,1);
+    pockels_ratios = zeros(n_unique_trials,n_spots_per_trial);
+    for i_trial = 1:n_unique_trials
+        this_trial_powers=zeros(1,n_spots_per_trial);
         prob_initial = probability_weights;
         prob_initial = prob_initial./(loc_counts+0.1);
         prob_initial = prob_initial/sum(prob_initial);
@@ -219,7 +244,7 @@ else
         for i_spot = 1:n_spots_per_trial
             
             %            if use_power_map
-            %                power_test = pockels_ratio_refs(end) < ratio_limit/power_selected(1)/i_spot; % hack here since all same power...
+            %                power_test = pockels_ratio_refs(end) < max_power_ref/power_selected(1)/i_spot; % hack here since all same power...
             %            else
             %                power_test = 1;
             %            end
@@ -251,26 +276,32 @@ else
                     
                     if use_power_map % NOT CODED FOR USE WITH REPLICATING WITHIN THIS FUNCTION!
                         this_loc = target_locations(temp_index,:);
+
                         ratio_this_loc = round(ratio_map(round(this_loc(1))+ceil(size(ratio_map,1)/2),...
                             round(this_loc(2))+ceil(size(ratio_map,2)/2))*10000);
-                        total_ratio_tmp = pockels_ratio_refs(end) + ratio_this_loc/10000;
-                        if ~(total_ratio_tmp > ratio_limit/power_selected(temp_loc)/i_spot) % this doesn't actually work for differnet powers per spot...
+                        ratio_this_loc = ratio_this_loc * temp_power;
+                        total_adj_power_tmp = sum(pockels_ratios(i_trial,:)/10000) + ratio_this_loc/10000;
+                        if ~(total_adj_power_tmp > max_power_ref) 
                             loc_found = 1;
                         end
                     else
                         loc_found = 1;
                         ratio_this_loc=0; % so that the code can run if use_power_map =0;
-                        total_ratio_tmp=0;
+                        total_adj_power_tmp=0;
                     end
                     try_count = try_count + 1;
                 end
             end
             if ~loc_found
                 this_trial_locations(1,i_spot)=NaN;
-                this_trial_powers(1,i_spot)=NaN;
+                this_trial_powers(1,i_spot)=0;
             else
+                this_trial_locations(1,i_spot)=temp_loc;
+                this_trial_powers(1,i_spot)=temp_power;
                 loc_counts(temp_index)=loc_counts(temp_index)+1;
+                
                 pockels_ratios(i_trial,i_spot) = ratio_this_loc;
+
                 pockels_ratio_refs(end) = total_ratio_tmp;
                 this_trial_locations(1,i_spot)=temp_loc;
                 
@@ -292,11 +323,12 @@ else
                     this_trial_powers(1,i_spot)=randsample(power_level,1,true);
                 
                 end
+
                 
                 prob_initial = ...
                     prob_initial - inner_normalized_products(remaining_cell_list,temp_loc)*prob_initial(temp_index);
                 prob_initial = max(0,prob_initial);
-                loc_found = 1;
+                
             end
             
         end
