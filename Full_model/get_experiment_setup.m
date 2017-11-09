@@ -1,5 +1,5 @@
 
-function experiment_setup = init_oed(varargin)
+function experiment_setup = get_experiment_setup(varargin)
 
 %experiment_setup.is_sim
 
@@ -160,6 +160,9 @@ experiment_setup.exp.rand_order = 1;
 experiment_setup.exp.duration = .003; % length of laser on
 
 
-
+% if filename given
+% load filename
+% for every field in params from file
+% replace default with file version
 
 
