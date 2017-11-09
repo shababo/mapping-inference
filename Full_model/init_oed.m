@@ -1,6 +1,8 @@
 
 function params = init_oed(varargin)
 
+%params.is_sim
+
 % parameters
 if ~isempty(varargin) && ~isempty(varargin{1})
     load_map = varargin{1};
@@ -15,6 +17,7 @@ clock_array = clock;
 params.map_id = [num2str(clock_array(2)) '_' num2str(clock_array(3)) ...
     '_' num2str(clock_array(4)) ...
     '_' num2str(clock_array(5))];
+params.exp_id = params.map_id;
 params.fullsavefile = fullfile(params.savedir,[params.map_id '_data.mat']);
 
 %----------- Delay parameters
@@ -149,5 +152,14 @@ end
 params.exp.max_spike_freq = .5; % don't revisit cells on average sooner than this in Hz
 params.exp.max_stim_freq = 15;
 params.exp.foe_bounds = [-148 148; -148 148];
+
+% more experimental params
+
+params.exp.rand_order = 1;
+% set(handles.num_repeats,'String',num2str(10));
+params.exp.duration = .003; % length of laser on
+
+
+
 
 
