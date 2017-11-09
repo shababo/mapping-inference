@@ -1,153 +1,37 @@
-function [trials_locations,  trials_powers, target_locations_key, pockels_ratio_refs, pockels_ratios] = random_design(...
-    num_trials,target_locations,power_level,loc_to_cell,cell_list_map,...
-    remaining_cell_list,...
-    pi_target,inner_normalized_products,...
-    variational_params,n_MC_samples,gamma_bound,gain_bound,prob_trace_full,...
-    fire_stim_threshold,stim_scale,...
-    n_spots_per_trial,K,n_replicates,...
-    varargin)
+function [experiment_query_this_group] = design_undefined(this_neighbourhood,group_profile)
 
-% connected: indicator whether we are designing trials for potentially
-% connected cells
+group_type_ID=group_profile.group_type_ID;
+cells_this_group=index([this_neighbourhoods.neurons(:).group_type_ID]==group_type_ID);
+number_cells_this_group=length(cells_this_group);
+number_cells_all= length(this_neighbourhoods.neurons);
+loc_counts=zeros(number_cells_this_group,1);
 
-if ~isempty(varargin) && ~isempty(varargin{1})
-    use_power_map = varargin{1};
+% obtain posterior mean of gamma
+% Write a function that grabs the last element in a specific field
+mean_gamma=grab_recent_value(this_neighbourhoods.neurons(cells_this_group).PR_params(end).mean);
+if  group_profile.design_func_params.trials_params.weighted_indicator
+   probability_weights = 1-mean_gamma;
 else
-    use_power_map = 0;
+    probability_weights =ones(number_cells_this_group,1);
 end
-
-if use_power_map
-    ratio_map = varargin{2};
-    ratio_limit = varargin{3};
-end
-
-if length(varargin) > 3 && ~isempty(varargin{4})
-    do_replicates = varargin{4};
-else
-    do_replicates = 1;
-end
-
-if ~do_replicates
-    n_replicates = 1;
-    %     K = 1;
-end
-
-
-
-if length(varargin) > 4 && ~isempty(varargin{5})
-    design_type_multi = varargin{5};
-else
-    design_type_multi = 1;
-end
-
-
-if length(varargin) > 5 && ~isempty(varargin{6})
-    design_type_single = varargin{6};
-else
-    design_type_single = 1;
-end
-
-pockels_ratio_refs = [];
-pockels_ratios = [];
-
-n_remaining_cell=length(remaining_cell_list);
-loc_counts=zeros(n_remaining_cell,1);
-[mean_gamma, ~] = calculate_posterior_mean(...
-    [variational_params(remaining_cell_list).alpha],[variational_params(remaining_cell_list).beta],...
-    gamma_bound.low,gamma_bound.up);
-mean_gamma=mean_gamma.*( 1./(exp([variational_params(remaining_cell_list).p_logit])+1));
-
-if n_spots_per_trial==1
-    trials_locations=[];
-    trials_powers=[];
-    %   probability_weights =ones(n_remaining_cell,1);
-    probability_weights =1-mean_gamma;
-    % Assign the amount of trials per cell based on their weights:
-    num_trials_per_cell = round(num_trials*probability_weights/sum(probability_weights));
-    num_trials_per_cell(num_trials_per_cell<K)=K;
-    if design_type_single==1
-        gain_samples=zeros(n_MC_samples,length(variational_params));
-        for i_cell = 1:length(variational_params)
-            v_alpha_gain = variational_params(i_cell).alpha_gain;
-            v_beta_gain = exp(variational_params(i_cell).beta_gain);
-            temp=normrnd(v_alpha_gain,v_beta_gain,[n_MC_samples 1]);
-            gain_samples(:,i_cell) = exp(temp)./(1+exp(temp))*(gain_bound.up-gain_bound.low) +gain_bound.low;
-        end
-    end
-    for i_cell =1:n_remaining_cell % generate trials for each cell
-        % Generate random locations on z-plane where the cell sits
+   
+switch group_profile.design_func_params.trials_params.stim_design
+    case 'Optimal'
         
-        related_locations = find(loc_to_cell == cell_list_map(remaining_cell_list(i_cell)) );
-       switch design_type_single
-           case 1
-               % calculate the firing probability of related locations:
-            firing_prob=zeros(length(related_locations),length(power_level),size(pi_target,1));
-            for i_loc = 1:length(related_locations)
-                for k=1:length(power_level)
-                    for idx_cell = 1:size(pi_target,1)
-                        if pi_target(idx_cell,related_locations(i_loc))>5e-2
-                            stimulation_received=pi_target(idx_cell,related_locations(i_loc))*power_level(k);
-                            effective_stim= stimulation_received*gain_samples(:,idx_cell);
-                            stim_index=max(1,round(effective_stim*stim_scale));
-                            prob_collapsed=sum(prob_trace_full(stim_index,:),2);
-                            firing_prob(i_loc,k,idx_cell)=mean(prob_collapsed);
-                        end
-                    end
-                end
-            end
-            
-            % Select the optimal locations based on firing_prob:
-            this_cell=remaining_cell_list(i_cell);
-            firing_prob_temp=firing_prob;
-            firing_prob_temp(:,:,this_cell)=0;
-            firing_prob_difference= firing_prob(:,:,this_cell)-max(firing_prob_temp,[],3);
-            [max_value_power,index_power] = max(firing_prob_difference');
-            max_value_power(max_value_power<0)=0;
-            if max(max_value_power(2:end))<1e-3
-                max_value_power(:)=1;
-            end
-            index_loc = [1; ...
-                randsample(2:length(max_value_power),num_trials_per_cell(i_cell)-1,true,max_value_power(2:end))'];
-            trials_temp=related_locations(index_loc);
-            
-            trials_locations(end+(1:num_trials_per_cell(i_cell)),:)=reshape(repmat(trials_temp,1,n_replicates),[],1);
-            trials_powers(end+(1:num_trials_per_cell(i_cell)),:)=...
-                reshape(repmat(power_level(index_power(index_loc)),1,n_replicates),[],1);
-      case 0 % random 
-               
-            trials_temp=[related_locations(1); randsample(related_locations(2:end),...
-                num_trials_per_cell(i_cell)-1,true)];
-            trials_locations(end+(1:num_trials_per_cell(i_cell)),:)=reshape(repmat(trials_temp,1,n_replicates),[],1);
-            trials_powers(end+(1:num_trials_per_cell(i_cell)),:)=randsample(power_level,num_trials_per_cell(i_cell),true)';
-           case 2 % nuclei only 
-            trials_locations(end+(1:num_trials_per_cell(i_cell)),:)=reshape(repmat(related_locations(1),1,num_trials_per_cell(i_cell)),[],1);
-            trials_powers(end+(1:num_trials_per_cell(i_cell)),:)=randsample(power_level,num_trials_per_cell(i_cell),true)';
-              
-       end
-        
-        if use_power_map
-            for i = 1:length(trials_temp)
-                for j = 1:n_replicates
-                    this_loc = target_locations(trials_temp(i),:);
-                    pockels_ratio_refs(end + 1) = round(ratio_map(round(this_loc(1))+ceil(size(ratio_map,1)/2),...
-                        round(this_loc(2))+ceil(size(ratio_map,2)/2))*10000)/10000;
-                end
-            end
+        gain_samples=zeros(undefined_profile.inference_params.MCsamples_for_posterior,...
+            number_cells_all);
+        for i_cell = 1:number_cells_all
+            alpha_gain=this_neighbourhood.neurons(i_cell).gain_params(end).alpha;
+            beta_gain=this_neighbourhood.neurons(i_cell).gain_params(end).beta;
+            temp=normrnd(alpha_gain,beta_gain,[undefined_profile.inference_params.MCsamples_for_posterior 1]);
+            gain_samples(:,i_cell) = exp(temp)./(1+exp(temp))*...
+                range(group_profile.inference_params.bounds.gain)+group_profile.inference_params.bounds.gain(1);
         end
-    end
-else
-    if design_type_multi == 1 % optimal stimulation
-        % New design for multi-spot stimulation:
-        % Draw samples from the current posterior distribution of gains
-        gain_samples=zeros(n_MC_samples,length(variational_params));
-        for i_cell = 1:length(variational_params)
-            v_alpha_gain = variational_params(i_cell).alpha_gain;
-            v_beta_gain = exp(variational_params(i_cell).beta_gain);
-            temp=normrnd(v_alpha_gain,v_beta_gain,[n_MC_samples 1]);
-            gain_samples(:,i_cell) = exp(temp)./(1+exp(temp))*(gain_bound.up-gain_bound.low) +gain_bound.low;
-        end
+        % need a function that creates the pi_target:
+        pi_target=
         % calculate the firing probability
-        firing_prob=zeros(size(pi_target,2),length(power_level),size(pi_target,1));
+        firing_prob=zeros(size(pi_target,2),length(group_profile.design_func_params.trials_params.power_level),...
+            size(pi_target,1));
         for i_loc = 1:size(pi_target,2)
             for k=1:length(power_level)
                 for i_cell = 1:size(pi_target,1)
@@ -185,6 +69,16 @@ else
             loc_optimal(i_cell_idx)=index_loc(index_I);
             power_optimal(i_cell_idx)=power_level(index_I);
         end
+    case 'Nuclei'
+    case 'Random'
+    otherwise
+        %a warning?
+end
+
+    if design_type_multi == 1 % optimal stimulation
+        % New design for multi-spot stimulation:
+        % Draw samples from the current posterior distribution of gains
+       
     end
     
     % Design trials using the optimal locations & power
@@ -197,7 +91,6 @@ else
     
     % Set the probability to be inversely proportional to the
     % gamma_estimates, since we want to eliminate more disconnected cells
-    probability_weights = 1-mean_gamma;
     pockels_ratios = zeros(num_trials,n_spots_per_trial);
     for i_trial = 1:num_trials
         prob_initial = probability_weights;
@@ -275,6 +168,10 @@ else
                         *gain_samples(randsample(1:n_MC_samples,1),temp_index));
                     this_trial_powers(1,i_spot)=max(min(power_level),min(this_trial_powers(1,i_spot),max(power_level)));
                 end
+                    
+                else % otherwise
+                    this_trial_powers(1,i_spot)=randsample(power_level,1,true);
+                
                 end
                 
                 prob_initial = ...

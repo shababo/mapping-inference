@@ -13,8 +13,6 @@ switch spatial_density %
     case 3 % simulate twice as many neurons
         n_extra=ceil(n_cell);    
 end
-
-
 extra_locations = 2*pi*rand(n_extra,3); % only need the first two columns 
 for i= 1:n_extra
     temp_cell=randsample(1:n_cell,1);
@@ -88,7 +86,6 @@ end
 
 z_thresholds = quantile(cell_locations(:,3), (1:(n_planes))*0.1);
 % alternatively, the thresholds can be determined by absolute depths
-
 for i_cell = 1:size(cell_locations,1)
     cell_params(i_cell).group= sum(cell_locations(i_cell,3)>z_thresholds)+1;
 end

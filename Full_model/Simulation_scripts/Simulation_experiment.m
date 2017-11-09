@@ -6,6 +6,8 @@ mpp_undefined=struct([]);mpp_connected=struct([]);
 computing_time=struct;
 computing_time(1).multi=[];
 computing_time(1).single=[];
+
+
 while ((n_trials < trial_max))
     
     variational_params=struct;

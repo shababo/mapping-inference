@@ -171,88 +171,58 @@ experiment_setup=struct;
     
 %% Group specifications:
 
-%% The undefined group:
-    undefined_profile=struct;
-        undefined_profile.group_ID=1;
-        undefined_profile.group_type_ID='Undefined';
-        undefined_profile.design_function=@design_undefined;
-        undefined_profile.design_func_params=struct;
-            undefined_profile.design_func_params.candidate_grid_params=struct;
-                undefined_profile.design_func_params.candidate_grid_params.radius=[5 10];
-                undefined_profile.design_func_params.candidate_grid_params.number=[12 16];
-                undefined_profile.design_func_params.candidate_grid_params.grid_type='ring';
+    undefined_profile_undefined=struct;
+        undefined_profile_undefined.group_ID=1;
+        undefined_profile_undefined.group_type_ID='Undefined';
+        undefined_profile_undefined.design_function=@random_design;
+        undefined_profile_undefined.design_func_params=struct;
+            undefined_profile_undefined.design_func_params.candidate_grid_params=struct;
+                undefined_profile_undefined.design_func_params.candidate_grid_params.radius=[5 10];
+                undefined_profile_undefined.design_func_params.candidate_grid_params.number=[12 16];
+                undefined_profile_undefined.design_func_params.candidate_grid_params.grid_type='ring';
                 % 2d ring or 3d sphere
-            undefined_profile.design_func_params.trials_params=struct;
-                undefined_profile.design_func_params.trials_params.replicates=1;
-                undefined_profile.design_func_params.trials_params.spots_per_trial=4;
-                undefined_profile.design_func_params.min_trials_per_cell=10;
-                undefined_profile.design_func_params.min_trials_per_cell=10;
-                undefined_profile.design_func_params.trials_params.power_level=30:10:100;
-                undefined_profile.design_func_params.trials_params.stim_design='Optimal';
-                undefined_profile.inference_params.MCsamples_for_posterior=50;
+            undefined_profile_undefined.design_func_params.trials_params=struct;
+                undefined_profile_undefined.design_func_params.trials_params.replicates=1;
+                undefined_profile_undefined.design_func_params.trials_params.spots_per_trial=4;
+                undefined_profile_undefined.design_func_params.min_trials_per_cell=10;
+                undefined_profile_undefined.design_func_params.min_trials_per_cell=10;
+                undefined_profile_undefined.design_func_params.trials_params.power_level=30:10:100;
+                undefined_profile_undefined.design_func_params.trials_params.stim_design='Optimal';
                 % Random, Nuclei, or Optimal
-                undefined_profile.design_func_params.trials_params.weighted_indicator=true;
+                undefined_profile_undefined.design_func_params.trials_params.weighted_indicator=true;
                 %   whether to conduct more trials on low PR cells
-        undefined_profile.inference_function = @inference_undefined;
-        undefined_profile.inference_params=struct;
-            undefined_profile.inference_params.likelihood=@calculate_loglikelihood_bernoulli;
-            undefined_profile.inference_params.maxit=1e4;
-            undefined_profile.inference_params.MCsamples_for_gradient=50;
-            undefined_profile.inference_params.convergence_threshold=1e-3;
-            undefined_profile.inference_params.step_size=1;
-            undefined_profile.inference_params.step_size_max=2;
-            undefined_profile.inference_params.background_rate=1e-4;
+        undefined_profile_undefined.inference_function = @inference_undefined;
+        undefined_profile_undefined.inference_params=struct;
+            undefined_profile_undefined.inference_params.likelihood=@calculate_loglikelihood_bernoulli;
+            undefined_profile_undefined.inference_params.maxit=1e4;
+            undefined_profile_undefined.inference_params.MCsamples_for_gradient=50;
+            undefined_profile_undefined.inference_params.convergence_threshold=1e-3;
+            undefined_profile_undefined.inference_params.step_size=1;
+            undefined_profile_undefined.inference_params.step_size_max=2;
+            undefined_profile_undefined.inference_params.background_rate=1e-4;
             % this should be estimated in the experiment 
-            undefined_profile.inference_params.MCsamples_for_posterior=50;
-            undefined_profile.inference_params.recent_batches=2;
-            undefined_profile.inference_params.bounds=struct;
-                undefined_profile.inference_params.bounds.PR=[0.05 1];
-                undefined_profile.inference_params.bounds.gain=[0.005 0.03];
-         undefined_profile.regroup_function=@regroup_undefined;
-         undefined_profile.regroup_func_params=struct;
-            undefined_profile.regroup_func_params.connected_threshold=0.5;
-            undefined_profile.regroup_func_params.disconnected_threshold=0.2;
-            undefined_profile.regroup_func_params.quantile_prob=[0.05 0.95];
-            undefined_profile.regroup_func_params.regroup_type='Quantiles';
-            % Quantiles or NonzeroProb
-            undefined_profile.regroup_func_params.singlespot_threshold=0.2;
-            % certain proportion of cells 
-            undefined_profile.regroup_func_params.change_threshold =0.05;
+            undefined_profile_undefined.inference_params.MCsamples_for_posterior=50;
+            undefined_profile_undefined.inference_params.recent_batches=2;
+            undefined_profile_undefined.inference_params.bounds=struct;
+                undefined_profile_undefined.inference_params.bounds.PR=[0.05 1];
+                undefined_profile_undefined.inference_params.bounds.gain=[0.005 0.03];
+         undefined_profile_undefined.regroup_function=@regroup_undefined;
+         undefined_profile_undefined.regroup_func_params=struct;
+            undefined_profile_undefined.regroup_func_params.connected_threshold=0.5;
+            undefined_profile_undefined.regroup_func_params.disconnected_threshold=0.2;
+            undefined_profile_undefined.regroup_func_params.quantile_prob=[0.05 0.95];
+            undefined_profile_undefined.regroup_func_params.regroup_type='Quantiles';
             
+             
+        \item quantile\_prob
+        \item assignment\_type \note{1: quantiles; 2: non-zero probability}
+        \item single\_spot\_threshold \note{threshold on remaining number of undefined cells to move to (potentially) connected cells for single-spot trials} 
+        \item multispot\_change\_threshold \note{threshold on the change of $\gamma$ to move undefined cells to (potentially) connected cells for single-spot trials} 
+        \end{itemize}
+        \end{itemize}
+    \end{itemize}
+    
 
-%% Neighbourhood initialization
-neighbourhoods=struct;
-neighbourhoods(1)=struct;
-    neighbourhoods(1).neighbourhood_ID=1;
-    neighbourhoods(1).neurons=struct;
-        neighbourhoods(1).neurons(i)
-            neighbourhoods(1).neurons(i).cell_ID
-            neighbourhoods(1).neurons(i).group_type_ID
-            neighbourhoods(1).neurons(i).location
-            neighbourhoods(1).neurons(i).V_reset
-            neighbourhoods(1).neurons(i).V_thresh
-            neighbourhoods(1).neurons(i).membrane_resistance
-            neighbourhoods(1).neurons(i).PR_params=struct;
-                neighbourhoods(1).neurons(i).PR_params(batch_ID).pi=0;
-                neighbourhoods(1).neurons(i).PR_params(batch_ID).alpha=0;
-                neighbourhoods(1).neurons(i).PR_params(batch_ID).beta=0;
-                neighbourhoods(1).neurons(i).PR_params(batch_ID).type='SpikedLogitNormal';
-                neighbourhoods(1).neurons(i).PR_params(batch_ID).mean=0;
-                neighbourhoods(1).neurons(i).PR_params(batch_ID).variance=0;
-                neighbourhoods(1).neurons(i).PR_params(batch_ID).upper_quantile=0;
-                neighbourhoods(1).neurons(i).PR_params(batch_ID).lower_quantile=0;
-                neighbourhoods(1).neurons(i).PR_params(batch_ID).nonzero_prob=0;
-        neighbourhoods(1).neurons(i).gain_params;
-        neighbourhoods(1).neurons(i).primary_indicator=true;
-        % whether it is a cell in this neighbourhood, or a nearby cell
-        neighbourhoods(1).neurons(i).stim_locations=struct;
-            neighbourhoods(1).neurons(i).stim_locations.undefined=struct;
-                neighbourhoods(1).neurons(i).stim_locations.undefined.grid=[];
-                neighbourhoods(1).neurons(i).stim_locations.undefined.effect=[];
-        neighbourhoods(1).neurons(i).truth=struct; % parameters for simulation
-        neighbourhoods(1).computing_time=struct;
-            neighbourhoods(1).computing_time(batch_ID).undefined=0;
-            neighbourhoods(1).computing_time(batch_ID).connected=0;
 %% Designing experiment
 %-------------------------------------------------%
 %% Parameters in the design stage
