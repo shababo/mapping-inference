@@ -208,7 +208,7 @@ if sum(data.design.potentially_connected_cells{i}{data.design.iter})>0
     if sum(data.design.potentially_connected_cells{i}{data.design.iter})>1
         % Use inner product:
         adj_corr= abs( designs_remained'*designs_remained)./size(designs_remained,1);
-        adj_corr=1*(adj_corred> (params.eff_stim_threshold/params.template_cell.gain_template/2)^2);
+        adj_corr=1*(adj_corr> (params.eff_stim_threshold/params.template_cell.gain_template/2)^2);
 
         cc_corr=expm(adj_corr);
         cell_cluster_ind=zeros(length(cell_list),1);
@@ -242,7 +242,7 @@ if sum(data.design.potentially_connected_cells{i}{data.design.iter})>0
     for i_cluster= 1:n_cluster % make this parfor
         
         active_trials=find(sum(stim_size_connected(:,cell_list(cluster_of_cells{i_cluster})),2)>params.design.stim_threshold);
-        neighbour_list=find(sum(stim_size_connected(active_trials,:)>stim_threshold,1)>0);
+        neighbour_list=find(sum(stim_size_connected(active_trials,:)>params.design.stim_threshold,1)>0);
 
         variational_params=struct([]);
         for i_cell_idx = 1:length(neighbour_list)
@@ -311,7 +311,7 @@ if sum(data.design.potentially_connected_cells{i}{data.design.iter})>0
         data.design.gamma_path{i}(neighbour_list,data.design.iter+1)=mean_gamma_temp;
         data.design.var_gamma_path{i}(neighbour_list,data.design.iter+1)=var_gamma_temp;
         data.design.gain_path{i}(neighbour_list,data.design.iter+1)=mean_gain_temp;
-        data.design.var_gain_path{i}(neighbour_list,iter+1)=var_gain_temp;
+        data.design.var_gain_path{i}(neighbour_list,data.design.iter+1)=var_gain_temp;
         
 
     end

@@ -2,9 +2,10 @@
 close all
 
 %%
-trials = 3;
+trials = [2];
 duration = .025;
-loc_trials = {3:4};
+loc_trials = {[1 1]};
+iter_id = trials;
 loc_ids = [];
 for i = 1:length(loc_trials)
     loc_ids = [loc_ids i*ones(size(loc_trials{i}))];
@@ -61,13 +62,13 @@ for i = 1:25
     end
 end
 
-%%
+%% plot gamma path
 
 
 iter = length(exp_data.design.(group_names{1}){loc_id});
 figure
 for i = 1:25
-    subplot(5,5,i)
+    subplot(3,3,i)
      iter = i
     for i = 1:length(group_names) 
     
@@ -75,12 +76,34 @@ for i = 1:25
        
     these_cells = logical(exp_data.design.(group_names{i}){loc_id}{iter});
     scatter(cell_group_locs(these_cells,2),-cell_group_locs(these_cells,1),...
-        exp_data.design.gamma_path{loc_id}(these_cells,iter)*20,...
+        real(exp_data.design.gamma_path{loc_id}(these_cells,iter))*20 + eps,...
         repmat(group_colors(i,:),sum(these_cells),1),...
         'filled');
     hold on
     end
 end
+
+%% plot gain path
+
+
+iter = length(exp_data.design.(group_names{1}){loc_id});
+figure
+for i = 1:25
+    subplot(3,3,i)
+     iter = i
+    for i = 1:length(group_names) 
+    
+        
+       
+    these_cells = logical(exp_data.design.(group_names{i}){loc_id}{iter});
+    scatter(cell_group_locs(these_cells,2),-cell_group_locs(these_cells,1),...
+        real(exp_data.design.gain_path{loc_id}(these_cells,iter))*1000 + eps,...
+        repmat(group_colors(i,:),sum(these_cells),1),...
+        'filled');
+    hold on
+    end
+end
+
 
 %% plot nuclei
 
@@ -97,6 +120,7 @@ plot_nuclear_detect_3D(['/media/shababo/data/' exp_data.params.map_id '_stack.ti
 %% plot targets
 
 nuc_locs_img = [];
+
 for i = 1:length(trials)
     
     this_trial = trials(i);
@@ -140,7 +164,7 @@ trunc_oasis = 1;
 
 count = 1;
 
-
+clear mpp
 for i = 1:length(trials)
     
     cur_trial = trials(i);
@@ -152,7 +176,7 @@ for i = 1:length(trials)
     stim_starts{i} = [data.trial_metadata(cur_trial).sequence.start];
     
     if plot_oasis
-        iter = i - length([loc_trials{1:loc_id-1}]);
+        iter = iter_id(i);
         datafilename = [map_id '_z' num2str(loc_id) '_iter' num2str(iter) '.mat'];
         oasisfilename = [map_id '_z' num2str(loc_id) '_iter' num2str(iter) '_detect.mat'];
         load(datafilename)
@@ -171,7 +195,8 @@ for i = 1:length(trials)
                      + exp_data.params.time.min_time - 1; 
             else
                 mpp(1).times = ...
-                    find(oasis_data(j,:),1);
+                    find(oasis_data(j,exp_data.params.time.min_time:exp_data.params.time.max_time))...
+                     + exp_data.params.time.min_time - 1;
             end
         else
             full_seq(end+1) = this_seq{i}(j);
@@ -181,7 +206,8 @@ for i = 1:length(trials)
                      + exp_data.params.time.min_time - 1;
             else
                 mpp(end+1).times = ...
-                    find(oasis_data(j,:),1);
+                    find(oasis_data(j,exp_data.params.time.min_time:exp_data.params.time.max_time))...
+                     + exp_data.params.time.min_time - 1;
             end
         end
         full_seq(end).precomputed_target_index = ...
@@ -222,17 +248,25 @@ mpp_pow = cell(length(power_curve_num),1);
 %     mpp(i).times = find(oasis_data(i,45:300),1) + 44;
 % end
 
-for i = 1%:length(power_curve_num)
+for i= 1:length(full_seq)
+    if full_seq(i).group == 3
+        full_seq(i).target_power = 0;
+    end
+end
+
+for i = 1%length(power_curve_num)
     
+%     this_power = power_curve_num(i);
+    this_power = 0;
     
 %     this_seq = this_seq(1:max_trial);
-    traces_pow{1} = traces_ch1;%(on_cell_trials' & [full_seq.target_power] == power_curve_num(i),:);
+    traces_pow{1} = traces_ch1(on_cell_trials' & [full_seq.target_power] == this_power,:);
 %     traces = [traces; traces_pow{1}];
-%     deorder = [deorder find(on_cell_trials' & [full_seq.target_power] == power_curve_num(i))]; 
-    traces_pow{2} = traces_ch2;%(on_cell_trials' & [full_seq.target_power] == power_curve_num(i),:);
-    this_seq_power = full_seq;%(on_cell_trials' & [full_seq.target_power] == power_curve_num(i));
-    mpp_pow{i}{1} = mpp;%(on_cell_trials' & [full_seq.target_power] == power_curve_num(i));
-    mpp_pow{i}{2} = mpp;%(on_cell_trials' & [full_seq.target_power] == power_curve_num(i));
+%     deorder = [deorder find(on_cell_trials' & [full_seq.target_power] == this_power)]; 
+    traces_pow{2} = traces_ch2(on_cell_trials' & [full_seq.target_power] == this_power,:);
+    this_seq_power = full_seq(on_cell_trials' & [full_seq.target_power] == this_power);
+    mpp_pow{i}{1} = mpp(on_cell_trials' & [full_seq.target_power] == this_power);
+    mpp_pow{i}{2} = mpp(on_cell_trials' & [full_seq.target_power] == this_power);
 %     color_these_trials{i}{1} = group_colors([this_seq_power.group],:);
 %     color_these_trials{i}{2} = group_colors([this_seq_power.group],:);
 %     mpp_pow{i} = mpp(num_trials+(1:length(this_seq_power)));
