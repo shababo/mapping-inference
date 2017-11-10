@@ -2,8 +2,8 @@ function [prob_trace,v_trace] = get_first_spike_intensity(...
     current_template,stim_grid,cell_params,delay_params)
 %----------- Parameters of the template cell
 
-g=cell_params.g;
- linkfunc=cell_params.linkfunc;
+g=cell_params.membrane_resistance;
+linkfunc=cell_params.linkfunc;
    
 n_grid=length(current_template);
 num_stim_grid= length(stim_grid);
@@ -40,8 +40,8 @@ prob_trace=zeros(num_stim_grid,n_grid);
 
 for i_stim = 1:num_stim_grid
     v_trace_one=v_trace{i_stim};
-    optical_gain=cell_params.optical_gain;
-    v_thresh=cell_params.v_thresh;
+    optical_gain=1;
+    v_thresh=cell_params.V_threshold;
     [prob_first_spike_delayed] = voltage_to_prob(optical_gain,  v_trace_one,...
         v_thresh,linkfunc,delay_params,min_delay,max_delay,delay_prob);
     prob_trace(i_stim,:) =prob_first_spike_delayed;

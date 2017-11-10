@@ -49,6 +49,11 @@ experiment_setup.prior_info.PR_prior.alpha=0;
 experiment_setup.prior_info.PR_prior.beta=1;
 
 
+
+load('./chrome-template-3ms.mat');
+downsamp=1;time_max=300;
+current_template=template(1:downsamp:time_max);
+
 experiment_setup.prior_info.current_template = current_template;
 experiment_setup.prior_info.gain_model=[];
 experiment_setup.prior_info.delay=struct;
@@ -64,9 +69,6 @@ temp=l23_average_shape;temp_max = max(max(max(temp)));
 l23_average_shape = temp/temp_max;
 shape_template=l23_average_shape;
 
-load('./chrome-template-3ms.mat');
-downsamp=1;time_max=300;
-current_template=template(1:downsamp:time_max);
 
 experiment_setup.prior_info.template_cell=struct;
 experiment_setup.prior_info.template_cell.V_reset=-1e5;
@@ -80,7 +82,8 @@ experiment_setup.prior_info.induced_intensity.max_actual_stimulation=5;
 experiment_setup.prior_info.induced_intensity.num_stim_grid=1000;
 experiment_setup.prior_info.induced_intensity.linkfunc={@link_sig, @derlink_sig, @invlink_sig,@derinvlink_sig};
 experiment_setup.prior_info.induced_intensity.stim_scale = experiment_setup.prior_info.induced_intensity.num_stim_grid/experiment_setup.prior_info.induced_intensity.max_actual_stimulation;
-experiment_setup.prior_info.induced_intensity.stim_grid = (1:num_stim_grid)/stim_scale;
+experiment_setup.prior_info.induced_intensity.stim_grid = (1:experiment_setup.prior_info.induced_intensity.num_stim_grid)/...
+    experiment_setup.prior_info.induced_intensity.stim_scale;
 experiment_setup.prior_info.induced_intensity=precalculate_intensity(experiment_setup.prior_info.induced_intensity,...
     experiment_setup.prior_info.template_cell,experiment_setup.prior_info.delay,experiment_setup.prior_info.current_template);
 %         experiment_setup.prior_info.induced_intensity.intensity_grid
@@ -93,7 +96,6 @@ experiment_setup.neighbourhood_params=struct;
 experiment_setup.neighbourhood_params.number=10;
 experiment_setup.neighbourhood_params.height=20;
 experiment_setup.neighbourhood_params.buffer_height=5;
-experiment_setup.neighbourhood_params.z_thresholds;
 
 
 % need a way to call these functions based on group names

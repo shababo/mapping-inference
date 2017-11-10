@@ -2,7 +2,7 @@ function undefined_profile= get_undefined()
 
 % basics
 undefined_profile=struct;
-undefined_profile.group_ID='Undefined';
+undefined_profile.group_ID='undefined';
 
 undefined_profile.design_function=@design_undefined;
 
@@ -16,7 +16,6 @@ undefined_profile.design_func_params.candidate_grid_params.grid_type='ring'; % 2
 undefined_profile.design_func_params.trials_params=struct;
 undefined_profile.design_func_params.trials_params.replicates=1;
 undefined_profile.design_func_params.trials_params.spots_per_trial=3;
-undefined_profile.design_func_params.min_trials_per_cell=10;
 undefined_profile.design_func_params.min_trials_per_cell=10;
 undefined_profile.design_func_params.trials_params.power_level=30:10:100;
 undefined_profile.design_func_params.trials_params.stim_design='Optimal';
@@ -36,7 +35,6 @@ undefined_profile.inference_params.MCsamples_for_gradient=50;
 undefined_profile.inference_params.convergence_threshold=1e-3;
 undefined_profile.inference_params.step_size=1;
 undefined_profile.inference_params.step_size_max=2;
-undefined_profile.inference_params.background_rate=1e-4; % this should be estimated in the experiment 
 undefined_profile.inference_params.MCsamples_for_posterior=50;
 undefined_profile.inference_params.recent_batches=2;
 undefined_profile.inference_params.bounds=struct;

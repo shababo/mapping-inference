@@ -3,8 +3,6 @@ addpath(genpath('../../mapping-inference'),genpath('../../odessa-beta-beta'));
 experiment_setup=get_experiment_setup();
 
 
-plot('fontsize', 11);
-
 %%
 switch experiment_setup.experiment_type
     case 'experiment'
