@@ -2,7 +2,7 @@ function undefined_profile= get_undefined()
 
 % basics
 undefined_profile=struct;
-undefined_profile.group_type_ID='Undefined';
+undefined_profile.group_ID='Undefined';
 
 undefined_profile.design_function=@design_undefined;
 
