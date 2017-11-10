@@ -214,6 +214,4 @@ experiment_setup.exp.duration = .003; % length of laser on
 % load filename
 % for every field in params from file
 % replace default with file version
-
-
         
