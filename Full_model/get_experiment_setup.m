@@ -12,6 +12,7 @@ end
 
 
 experiment_setup.savedir = 'C:\data\Shababo';
+experiment_setup.root = '/media/shababo/data';
 
 clock_array = clock;
 experiment_setup.map_id = [num2str(clock_array(2)) '_' num2str(clock_array(3)) ...
@@ -154,6 +155,7 @@ experiment_setup.exp.max_stim_freq = 15;
 experiment_setup.exp.foe_bounds = [-148 148; -148 148];
 
 % more experimental experiment_setup
+experiment_setup.exp.sim_locs = 0;
 
 experiment_setup.exp.rand_order = 1;
 % set(handles.num_repeats,'String',num2str(10));
