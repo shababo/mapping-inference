@@ -1,4 +1,4 @@
-function [neurons] = generate_neurons()
+function [neurons] = generate_neurons(experiment_setup)
 %
 simulation_params = experiment_setup.sim;
 % There should be options to read neuron locations 
@@ -49,19 +49,6 @@ switch simulation_params.cell_params.type
         % throw a warning
 end
 
-
-%%
-
- \item neurons(cell\_ID)
-    fluorescence
-        \item location
-        \item gain\_prior \note{calculated from fluorescence level and location}
-        \item PR\_prior \note{the following are from \struct{prior\_info}} 
-\item        V\_reset
-\item        V\_thresh
-\item        membrane\_resistance 
-\item truth \note{for simulation}
-        \end{itemize}
     
 neurons=struct([]);
 for i_cell = 1:number_of_cells 

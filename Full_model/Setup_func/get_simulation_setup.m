@@ -3,7 +3,7 @@ function simulation_setup = get_simulation_setup(varargin)
 
 
 simulation_setup=struct;
-    simulation_setup.dimension=[-150 150;-150 150;0 150];
+    simulation_setup.dimension=[-150 150 0;150 150 150];
     simulation_setup.number_of_cells=500;
     simulation_setup.siblings=struct;
         simulation_setup.siblings.number=500;
