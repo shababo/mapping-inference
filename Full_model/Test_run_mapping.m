@@ -1,6 +1,18 @@
 addpath(genpath('../../mapping-inference'),genpath('../../odessa-beta-beta'));
-function run_mapping_experiment(experiment_setup,varargin)
+%%
+experiment_setup=get_experiment_setup();
 
+load('../Environments/l23_template_cell.mat');
+temp=l23_average_shape;temp_max = max(max(max(temp)));
+l23_average_shape = temp/temp_max;
+shape_template=l23_average_shape;
+
+load('../Environments/chrome-template-3ms.mat');
+downsamp=1;time_max=300;
+current_template=template(1:downsamp:time_max);
+
+
+%%
 switch experiment_setup.experiment_type
     case 'experiment'
     

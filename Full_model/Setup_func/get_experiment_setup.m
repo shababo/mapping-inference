@@ -2,7 +2,7 @@
 function experiment_setup = get_experiment_setup(varargin)
 
 % read this from argument
-group_names=cell(3 1);
+group_names=cell([3 1]);
 group_names{1}='undefined';
 group_names{2}='connected';
 group_names{3}='disconnected';
@@ -46,15 +46,6 @@ experiment_setup.prior_info.PR_prior.type=1; % spike and logitnorm slab
 experiment_setup.prior_info.PR_prior.pi_logit=0;
 experiment_setup.prior_info.PR_prior.alpha=0;
 experiment_setup.prior_info.PR_prior.beta=1;
-
-load('../Environments/l23_template_cell.mat');
-temp=l23_average_shape;temp_max = max(max(max(temp)));
-l23_average_shape = temp/temp_max;
-shape_template=l23_average_shape;
-
-load('../Environments/chrome-template-3ms.mat');
-downsamp=1;time_max=300;
-current_template=template(1:downsamp:time_max);
 
 
 experiment_setup.prior_info.current_template = current_template;
