@@ -22,10 +22,11 @@ for i_stim = 1:num_stim_grid
 end
 
 delay_prob = zeros(delay_params.n_grid+1,1);
-if delay_params.type == 1 % normal
+switch delay_params.type
+    case 'normal' % normal
     delay_prob = normpdf((0:delay_params.n_grid),delay_params.mean,...
         delay_params.std);
-elseif delay_params.type == 2 % gamma
+    case  'gamma' % gamma
     shape=(delay_params.mean^2)/(delay_params.std^2);
     %scale
     scale = delay_params.mean/shape;

@@ -30,16 +30,9 @@ experiment_setup.map_id = [num2str(clock_array(2)) '_' num2str(clock_array(3)) .
 experiment_setup.exp_id = experiment_setup.map_id;
 experiment_setup.fullsavefile = fullfile(experiment_setup.savedir,[experiment_setup.map_id '_data.mat']);
 
-%----------- Delay parameters
-experiment_setup.delay.type=2; %1: normal; 2: gamma
-experiment_setup.delay.mean=58; experiment_setup.delay.std=15;
-experiment_setup.delay.delayed=true; experiment_setup.delay.n_grid=200;
-
-experiment_setup.bg_rate = 1e-4;
-
 %----------- Load the current template
 
-experiment_setup.experiment_type='Simulation'; % Experiment; Simulation; Reproduction
+experiment_setup.experiment_type='simulation'; % experiment; simulation; reproduction
 experiment_setup.prior_info=struct;
 
 experiment_setup.prior_info.PR_prior = struct;
@@ -173,6 +166,7 @@ experiment_setup.groups.alive=get_alive();
 
 % some experimental experiment_setup
 % experiment_setup.exp.power_levels = '20 30 40 50 60 70'; % this should be a space delimited string
+experiment_setup.power_level=30:10:100;
 experiment_setup.exp.power_levels = mat2str(experiment_setup.power_level);
 experiment_setup.exp.power_levels = experiment_setup.exp.power_levels(2:end-1);
 experiment_setup.exp.z_width = 20;
