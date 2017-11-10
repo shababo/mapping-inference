@@ -25,9 +25,9 @@ function experiment_query_this_group = draw_point_processes(experiment_query_thi
 
     for i_trial = 1:number_of_trials
         
-experiment_query_this_group.trials(i_trial).event_times=[];
-experiment_query_this_group.trials(i_trial).assignments=[];
-experiment_query_this_group.trials(i_trial).voltage_clamp=[];
+experiment_query_this_group.trials(i_trial).truth.event_times=[];
+experiment_query_this_group.trials(i_trial).truth.assignments=[];
+
 
         for i_cell = 1:number_of_cells
             k=stimuli_size(i_trial,i_cell);
@@ -51,8 +51,8 @@ experiment_query_this_group.trials(i_trial).voltage_clamp=[];
                         if rand(1) < params_sim.PR
                             % censoring at time max:
                             if spikes_delay(i)<time_max
-                                experiment_query_this_group.trials(i_trial).event_times=[experiment_query_this_group.trials(i_trial).event_times spikes_delay(i)];
-                                experiment_query_this_group.trials(i_trial).assignments=[experiment_query_this_group.trials(i_trial).assignments i_cell];
+                                experiment_query_this_group.trials(i_trial).truth.event_times=[experiment_query_this_group.trials(i_trial).truth.event_times spikes_delay(i)];
+                                experiment_query_this_group.trials(i_trial).truth.assignments=[experiment_query_this_group.trials(i_trial).truth.assignments i_cell];
                                 
                             end
                         end
@@ -64,8 +64,8 @@ experiment_query_this_group.trials(i_trial).voltage_clamp=[];
         % add background event:
         R = exprnd(mu_bg);
         while R < time_max
-             experiment_query_this_group.trials(i_trial).event_times=[ experiment_query_this_group.trials(i_trial).event_times max(1,round(R))];
-            experiment_query_this_group.trials(i_trial).assignments=[experiment_query_this_group.trials(i_trial).assignments 0];
+             experiment_query_this_group.trials(i_trial).truth.event_times=[ experiment_query_this_group.trials(i_trial).truth.event_times max(1,round(R))];
+            experiment_query_this_group.trials(i_trial).truth.assignments=[experiment_query_this_group.trials(i_trial).truth.assignments 0];
             R = R+exprnd(mu_bg);
         end
         
