@@ -2,10 +2,11 @@
 function experiment_setup = get_experiment_setup(varargin)
 
 % read this from argument
-group_names=cell([3 1]);
+group_names=cell([4 1]);
 group_names{1}='undefined';
 group_names{2}='connected';
 group_names{3}='disconnected';
+group_names{4}='alive';
 
 
 
@@ -20,7 +21,7 @@ end
 
 
 experiment_setup.savedir = 'C:\data\Shababo';
-experiment_setup.root = '/media/shababo/data';
+experiment_setup.analysis_root = '/media/shababo/data/'; % make sure to add ending slash
 
 clock_array = clock;
 experiment_setup.map_id = [num2str(clock_array(2)) '_' num2str(clock_array(3)) ...
@@ -58,8 +59,14 @@ experiment_setup.prior_info.delay.std=15;
 experiment_setup.prior_info.delay.n_grid=200;
 
 
-load('l23_template_cell.mat');
+load('./l23_template_cell.mat');
 temp=l23_average_shape;temp_max = max(max(max(temp)));
+l23_average_shape = temp/temp_max;
+shape_template=l23_average_shape;
+
+load('./chrome-template-3ms.mat');
+downsamp=1;time_max=300;
+current_template=template(1:downsamp:time_max);
 
 experiment_setup.prior_info.template_cell=struct;
 experiment_setup.prior_info.template_cell.V_reset=-1e5;
@@ -160,9 +167,7 @@ experiment_setup.groups.alive=get_alive();
 % experiment_setup.design.change_threshold=0.05;
 % experiment_setup.design.do_connected_vi = 1;
 
-% for std thresh experiments
-experiment_setup.design.std_thresh = [0 .50];
-experiment_setup.design.min_targs = 10;
+
 
 % some experimental experiment_setup
 % experiment_setup.exp.power_levels = '20 30 40 50 60 70'; % this should be a space delimited string
@@ -190,6 +195,8 @@ experiment_setup.exp.rand_order = 1;
 % set(handles.num_repeats,'String',num2str(10));
 experiment_setup.exp.duration = .003; % length of laser on
 
+experiment_setup.trials.min_time = 40;
+experiment_setup.trials.max_time = 500;
 
 % if filename given
 % load filename

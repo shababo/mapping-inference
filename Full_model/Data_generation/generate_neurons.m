@@ -1,6 +1,6 @@
-function [neurons] = generate_neurons(simulation_params)
+function [neurons] = generate_neurons()
 %
-        
+simulation_params = experiment_setup.sim;
 % There should be options to read neuron locations 
 %% Simulation some more neurons:
 
