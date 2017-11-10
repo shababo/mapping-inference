@@ -40,13 +40,7 @@ switch experiment_setup.experiment_type
            neighbourhoods(i_neighbourhood).computing_time=struct;
         end
         
-         \item stim\_locations 
-         \begin{itemize}
-         \item multspot\_grid
-        \item multispot\_effect \note{a number of grid by number of cells matrix}
-        \item singlespot\_grid
-        \item singlespot\_effect
-        \end{itemize}
+       
     
         % Calculate the candidate grid for each cell in each neigbourhood 
         group_names = [experiment_setup.groups(:).group_type_ID];
@@ -66,11 +60,18 @@ switch experiment_setup.experiment_type
         % Initialize PR and gain parameters 
         for i_neighbourhood = 1:number_of_neighbourhoods
             for i_cell = 1:length(neighbourhoods(i_neighbourhood).neurons)
-                neighbourhoods(i_neighbourhood).neurons(i_cell).PR=struct([]);
-                neighbourhoods(i_neighbourhood).neurons(i_cell).gain=struct([]);
+                neighbourhoods(i_neighbourhood).neurons(i_cell).PR_params=struct([]);
+                neighbourhoods(i_neighbourhood).neurons(i_cell).PR_params(1).type='SpikedLogitNormal';
+                neighbourhoods(i_neighbourhood).neurons(i_cell).PR_params(1).pi=0;
+                neighbourhoods(i_neighbourhood).neurons(i_cell).PR_params(1).alpha=0;
+                neighbourhoods(i_neighbourhood).neurons(i_cell).PR_params(1).beta=0;
+                neighbourhoods(i_neighbourhood).neurons(i_cell).PR_params(1).mean=0;
+                neighbourhoods(i_neighbourhood).neurons(i_cell).PR_params(1).variance=0;
+                neighbourhoods(i_neighbourhood).neurons(i_cell).PR_params(1).upper_quantile=0;
+                neighbourhoods(i_neighbourhood).neurons(i_cell).PR_params(1).lower_quantile=0;
+                neighbourhoods(i_neighbourhood).neurons(i_cell).PR_params(1).nonzero_prob=0;
                 
-                pi alpha beta mean variance upper_quantile lower_quantile nonzero_prob
-        
+                %neighbourhoods(i_neighbourhood).neurons(i_cell).gain=struct([]);
             end
         end
         
