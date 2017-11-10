@@ -1,15 +1,12 @@
-function [pi_target_selected, inner_normalized_products,target_locations_selected,...
+function [pi_target, inner_normalized_products,target_locations,loc_to_cell,...
     target_locations_nuclei,pi_target_nuclei, loc_to_cell_nuclei] = ...
-    get_stim_locations(...
-    target_cell_list,cell_locations,...
-    r1,r2,num_per_grid,num_per_grid_dense,shape_template,...
-    grid_type,varargin) % type = 1: circles; type = 2: line;
-%  line design is not available for now 
+    get_stim_locations(target_cell_list,cell_params,grid_params,shape_template,varargin)
 
 if ~isempty(varargin) && ~isempty(varargin{1})
     z_depth = varargin{1};
 else
-    z_depth = mean(cell_locations(target_cell_list.primary,3));
+    cell_loc=reshape([cell_params(target_cell_list.primary).location],3,[])';
+    z_depth = mean(cell_loc(:,3));
 end
 
 if length(varargin) > 1 && ~isempty(varargin{2})
@@ -18,72 +15,68 @@ else
     connected_arbitrary_z = 0;
 end
 
-%target_locations_3d_selected,power_3d_selected,pi_target_3d, inner_normalized_products_3d] = 
+if length(varargin) > 1 && ~isempty(varargin{3})
+    simulation_indicator = varargin{3};
+else
+    simulation_indicator = false;
+end
 
 % The list of all related cells :
-related_cell_list=[target_cell_list.primary; target_cell_list.secondary];
-
-grid_jitters = zeros(num_per_grid,2);
-for i_grid = 1:num_per_grid
-   grid_jitters(i_grid,:)=[sin(2*pi*i_grid/num_per_grid) cos(2*pi*i_grid/num_per_grid)]; 
-end
-grid_jitters=[grid_jitters zeros(num_per_grid,1)];
-
-% Calculate the stimulation locations 
-target_locations = zeros(length(target_cell_list.primary)*(2*num_per_grid+1),3);
-for i_cell_index=1:length(target_cell_list.primary)
-    i_cell= target_cell_list.primary(i_cell_index);
-    nucleus_loc=cell_locations(i_cell,:);
-    grid_locs=nucleus_loc;
-    grid_locs=[grid_locs;bsxfun(@plus,grid_jitters*r1,nucleus_loc)];
-    grid_locs=[grid_locs;bsxfun(@plus,grid_jitters*r2,nucleus_loc)];
-    target_idx=(i_cell_index-1)*(2*num_per_grid+1) +(1: (2*num_per_grid+1));
-    target_locations(target_idx,:) = grid_locs;
-end
-
-target_locations(:,3)= z_depth;
-
-cell_params.locations =  cell_locations(related_cell_list,:);
-cell_params.shape_gain = ones(length(related_cell_list),1);
+related_cell_list=[target_cell_list.primary target_cell_list.secondary]; 
+related_cell_params=cell_params(related_cell_list);
 cell_template = struct();
 cell_template.shape= shape_template;
+
+grid_coord = zeros(sum([grid_params(:).number])+1,3);
+i_count=1;
+grid_coord(i_count,:)=zeros(1,3);
+for i_circle=1:length(grid_params)
+    for i_grid = 1:grid_params(i_circle).number
+        i_count=i_count+1;
+        grid_coord(i_count,:)=...
+            grid_params(i_circle).radius*[sin(2*pi*i_grid/grid_params(i_circle).number) cos(2*pi*i_grid/grid_params(i_circle).number) 0];
+    end
+end
+
+% Calculate the stimulation locations 
+target_locations = zeros(length(target_cell_list.primary)*size(grid_coord,1),3);
+loc_to_cell=zeros(length(target_cell_list.primary)*size(grid_coord,1),1);
+i_current=0;
+for i_cell_index=1:length(target_cell_list.primary)
+    i_cell= target_cell_list.primary(i_cell_index);
+    grid_locs=cell_params(i_cell).location+grid_coord;
+    target_locations(i_current+(1:size(grid_locs,1)),:) = grid_locs;
+    loc_to_cell(i_current+(1:size(grid_locs,1)))=i_cell;
+    i_current=i_current+size(grid_locs,1);
+end
+target_locations(:,3)= z_depth;
+
 % [pi_target, inner_normalized_products] = get_weights_v2(cell_params, ...
 %     cell_template,target_locations);
-[pi_target_selected, inner_normalized_products] = get_weights_v2(cell_params, ...
-    cell_template,target_locations);
+[pi_target, inner_normalized_products] = get_weights(related_cell_params, ...
+    cell_template,target_locations,simulation_indicator);
 
-target_locations_selected=target_locations;
 %--------------------------------------------------%
 % Construct stim sets for the connected cells
 
 
-grid_jitters = zeros(num_per_grid_dense,3);
-for i_grid = 1:num_per_grid_dense
-    grid_jitters(i_grid,:)=[sin(2*pi*i_grid/num_per_grid_dense) cos(2*pi*i_grid/num_per_grid_dense) 0];
+% Calculate the stimulation locations 
+target_locations_nuclei = zeros(length(target_cell_list.primary)*size(grid_coord,1),3);
+loc_to_cell_nuclei=zeros(length(target_cell_list.primary)*size(grid_coord,1),1);
+i_current=0;
+for i_cell_index=1:length(target_cell_list.primary)
+    i_cell= target_cell_list.primary(i_cell_index);
+    grid_locs=cell_params(i_cell).location+grid_coord;
+    target_locations_nuclei(i_current+(1:size(grid_locs,1)),:) = grid_locs;
+    loc_to_cell_nuclei(i_current+(1:size(grid_locs,1)))=i_cell;
+    i_current=i_current+size(grid_locs,1);
 end
+if ~connected_arbitrary_z
+    target_locations_nuclei(:,3) = z_depth;
+end
+[pi_target_nuclei, ~] = get_weights(related_cell_params, ...
+    cell_template,target_locations_nuclei,simulation_indicator);
 
-    loc_to_cell_nuclei= zeros(length(target_cell_list.primary)*(2*size(grid_jitters,1)+1),1);
-    target_locations_nuclei = zeros(length(target_cell_list.primary)*(2*size(grid_jitters,1)+1),3);
-    for i_cell_index=1:length( target_cell_list.primary)
-        i_cell= target_cell_list.primary(i_cell_index);
-        nucleus_loc = cell_locations(i_cell,:);
-        grid_locs=nucleus_loc;
-        grid_locs=[grid_locs;bsxfun(@plus,grid_jitters*r1,nucleus_loc)];
-        grid_locs=[grid_locs;bsxfun(@plus,grid_jitters*r2,nucleus_loc)];
-        target_idx=(i_cell_index-1)*(2*size(grid_jitters,1)+1) +(1: (2*size(grid_jitters,1)+1));
-        target_locations_nuclei(target_idx,:) = grid_locs;
-        loc_to_cell_nuclei(target_idx)=i_cell_index;
-    end
-    cell_params.locations =  cell_locations(related_cell_list,:);
-    cell_params.shape_gain = ones(length(related_cell_list),1);
-    cell_template = struct();
-    cell_template.shape= shape_template;
-    if ~connected_arbitrary_z
-        target_locations_nuclei(:,3) = z_depth;
-    end
-    [pi_target_nuclei, ~] = get_weights_v2(cell_params, ...
-        cell_template,target_locations_nuclei);
-    
 
 
 %----------------------------------------------------------------%

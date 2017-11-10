@@ -1,10 +1,10 @@
 function [likelihood] = calculate_likelihood_sum_bernoulli(...
-    n_events, gammas, probabilities)
+    n_events, probabilities)
 %
 %      gammas=[gamma0; gamma_sample];
 %      probabilities=[1 cells_probabilities(i_trial,:)]';
 %t1=toc;
-event_prob = gammas.*probabilities;
+event_prob = probabilities;
 stimulated_index = find(event_prob > 1e-4);
 n_stimulated =length(stimulated_index);
 event_prob = event_prob(stimulated_index);

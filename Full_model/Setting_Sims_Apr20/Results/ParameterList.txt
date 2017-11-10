@@ -1,5 +1,0 @@
-num_dense_grid = [80 40 80 80 80 80 80 80 80]; % desnity of grids
-Aval_grid = [400 400 100 900 400 400 400 400 400]; % precision of stimuli
-num_random_grid = [4 4 4 4 2 7 4 4 4]; % number of initial trials
-V_homo_grid = [1*ones(1,8) 0];
-freq_pen_grid = [1*ones(1,6) 1.2 1.5 0];
