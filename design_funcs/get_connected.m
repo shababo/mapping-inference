@@ -1,0 +1,55 @@
+function connected_profile= get_connected()
+
+% basics
+connected_profile=struct;
+connected_profile.group_ID='undefined';
+
+connected_profile.design_function=@design_connected;
+connected_profile.design_func_params=struct;
+connected_profile.design_func_params.candidate_grid_params=struct;
+connected_profile.design_func_params.candidate_grid_params.radius=[5 10];
+connected_profile.design_func_params.candidate_grid_params.number=[12 16];
+connected_profile.design_func_params.candidate_grid_params.grid_type='sphere'; % 2d ring or 3d sphere
+
+
+connected_profile.design_func_params.trials_params=struct;
+connected_profile.design_func_params.trials_params.replicates=1;
+connected_profile.design_func_params.trials_params.spots_per_trial=1;
+connected_profile.design_func_params.min_trials_per_cell=10;
+connected_profile.design_func_params.trials_params.power_level=30:10:100;
+connected_profile.design_func_params.trials_params.stim_design='Optimal';
+connected_profile.design_func_params.trials_params.MCsamples_for_posterior=50;
+connected_profile.design_func_params.trials_params.trials_per_batch=200;   
+
+% Random, Nuclei, or Optimal
+%   whether to conduct more trials on low PR cells
+connected_profile.design_func_params.trials_params.weighted_indicator=true;
+
+connected_profile.inference_function = @inference_connected;
+
+connected_profile.inference_params=struct;
+connected_profile.inference_params.likelihood=@lif_glm_firstevent_loglikelihood_for_VI;
+% @lif_glm_firstevent_loglikelihood_for_VI
+% @lif_glm_firstspike_loglikelihood_for_VI;
+connected_profile.inference_params.maxit=1e4;
+connected_profile.inference_params.MCsamples_for_gradient=50;
+connected_profile.inference_params.convergence_threshold=1e-3;
+connected_profile.inference_params.step_size=1;
+connected_profile.inference_params.step_size_max=2;
+connected_profile.inference_params.MCsamples_for_posterior=50;
+connected_profile.inference_params.recent_batches=2;
+connected_profile.inference_params.bounds=struct;
+connected_profile.inference_params.bounds.PR=[0.05 1];
+connected_profile.inference_params.bounds.gain=[0.005 0.03];
+connected_profile.inference_params.bounds.spike_indicator=false;
+
+
+connected_profile.regroup_function=@regroup_connected;
+connected_profile.regroup_func_params=struct;
+connected_profile.regroup_func_params.connected_threshold=0.5;
+connected_profile.regroup_func_params.disconnected_threshold=0.2;
+connected_profile.regroup_func_params.quantile_prob=[0.05 0.95];
+connected_profile.regroup_func_params.regroup_type='Quantiles'; % Quantiles or NonzeroProb
+
+
+
