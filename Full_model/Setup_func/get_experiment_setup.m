@@ -67,50 +67,45 @@ temp=l23_average_shape;temp_max = max(max(max(temp)));
         experiment_setup.prior_info.template_cell.V_threshold=15;
         experiment_setup.prior_info.template_cell.membrane_resistance =0.02;
         experiment_setup.prior_info.template_cell.cell_shape = shape_template;
-
         experiment_setup.prior_info.template_cell.linkfunc = {@link_sig, @derlink_sig, @invlink_sig,@derinvlink_sig};
 
-experiment_setup.prior_info.induced_intensity
-        experiment_setup.prior_info.induced_intensity.max_actual_stimulation 
-        experiment_setup.prior_info.induced_intensity.num_stim_grid
-        experiment_setup.prior_info.induced_intensity.linkfunc
-        experiment_setup.prior_info.induced_intensity.stim_scale 
-        experiment_setup.prior_info.induced_intensity.stim_grid
-        experiment_setup.prior_info.induced_intensity.intensity_trace
-        experiment_setup.prior_info.induced_intensity.prob_grid
-        experiment_setup.prior_info.induced_intensity.minimum_stim_threshold 
-        experiment_setup.prior_info.induced_intensity.fire_stim_threshold
-        experiment_setup.prior_info.induced_intensity.stim_threshold
-   
-         experiment_setup.neighbourhood_params=struct;
-    experiment_setup.neighbourhood_params.number=10;
+    experiment_setup.prior_info.induced_intensity=struct;
+        experiment_setup.prior_info.induced_intensity.max_actual_stimulation=5;
+        experiment_setup.prior_info.induced_intensity.num_stim_grid=1000;
+        experiment_setup.prior_info.induced_intensity.linkfunc={@link_sig, @derlink_sig, @invlink_sig,@derinvlink_sig};
+        experiment_setup.prior_info.induced_intensity.stim_scale = experiment_setup.prior_info.induced_intensity.num_stim_grid/experiment_setup.prior_info.induced_intensity.max_actual_stimulation;
+        experiment_setup.prior_info.induced_intensity.stim_grid = (1:num_stim_grid)/stim_scale;
+   experiment_setup.prior_info.induced_intensity=precalculate_intensity(experiment_setup.prior_info.induced_intensity,...
+       experiment_setup.prior_info.template_cell,experiment_setup.prior_info.delay,experiment_setup.prior_info.current_template);
+%         experiment_setup.prior_info.induced_intensity.intensity_grid
+%         experiment_setup.prior_info.induced_intensity.probility_grid
+%         experiment_setup.prior_info.induced_intensity.minimum_stim_threshold 
+%         experiment_setup.prior_info.induced_intensity.fire_stim_threshold
+
+
+    experiment_setup.neighbourhood_params=struct;
+        experiment_setup.neighbourhood_params.number=10;
         experiment_setup.neighbourhood_params.height=20;
         experiment_setup.neighbourhood_params.buffer_height=5;
         experiment_setup.neighbourhood_params.z_thresholds;
- 
-% [experiment_setup.template_cell.prob_trace]=get_firing_probability(...
+
+    % [experiment_setup.template_cell.prob_trace]=get_firing_probability(...
 %     experiment_setup.template_cell.linkfunc,experiment_setup.current_template,experiment_setup.stim_unique,experiment_setup.template_cell,experiment_setup.delay);
 
 %
 
 switch experiment_setup.type
     case 'Simulation'
-experiment_setup.neurons=generate_neurons();
-experiment_setup.patched_neuron.background_rate=1e-4; 
-experiment_setup.patched_neuron.cell_type=[]; 
-
-experiment_setup.patched_neuron=struct;
+        experiment_setup.patched_neuron=struct;
+        experiment_setup.patched_neuron.background_rate=1e-4;
+        experiment_setup.patched_neuron.cell_type=[];
+        simulation_setup=get_simulation_setup();
+        experiment_setup.neurons=generate_neurons(simulation_setup);
     case 'Experiment'
         
     case 'Reproduction'
 end
 
-% cell_params.g=0.02;
-[experiment_setup.template_cell.prob_trace_full,experiment_setup.template_cell.v_trace_full] = get_first_spike_intensity(...
-    experiment_setup.template_cell.linkfunc,...
-    experiment_setup.current_template,experiment_setup.stim_grid,experiment_setup.template_cell,experiment_setup.delay);
-experiment_setup.template_cell.prob_trace=sum(experiment_setup.template_cell.prob_trace_full,2);
-%
 % experiment_setup.eff_stim_threshold=experiment_setup.stim_grid(min(find(sum(experiment_setup.template_cell.prob_trace_full,2)>1e-1)));
 experiment_setup.eff_stim_threshold=experiment_setup.stim_grid(min(find(experiment_setup.template_cell.prob_trace>0.01)))*experiment_setup.template_cell.gain_template;
 experiment_setup.fire_stim_threshold=experiment_setup.stim_grid(min(find(experiment_setup.template_cell.prob_trace>0.99)))*experiment_setup.template_cell.gain_template;
@@ -214,4 +209,6 @@ experiment_setup.exp.duration = .003; % length of laser on
 % load filename
 % for every field in params from file
 % replace default with file version
+
+
         

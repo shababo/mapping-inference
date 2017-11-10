@@ -1,10 +1,10 @@
 function [prob_trace,v_trace] = get_first_spike_intensity(...
-    linkfunc,...
     current_template,stim_grid,cell_params,delay_params)
 %----------- Parameters of the template cell
 
 g=cell_params.g;
-
+ linkfunc=cell_params.linkfunc;
+   
 n_grid=length(current_template);
 num_stim_grid= length(stim_grid);
 v_trace=cell([num_stim_grid 1]);
