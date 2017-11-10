@@ -1,4 +1,10 @@
 function neighbourhoods = create_neighbourhoods(experiment_setup)
+% initialize the neighbourhoods 
+
+experiment_setup.neighbourhood_params.number=10;
+experiment_setup.neighbourhood_params.height=20;
+experiment_setup.neighbourhood_params.buffer_height=5;
+experiment_setup.neighbourhood_params.z_thresholds;
 
 % REDO WITH NEW STRUCTURES!!!!! NOT DONE YET
 % MAKES SURE TO PUT ALL CELLS IN INIT ANALYSIS GROUP (PROB. UNDEFINED)
