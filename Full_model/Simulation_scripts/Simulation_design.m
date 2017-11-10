@@ -11,25 +11,7 @@ downsamp=1;time_max=300;
 current_template=template(1:downsamp:time_max);
 
 
-prior_info=struct;
-    prior_info.template_cell=struct;
-        prior_info.template_cell.V_reset=-1e5;
-        prior_info.template_cell.V_threshold=15;
-        prior_info.template_cell.membrane_resistance =0.02;
-        prior_info.template_cell.cell_shape = shape_template;
-    prior_info.PR_prior = struct;
-        prior_info.PR_prior.type=1; % spike and logitnorm slab 
-        prior_info.PR_prior.pi_logit=0;
-        prior_info.PR_prior.alpha=0;
-        prior_info.PR_prior.beta=1;
-    prior_info.current_template = current_template;
-    prior_info.gain_model=[];
-    prior_info.delay=struct;
-        prior_info.delay.delayed=true;    
-        prior_info.delay.type='Gamma';
-        prior_info.delay.mean=58;
-        prior_info.delay.std=15;
-        prior_info.delay.n_grid=200;
+
 
 
     %% Load the data set for cell locations
@@ -167,59 +149,31 @@ target_cell_list(1).secondary=setdiff(related_cells_by_plane{this_plane},target_
 
 experiment_setup=struct; 
     experiment_setup.experiment_type='Simulation'; % Experiment; Simulation; Reproduction
-   
+   experiment_setup.prior_info=struct;
+    experiment_setup.prior_info.template_cell=struct;
+        experiment_setup.prior_info.template_cell.V_reset=-1e5;
+        experiment_setup.prior_info.template_cell.V_threshold=15;
+        experiment_setup.prior_info.template_cell.membrane_resistance =0.02;
+        experiment_setup.prior_info.template_cell.cell_shape = shape_template;
+    experiment_setup.prior_info.PR_prior = struct;
+        experiment_setup.prior_info.PR_prior.type=1; % spike and logitnorm slab 
+        experiment_setup.prior_info.PR_prior.pi_logit=0;
+        experiment_setup.prior_info.PR_prior.alpha=0;
+        experiment_setup.prior_info.PR_prior.beta=1;
+    experiment_setup.prior_info.current_template = current_template;
+    experiment_setup.prior_info.gain_model=[];
+    experiment_setup.prior_info.delay=struct;
+        experiment_setup.prior_info.delay.delayed=true;    
+        experiment_setup.prior_info.delay.type='Gamma';
+        experiment_setup.prior_info.delay.mean=58;
+        experiment_setup.prior_info.delay.std=15;
+        experiment_setup.prior_info.delay.n_grid=200;
+    
     
 %% Group specifications:
 
 %% The undefined group:
-    undefined_profile=struct;
-        undefined_profile.group_ID=1;
-        undefined_profile.group_type_ID='Undefined';
-        undefined_profile.design_function=@design_undefined;
-        undefined_profile.design_func_params=struct;
-            undefined_profile.design_func_params.candidate_grid_params=struct;
-                undefined_profile.design_func_params.candidate_grid_params.radius=[5 10];
-                undefined_profile.design_func_params.candidate_grid_params.number=[12 16];
-                undefined_profile.design_func_params.candidate_grid_params.grid_type='ring';
-                % 2d ring or 3d sphere
-            undefined_profile.design_func_params.trials_params=struct;
-                undefined_profile.design_func_params.trials_params.replicates=1;
-                undefined_profile.design_func_params.trials_params.spots_per_trial=4;
-                undefined_profile.design_func_params.min_trials_per_cell=10;
-                undefined_profile.design_func_params.min_trials_per_cell=10;
-                undefined_profile.design_func_params.trials_params.power_level=30:10:100;
-                undefined_profile.design_func_params.trials_params.stim_design='Optimal';
-                undefined_profile.inference_params.MCsamples_for_posterior=50;
-                % Random, Nuclei, or Optimal
-                undefined_profile.design_func_params.trials_params.weighted_indicator=true;
-                %   whether to conduct more trials on low PR cells
-        undefined_profile.inference_function = @inference_undefined;
-        undefined_profile.inference_params=struct;
-            undefined_profile.inference_params.likelihood=@calculate_loglikelihood_bernoulli;
-            undefined_profile.inference_params.maxit=1e4;
-            undefined_profile.inference_params.MCsamples_for_gradient=50;
-            undefined_profile.inference_params.convergence_threshold=1e-3;
-            undefined_profile.inference_params.step_size=1;
-            undefined_profile.inference_params.step_size_max=2;
-            undefined_profile.inference_params.background_rate=1e-4;
-            % this should be estimated in the experiment 
-            undefined_profile.inference_params.MCsamples_for_posterior=50;
-            undefined_profile.inference_params.recent_batches=2;
-            undefined_profile.inference_params.bounds=struct;
-                undefined_profile.inference_params.bounds.PR=[0.05 1];
-                undefined_profile.inference_params.bounds.gain=[0.005 0.03];
-         undefined_profile.regroup_function=@regroup_undefined;
-         undefined_profile.regroup_func_params=struct;
-            undefined_profile.regroup_func_params.connected_threshold=0.5;
-            undefined_profile.regroup_func_params.disconnected_threshold=0.2;
-            undefined_profile.regroup_func_params.quantile_prob=[0.05 0.95];
-            undefined_profile.regroup_func_params.regroup_type='Quantiles';
-            % Quantiles or NonzeroProb
-            undefined_profile.regroup_func_params.singlespot_threshold=0.2;
-            % certain proportion of cells 
-            undefined_profile.regroup_func_params.change_threshold =0.05;
-            
-
+   
 %% Neighbourhood initialization
 neighbourhoods=struct;
 neighbourhoods(1)=struct;
