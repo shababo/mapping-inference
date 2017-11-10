@@ -1,6 +1,7 @@
 function neighbourhoods = create_neighbourhoods(experiment_setup)
 
 % REDO WITH NEW STRUCTURES!!!!! NOT DONE YET
+% MAKES SURE TO PUT ALL CELLS IN INIT ANALYSIS GROUP (PROB. UNDEFINED)
 if ~isfield(params.exp,'foe_bounds')
     params.exp.foe_bounds = [-148 148; -148 148];
 end
