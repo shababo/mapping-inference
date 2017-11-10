@@ -27,8 +27,7 @@ switch regroup_type
             intersect(find([parameter_path(iter+1,:).gamma_upper_quantile]<group_profile.regroup_func_params.disconnected_threshold),...
             find( undefined_cells_current));
         undefined_to_connected = ...
-            intersect(find([parameter_path(iter+1,:).gamma_mean]>group_profile.regroup_func_params.connected_threshold
-        ),find( undefined_cells_current));
+            intersect(find([parameter_path(iter+1,:).gamma_mean]>group_profile.regroup_func_params.connected_threshold),find( undefined_cells_current));
         
         
     case 'NonzeroProb'

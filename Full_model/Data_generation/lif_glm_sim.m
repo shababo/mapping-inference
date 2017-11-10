@@ -1,4 +1,4 @@
-function [V_vect, spikes] = lif_glm_sim(stim,params,funcs)
+function [V_vect, spikes] = lif_glm_sim(stim,params)
 
 last_spike = 1;
 dt = 1;
@@ -16,7 +16,7 @@ NumSpikes=0; %holds number of spikes that have occurred
 
 tao=exprnd(1);
 %     lambda(i)=log(exp(V_vect(i)-v_threshold_sim)+1);
-lambda(i) = funcs.invlink(V_vect(i)-params.v_thresh);
+lambda(i) = params.linkfuncs.invlink(V_vect(i)-params.v_thresh);
 
 for t=dt:dt:t_end-1 %loop through values of t in steps of df ms        
     %V_inf = E_L + I_e_vect(i)*R_m;
@@ -26,7 +26,7 @@ for t=dt:dt:t_end-1 %loop through values of t in steps of df ms
 %fprintf('V %d, Stim %d\n', V_vect(i),stim(i));
 
 %         lambda(i+1)=log(exp(V_vect(i+1)-v_threshold_sim)+1);
-    lambda(i+1) = funcs.invlink(V_vect(i)-params.v_thresh);
+    lambda(i+1) = params.linkfuncs.invlink(V_vect(i)-params.v_thresh);
 
     %if statement below says what to do if voltage crosses threshold
     if sum(lambda(last_spike+1:i+1))>tao %cell spiked
