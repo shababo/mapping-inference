@@ -1,4 +1,11 @@
 function [experiment_query_this_group] = design_undefined(this_neighbourhood,group_profile)
+% Output:
+% The experiment_query_this_group struct with fields:
+%    experiment_query_this_group.trials(i_trial).location_IDs=this_trial_location_IDs;
+%        experiment_query_this_group.trials(i_trial).cell_IDs=this_trial_cell_IDs;
+%        experiment_query_this_group.trials(i_trial).power_levels=this_trial_power_levels;
+%        experiment_query_this_group.trials(i_trial).locations=this_trial_locations;
+     
 
 group_type_ID=group_profile.group_type_ID;
 cells_this_group=index([this_neighbourhoods.neurons(:).group_type_ID]==group_type_ID);
@@ -167,8 +174,8 @@ for i_trial = 1:undefined_profile.design_func_params.trials_params.trials_per_ba
                     this_trial_power_levels(1,i_spot)=randsample(group_profile.design_func_params.trials_params.power_level,1,true);
                end
                this_trial_locations(i_spot,:)=    this_neighbourhood.neurons(this_cell).stim_locations.(group_type_ID).grid(temp_loc,:);
-                prob_initial = ...
-                    prob_initial - inner_normalized_products(remaining_cell_list,temp_loc)*prob_initial(temp_index);
+                prob_initial = prob_initial -  ...
+                    this_neighbourhood.neurons(this_cell).stim_locations.(group_type_ID).inner_normalized_products(cells_this_group,temp_loc)*prob_initial(temp_index);
                 prob_initial = max(0,prob_initial);
                 loc_found = 1;
             end
@@ -178,12 +185,6 @@ for i_trial = 1:undefined_profile.design_func_params.trials_params.trials_per_ba
         experiment_query_this_group.trials(i_trial).cell_IDs=this_trial_cell_IDs;
         experiment_query_this_group.trials(i_trial).power_levels=this_trial_power_levels;
         experiment_query_this_group.trials(i_trial).locations=this_trial_locations;
-        
-        
-        
-        trials_locations(n_replicates*(i_trial-1)+(1:n_replicates),:)=ones(n_replicates,1)*this_trial_locations;
-        trials_powers(n_replicates*(i_trial-1)+(1:n_replicates),:)=ones(n_replicates,1)*this_trial_powers;
-        
          
      end
         
