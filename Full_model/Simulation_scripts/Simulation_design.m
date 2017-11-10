@@ -168,6 +168,17 @@ experiment_setup=struct;
         experiment_setup.prior_info.delay.mean=58;
         experiment_setup.prior_info.delay.std=15;
         experiment_setup.prior_info.delay.n_grid=200;
+    experiment_setup.prior_info.induced_intensity
+        experiment_setup.prior_info.induced_intensity.max_actual_stimulation 
+        experiment_setup.prior_info.induced_intensity.num_stim_grid
+        experiment_setup.prior_info.induced_intensity.linkfunc
+        experiment_setup.prior_info.induced_intensity.stim_scale 
+        experiment_setup.prior_info.induced_intensity.stim_grid
+        experiment_setup.prior_info.induced_intensity.intensity_trace
+        experiment_setup.prior_info.induced_intensity.prob_grid
+        experiment_setup.prior_info.induced_intensity.minimum_stim_threshold 
+        experiment_setup.prior_info.induced_intensity.fire_stim_threshold
+        experiment_setup.prior_info.induced_intensity.stim_threshold
     
     
 %% Group specifications:

@@ -43,6 +43,9 @@ undefined_profile.inference_params.recent_batches=2;
 undefined_profile.inference_params.bounds=struct;
 undefined_profile.inference_params.bounds.PR=[0.05 1];
 undefined_profile.inference_params.bounds.gain=[0.005 0.03];
+undefined_profile.inference_params.bounds.spike_indicator=false;
+
+
 undefined_profile.regroup_function=@regroup_undefined;
 undefined_profile.regroup_func_params=struct;
 undefined_profile.regroup_func_params.connected_threshold=0.5;
