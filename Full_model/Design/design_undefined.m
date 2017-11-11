@@ -8,14 +8,22 @@ function [experiment_query_this_group] = design_undefined(this_neighbourhood,gro
 
 
 group_ID=group_profile.group_ID;
-cells_this_group=index([this_neighbourhood.neurons(:).group_ID]==group_ID);
+
+
+%cells_this_group=find((arrayfun(@(x) strcmp(this_neighbourhood.neurons(:).group_ID,group_ID),this_neighbourhood.neurons(:))));
+cells_this_group= find(get_group_inds(this_neighbourhood,group_ID));
 number_cells_this_group=length(cells_this_group);
 number_cells_all= length(this_neighbourhood.neurons);
 loc_counts=zeros(number_cells_this_group,1);
 
 % obtain posterior mean of gamma
 % Write a function that grabs the last element in a specific field
-mean_gamma=grab_recent_value(this_neighbourhood.neurons(cells_this_group).PR_params(end).mean);
+i_batch=this_neighbourhood.batch_ID;
+neurons=this_neighbourhood.neurons(cells_this_group);
+properties={'PR_params'};summary_stat={'mean'};
+temp_output=grab_values_from_neurons(i_batch,neurons,properties,summary_stat);
+mean_gamma=temp_output.PR_params.mean;
+
 if  group_profile.design_func_params.trials_params.weighted_indicator
     probability_weights = 1-mean_gamma;
 else
@@ -25,12 +33,12 @@ end
 switch group_profile.design_func_params.trials_params.stim_design
     case 'Optimal'
         
-        gain_samples=zeros(undefined_profile.inference_params.MCsamples_for_posterior,...
+        gain_samples=zeros(group_profile.inference_params.MCsamples_for_posterior,...
             number_cells_all);
         for i_cell = 1:number_cells_all
             alpha_gain=this_neighbourhood.neurons(i_cell).gain_params(end).alpha;
             beta_gain=this_neighbourhood.neurons(i_cell).gain_params(end).beta;
-            temp=normrnd(alpha_gain,beta_gain,[undefined_profile.inference_params.MCsamples_for_posterior 1]);
+            temp=normrnd(alpha_gain,beta_gain,[group_profile.inference_params.MCsamples_for_posterior 1]);
             gain_samples(:,i_cell) = exp(temp)./(1+exp(temp))*...
                 range(group_profile.inference_params.bounds.gain)+group_profile.inference_params.bounds.gain(1);
         end
@@ -101,12 +109,12 @@ this_trial_location_IDs=zeros(1,group_profile.design_func_params.trials_params.s
 this_trial_cell_IDs=zeros(1,group_profile.design_func_params.trials_params.spots_per_trial);
 this_trial_power_levels=zeros(1,group_profile.design_func_params.trials_params.spots_per_trial);
 this_trial_locations=zeros(group_profile.design_func_params.trials_params.spots_per_trial,3);
-for i_trial = 1:undefined_profile.design_func_params.trials_params.trials_per_batch
+for i_trial = 1:group_profile.design_func_params.trials_params.trials_per_batch
     prob_initial = probability_weights;
     prob_initial = prob_initial./(loc_counts+0.1);
     prob_initial = prob_initial/sum(prob_initial);
     pockels_ratio_refs(end+1) = 0;
-    for i_spot = 1:undefined_profile.design_func_params.trials_params.spots_per_trial
+    for i_spot = 1:group_profile.design_func_params.trials_params.spots_per_trial
         try_count = 0;
         loc_found = 0;
         if sum(prob_initial)>0.1
