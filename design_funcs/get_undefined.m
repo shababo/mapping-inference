@@ -26,6 +26,7 @@ undefined_profile.design_func_params.trials_params.trials_per_batch=200;
 %   whether to conduct more trials on low PR cells
 undefined_profile.design_func_params.trials_params.weighted_indicator=true;
 
+
 undefined_profile.inference_function = @inference_undefined;
 
 undefined_profile.inference_params=struct;

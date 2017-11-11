@@ -4,7 +4,9 @@ function neighbourhoods = create_neighbourhoods(experiment_setup)
 switch experiment_setup.experiment_type
     case 'simulation'
         
-        cell_locations=reshape([experiment_setup.neurons(:).location]',[],length(experiment_setup.neurons(1).location));
+        cell_locations=reshape([experiment_setup.neurons.location],length(experiment_setup.neurons(1).location),[])';
+        assignin('base','cell_locations',cell_locations)
+        assignin('base','experiment_setup',experiment_setup)
         z_min=min(cell_locations(:,3));
         z_max=max(cell_locations(:,3));
         z_slide_width=experiment_setup.neighbourhood_params.height;

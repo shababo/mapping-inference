@@ -30,7 +30,7 @@ prior_params=grab_recent_value(this_neighbourhood.neurons(stimulated_cell_list))
 lklh_func=group_profile.inference_params.likelihood;
 
 [parameter_history] = fit_VI(...
-    designs_remained, mpp_remained, variational_params,prior_params,
+    designs_remained, mpp_remained, variational_params,prior_params,...
     group_profile.inference_params);
 
     % need a function that writes the values into the parameter history in

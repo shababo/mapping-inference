@@ -6,7 +6,7 @@ function [experiment_query_this_group] = design_undefined(this_neighbourhood,gro
 %        experiment_query_this_group.trials(i_trial).power_levels=this_trial_power_levels;
 %        experiment_query_this_group.trials(i_trial).locations=this_trial_locations;
 
-
+disp('designs undef')
 group_ID=group_profile.group_ID;
 
 power_levels=group_profile.design_func_params.trials_params.power_levels;
