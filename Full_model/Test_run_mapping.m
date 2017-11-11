@@ -38,7 +38,7 @@ experiment_setup.patched_neuron=struct;
  [experiment_query] = generate_psc_data(experiment_query,experiment_setup,this_neighbourhood);
 
  %% manually move event times to this_experiment_query
- n_trials = length(experiment_query.undefined.trials)
+ n_trials = length(experiment_query.undefined.trials);
  
  for i_trial = 1:n_trials
     experiment_query.undefined.trials(i_trial).event_times=experiment_query.undefined.trials(i_trial).truth.event_times;
@@ -59,12 +59,15 @@ experiment_setup.patched_neuron=struct;
  this_group = 'undefined';
  i=1;
  group_names={'undefined','disconnected','connected','alive'};   
+ group_profile=get_undefined();
+ %%
  for j = setdiff(1:length(group_names),i)
-     to_groups=group_names(j);
-     group_profile = experiment_setup.groups.(this_group);
-     regroup_func = experiment_setup.groups.(this_group).regroup_functions.(to_group);
-     neighbourhood  = regroup_func(neighbourhood,group_profile);
+     to_group=group_names{j};
+     if isfield( group_profile.regroup_functions, to_group)
+     regroup_func = group_profile.regroup_functions.(to_group);
+     this_neighbourhood  = regroup_func(this_neighbourhood,group_profile);
      %     end
+     end
  end
 
 

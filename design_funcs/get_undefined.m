@@ -47,6 +47,7 @@ undefined_profile.inference_params.bounds.spike_indicator=false;
 undefined_profile.regroup_function=struct;
 undefined_profile.regroup_function.connected=@undefined_to_connected;
 undefined_profile.regroup_function.disconnected=@undefined_to_disconnected;
+
 undefined_profile.regroup_func_params=struct;
 undefined_profile.regroup_func_params.connected_threshold=0.5;
 undefined_profile.regroup_func_params.disconnected_threshold=0.2;
