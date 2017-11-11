@@ -8,7 +8,7 @@ for i_group = 1:length(group_names)
 
         experiment_query_this_group = draw_point_processes(experiment_query_this_group, ...
             this_neighbourhood,experiment_setup);
-        if experiment_setup.sim.sim_vlcamp
+        if experiment_setup.sim.sim_vclamp
             experiment_query_this_group = draw_vclamp(experiment_query_this_group, ...
             this_neighbourhood,experiment_setup);
         end
