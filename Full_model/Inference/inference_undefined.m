@@ -55,17 +55,17 @@ for i_cell = 1:number_of_stim_cells
     
     current_params=reformat_to_neurons(parameter_history(end,i_cell),'gamma','spiked_logit_normal');
     
-    group_profile=experiment_setup.groups.(neighbourhoods(i_neighbourhood).neurons(i_cell).group_ID);
+    group_profile=experiment_setup.groups.(this_neighbourhood.neurons(i_cell).group_ID);
     bounds= group_profile.inference_params.bounds.PR;
     quantile_prob=group_profile.regroup_func_params.quantile_prob;
-    neighbourhoods(i_neighbourhood).neurons(stimulated_cell_list(i_cell)).PR_params(i_batch+1)=calculate_posterior(...
+    this_neighbourhood.neurons(stimulated_cell_list(i_cell)).PR_params(i_batch+1)=calculate_posterior(...
         current_params,bounds,quantile_prob);
     
     current_params=reformat_to_neurons(parameter_history(end,i_cell),'gain','spiked_logit_normal');
-    group_profile=experiment_setup.groups.(neighbourhoods(i_neighbourhood).neurons(i_cell).group_ID);
+    group_profile=experiment_setup.groups.(this_neighbourhood.neurons(i_cell).group_ID);
     bounds= group_profile.inference_params.bounds.gain;
     quantile_prob=group_profile.regroup_func_params.quantile_prob;
-    neighbourhoods(i_neighbourhood).neurons(stimulated_cell_list(i_cell)).gain_params(i_batch+1)=calculate_posterior(...
+   this_neighbourhood.neurons(stimulated_cell_list(i_cell)).gain_params(i_batch+1)=calculate_posterior(...
         current_params,bounds,quantile_prob);
     
 end
