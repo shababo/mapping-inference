@@ -49,8 +49,6 @@ prior_params=variational_params;
 
     % need a function that writes the values into the parameter history in
     % this_neighbourhood 
-[parameter_temp] = calculate_posterior(parameter_history(end,:),gamma_bound,gain_bound,quantiles_prob,spike_indicator);
-variational_params_path(iter+1,cell_list)=parameter_history(end,:);
 
 
 for i_cell = 1:number_of_stim_cells
