@@ -15,5 +15,3 @@ for i_properties = 1:length(properties)
     end
 end
 end
-
-end

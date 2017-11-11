@@ -1,4 +1,4 @@
-addpath(genpath('../../mapping-inference'),genpath('../../odessa-beta-beta'));
+addpath(genpath('../GitHub/mapping-inference'),genpath('../GitHub/odessa-beta-beta'));
 %% Run get_experiment_setup:
 
 disp('Test get_experiment_setup')
