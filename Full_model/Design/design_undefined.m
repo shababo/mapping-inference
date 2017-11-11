@@ -22,7 +22,7 @@ i_batch=this_neighbourhood.batch_ID;
 neurons=this_neighbourhood.neurons(cells_this_group);
 properties={'PR_params'};
 summary_stat={'mean'};
-mean_gamma=grab_values_from_neurons(i_batch,neurons,properties,summary_stat);
+temp_output=grab_values_from_neurons(i_batch,neurons,properties,summary_stat);
 
 this_neighbourhood.neurons(cells_this_group).PR_params(end).mean
 
