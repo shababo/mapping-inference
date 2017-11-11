@@ -26,7 +26,7 @@ undefined_profile.design_func_params.trials_params.trials_per_batch=200;
 %   whether to conduct more trials on low PR cells
 undefined_profile.design_func_params.trials_params.weighted_indicator=true;
 
-
+undefined_profile.psc_detect_function = @run_oasis;
 undefined_profile.inference_function = @inference_undefined;
 
 undefined_profile.inference_params=struct;
@@ -45,8 +45,8 @@ undefined_profile.inference_params.bounds.spike_indicator=false;
 
 
 undefined_profile.regroup_function=struct;
-    undefined_profile.regroup_function.connected=@undefined_to_connected;
-    undefined_profile.regroup_function.disconnected=@undefined_to_disconnected;
+undefined_profile.regroup_function.connected=@undefined_to_connected;
+undefined_profile.regroup_function.disconnected=@undefined_to_disconnected;
 undefined_profile.regroup_func_params=struct;
 undefined_profile.regroup_func_params.connected_threshold=0.5;
 undefined_profile.regroup_func_params.disconnected_threshold=0.2;
