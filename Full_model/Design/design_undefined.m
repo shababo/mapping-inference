@@ -53,7 +53,7 @@ switch group_profile.design_func_params.trials_params.stim_design
                 size(candidate_grid.effect,1));
             for i_loc = 1:size(candidate_grid.effect,2)
                 for k=1:length(group_profile.design_func_params.trials_params.power_levels)
-                    for j_cell = 1:size(candidate_grid.effect,2)
+                    for j_cell = 1:size(candidate_grid.effect,1)
                         if candidate_grid.effect(j_cell,i_loc)>5e-2
                             stimulation_received=candidate_grid.effect(j_cell,i_loc)*group_profile.design_func_params.trials_params.power_levels(k);
                             effective_stim= stimulation_received*gain_samples(:,j_cell);
