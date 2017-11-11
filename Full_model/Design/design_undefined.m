@@ -206,6 +206,7 @@ for i_trial = 1:group_profile.design_func_params.trials_params.trials_per_batch
     experiment_query_this_group.trials(i_trial).cell_IDs=this_trial_cell_IDs;
     experiment_query_this_group.trials(i_trial).power_levels=this_trial_power_levels;
     experiment_query_this_group.trials(i_trial).locations=this_trial_locations;
+    experiment_query_this_group.trials(i_trial).group_ID=group_ID;
     
 end
 

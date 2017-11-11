@@ -1,19 +1,21 @@
 function experiment_query_this_group = draw_point_processes(experiment_query_this_group, ...
         this_neighbourhood,experiment_setup)
-
-    number_of_cells=length(experiment_setup.neurons);
-    number_of_trials=length(experiment_query_this_group.trial);
+time_max=length(experiment_setup.prior_info.current_template);
+%     number_of_cells=length(experiment_setup.neurons);
+number_of_cells=length(this_neighbourhood.neurons);
+    number_of_trials=length(experiment_query_this_group.trials);
+    number_of_spots=length(experiment_query_this_group.trials(1).location_IDs);
     stimuli_size=zeros(number_of_trials,number_of_cells);
-    this_group=experiment_query_this_group.trials(l).group_ID;
+    this_group=experiment_query_this_group.trials(1).group_ID;
     for l = 1:number_of_trials
-        for m = 1:number_of_cells
-            this_loc_ID=experiment_query_this_group.trials(l).location_ID(m);
+        for m = 1:number_of_spots
+            this_loc_ID=experiment_query_this_group.trials(l).location_IDs(m);
             if isnan(this_loc_ID)
             else
                 this_loc_power = experiment_query_this_group.trials(l).power_levels(m);
-                this_cell=experiment_query_this_group.trials(l).target_cell_ID(m);
+                this_cell=experiment_query_this_group.trials(l).cell_IDs(m);
                 stimuli_size(l,:) = stimuli_size(l,:)+...
-                    (this_neighbourhood.neurons(this_cell).truth.stim_locations.(this_group).effect(:,this_loc_ID)*this_loc_power;
+                    (this_neighbourhood.neurons(this_cell).stim_locations.(this_group).effect(:,this_loc_ID)*this_loc_power)';
             end
         end
     end
@@ -32,7 +34,8 @@ experiment_query_this_group.trials(i_trial).truth.assignments=[];
         for i_cell = 1:number_of_cells
             k=stimuli_size(i_trial,i_cell);
             params_sim=experiment_setup.neurons(i_cell).truth;
-            stim_threshold=experiment_setup.prior_info.induced_intensity.minimum_stim_threshold/experiment_setup.neurons(i_cell).truth.gain;
+            params_sim.linkfuncs=experiment_setup.prior_info.induced_intensity.linkfunc;
+            stim_threshold=experiment_setup.prior_info.induced_intensity.minimum_stim_threshold/experiment_setup.neurons(i_cell).truth.optical_gain;
             if k > stim_threshold
                 
                 stim = experiment_setup.prior_info.current_template*k;

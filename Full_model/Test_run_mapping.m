@@ -25,10 +25,18 @@ this_neighbourhood.batch_ID=1;
 
 disp('Test design trials')
 experiment_query_this_group=design_undefined(this_neighbourhood,group_profile,experiment_setup);
+
+%% 
+experiment_query.undefined=experiment_query_this_group;
+%%
+experiment_setup.patched_neuron=struct;
+    experiment_setup.patched_neuron.background_rate=1e-4;
+    experiment_setup.patched_neuron.cell_type=[];
 %% Test simulation:
  disp('Test simulation')
  
- 
+ [experiment_query] = generate_psc_data(experiment_query,experiment_setup,this_neighbourhood);
+
  %% Test model fitting
  disp('Test inference')
  
