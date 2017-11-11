@@ -62,7 +62,7 @@ end
 % \item        membrane\_resistance 
 % \item truth \note{for simulation}
 %         \end{itemize}
-    
+
 neurons=struct([]);
 for i_cell = 1:number_of_cells 
     neurons(i_cell).fluorescence= []; % need to generate some fluorescence level 

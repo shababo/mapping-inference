@@ -4,7 +4,7 @@ function neighbourhoods = create_neighbourhoods(experiment_setup)
 switch experiment_setup.experiment_type
     case 'simulation'
         
-        cell_locations=rehshape([experiment_setup.neurons(:).location]',[],length(experiment_setup.neurons(1).location));
+        cell_locations=reshape([experiment_setup.neurons(:).location]',[],length(experiment_setup.neurons(1).location));
         z_min=min(cell_locations(:,3));
         z_max=max(cell_locations(:,3));
         z_slide_width=experiment_setup.neighbourhood_params.height;
@@ -21,32 +21,37 @@ switch experiment_setup.experiment_type
         % copying the neuron info from experiment setup 
         neighbourhoods=struct([]);
         for i_neighbourhood = 1:number_of_neighbourhoods
-           neighbourhoods(i_neighbourhood)=struct;
+           %neighbourhoods(i_neighbourhood)=struct;
            neighbourhoods(i_neighbourhood).neighbourhood_ID=i_neighbourhood;
-           neighbourhoods(i_neighbourhood).neurons=struct([]);
+           %neighbourhoods(i_neighbourhood).neurons=struct;
            cell_list_this_neighbourhood=find(cell_group_idx==i_neighbourhood);
            for i_cell = 1:length(cell_list_this_neighbourhood)
                cell_ID=cell_list_this_neighbourhood(i_cell);
                 neighbourhoods(i_neighbourhood).neurons(i_cell)=experiment_setup.neurons(cell_ID);
-                neighbourhoods(i_neighbourhood).neurons(i_cell).cell_ID=cell_ID;
-                neighbourhoods(i_neighbourhood).neurons(i_cell).group_ID='undefined'; % all are initialized as undefined
-                neighbourhoods(i_neighbourhood).neurons(i_cell).primary_indicator=true;
-           end
+            end
            neighbourhoods(i_neighbourhood).computing_time=struct;
         end
         
-       
+        
+               
     
         % Calculate the candidate grid for each cell in each neigbourhood 
-        group_names = [experiment_setup.groups(:).group_type_ID];
+        group_names = fieldnames(experiment_setup.groups);
         for i_neighbourhood = 1:number_of_neighbourhoods
             cell_locations_neighbourhood = reshape([neighbourhoods(i_neighbourhood).neurons(:).location]',[],3);
             for i_cell = 1:length(neighbourhoods(i_neighbourhood).neurons)
                 neighbourhoods(i_neighbourhood).neurons(i_cell).stim_locations=struct([]);
+                 neighbourhoods(i_neighbourhood).neurons(i_cell).cell_ID=cell_ID;
+                neighbourhoods(i_neighbourhood).neurons(i_cell).group_ID='undefined'; % all are initialized as undefined
+                neighbourhoods(i_neighbourhood).neurons(i_cell).primary_indicator=true;
+              
                 for i_group = 1:length(group_names)
-                    neighbourhoods(i_neighbourhood).neurons(i_cell).stim_locations(group_names(i_group))=...
-                        get_stim_locations(...
-                        cell_locations_neighbourhood);
+                    neighbourhoods(i_neighbourhood).neurons(i_cell).stim_locations
+                    
+                    design_params=experiment_setup.groups.(group_names{i_group}).design_func_params;
+                    cell_params=neighbourhoods(i_neighbourhood).neurons;
+                    =[];...
+                        get_stim_locations(cell_params,design_params);
                     % define grid, effect, and inner product 
                 end
             end
