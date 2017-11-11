@@ -17,6 +17,7 @@ simulation_setup.cell_params.type='Normal';
 simulation_setup.cell_params.gain_range=[0.5 0.9];
 
 simulation_setup.do_instructions = 0;
+simulation_setup.sim_vlcamp = 0;
    simulation_setup.response_generation=struct;
 %       simulation_setup.response_generation.function=@xxx
  
