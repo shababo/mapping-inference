@@ -8,14 +8,24 @@ function [experiment_query_this_group] = design_undefined(this_neighbourhood,gro
 
 
 group_ID=group_profile.group_ID;
-cells_this_group=index([this_neighbourhood.neurons(:).group_ID]==group_ID);
+
+
+%cells_this_group=find((arrayfun(@(x) strcmp(this_neighbourhood.neurons(1).group_ID,group_ID),this_neighbourhood.neurons(:))));
+cells_this_group= find(get_group_inds(neighbourhood,group_ID));
 number_cells_this_group=length(cells_this_group);
 number_cells_all= length(this_neighbourhood.neurons);
 loc_counts=zeros(number_cells_this_group,1);
 
 % obtain posterior mean of gamma
 % Write a function that grabs the last element in a specific field
-mean_gamma=grab_recent_value(this_neighbourhood.neurons(cells_this_group).PR_params(end).mean);
+i_batch=this_neighbourhood.batch_ID;
+neurons=this_neighbourhood.neurons(cells_this_group);
+properties={'PR_params'};
+summary_stat={'mean'};
+mean_gamma=grab_values_from_neurons(i_batch,neurons,properties,summary_stat);
+
+this_neighbourhood.neurons(cells_this_group).PR_params(end).mean
+
 if  group_profile.design_func_params.trials_params.weighted_indicator
     probability_weights = 1-mean_gamma;
 else

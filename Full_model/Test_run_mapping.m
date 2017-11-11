@@ -18,6 +18,8 @@ this_neighbourhood=neighbourhoods(8);
 this_group='undefined';
 group_profile=experiment_setup.groups.(this_group);
 
+%manually give a batch ID to neighbourhood
+this_neighbourhood.batch_ID=1;
  
 %% Test designing new trials:
 
