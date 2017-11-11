@@ -1,6 +1,12 @@
-function experiment_query = empty_design(neighbourhood)
+function experiment_query = empty_design(neighbourhood, group_profile)
 
-experiment_query.neighbourhood_id = neighbourhood.neighbourhood_id;
+group_ID=group_profile.group_ID;
+cells_this_group=index([this_neighbourhood.neurons(:).group_ID]==group_ID);
+number_cells_this_group=length(cells_this_group);
+number_cells_all= length(this_neighbourhood.neurons);
+loc_counts=zeros(number_cells_this_group,1);
+
+experiment_query.neighbourhood_ID = neighbourhood.neighbourhood_ID;
 experiment_query.data_gen_type = 'acq';
 experiment_query.trials = [];
 experiment_query.batch_info.batch_id = 1;

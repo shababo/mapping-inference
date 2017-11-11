@@ -7,7 +7,7 @@ function [experiment_query_this_group] = design_undefined(this_neighbourhood,gro
 %        experiment_query_this_group.trials(i_trial).locations=this_trial_locations;
      
 
-group_type_ID=group_profile.group_type_ID;
+group_ID=group_profile.group_ID;
 cells_this_group=index([this_neighbourhood.neurons(:).group_ID]==group_ID);
 number_cells_this_group=length(cells_this_group);
 number_cells_all= length(this_neighbourhood.neurons);
@@ -91,7 +91,8 @@ switch group_profile.design_func_params.trials_params.stim_design
 end
 
 experiment_query_this_group=struct;
-experiment_query_this_group.group_type_ID=group_type_ID;
+experiment_query_this_group.group_ID=group_ID;
+experiment_query_this_group.neighbourhood_ID=this_neighbourhood.neighbourhood_ID;
 experiment_query_this_group.instruction='Compute hologram';
 experiment_query_this_group.trials=struct([]);
 pockels_ratios = zeros(num_trials,n_spots_per_trial);

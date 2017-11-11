@@ -8,6 +8,8 @@ group_names{2}='connected';
 group_names{3}='disconnected';
 group_names{4}='alive';
 
+experiment_setup.group_names = group_names;
+
 experiment_setup.default_group='undefined';
 
 %experiment_setup.is_sim
@@ -97,6 +99,7 @@ experiment_setup.neighbourhood_params.buffer_height=5;
 
 
 % need a way to call these functions based on group names
+
 experiment_setup.groups.undefined=get_undefined();
 experiment_setup.groups.connected=get_connected();
 experiment_setup.groups.disconnected=get_disconnected();
@@ -204,4 +207,5 @@ experiment_setup.trials.max_time = 500;
 % for every field in params from file
 % replace default with file version
 
-
+% sim params
+experiment_setup.sim = get_simulation_setup;
