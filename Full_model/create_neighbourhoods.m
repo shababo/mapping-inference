@@ -30,6 +30,7 @@ switch experiment_setup.experiment_type
                 neighbourhoods(i_neighbourhood).neurons(i_cell)=experiment_setup.neurons(cell_ID);
             end
            neighbourhoods(i_neighbourhood).computing_time=struct;
+           neighbourhoods(i_neighbourhood).batch_ID=1;
         end
         
         
