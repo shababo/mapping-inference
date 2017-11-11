@@ -1,41 +1,74 @@
 function [this_neighbourhood]=inference_undefined(...
-    this_experiment_query,this_neighbourhood,group_profile,prior_info)
+    experiment_query_this_group,this_neighbourhood,group_profile,experiment_setup)
 
-group_type_ID=group_profile.group_type_ID;
-cells_this_group=index([this_neighbourhood.neurons(:).group_type_ID]==group_type_ID);
+group_ID=group_profile.group_ID;
+cells_this_group= find(get_group_inds(this_neighbourhood,group_ID));
 number_cells_this_group=length(cells_this_group);
 number_cells_all= length(this_neighbourhood.neurons);
-
+prior_info=experiment_setup.prior_info;
 
 %indicators_remained = find(ismember([mpp_undefined(:).batch],iter-(0:num_trace_back) ));
-number_of_trials = length(this_experiment_query.trials);
+number_of_trials = length(experiment_query_this_group.trials);
 
 % Need a function that graph the mpp from the experiment_query
 % note: this_experiment_query contains the group information 
-mpp_remained=extract_mpp(this_experiment_query);
-designs_remained = get_stim_size(this_experiment_query.trials,this_neighbourhood);
+mpp_remained=extract_mpp(experiment_query_this_group.trials);
+designs_remained = get_stim_size(group_ID,experiment_query_this_group.trials,this_neighbourhood);
 
 
 % include all cells that have been stimulated:
-stimulated_cell_list= find(sum(designs_remained>prior_info.induced_intensity.stim_threshold,1)>0);
+stim_threshold=prior_info.induced_intensity.minimum_stim_threshold/group_profile.inference_params.bounds.gain(2);
+stimulated_cell_list= find(sum(designs_remained>stim_threshold,1)>0);
+number_of_stim_cells=length(stimulated_cell_list);
 designs_remained=designs_remained(:,stimulated_cell_list);
 % Update variational and prior distribution
 
-variational_params=grab_recent_value(this_neighbourhood.neurons(stimulated_cell_list));
-prior_params=grab_recent_value(this_neighbourhood.neurons(stimulated_cell_list));
+
+i_batch=this_neighbourhood.batch_ID;
+neurons=this_neighbourhood.neurons(cells_this_group);
+properties={'PR_params','gain_params'};summary_stat={'pi_logit','alpha','beta'};
+temp_output=grab_values_from_neurons(i_batch,neurons,properties,summary_stat);
+
+variational_params=struct;
+temp=num2cell(temp_output.PR_params.pi_logit);[variational_params(1:number_of_stim_cells).p_logit]=temp{:};
+temp=num2cell(temp_output.PR_params.alpha);[variational_params(1:number_of_stim_cells).alpha]=temp{:};
+temp=num2cell(temp_output.PR_params.beta);[variational_params(1:number_of_stim_cells).beta]=temp{:};
+temp=num2cell(temp_output.gain_params.alpha);[variational_params(1:number_of_stim_cells).alpha_gain]=temp{:};
+temp=num2cell(temp_output.gain_params.beta);[variational_params(1:number_of_stim_cells).beta_gain]=temp{:};
+
+
+prior_params=variational_params;
 
 %prior_params=variational_params_path(max(iter-num_trace_back,1),cell_list);
 
-
-lklh_func=group_profile.inference_params.likelihood;
 
 [parameter_history] = fit_VI(...
     designs_remained, mpp_remained, variational_params,prior_params,...
     group_profile.inference_params);
 
+
     % need a function that writes the values into the parameter history in
     % this_neighbourhood 
-[parameter_temp] = calculate_posterior(parameter_history(end,:),gamma_bound,gain_bound,quantiles_prob,spike_indicator);
-variational_params_path(iter+1,cell_list)=parameter_history(end,:);
 
+
+for i_cell = 1:number_of_stim_cells
+    
+    current_params=reformat_to_neurons(parameter_history(end,i_cell),'gamma','spiked_logit_normal');
+    
+    group_profile=experiment_setup.groups.(neighbourhoods(i_neighbourhood).neurons(i_cell).group_ID);
+    bounds= group_profile.inference_params.bounds.PR;
+    quantile_prob=group_profile.regroup_func_params.quantile_prob;
+    neighbourhoods(i_neighbourhood).neurons(stimulated_cell_list(i_cell)).PR_params(i_batch+1)=calculate_posterior(...
+        current_params,bounds,quantile_prob);
+    
+    current_params=reformat_to_neurons(parameter_history(end,i_cell),'gain','spiked_logit_normal');
+    group_profile=experiment_setup.groups.(neighbourhoods(i_neighbourhood).neurons(i_cell).group_ID);
+    bounds= group_profile.inference_params.bounds.gain;
+    quantile_prob=group_profile.regroup_func_params.quantile_prob;
+    neighbourhoods(i_neighbourhood).neurons(stimulated_cell_list(i_cell)).gain_params(i_batch+1)=calculate_posterior(...
+        current_params,bounds,quantile_prob);
+    
+end
+
+                
 end

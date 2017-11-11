@@ -1,8 +1,31 @@
 function [parameter_history] = fit_VI(...
     stim_size, mpp, background_rate, ...
-    prob_trace_full,stim_scale,minimum_stim_threshold,...
-    variational_params,prior_params,gamma_bound,gain_bound,...
-    S,epsilon,eta,eta_max,maxit,lklh_func,varargin)
+    variational_params,prior_params,...
+    inference_params,prior_info,varargin)
+
+    %designs_remained, mpp_remained, variational_params,prior_params,...
+    
+intensity_grid=prior_info.induced_intensity.intensity_grid;
+
+stim_scale=prior_info.induced_intensity.stim_scale;
+
+minimum_stim_threshold=prior_info.induced_intensity.minimum_stim_threshold;
+
+gamma_bound=struct;
+gamma_bound.up=inference_params.bounds.PR(2);
+gamma_bound.low=inference_params.bounds.PR(1);
+
+
+gain_bound=struct;
+gain_bound.up=inference_params.bounds.gain(2);
+gain_bound.low=inference_params.bounds.gain(1);
+epsilon=inference_params.convergence_threshold;
+S=inference_params.MCsamples_for_gradient;
+eta=inference_params.step_size;
+eta_max=inference_params.step_size_max;
+maxit=inference_params.maxit;
+lklh_func=inference_params.likelihood;
+
 
 if ~isempty(varargin) && ~isempty(varargin{1})
    spike_indicator= varargin{1};
@@ -14,7 +37,7 @@ end
 
    
 n_cell=size(stim_size,2);n_trial=size(stim_size,1);
-n_grid=size(prob_trace_full,2);
+n_grid=size(intensity_grid,2);
 
 % initialize storages 
 sum_of_logs=zeros(S,1);logvariational=zeros(n_cell,S);
@@ -77,7 +100,7 @@ while (change_history(iteration) > epsilon && iteration<maxit)
 %     [var(gain_sample_mat)  exp(2*[parameter_current(:).beta_gain])]
     
     [loglklh] = update_likelihood(gamma_sample_mat,gain_sample_mat,stim_size,mpp,...
-        prob_trace_full,minimum_stim_threshold,stim_scale,background_rate,relevant_trials,lklh_func);
+        intensity_grid,minimum_stim_threshold,stim_scale,background_rate,relevant_trials,lklh_func);
 
     [parameter_current, change_history(iteration)]= update_parameters_logitnormal(...
         parameter_current,loglklh, logprior, logvariational,...

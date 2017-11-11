@@ -37,25 +37,21 @@ experiment_setup.patched_neuron=struct;
  
  [experiment_query] = generate_psc_data(experiment_query,experiment_setup,this_neighbourhood);
 
+ %% manually move event times to this_experiment_query
+ n_trials = length(experiment_query.undefined.trials)
+ 
+ for i_trial = 1:n_trials
+    experiment_query.undefined.trials(i_trial).event_times=experiment_query.undefined.trials(i_trial).truth.event_times;
+    
+ end
+ 
+ %%
+ experiment_query_this_group =experiment_query.undefined;
  %% Test model fitting
  disp('Test inference')
+ prior_info=experiment_setup.prior_info;
+  this_neighbourhood=inference_undefined(experiment_query_this_group,this_neighbourhood,group_profile,experiment_setup);
  
- 
-% detect pscs and run vi
-for i = 1:length(group_names)
-    
-    this_group = group_names{i};
-    this_exp_query = experiment_query.(this_group);
-    group_profile=experiment_setup.groups.(this_group);
-    
-    experiment_query.(this_group) = ...
-        experiment_setup.groups.(this_group).psc_detect_function(this_exp_query,neighbourhood, group_profile, experiment_setup);
-    
-    neighbourhood = ...
-        experiment_setup.groups.(this_group).inference_function(this_exp_query,neighbourhood,group_profile, experiment_setup.prior_info);
-    
-end
-
  %% Test regrouping
  
  disp('Test regrouping')
