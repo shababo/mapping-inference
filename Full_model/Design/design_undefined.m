@@ -1,4 +1,4 @@
-function [experiment_query_this_group] = design_undefined(this_neighbourhood,group_profile)
+function [experiment_query_this_group] = design_undefined(this_neighbourhood,group_profile,experiment_setup)
 % Output:
 % The experiment_query_this_group struct with fields:
 %    experiment_query_this_group.trials(i_trial).location_IDs=this_trial_location_IDs;
@@ -9,7 +9,7 @@ function [experiment_query_this_group] = design_undefined(this_neighbourhood,gro
 
 group_ID=group_profile.group_ID;
 
-
+power_levels=group_profile.design_func_params.trials_params.power_levels;
 %cells_this_group=find((arrayfun(@(x) strcmp(this_neighbourhood.neurons(:).group_ID,group_ID),this_neighbourhood.neurons(:))));
 cells_this_group= find(get_group_inds(this_neighbourhood,group_ID));
 number_cells_this_group=length(cells_this_group);
@@ -49,16 +49,16 @@ switch group_profile.design_func_params.trials_params.stim_design
         for i_cell = 1:number_cells_this_group
             this_cell=cells_this_group(i_cell);
             candidate_grid=this_neighbourhood.neurons(this_cell).stim_locations.(group_ID);
-            firing_prob{i_cell}=zeros(size(candidate_grid.effect,2),length(group_profile.design_func_params.trials_params.power_level),...
+            firing_prob{i_cell}=zeros(size(candidate_grid.effect,2),length(group_profile.design_func_params.trials_params.power_levels),...
                 size(candidate_grid.effect,1));
             for i_loc = 1:size(candidate_grid.effect,2)
-                for k=1:length(group_profile.design_func_params.trials_params.power_level)
+                for k=1:length(group_profile.design_func_params.trials_params.power_levels)
                     for j_cell = 1:size(candidate_grid.effect,2)
                         if candidate_grid.effect(j_cell,i_loc)>5e-2
-                            stimulation_received=candidate_grid.effect(j_cell,i_loc)*group_profile.design_func_params.trials_params.power_level(k);
+                            stimulation_received=candidate_grid.effect(j_cell,i_loc)*group_profile.design_func_params.trials_params.power_levels(k);
                             effective_stim= stimulation_received*gain_samples(:,j_cell);
                             stim_index=max(1,round(effective_stim*experiment_setup.prior_info.induced_intensity.stim_scale));
-                            prob_collapsed=sum(experiment_setup.prior_info.induced_intensity.prob_trace_full(stim_index,:),2);
+                            prob_collapsed=sum(experiment_setup.prior_info.induced_intensity.intensity_grid(stim_index,:),2);
                             firing_prob{i_cell}(i_loc,k,j_cell)=mean(prob_collapsed);
                         end
                     end
@@ -74,11 +74,11 @@ switch group_profile.design_func_params.trials_params.stim_design
             this_cell=cells_this_group(i_cell);
             firing_prob_temp=firing_prob{i_cell};
             firing_prob_temp(:,:,this_cell)=0;
-            firing_prob_difference= firing_prob(:,:,this_cell)-max(firing_prob_temp,[],3);
+            firing_prob_difference= firing_prob{i_cell}(:,:,this_cell)-max(firing_prob_temp,[],3);
             [max_value_loc,index_loc] = max(firing_prob_difference);
             % Pick the lowest power if the objectives are not too different from each
             % other
-            weighted_max_value_loc = max_value_loc./log(group_profile.design_func_params.trials_params.power_level(k));
+            weighted_max_value_loc = max_value_loc./log(group_profile.design_func_params.trials_params.power_levels(k));
             weighted_max_value_loc( weighted_max_value_loc<0)=0;
             if max( weighted_max_value_loc)==0
                 weighted_max_value_loc(:)=1;
@@ -86,14 +86,20 @@ switch group_profile.design_func_params.trials_params.stim_design
             index_I = ...
                 randsample(1:length(weighted_max_value_loc),1,true,weighted_max_value_loc);
             %         [~,index_I]=max(weighted_max_value_loc);
-            loc_selected(i_cell_idx)=index_loc(index_I);
-            power_selected(i_cell_idx)=power_level(index_I);
+            loc_selected(i_cell)=index_loc(index_I);
+            power_selected(i_cell)=group_profile.design_func_params.trials_params.power_levels(index_I);
         end
     case 'Nuclei'
         loc_selected=ones(number_cells_this_group,1);
         power_selected=zeros(number_cells_this_group,1);
     case 'Random'
-        % do nothing here
+        loc_selected=zeros(number_cells_this_group,1); 
+        for i_cell = 1:number_cells_this_group
+            grid_points_this_cell =size(this_neighbourhood.neurons(this_cell).stim_locations.(group_ID).grid,1);
+        
+          loc_selected(i_cell)=randsample(1:grid_points_this_cell,1,true);
+         end
+        power_selected=zeros(number_cells_this_group,1);
     otherwise
         % throw a warning?
 end
@@ -103,7 +109,7 @@ experiment_query_this_group.group_ID=group_ID;
 experiment_query_this_group.neighbourhood_ID=this_neighbourhood.neighbourhood_ID;
 experiment_query_this_group.instruction='Compute hologram';
 experiment_query_this_group.trials=struct([]);
-pockels_ratios = zeros(num_trials,n_spots_per_trial);
+% pockels_ratios = zeros(num_trials,n_spots_per_trial);
 
 this_trial_location_IDs=zeros(1,group_profile.design_func_params.trials_params.spots_per_trial);
 this_trial_cell_IDs=zeros(1,group_profile.design_func_params.trials_params.spots_per_trial);
@@ -113,7 +119,7 @@ for i_trial = 1:group_profile.design_func_params.trials_params.trials_per_batch
     prob_initial = probability_weights;
     prob_initial = prob_initial./(loc_counts+0.1);
     prob_initial = prob_initial/sum(prob_initial);
-    pockels_ratio_refs(end+1) = 0;
+%     pockels_ratio_refs(end+1) = 0;
     for i_spot = 1:group_profile.design_func_params.trials_params.spots_per_trial
         try_count = 0;
         loc_found = 0;
@@ -127,8 +133,10 @@ for i_trial = 1:group_profile.design_func_params.trials_params.trials_per_batch
                         temp_index = ...
                             randsample(1:number_cells_this_group,1,true,prob_initial_thresh);
                         this_cell=cells_this_group(temp_index);
-                        grid_points_this_cell =size(this_neighbourhood.neurons(this_cell).stim_locations.(group_ID).grid,1);
-                        temp_loc=randsample(1:grid_points_this_cell,1,true);
+                         temp_loc =  loc_selected(temp_index);
+                   
+%                         grid_points_this_cell =size(this_neighbourhood.neurons(this_cell).stim_locations.(group_ID).grid,1);
+%                         temp_loc=randsample(1:grid_points_this_cell,1,true);
                     case 'Optimal'
                         temp_index = ...
                             randsample(1:number_cells_this_group,1,true,prob_initial_thresh);
@@ -174,18 +182,22 @@ for i_trial = 1:group_profile.design_func_params.trials_params.trials_per_batch
                     this_trial_power_levels(1,i_spot)=power_selected(temp_index);
                     if rand(1) < mean_gamma(temp_index)
                         this_trial_powers(1,i_spot)=...
-                            fire_stim_threshold./(pi_target(temp_index,loc_optimal(temp_index))...
-                            *gain_samples(randsample(1:n_MC_samples,1),temp_index));
-                        this_trial_powers(1,i_spot)=max(min(power_level),min(this_trial_powers(1,i_spot),max(power_level)));
+                           experiment_setup.prior_info.induced_intensity.fire_stim_threshold./(neurons(temp_index).stim_locations.(group_ID).effect(temp_index,loc_selected(temp_index))...
+                            *gain_samples(randsample(1:group_profile.inference_params.MCsamples_for_posterior,1),temp_index));
+                        this_trial_powers(1,i_spot)=max(min(power_levels),min(this_trial_powers(1,i_spot),max(power_levels)));
                     end
                     
                 otherwise
-                    this_trial_power_levels(1,i_spot)=randsample(group_profile.design_func_params.trials_params.power_level,1,true);
+                    this_trial_power_levels(1,i_spot)=randsample(group_profile.design_func_params.trials_params.power_levels,1,true);
             end
             this_trial_locations(i_spot,:)=    this_neighbourhood.neurons(this_cell).stim_locations.(group_ID).grid(temp_loc,:);
-            prob_initial = prob_initial -  ...
-                this_neighbourhood.neurons(this_cell).stim_locations.(group_ID).inner_normalized_products(cells_this_group,temp_loc)*prob_initial(temp_index);
-            prob_initial = max(0,prob_initial);
+            
+                this_cell=temp_index;
+    neurons=this_neighbourhood.neurons(cells_this_group);
+        prob_initial=subtract_stim_effects(group_ID,this_cell,prob_initial,loc_selected, neurons);
+            
+        
+        prob_initial = max(0,prob_initial);
             loc_found = 1;
         end
         

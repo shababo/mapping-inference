@@ -24,7 +24,7 @@ this_neighbourhood.batch_ID=1;
 %% Test designing new trials:
 
 disp('Test design trials')
-experiment_query_this_group=design_undefined(this_neighbourhood,group_profile);
+experiment_query_this_group=design_undefined(this_neighbourhood,group_profile,experiment_setup);
 %% Test simulation:
  disp('Test simulation')
  
