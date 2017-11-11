@@ -1,22 +1,13 @@
-function [pi_stim,inner_normalized_products] = get_weights(...
-    cell_params, shape_template,stim_locations,varargin)
-%
+function [pi_stim] = get_weights(...
+    cell_params, template_cell,stim_locations)
 
-if ~isempty(varargin)
-    simulation_indicator=varargin{1};
-else
-    simulation_indicator=true;
-end
+% NEED TO ALLOW FOR CELL-SPECIFIC EFFECT
 
-n_cell = length(cell_params);
-pi_stim = zeros(n_cell,size(stim_locations,1));
-for i_cell = 1:n_cell
+number_of_cells = length(cell_params);
+pi_stim = zeros(number_of_cells,size(stim_locations,1));
+for i_cell = 1:number_of_cells 
     
-    if simulation_indicator
-        this_cell_shape = shape_template(cell_params(i_cell).shape_truth).shape;
-    else
-        this_cell_shape = shape_template(cell_params(i_cell).shape).shape;
-    end
+    this_cell_shape = template_cell.cell_shape;
     % nucleus is assumed to be at the center
     center_idx=(size(this_cell_shape)+1)/2;
     % Relative location to the cell
@@ -36,8 +27,8 @@ for i_cell = 1:n_cell
 end
 
 % Calculate the inner product of the induced probability
-inner_products = pi_stim'*pi_stim;
-self_products = diag(inner_products)*ones(1,size(inner_products,1));
-inner_normalized_products = inner_products./self_products;
+% inner_products = pi_stim'*pi_stim;
+% self_products = diag(inner_products)*ones(1,size(inner_products,1));
+% inner_normalized_products = inner_products./self_products;
 
 

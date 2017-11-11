@@ -1,80 +1,41 @@
-function [pi_target, inner_normalized_products,target_locations,loc_to_cell,...
-    target_locations_nuclei,pi_target_nuclei, loc_to_cell_nuclei] = ...
-    get_stim_locations(group_ID,cell_params,design_params,varargin)
+function stim_location_this_group = ...
+    get_stim_locations(this_cell,group_ID,cell_params,design_params,template_cell)
 
-cell_params
-design_params
+% template_cell=experiment_setup.prior_info.template_cell;
+cell_locations_neighbourhood = reshape([cell_params(:).location]',[],3);
+stim_location_this_group=struct;
 
-if ~isempty(varargin) && ~isempty(varargin{1})
-    z_depth = varargin{1};
-else
-    cell_loc=reshape([cell_params(target_cell_list.primary).location],3,[])';
-    z_depth = mean(cell_loc(:,3));
-end
-
-if length(varargin) > 1 && ~isempty(varargin{2})
-    connected_arbitrary_z = varargin{2};
-else
-    connected_arbitrary_z = 0;
-end
-
-if length(varargin) > 1 && ~isempty(varargin{3})
-    simulation_indicator = varargin{3};
-else
-    simulation_indicator = false;
-end
-
+z_depth=mean(cell_locations_neighbourhood(:,3));
 % The list of all related cells :
-cell_template = struct();
-cell_template.shape= shape_template;
-
-grid_coord = zeros(sum([grid_params(:).number])+1,3);
+grid_coord = zeros(sum(design_params.candidate_grid_params.number)+1,3);
 i_count=1;
 grid_coord(i_count,:)=zeros(1,3);
-for i_circle=1:length(grid_params)
-    for i_grid = 1:grid_params(i_circle).number
+for i_circle=1:length(design_params.candidate_grid_params.number)
+    this_grid_number=design_params.candidate_grid_params.number(i_circle);
+    for i_grid = 1:this_grid_number
         i_count=i_count+1;
         grid_coord(i_count,:)=...
-            grid_params(i_circle).radius*[sin(2*pi*i_grid/grid_params(i_circle).number) cos(2*pi*i_grid/grid_params(i_circle).number) 0];
+            design_params.candidate_grid_params.radius(i_circle)*...
+            [sin(2*pi*i_grid/this_grid_number) cos(2*pi*i_grid/this_grid_number) 0];
     end
 end
+grid_this_cell = grid_coord+ones(size(grid_coord,1),1)*cell_params(this_cell).location;
 
-% Calculate the stimulation locations 
-target_locations = zeros(length(target_cell_list.primary)*size(grid_coord,1),3);
-loc_to_cell=zeros(length(target_cell_list.primary)*size(grid_coord,1),1);
-i_current=0;
-for i_cell_index=1:length(target_cell_list.primary)
-    i_cell= target_cell_list.primary(i_cell_index);
-    grid_locs=cell_params(i_cell).location+grid_coord;
-    target_locations(i_current+(1:size(grid_locs,1)),:) = grid_locs;
-    loc_to_cell(i_current+(1:size(grid_locs,1)))=i_cell;
-    i_current=i_current+size(grid_locs,1);
+
+switch group_ID
+    case 'undefined'
+        
+        grid_this_cell(:,3)= z_depth;
+        
+    case 'connected'
+        
 end
-target_locations(:,3)= z_depth;
-
-% [pi_target, inner_normalized_products] = get_weights_v2(cell_params, ...
-%     cell_template,target_locations);
-[pi_target, inner_normalized_products] = get_weights(related_cell_params, ...
-    cell_template,target_locations,simulation_indicator);
+[effect_this_cell] = get_weights(cell_params, template_cell,grid_this_cell);
+stim_location_this_group.grid=grid_this_cell;
+stim_location_this_group.effect=effect_this_cell;
 
 %--------------------------------------------------%
 % Construct stim sets for the connected cells
 
 
-% Calculate the stimulation locations 
-target_locations_nuclei = zeros(length(target_cell_list.primary)*size(grid_coord,1),3);
-loc_to_cell_nuclei=zeros(length(target_cell_list.primary)*size(grid_coord,1),1);
-i_current=0;
-for i_cell_index=1:length(target_cell_list.primary)
-    i_cell= target_cell_list.primary(i_cell_index);
-    grid_locs=cell_params(i_cell).location+grid_coord;
-    target_locations_nuclei(i_current+(1:size(grid_locs,1)),:) = grid_locs;
-    loc_to_cell_nuclei(i_current+(1:size(grid_locs,1)))=i_cell;
-    i_current=i_current+size(grid_locs,1);
-end
-if ~connected_arbitrary_z
-    target_locations_nuclei(:,3) = z_depth;
-end
-[pi_target_nuclei, ~] = get_weights(related_cell_params, ...
-    cell_template,target_locations_nuclei,simulation_indicator);
 

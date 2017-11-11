@@ -34,48 +34,56 @@ switch experiment_setup.experiment_type
         
         
                
-    
-        % Calculate the candidate grid for each cell in each neigbourhood 
+        
+        % Calculate the candidate grid for each cell in each neigbourhood
         group_names = fieldnames(experiment_setup.groups);
         for i_neighbourhood = 1:number_of_neighbourhoods
-            cell_locations_neighbourhood = reshape([neighbourhoods(i_neighbourhood).neurons(:).location]',[],3);
             for i_cell = 1:length(neighbourhoods(i_neighbourhood).neurons)
                 neighbourhoods(i_neighbourhood).neurons(i_cell).stim_locations=struct([]);
-                 neighbourhoods(i_neighbourhood).neurons(i_cell).cell_ID=cell_ID;
-                neighbourhoods(i_neighbourhood).neurons(i_cell).group_ID='undefined'; % all are initialized as undefined
+                neighbourhoods(i_neighbourhood).neurons(i_cell).cell_ID=cell_ID;
+                neighbourhoods(i_neighbourhood).neurons(i_cell).group_ID=experiment_setup.default_group; % all are initialized as undefined
                 neighbourhoods(i_neighbourhood).neurons(i_cell).primary_indicator=true;
-              
+                neighbourhoods(i_neighbourhood).neurons(i_cell).stim_locations=struct;
                 for i_group = 1:length(group_names)
-                    neighbourhoods(i_neighbourhood).neurons(i_cell).stim_locations
-                    
+                    if isfield('design_func_params',experiment_setup.groups.(group_names{i_group}))
                     design_params=experiment_setup.groups.(group_names{i_group}).design_func_params;
                     cell_params=neighbourhoods(i_neighbourhood).neurons;
-                    =[];...
-                        get_stim_locations(cell_params,design_params);
-                    % define grid, effect, and inner product 
+                    neighbourhoods(i_neighbourhood).neurons(i_cell).stim_locations.(group_names{i_group})=...
+                        get_stim_locations(i_cell,group_names{i_group},cell_params,design_params,experiment_setup.prior_info.template_cell);
+                    end
                 end
             end
         end
-        
         % Initialize PR and gain parameters 
+        
+        
+       
         for i_neighbourhood = 1:number_of_neighbourhoods
             for i_cell = 1:length(neighbourhoods(i_neighbourhood).neurons)
-                neighbourhoods(i_neighbourhood).neurons(i_cell).PR_params=struct([]);
-                neighbourhoods(i_neighbourhood).neurons(i_cell).PR_params(1).type='SpikedLogitNormal';
-                neighbourhoods(i_neighbourhood).neurons(i_cell).PR_params(1).pi=0;
-                neighbourhoods(i_neighbourhood).neurons(i_cell).PR_params(1).alpha=0;
-                neighbourhoods(i_neighbourhood).neurons(i_cell).PR_params(1).beta=0;
-                neighbourhoods(i_neighbourhood).neurons(i_cell).PR_params(1).mean=0;
-                neighbourhoods(i_neighbourhood).neurons(i_cell).PR_params(1).variance=0;
-                neighbourhoods(i_neighbourhood).neurons(i_cell).PR_params(1).upper_quantile=0;
-                neighbourhoods(i_neighbourhood).neurons(i_cell).PR_params(1).lower_quantile=0;
-                neighbourhoods(i_neighbourhood).neurons(i_cell).PR_params(1).nonzero_prob=0;
+                current_params=experiment_setup.prior_info.PR_prior;
+                group_profile=experiment_setup.groups.(neighbourhoods(i_neighbourhood).neurons(i_cell).group_ID);
+                bounds= group_profile.inference_params.bounds.PR;
+                quantile_prob=group_profile.regroup_func_params.quantile_prob;
+                neighbourhoods(i_neighbourhood).neurons(i_cell).PR_params(1)=calculate_posterior(...
+                    current_params,bounds,quantile_prob);
                 
-                %neighbourhoods(i_neighbourhood).neurons(i_cell).gain=struct([]);
+                current_params=experiment_setup.prior_info.gain_prior;
+                group_profile=experiment_setup.groups.(neighbourhoods(i_neighbourhood).neurons(i_cell).group_ID);
+                bounds= group_profile.inference_params.bounds.gain;
+                quantile_prob=group_profile.regroup_func_params.quantile_prob;
+                neighbourhoods(i_neighbourhood).neurons(i_cell).gain_params(1)=calculate_posterior(...
+                    current_params,bounds,quantile_prob);
+                
             end
         end
-        
-    
+%                 neighbourhoods(i_neighbourhood).neurons(i_cell).PR_params(1).mean=0;
+%                 neighbourhoods(i_neighbourhood).neurons(i_cell).PR_params(1).variance=0;
+%                 neighbourhoods(i_neighbourhood).neurons(i_cell).PR_params(1).upper_quantile=0;
+%                 neighbourhoods(i_neighbourhood).neurons(i_cell).PR_params(1).lower_quantile=0;
+%                 neighbourhoods(i_neighbourhood).neurons(i_cell).PR_params(1).nonzero_prob=0;
+                
+                %neighbourhoods(i_neighbourhood).neurons(i_cell).gain=struct([]);
+         
     case 'experiment'
        
 % REDO WITH NEW STRUCTURES!!!!! NOT DONE YET

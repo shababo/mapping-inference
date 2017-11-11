@@ -8,7 +8,7 @@ group_names{2}='connected';
 group_names{3}='disconnected';
 group_names{4}='alive';
 
-
+experiment_setup.default_group='undefined';
 
 %experiment_setup.is_sim
 
@@ -36,12 +36,17 @@ experiment_setup.experiment_type='simulation'; % experiment; simulation; reprodu
 experiment_setup.prior_info=struct;
 
 experiment_setup.prior_info.PR_prior = struct;
-experiment_setup.prior_info.PR_prior.type=1; % spike and logitnorm slab
+experiment_setup.prior_info.PR_prior.type='spiked_logit_normal'; % spike and logitnorm slab
 experiment_setup.prior_info.PR_prior.pi_logit=0;
 experiment_setup.prior_info.PR_prior.alpha=0;
 experiment_setup.prior_info.PR_prior.beta=1;
 
 
+experiment_setup.prior_info.gain_prior = struct;
+experiment_setup.prior_info.gain_prior.type='spiked_logit_normal'; % spike and logitnorm slab
+experiment_setup.prior_info.gain_prior.pi_logit=-Inf;
+experiment_setup.prior_info.gain_prior.alpha=0;
+experiment_setup.prior_info.gain_prior.beta=1;
 
 load('./chrome-template-3ms.mat');
 downsamp=1;time_max=300;

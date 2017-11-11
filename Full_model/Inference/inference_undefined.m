@@ -27,7 +27,7 @@ prior_params=grab_recent_value(this_neighbourhood.neurons(stimulated_cell_list))
 %prior_params=variational_params_path(max(iter-num_trace_back,1),cell_list);
 
 
-lklh_func=group_profile.inference_params.likelihood
+lklh_func=group_profile.inference_params.likelihood;
 
 [parameter_history] = fit_VI(...
     designs_remained, mpp_remained, variational_params,prior_params,

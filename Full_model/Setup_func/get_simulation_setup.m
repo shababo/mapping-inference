@@ -15,5 +15,8 @@ simulation_setup=struct;
         simulation_setup.cell_params.type='Normal';
         % Normal, Extreme gain, or Weak gamma.
         simulation_setup.cell_params.gain_range=[0.5 0.9];
+    simulation_setup.response_generation=struct;
+%       simulation_setup.response_generation.function=@xxx
+        
 
         

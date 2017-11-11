@@ -8,7 +8,7 @@ function [experiment_query_this_group] = design_undefined(this_neighbourhood,gro
      
 
 group_type_ID=group_profile.group_type_ID;
-cells_this_group=index([this_neighbourhood.neurons(:).group_type_ID]==group_type_ID);
+cells_this_group=index([this_neighbourhood.neurons(:).group_ID]==group_ID);
 number_cells_this_group=length(cells_this_group);
 number_cells_all= length(this_neighbourhood.neurons);
 loc_counts=zeros(number_cells_this_group,1);
