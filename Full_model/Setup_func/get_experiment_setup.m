@@ -50,9 +50,16 @@ experiment_setup.prior_info.gain_prior.pi_logit=-Inf;
 experiment_setup.prior_info.gain_prior.alpha=0;
 experiment_setup.prior_info.gain_prior.beta=1;
 
-load('./chrome-template-3ms.mat');
-downsamp=1;time_max=300;
-current_template=template(1:downsamp:time_max);
+if strcmp(experiment_setup.experiment_type,'experiment')
+    load('chrome-template-3ms.mat');
+else
+    load('./chrome-template-3ms.mat');
+end
+
+experiment_setup.trials.downsamp = 1;
+experiment_setup.trials.min_time = 40;
+experiment_setup.trials.max_time = 500;
+current_template=template(1:experiment_setup.trials.downsamp:experiment_setup.trials.max_time);
 
 experiment_setup.prior_info.current_template = current_template;
 experiment_setup.prior_info.gain_model=[];
@@ -64,7 +71,12 @@ experiment_setup.prior_info.delay.std=15;
 experiment_setup.prior_info.delay.n_grid=200;
 
 
-load('./l23_template_cell.mat');
+if strcmp(experiment_setup.experiment_type,'experiment')
+    load('l23_template_cell.mat');
+else
+    load('./l23_template_cell.mat');
+end
+
 temp=l23_average_shape;temp_max = max(max(max(temp)));
 l23_average_shape = temp/temp_max;
 shape_template=l23_average_shape;
@@ -199,8 +211,7 @@ experiment_setup.exp.rand_order = 1;
 % set(handles.num_repeats,'String',num2str(10));
 experiment_setup.exp.duration = .003; % length of laser on
 
-experiment_setup.trials.min_time = 40;
-experiment_setup.trials.max_time = 500;
+
 
 % if filename given
 % load filename
