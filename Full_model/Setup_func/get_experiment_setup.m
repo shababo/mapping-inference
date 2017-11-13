@@ -34,7 +34,7 @@ experiment_setup.fullsavefile = fullfile(experiment_setup.savedir,[experiment_se
 
 %----------- Load the current template
 
-experiment_setup.experiment_type='simulation'; % experiment; simulation; reproduction
+experiment_setup.experiment_type='experiment'; % experiment; simulation; reproduction
 experiment_setup.prior_info=struct;
 
 experiment_setup.prior_info.PR_prior = struct;
