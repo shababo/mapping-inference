@@ -24,10 +24,10 @@ properties={'PR_params'};summary_stat={'mean'};
 temp_output=grab_values_from_neurons(i_batch,neurons,properties,summary_stat);
 mean_gamma=temp_output.PR_params.mean;
 
-if  group_profile.design_func_params.trials_params.weighted_indicator
+if group_profile.design_func_params.trials_params.weighted_indicator
     probability_weights = 1-mean_gamma;
 else
-    probability_weights =ones(number_cells_this_group,1);
+    probability_weights = ones(number_cells_this_group,1);
 end
 
 switch group_profile.design_func_params.trials_params.stim_design
@@ -115,6 +115,7 @@ this_trial_location_IDs=zeros(1,group_profile.design_func_params.trials_params.s
 this_trial_cell_IDs=zeros(1,group_profile.design_func_params.trials_params.spots_per_trial);
 this_trial_power_levels=zeros(1,group_profile.design_func_params.trials_params.spots_per_trial);
 this_trial_locations=zeros(group_profile.design_func_params.trials_params.spots_per_trial,3);
+
 for i_trial = 1:group_profile.design_func_params.trials_params.trials_per_batch
     prob_initial = probability_weights;
     prob_initial = prob_initial./(loc_counts+0.1);
@@ -192,23 +193,19 @@ for i_trial = 1:group_profile.design_func_params.trials_params.trials_per_batch
             end
             this_trial_locations(i_spot,:)=    this_neighbourhood.neurons(this_cell).stim_locations.(group_ID).grid(temp_loc,:);
             
-                this_cell=temp_index;
-    neurons=this_neighbourhood.neurons(cells_this_group);
-        prob_initial=subtract_stim_effects(group_ID,this_cell,prob_initial,loc_selected, neurons);
-            
-        
-        prob_initial = max(0,prob_initial);
+            this_cell=temp_index;
+            neurons=this_neighbourhood.neurons(cells_this_group);
+            prob_initial=subtract_stim_effects(group_ID,this_cell,prob_initial,loc_selected, neurons);
+            prob_initial = max(0,prob_initial);
             loc_found = 1;
         end
         
     end
+    
     experiment_query_this_group.trials(i_trial).location_IDs=this_trial_location_IDs;
     experiment_query_this_group.trials(i_trial).cell_IDs=this_trial_cell_IDs;
     experiment_query_this_group.trials(i_trial).power_levels=this_trial_power_levels;
     experiment_query_this_group.trials(i_trial).locations=this_trial_locations;
     experiment_query_this_group.trials(i_trial).group_ID=group_ID;
     
-end
-
-
 end

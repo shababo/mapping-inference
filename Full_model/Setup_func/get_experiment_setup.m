@@ -1,4 +1,3 @@
-
 function experiment_setup = get_experiment_setup(varargin)
 
 % read this from argument
@@ -26,7 +25,6 @@ if ~isempty(varargin) && ~isempty(varargin{2})
 else
     simple_simulation = 0;
 end
-
 
 if simple_simulation
     experiment_setup.savedir = 'C:/Users/Shizhe/Documents/Mapping_data/Data';

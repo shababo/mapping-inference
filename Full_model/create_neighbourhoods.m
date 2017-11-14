@@ -49,10 +49,10 @@ switch experiment_setup.experiment_type
                 neighbourhoods(i_neighbourhood).neurons(i_cell).stim_locations=struct;
                 for i_group = 1:length(group_names)
                     if isfield(experiment_setup.groups.(group_names{i_group}),'design_func_params')
-                    design_params=experiment_setup.groups.(group_names{i_group}).design_func_params;
-                    cell_params=neighbourhoods(i_neighbourhood).neurons;
-                    neighbourhoods(i_neighbourhood).neurons(i_cell).stim_locations.(group_names{i_group})=...
-                        get_stim_locations(i_cell,group_names{i_group},cell_params,design_params,experiment_setup.prior_info.template_cell);
+                        design_params=experiment_setup.groups.(group_names{i_group}).design_func_params;
+                        cell_params=neighbourhoods(i_neighbourhood).neurons;
+                        neighbourhoods(i_neighbourhood).neurons(i_cell).stim_locations.(group_names{i_group})=...
+                            get_stim_locations(i_cell,group_names{i_group},cell_params,design_params,experiment_setup.prior_info.template_cell);
                     end
                 end
             end
