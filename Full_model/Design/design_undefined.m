@@ -17,7 +17,6 @@ number_cells_all= length(this_neighbourhood.neurons);
 loc_counts=zeros(number_cells_this_group,1);
 
 % obtain posterior mean of gamma
-% Write a function that grabs the last element in a specific field
 i_batch=this_neighbourhood.batch_ID;
 neurons=this_neighbourhood.neurons(cells_this_group);
 properties={'PR_params'};summary_stat={'mean'};

@@ -29,11 +29,11 @@ experiment_setup.map_id = [num2str(clock_array(2)) '_' num2str(clock_array(3)) .
     '_' num2str(clock_array(4)) ...
     '_' num2str(clock_array(5))];
 experiment_setup.exp_id = experiment_setup.map_id;
-experiment_setup.fullsavefile = fullfile(experiment_setup.savedir,[experiment_setup.map_id '_data.mat']);
+experiment_setup.fullsavefile = fullfile(experiment_setup.exp_root,[experiment_setup.exp_id '_data.mat']);
 
 %----------- Load the current template
 
-experiment_setup.experiment_type='experiment'; % experiment; simulation; reproduction
+experiment_setup.experiment_type='simulation'; % experiment; simulation; reproduction
 experiment_setup.prior_info=struct;
 
 experiment_setup.prior_info.PR_prior = struct;
