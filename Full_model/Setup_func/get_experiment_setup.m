@@ -1,4 +1,3 @@
-
 function experiment_setup = get_experiment_setup(varargin)
 
 % read this from argument
@@ -22,7 +21,7 @@ else
 end
 
 
-experiment_setup.savedir = 'C:\data\Shababo';
+experiment_setup.exp_root = 'C:\data\Shababo';
 experiment_setup.analysis_root = '/media/shababo/data/'; % make sure to add ending slash
 
 clock_array = clock;
