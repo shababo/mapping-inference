@@ -20,20 +20,37 @@ else
     load_map = 0;
 end
 
+if length(varargin) > 1 && ~isempty(varargin{2})
+    location_str = varargin{2};
+else
+    location_str = 'adesnik_lab';
+end
 
-experiment_setup.exp_root = 'C:\data\Shababo';
-experiment_setup.analysis_root = '/media/shababo/data/'; % make sure to add ending slash
+% experiment; simulation; reproduction
 
+experiment_setup.experiment_type='experiment'; % experiment; simulation; reproduction
+    
+switch location_str
+    case 'szchen'
+        experiment_setup.exp_root = 'C:/Users/Shizhe/Documents/Mapping_data/Data';
+        experiment_setup.analysis_root = 'C:/Users/Shizhe/Documents/Mapping_data/tmp/'; % make sure to add ending slash
+        experiment_setup.experiment_type='simulation';
+    case 'adesnik_lab'
+        experiment_setup.exp_root = 'C:\data\Shababo';
+        experiment_setup.analysis_root = '/media/shababo/data/'; % make sure to add ending slash
+end
 clock_array = clock;
 experiment_setup.map_id = [num2str(clock_array(2)) '_' num2str(clock_array(3)) ...
     '_' num2str(clock_array(4)) ...
     '_' num2str(clock_array(5))];
 experiment_setup.exp_id = experiment_setup.map_id;
-experiment_setup.fullsavefile = fullfile(experiment_setup.exp_root,[experiment_setup.exp_id '_data.mat']);
+experiment_setup.exp.fullsavefile = fullfile(experiment_setup.exp_root,[experiment_setup.exp_id '_data.mat']);
 
 %----------- Load the current template
 
-experiment_setup.experiment_type='simulation'; % experiment; simulation; reproduction
+
+
+
 experiment_setup.prior_info=struct;
 
 experiment_setup.prior_info.PR_prior = struct;
