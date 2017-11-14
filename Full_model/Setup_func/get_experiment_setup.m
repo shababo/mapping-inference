@@ -21,10 +21,20 @@ else
     load_map = 0;
 end
 
+if ~isempty(varargin) && ~isempty(varargin{2})
+    simple_simulation = varargin{2};
+else
+    simple_simulation = 0;
+end
 
-experiment_setup.savedir = 'C:\data\Shababo';
-experiment_setup.analysis_root = '/media/shababo/data/'; % make sure to add ending slash
 
+if simple_simulation
+    experiment_setup.savedir = 'C:/Users/Shizhe/Documents/Mapping_data/Data';
+    experiment_setup.analysis_root = 'C:/Users/Shizhe/Documents/Mapping_data/tmp/'; % make sure to add ending slash
+else
+    experiment_setup.savedir = 'C:\data\Shababo';
+    experiment_setup.analysis_root = '/media/shababo/data/'; % make sure to add ending slash
+end
 clock_array = clock;
 experiment_setup.map_id = [num2str(clock_array(2)) '_' num2str(clock_array(3)) ...
     '_' num2str(clock_array(4)) ...
@@ -34,7 +44,11 @@ experiment_setup.fullsavefile = fullfile(experiment_setup.savedir,[experiment_se
 
 %----------- Load the current template
 
-experiment_setup.experiment_type='experiment'; % experiment; simulation; reproduction
+if simple_simulation
+ experiment_setup.experiment_type='simulation'; % experiment; simulation; reproduction
+else
+    experiment_setup.experiment_type='experiment'; % experiment; simulation; reproduction
+end
 experiment_setup.prior_info=struct;
 
 experiment_setup.prior_info.PR_prior = struct;
