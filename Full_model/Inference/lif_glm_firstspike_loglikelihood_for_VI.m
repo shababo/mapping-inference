@@ -8,7 +8,7 @@ function [loss] = lif_glm_firstspike_loglikelihood_for_VI(...
 n_stimulated = sum( sum(prob_this_trial,2)>1e-2);
 stimmed_cells=find(sum(prob_this_trial,2)>1e-2);
 prob_this_trial=prob_this_trial(stimmed_cells,:);
-n_events=length(mpp_this_trial.times);
+n_events=length(mpp_this_trial.event_times);
 event_prob = sum(prob_this_trial,2);
 not_fire_prob = 1-event_prob;
 n_grid=size(prob_this_trial,2);
@@ -28,7 +28,7 @@ else
         for j= 1:size(orders_of_cells,1)
             cond_prob = not_fire_prob;
             for i_event = 1:n_events
-                cond_prob(orders_of_cells(i_event))=prob_this_trial(orders_of_cells(i_event), round(mpp_this_trial.times(i_event)));
+                cond_prob(orders_of_cells(i_event))=prob_this_trial(orders_of_cells(i_event), round(mpp_this_trial.event_times(i_event)));
             end
             prob_combs( (k-1)*size(orders_of_cells,1)+j)=prod(cond_prob);
         end

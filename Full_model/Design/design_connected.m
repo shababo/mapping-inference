@@ -1,4 +1,4 @@
-function [experiment_query_this_group] = design_undefined(this_neighbourhood,group_profile,experiment_setup)
+function [experiment_query_this_group] = design_connected(this_neighbourhood,group_profile,experiment_setup)
 % Output:
 % The experiment_query_this_group struct with fields:
 %    experiment_query_this_group.trials(i_trial).location_IDs=this_trial_location_IDs;
@@ -6,7 +6,8 @@ function [experiment_query_this_group] = design_undefined(this_neighbourhood,gro
 %        experiment_query_this_group.trials(i_trial).power_levels=this_trial_power_levels;
 %        experiment_query_this_group.trials(i_trial).locations=this_trial_locations;
 
-disp('designs undef')
+
+disp('designs connected')
 group_ID=group_profile.group_ID;
 
 power_levels=group_profile.design_func_params.trials_params.power_levels;
@@ -32,7 +33,6 @@ end
 
 switch group_profile.design_func_params.trials_params.stim_design
     case 'Optimal'
-        
         gain_samples=zeros(group_profile.inference_params.MCsamples_for_posterior,...
             number_cells_all);
         for i_cell = 1:number_cells_all
@@ -67,7 +67,6 @@ switch group_profile.design_func_params.trials_params.stim_design
         end
         loc_selected=zeros(number_cells_this_group,1);
         power_selected=zeros(number_cells_this_group,1);
-        loc_to_cell_selected=1:number_cells_this_group;
         
         % Select the optimal locations based on firing_prob:
         for i_cell = 1:number_cells_this_group
@@ -89,17 +88,18 @@ switch group_profile.design_func_params.trials_params.stim_design
             loc_selected(i_cell)=index_loc(index_I);
             power_selected(i_cell)=group_profile.design_func_params.trials_params.power_levels(index_I);
         end
+          
     case 'Nuclei'
+         
         loc_selected=ones(number_cells_this_group,1);
         power_selected=zeros(number_cells_this_group,1);
     case 'Random'
         loc_selected=zeros(number_cells_this_group,1); 
         for i_cell = 1:number_cells_this_group
             grid_points_this_cell =size(this_neighbourhood.neurons(this_cell).stim_locations.(group_ID).grid,1);
-        
-          loc_selected(i_cell)=randsample(1:grid_points_this_cell,1,true);
-         end
-        power_selected=zeros(number_cells_this_group,1);
+            loc_selected(i_cell)=randsample(1:grid_points_this_cell,1,true);
+        end
+        power_selected=zeros(number_cells_this_group,1);    
     otherwise
         % throw a warning?
 end
@@ -111,104 +111,53 @@ experiment_query_this_group.instruction='Compute hologram';
 experiment_query_this_group.trials=struct([]);
 % pockels_ratios = zeros(num_trials,n_spots_per_trial);
 
+
+num_trials_per_cell = round(group_profile.design_func_params.trials_params.trials_per_batch*probability_weights/sum(probability_weights));
+num_trials_per_cell(num_trials_per_cell<group_profile.design_func_params.min_trials_per_cell)=group_profile.design_func_params.min_trials_per_cell;
+trial_counts=cumsum(num_trials_per_cell);
+trial_counts=[0; trial_counts];
+
 this_trial_location_IDs=zeros(1,group_profile.design_func_params.trials_params.spots_per_trial);
 this_trial_cell_IDs=zeros(1,group_profile.design_func_params.trials_params.spots_per_trial);
 this_trial_power_levels=zeros(1,group_profile.design_func_params.trials_params.spots_per_trial);
 this_trial_locations=zeros(group_profile.design_func_params.trials_params.spots_per_trial,3);
-for i_trial = 1:group_profile.design_func_params.trials_params.trials_per_batch
-    prob_initial = probability_weights;
-    prob_initial = prob_initial./(loc_counts+0.1);
-    prob_initial = prob_initial/sum(prob_initial);
-%     pockels_ratio_refs(end+1) = 0;
-    for i_spot = 1:group_profile.design_func_params.trials_params.spots_per_trial
-        try_count = 0;
-        loc_found = 0;
-        if sum(prob_initial)>0.1
-            prob_initial_thresh = prob_initial;
-            thresh = median(prob_initial);
-            prob_initial_thresh(prob_initial < thresh) = 0;
-            while try_count < 10 && ~loc_found
-                switch  group_profile.design_func_params.trials_params.stim_design
-                    case 'Random'
-                        temp_index = ...
-                            randsample(1:number_cells_this_group,1,true,prob_initial_thresh);
-                        this_cell=cells_this_group(temp_index);
-                         temp_loc =  loc_selected(temp_index);
-                   
-%                         grid_points_this_cell =size(this_neighbourhood.neurons(this_cell).stim_locations.(group_ID).grid,1);
-%                         temp_loc=randsample(1:grid_points_this_cell,1,true);
-                    case 'Optimal'
-                        temp_index = ...
-                            randsample(1:number_cells_this_group,1,true,prob_initial_thresh);
-                        this_cell=cells_this_group(temp_index);
-                        
-                        temp_loc =  loc_selected(temp_index);
-                    case 'Nuclei'
-                        temp_index = ...
-                            randsample(1:number_cells_this_group,1,true,prob_initial_thresh);
-                        this_cell=cells_this_group(temp_index);
-                        
-                        temp_loc =  loc_selected(temp_index);
+
+
+for i_cell = 1:number_cells_this_group
+    this_cell=cells_this_group(i_cell);
+    for i_trial = (trial_counts(i_cell)+1):trial_counts(i_cell+1)
+        this_trial_location_IDs=loc_selected(i_cell);
+        this_cell=cells_this_group(i_cell);
+        this_trial_cell_IDs= this_cell;
+        this_trial_power_levels=power_selected(i_cell);
+        this_trial_locations=this_neighbourhood.neurons(this_cell).stim_locations.(group_ID).grid(loc_selected(i_cell),:);
+            
+        
+        switch  group_profile.design_func_params.trials_params.stim_design
+            case 'Optimal'
+                this_trial_power_levels=power_selected(this_cell);
+                if rand(1) < mean_gamma(this_cell)
+                    this_trial_power_levels=...
+                        experiment_setup.prior_info.induced_intensity.fire_stim_threshold./(neurons(i_cell).stim_locations.(group_ID).effect(this_cell,loc_selected(i_cell))...
+                        *gain_samples(randsample(1:group_profile.inference_params.MCsamples_for_posterior,1),this_cell));
+                    this_trial_power_levels=max(min(power_levels),min(this_trial_power_levels,max(power_levels)));
                 end
                 
-                
-                %                     if use_power_map % NOT CODED FOR USE WITH REPLICATING WITHIN THIS FUNCTION!
-                %                         this_loc = target_locations(temp_index,:);
-                %                         ratio_this_loc = round(ratio_map(round(this_loc(1))+ceil(size(ratio_map,1)/2),...
-                %                             round(this_loc(2))+ceil(size(ratio_map,2)/2))*10000);
-                %                         total_ratio_tmp = pockels_ratio_refs(end) + ratio_this_loc/10000;
-                %                         if ~(total_ratio_tmp > ratio_limit/power_selected(temp_loc)/i_spot) % this doesn't actually work for differnet powers per spot...
-                %                             loc_found = 1;
-                %                         end
-                %                     else
-                loc_found = 1;
-                ratio_this_loc=0;
-                total_ratio_tmp=0;
-                %                     end
-                try_count = try_count + 1;
-            end
+            otherwise
+                this_trial_power_levels=randsample(group_profile.design_func_params.trials_params.power_levels,1,true);
         end
-        if ~loc_found
-            this_trial_locations_ID(1,i_spot)=NaN;
-            this_trial_power_levels(1,i_spot)=NaN;
-        else
-            loc_counts(temp_index)=loc_counts(temp_index)+1;
-            %                 pockels_ratios(i_trial,i_spot) = ratio_this_loc;
-            %                 pockels_ratio_refs(end) = total_ratio_tmp;
-            this_trial_location_IDs(1,i_spot)=temp_loc;
-            this_trial_cell_IDs(1,i_spot)=this_cell;
-            switch  group_profile.design_func_params.trials_params.stim_design
-                case 'Optimal'
-                    this_trial_power_levels(1,i_spot)=power_selected(temp_index);
-                    if rand(1) < mean_gamma(temp_index)
-                        this_trial_power_levels(1,i_spot)=...
-                           experiment_setup.prior_info.induced_intensity.fire_stim_threshold./(neurons(temp_index).stim_locations.(group_ID).effect(this_cell,loc_selected(temp_index))...
-                            *gain_samples(randsample(1:group_profile.inference_params.MCsamples_for_posterior,1),this_cell));
-                        this_trial_power_levels(1,i_spot)=max(min(power_levels),min(this_trial_power_levels(1,i_spot),max(power_levels)));
-                    end
-                    
-                otherwise
-                    this_trial_power_levels(1,i_spot)=randsample(group_profile.design_func_params.trials_params.power_levels,1,true);
-            end
-            this_trial_locations(i_spot,:)=    this_neighbourhood.neurons(this_cell).stim_locations.(group_ID).grid(temp_loc,:);
             
-                this_cell=temp_index;
-    neurons=this_neighbourhood.neurons(cells_this_group);
-        prob_initial=subtract_stim_effects(group_ID,this_cell,prob_initial,loc_selected, neurons);
-            
+        experiment_query_this_group.trials(i_trial).location_IDs=this_trial_location_IDs;
+        experiment_query_this_group.trials(i_trial).cell_IDs=this_trial_cell_IDs;
+        experiment_query_this_group.trials(i_trial).power_levels=this_trial_power_levels;
+        experiment_query_this_group.trials(i_trial).locations=this_trial_locations;
+        experiment_query_this_group.trials(i_trial).group_ID=group_ID;
         
-        prob_initial = max(0,prob_initial);
-            loc_found = 1;
-        end
         
-    end
-    experiment_query_this_group.trials(i_trial).location_IDs=this_trial_location_IDs;
-    experiment_query_this_group.trials(i_trial).cell_IDs=this_trial_cell_IDs;
-    experiment_query_this_group.trials(i_trial).power_levels=this_trial_power_levels;
-    experiment_query_this_group.trials(i_trial).locations=this_trial_locations;
-    experiment_query_this_group.trials(i_trial).group_ID=group_ID;
+     end
     
 end
+
 
 
 end
