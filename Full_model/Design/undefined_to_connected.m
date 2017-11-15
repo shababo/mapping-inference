@@ -5,13 +5,12 @@ cells_this_group= find(get_group_inds(this_neighbourhood,group_ID));
 
 switch group_profile.regroup_func_params.regroup_type
     case 'Quantiles'
-           i_batch=this_neighbourhood.batch_ID;
+        i_batch=this_neighbourhood.batch_ID;
         neurons=this_neighbourhood.neurons(cells_this_group);
         properties={'PR_params'};summary_stat={'lower_quantile','mean'};
         temp_output=grab_values_from_neurons(i_batch,neurons,properties,summary_stat);
         gamma_lower_quantile=temp_output.PR_params.lower_quantile;
         gamma_mean=temp_output.PR_params.mean;
-        
         
         i_batch=max(1,this_neighbourhood.batch_ID-1);
         neurons=this_neighbourhood.neurons(cells_this_group);
@@ -22,8 +21,7 @@ switch group_profile.regroup_func_params.regroup_type
         max_changes_undefined= max(abs(gamma_mean_previous-gamma_mean)); %
         cell_list_undefined_to_connected = ...
             intersect(find(gamma_lower_quantile>group_profile.regroup_func_params.connected_threshold),...
-           cells_this_group); 
-        
+            cells_this_group);
     case 'NonzeroProb'
 end
 

@@ -9,7 +9,12 @@ for i_properties = 1:length(properties)
         temp_values=zeros(number_of_cells,1);
         for i_cell = 1:number_of_cells
             temp_struct=neurons(i_cell).(this_property);
-            temp_values(i_cell)= temp_struct(i_batch).(this_stat);
+            % add a statement to check if we have stop updating this cell 
+            if i_batch > length(temp_struct)
+                temp_values(i_cell)= temp_struct(end).(this_stat);    
+            else
+                temp_values(i_cell)= temp_struct(i_batch).(this_stat);
+            end
         end
         output.(this_property).(this_stat)=temp_values;
     end
