@@ -44,8 +44,10 @@ experiment_setup.default_group='undefined';
 max_spots_per_trial = 0;
 for i = 1:length(group_names)
     experiment_setup.groups.(group_names{i}) = eval(['get_' group_names{i}]);
+    if isfield('design_func_params',experiment_setup.groups.(group_names{i}))
     max_spots_per_trial = max(max_spots_per_trial,...
         experiment_setup.groups.(group_names{i}).design_func_params.trials_params.spots_per_trial);
+    end
 end
 experiment_setup.max_spots_per_trial = max_spots_per_trial;
 % need a way to call these functions based on group names
