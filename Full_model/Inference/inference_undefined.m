@@ -62,7 +62,6 @@ for i_cell = 1:number_of_stim_cells
     quantile_prob=group_profile.regroup_func_params.quantile_prob;
     this_neighbourhood.neurons(stimulated_cell_list(i_cell)).PR_params(i_batch)=calculate_posterior(...
         current_params,bounds,quantile_prob);
-    
     current_params=reformat_to_neurons(parameter_history(end,i_cell),'gain','spiked_logit_normal');
     group_profile=experiment_setup.groups.(this_neighbourhood.neurons(i_cell).group_ID);
     bounds= group_profile.inference_params.bounds.gain;
