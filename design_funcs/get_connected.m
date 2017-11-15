@@ -27,7 +27,7 @@ connected_profile.design_func_params.trials_params.trials_per_batch=200;
 connected_profile.design_func_params.trials_params.weighted_indicator=true;
 
 
-undefined_profile.psc_detect_function = @run_oasis;
+connected_profile.psc_detect_function = @run_oasis;
 connected_profile.inference_function = @inference_connected;
 
 connected_profile.inference_params=struct;
