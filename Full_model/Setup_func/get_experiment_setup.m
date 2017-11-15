@@ -58,7 +58,14 @@ experiment_setup.max_spots_per_trial = max_spots_per_trial;
 % experiment_setup.groups.alive=get_alive();
 
 
-
+% Get sim paramters
+% sim params
+experiment_setup.sim = get_simulation_setup;
+ 
+switch location_str
+    case 'szchen'
+    experiment_setup.sim.compute_phase_masks=0;
+end
 %----------- Load the current template
 
 
@@ -203,8 +210,6 @@ experiment_setup.neighbourhood_params.buffer_height=5;
 % experiment_setup.design.change_threshold=0.05;
 % experiment_setup.design.do_connected_vi = 1;
 
-% sim params
-experiment_setup.sim = get_simulation_setup;
 
 
 % some experimental experiment_setup
