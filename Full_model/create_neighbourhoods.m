@@ -44,7 +44,7 @@ end
 
 
 % Calculate the candidate grid for each cell in each neigbourhood
-group_names = fieldnames(experiment_setup.groups);
+group_names = experiment_setup.group_names;
 for i_neighbourhood = 1:number_of_neighbourhoods
     for i_cell = 1:length(neighbourhoods(i_neighbourhood).neurons)
         neighbourhoods(i_neighbourhood).neurons(i_cell).stim_locations=struct([]);

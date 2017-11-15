@@ -108,18 +108,25 @@ experiment_query_this_group.group_ID=group_ID;
 experiment_query_this_group.neighbourhood_ID=this_neighbourhood.neighbourhood_ID;
 experiment_query_this_group.instruction='Compute hologram';
 experiment_query_this_group.trials=struct([]);
-% pockels_ratios = zeros(num_trials,n_spots_per_trial);
 
-this_trial_location_IDs=zeros(1,group_profile.design_func_params.trials_params.spots_per_trial);
-this_trial_cell_IDs=zeros(1,group_profile.design_func_params.trials_params.spots_per_trial);
-this_trial_power_levels=zeros(1,group_profile.design_func_params.trials_params.spots_per_trial);
-this_trial_locations=zeros(group_profile.design_func_params.trials_params.spots_per_trial,3);
+
+
+
 
 for i_trial = 1:group_profile.design_func_params.trials_params.trials_per_batch
+    
+    this_trial_location_IDs=zeros(1,group_profile.design_func_params.trials_params.spots_per_trial);
+    this_trial_cell_IDs=zeros(1,group_profile.design_func_params.trials_params.spots_per_trial);
+    this_trial_power_levels=zeros(1,group_profile.design_func_params.trials_params.spots_per_trial);
+    this_trial_locations=zeros(group_profile.design_func_params.trials_params.spots_per_trial,3);
+    this_trial_pockels_ratios = zeros(1,group_profile.design_func_params.trials_params.spots_per_trial);
+    this_trial_pockels_ratio_total = 0;
+    
     prob_initial = probability_weights;
     prob_initial = prob_initial./(loc_counts+0.1);
     prob_initial = prob_initial/sum(prob_initial);
-%     pockels_ratio_refs(end+1) = 0;
+    
+    
     for i_spot = 1:group_profile.design_func_params.trials_params.spots_per_trial
         try_count = 0;
         loc_found = 0;
@@ -132,8 +139,8 @@ for i_trial = 1:group_profile.design_func_params.trials_params.trials_per_batch
                     case 'Random'
                         temp_index = ...
                             randsample(1:number_cells_this_group,1,true,prob_initial_thresh);
-                        this_cell=cells_this_group(temp_index);
-                         temp_loc =  loc_selected(temp_index);
+                        this_cell = cells_this_group(temp_index);
+                        temp_loc = loc_selected(temp_index);
                    
 %                         grid_points_this_cell =size(this_neighbourhood.neurons(this_cell).stim_locations.(group_ID).grid,1);
 %                         temp_loc=randsample(1:grid_points_this_cell,1,true);
@@ -151,30 +158,32 @@ for i_trial = 1:group_profile.design_func_params.trials_params.trials_per_batch
                         temp_loc =  loc_selected(temp_index);
                 end
                 
-                
-                %                     if use_power_map % NOT CODED FOR USE WITH REPLICATING WITHIN THIS FUNCTION!
-                %                         this_loc = target_locations(temp_index,:);
-                %                         ratio_this_loc = round(ratio_map(round(this_loc(1))+ceil(size(ratio_map,1)/2),...
-                %                             round(this_loc(2))+ceil(size(ratio_map,2)/2))*10000);
-                %                         total_ratio_tmp = pockels_ratio_refs(end) + ratio_this_loc/10000;
-                %                         if ~(total_ratio_tmp > ratio_limit/power_selected(temp_loc)/i_spot) % this doesn't actually work for differnet powers per spot...
-                %                             loc_found = 1;
-                %                         end
-                %                     else
-                loc_found = 1;
-                ratio_this_loc=0;
-                total_ratio_tmp=0;
-                %                     end
+
+                if strcmp(expiriment_setup.experiment_type) || experiment_setup.sim.use_power_calib % NOT CODED FOR USE WITH REPLICATING WITHIN THIS FUNCTION!
+                    this_loc = this_neighbourhood.neurons(this_cell).stim_locations.(group_ID).grid(temp_loc,:);
+                    ratio_this_loc = round(experiment_setup.exp.ratio_map(round(this_loc(1))+ceil(size(experiment_setup.exp.ratio_map,1)/2),...
+                        round(this_loc(2))+ceil(size(experiment_setup.exp.ratio_map,2)/2))*10000);
+                    total_ratio_tmp = pockels_ratio_refs(end) + ratio_this_loc/10000;
+                    if ~(total_ratio_tmp > ratio_limit/power_selected(temp_loc)/i_spot) % this doesn't actually work for differnet powers per spot...
+                        loc_found = 1;
+                    end
+                else
+                    loc_found = 1;
+                    ratio_this_loc=0;
+                    total_ratio_tmp=0;
+                end
                 try_count = try_count + 1;
             end
         end
         if ~loc_found
             this_trial_locations_ID(1,i_spot)=NaN;
             this_trial_power_levels(1,i_spot)=NaN;
+            pockels_ratios(i_trial,i_spot) = 0;
+            pockels_ratio_refs = 0;
         else
             loc_counts(temp_index)=loc_counts(temp_index)+1;
-            %                 pockels_ratios(i_trial,i_spot) = ratio_this_loc;
-            %                 pockels_ratio_refs(end) = total_ratio_tmp;
+            pockels_ratios(i_trial,i_spot) = ratio_this_loc;
+            pockels_ratio_refs = total_ratio_tmp;
             this_trial_location_IDs(1,i_spot)=temp_loc;
             this_trial_cell_IDs(1,i_spot)=this_cell;
             switch  group_profile.design_func_params.trials_params.stim_design
@@ -190,13 +199,14 @@ for i_trial = 1:group_profile.design_func_params.trials_params.trials_per_batch
                 otherwise
                     this_trial_power_levels(1,i_spot)=randsample(group_profile.design_func_params.trials_params.power_levels,1,true);
             end
+            
             this_trial_locations(i_spot,:)=    this_neighbourhood.neurons(this_cell).stim_locations.(group_ID).grid(temp_loc,:);
             
             this_cell=temp_index;
             neurons=this_neighbourhood.neurons(cells_this_group);
             prob_initial=subtract_stim_effects(group_ID,this_cell,prob_initial,loc_selected, neurons);
             prob_initial = max(0,prob_initial);
-            loc_found = 1;
+%             loc_found = 1;
         end
         
     end
