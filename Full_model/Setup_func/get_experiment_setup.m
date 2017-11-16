@@ -236,10 +236,10 @@ if strcmp(experiment_setup.experiment_type,'experiment') || experiment_setup.sim
     if experiment_setup.phase_base_file
         load('phase-mask-base.mat');
     else % load from base ws
-        coarse_disks = evalin('base','tf_disk_grid');
-        disk_key = evalin('base','tf_disk_key');
-        fine_spot_grid = evalin('base','tf_fine_grid_spots_phase');
-        fine_spot_key = evalin('base','tf_fine_grid_spots_key');
+        disk_grid_phase = evalin('base','disk_grid_phase');
+        disk_grid_key = evalin('base','disk_grid_key');
+        fine_grid_spots_phase = evalin('base','fine_grid_spots_phase');
+        fine_grid_spots_key = evalin('base','fine_grid_spots_key');
     end
     experiment_setup.coarse_disks = coarse_disks;
     experiment_setup.disk_key = disk_key;
