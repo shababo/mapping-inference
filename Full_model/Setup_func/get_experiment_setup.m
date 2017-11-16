@@ -44,8 +44,10 @@ experiment_setup.default_group='undefined';
 max_spots_per_trial = 0;
 for i = 1:length(group_names)
     experiment_setup.groups.(group_names{i}) = eval(['get_' group_names{i}]);
+    if isfield('design_func_params',experiment_setup.groups.(group_names{i}))
     max_spots_per_trial = max(max_spots_per_trial,...
         experiment_setup.groups.(group_names{i}).design_func_params.trials_params.spots_per_trial);
+    end
 end
 experiment_setup.max_spots_per_trial = max_spots_per_trial;
 % need a way to call these functions based on group names
@@ -56,7 +58,14 @@ experiment_setup.max_spots_per_trial = max_spots_per_trial;
 % experiment_setup.groups.alive=get_alive();
 
 
-
+% Get sim paramters
+% sim params
+experiment_setup.sim = get_simulation_setup;
+ 
+switch location_str
+    case 'szchen'
+    experiment_setup.sim.compute_phase_masks=0;
+end
 %----------- Load the current template
 
 
@@ -201,8 +210,6 @@ experiment_setup.neighbourhood_params.buffer_height=5;
 % experiment_setup.design.change_threshold=0.05;
 % experiment_setup.design.do_connected_vi = 1;
 
-% sim params
-experiment_setup.sim = get_simulation_setup;
 
 
 % some experimental experiment_setup
