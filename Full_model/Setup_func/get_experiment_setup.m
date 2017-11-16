@@ -238,7 +238,7 @@ experiment_setup.exp.rand_order = 1;
 % set(handles.num_repeats,'String',num2str(10));
 experiment_setup.exp.duration = .003; % length of laser on
 
-experiment_setup.phase_base_file = 1;
+experiment_setup.phase_base_file = 0;
 if strcmp(experiment_setup.experiment_type,'experiment') || experiment_setup.sim.compute_phase_masks
     if experiment_setup.phase_base_file
         load('phase-mask-base.mat');

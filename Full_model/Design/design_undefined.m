@@ -176,8 +176,8 @@ for i_trial = 1:group_profile.design_func_params.trials_params.trials_per_batch
             end
         end
         if ~loc_found
-            this_trial_locations_ID(1,i_spot)=NaN;
-            this_trial_power_levels(1,i_spot)=NaN;
+            this_trial_locations(i_spot,:) = NaN;
+            this_trial_power_levels(1,i_spot) = NaN;
             pockels_ratios(i_trial,i_spot) = 0;
             pockels_ratio_refs = 0;
         else
@@ -216,5 +216,6 @@ for i_trial = 1:group_profile.design_func_params.trials_params.trials_per_batch
     experiment_query_this_group.trials(i_trial).power_levels=this_trial_power_levels;
     experiment_query_this_group.trials(i_trial).locations=this_trial_locations;
     experiment_query_this_group.trials(i_trial).group_ID=group_ID;
+%     experiment_query_this_group.trials(i_trial).pockels_info=pockels_info;
     
 end
