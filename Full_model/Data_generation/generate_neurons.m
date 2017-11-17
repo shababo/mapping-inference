@@ -1,18 +1,39 @@
 function [neurons] = generate_neurons(experiment_setup)
 %
 simulation_params = experiment_setup.sim;
-% There should be options to read neuron locations 
+% There should be options to read neuron locations
 %% Simulation some more neurons:
 
-
-cell_locations=rand(simulation_params.number_of_cells,size(simulation_params.dimension,2));
-for i_dimension= 1:size(simulation_params.dimension,2)
-    cell_locations(:,i_dimension)=cell_locations(:,i_dimension)*range(simulation_params.dimension(:,i_dimension))+...
-        simulation_params.dimension(1,i_dimension);
+if simulation_params.use_real_map
+    if isempty(simulation_params.real_map_name)
+        warning('Real cell maps not specified.')
+        
+    else
+        cell_map_path =[experiment_setup.exp_root simulation_params.real_map_name];
+        if ~exist(cell_map_path, 'file')
+            warning(['Specified cell maps not found in ' cell_map_path '.'])
+        else
+            
+            load(cell_map_path,'cell_locs')
+            cell_locations=cell_locs;
+            % Overwrite the dimension info:
+            for i_dimension = 1:size(cell_locations,2)
+                simulation_params.dimension(:,i_dimension)= [min(cell_locations(:,i_dimension)) max(cell_locations(:,i_dimension))];
+                
+            end
+        end
+    end
+else
+    cell_locations=rand(simulation_params.number_of_cells,size(simulation_params.dimension,2));
+    for i_dimension= 1:size(simulation_params.dimension,2)
+        cell_locations(:,i_dimension)=cell_locations(:,i_dimension)*range(simulation_params.dimension(:,i_dimension))+...
+            simulation_params.dimension(1,i_dimension);
+    end
 end
 
-extra_locations = 2*pi*rand(simulation_params.siblings.number,size(simulation_params.dimension,2)); % only need the first two columns 
-for i= 1:simulation_params.siblings.number 
+
+extra_locations = 2*pi*rand(simulation_params.siblings.number,size(simulation_params.dimension,2)); % only need the first two columns
+for i= 1:simulation_params.siblings.number
     temp_cell=randsample(1:simulation_params.number_of_cells,1);
     extra_locations(i,:)=cell_locations(temp_cell,:)+ ...
         simulation_params.siblings.distance*[sin(extra_locations(i,1))*sin(extra_locations(i,2)),...
@@ -45,27 +66,14 @@ switch simulation_params.cell_params.type
         weak_index=randsample(find(gamma_truth>0), floor(weak_gamma_proportion*n_connected));
         gamma_truth(weak_index)=(0.15+0.1*rand([length(weak_index) 1]));
         gain_truth=0.02+(rand([number_of_cells  1])-0.5)*0.01;
-    otherwise 
+    otherwise
         % throw a warning
 end
 
 
-%%
-
-%  \item neurons(cell\_ID)
-%     fluorescence
-%         \item location
-%         \item gain\_prior \note{calculated from fluorescence level and location}
-%         \item PR\_prior \note{the following are from \struct{prior\_info}} 
-% \item        V\_reset
-% \item        V\_thresh
-% \item        membrane\_resistance 
-% \item truth \note{for simulation}
-%         \end{itemize}
-
 neurons=struct([]);
-for i_cell = 1:number_of_cells 
-    neurons(i_cell).fluorescence= []; % need to generate some fluorescence level 
+for i_cell = 1:number_of_cells
+    neurons(i_cell).fluorescence= []; % need to generate some fluorescence level
     neurons(i_cell).V_reset= -1e4;
     neurons(i_cell).V_thresh=15;
     neurons(i_cell).membrane_resistance=0.02;
@@ -73,11 +81,11 @@ for i_cell = 1:number_of_cells
     neurons(i_cell).optical_gain=[];
     neurons(i_cell).PR=[];
     neurons(i_cell).truth=struct;
-        neurons(i_cell).truth.V_reset= -1e4;
-        neurons(i_cell).truth.V_thresh=15;
-        neurons(i_cell).truth.membrane_resistance=0.02;
-        neurons(i_cell).truth.location=cell_locations(i_cell,:);
-        neurons(i_cell).truth.optical_gain=gain_truth(i_cell);
-        neurons(i_cell).truth.PR=gamma_truth(i_cell);
+    neurons(i_cell).truth.V_reset= -1e4;
+    neurons(i_cell).truth.V_thresh=15;
+    neurons(i_cell).truth.membrane_resistance=0.02;
+    neurons(i_cell).truth.location=cell_locations(i_cell,:);
+    neurons(i_cell).truth.optical_gain=gain_truth(i_cell);
+    neurons(i_cell).truth.PR=gamma_truth(i_cell);
 end
 

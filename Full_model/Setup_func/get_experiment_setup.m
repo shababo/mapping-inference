@@ -18,8 +18,8 @@ experiment_setup.experiment_type='simulation'; % experiment; simulation; reprodu
     
 switch location_str
     case 'szchen'
-        experiment_setup.exp_root = 'C:/Users/Shizhe/Documents/Mapping_data/Data';
-        experiment_setup.analysis_root = 'C:/Users/Shizhe/Documents/Mapping_data/tmp/'; % make sure to add ending slash
+        experiment_setup.exp_root = 'C:/Users/Shizhe/Documents/Mapping_data/Data/';
+        experiment_setup.analysis_root = 'C:/Users/Shizhe/Documents/Mapping_data/tmp/'; 
         experiment_setup.experiment_type='simulation';
     case 'adesnik_lab'
         experiment_setup.exp_root = 'C:\data\Shababo';
@@ -65,6 +65,7 @@ experiment_setup.sim = get_simulation_setup;
 switch location_str
     case 'szchen'
     experiment_setup.sim.compute_phase_masks=0;
+    experiment_setup.sim.use_power_calib =0;
 end
 %----------- Load the current template
 
