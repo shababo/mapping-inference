@@ -11,7 +11,7 @@ n_cell=length(current_params);
 
 
 nonzero_prob_temp=1-exp( current_params.pi_logit)./(1+exp(current_params.pi_logit));
-mean_temp=mean_temp.*(1-nonzero_prob_temp);
+mean_temp=mean_temp.*nonzero_prob_temp;
 [low_temp, up_temp]=calculate_posterior_quatiles(quantile_prob,...
     current_params.alpha,exp(current_params.beta),bounds(1),bounds(2));
 
