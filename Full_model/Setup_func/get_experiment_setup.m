@@ -19,7 +19,7 @@ experiment_setup.experiment_type='simulation'; % experiment; simulation; reprodu
 switch location_str
     case 'szchen'
         experiment_setup.exp_root = 'C:/Users/Shizhe/Documents/Mapping_data/Data/';
-        experiment_setup.analysis_root = 'C:/Users/Shizhe/Documents/Mapping_data/tmp/'; 
+        experiment_setup.analysis_root = 'C:/Users/Shizhe/Documents/Mapping_data/tmp/';   
         experiment_setup.experiment_type='simulation';
     case 'adesnik_lab'
         experiment_setup.exp_root = 'C:\data\Shababo';

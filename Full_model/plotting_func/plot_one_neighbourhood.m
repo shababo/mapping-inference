@@ -36,7 +36,6 @@ scatter3(y(secondary_index),x(secondary_index),z(secondary_index),...
     'MarkerFaceColor',secondary_color,...
     'MarkerFaceAlpha',secondary_alpha)
 
-hold on;
 view(-30,10)
 xlim(xlims);
 ylim(ylims);
