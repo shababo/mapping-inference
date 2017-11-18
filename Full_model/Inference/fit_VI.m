@@ -112,7 +112,7 @@ while (change_history(iteration) > epsilon && iteration<maxit)
         iteration,eta,eta_max,spike_indicator,spike_indicator);
 % parameter_current
 
-fprintf('Iteration %d; change %d;\n',iteration, change_history(iteration))
+% fprintf('Iteration %d; change %d;\n',iteration, change_history(iteration))
 end
 fprintf('VI fitted after %d iteration;\n',iteration)
            
