@@ -79,7 +79,7 @@ experiment_setup.prior_info=struct;
 experiment_setup.prior_info.PR_prior = struct;
 experiment_setup.prior_info.PR_prior.type='spiked_logit_normal'; % spike and logitnorm slab
 experiment_setup.prior_info.PR_prior.pi_logit=-100;
-experiment_setup.prior_info.PR_prior.alpha=0;
+experiment_setup.prior_info.PR_prior.alpha=-0.5;
 experiment_setup.prior_info.PR_prior.beta=1;
 
 

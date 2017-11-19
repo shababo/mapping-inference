@@ -45,13 +45,13 @@ connected_profile.inference_params.bounds.gain=[0.005 0.03];
 connected_profile.inference_params.bounds.spike_indicator=false;
 
 
-connected_profile.regroup_functions=struct;
-    connected_profile.regroup_functions.connected=@connected_to_disconnected;
-    connected_profile.regroup_functions.disconnected=@connected_to_alive;
+connected_profile.regroup_function=struct;
+    connected_profile.regroup_function.connected=@connected_to_disconnected;
+    connected_profile.regroup_function.disconnected=@connected_to_alive;
 connected_profile.regroup_func_params=struct;
 connected_profile.regroup_func_params.connected_threshold=0.5;
 connected_profile.regroup_func_params.disconnected_threshold=0.2;
-connected_profile.regroup_func_params.quantile_prob=[0.05 0.95];
+connected_profile.regroup_func_params.quantile_prob=[0.1 0.9];
 connected_profile.regroup_func_params.regroup_type='Quantiles'; % Quantiles or NonzeroProb
 connected_profile.regroup_func_params.singlespot_threshold=0.2;% certain proportion of cells 
 connected_profile.regroup_func_params.change_threshold =0.05;

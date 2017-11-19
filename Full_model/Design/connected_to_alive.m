@@ -13,8 +13,7 @@ switch group_profile.regroup_func_params.regroup_type
         gamma_mean=temp_output.PR_params.mean;
         
         cell_list_connected_to_alive = ...
-                intersect(find(gamma_lower_quantile> group_profile.regroup_func_params.disconnected_threshold),...
-                cells_this_group);
+                cells_this_group(gamma_lower_quantile> group_profile.regroup_func_params.disconnected_threshold);
         
     case 'NonzeroProb'
 end

@@ -1,6 +1,9 @@
 function [this_neighbourhood]=inference_connected(...
     experiment_query_this_group,this_neighbourhood,group_profile,experiment_setup)
 
+%  experiment_query_this_group=experiment_query.(this_group);
+%  this_neighbourhood= neighbourhood;
+ 
 group_ID=group_profile.group_ID;
 cells_this_group= find(get_group_inds(this_neighbourhood,group_ID));
 number_cells_this_group=length(cells_this_group);
