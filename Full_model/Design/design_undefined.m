@@ -176,8 +176,10 @@ for i_trial = 1:group_profile.design_func_params.trials_params.trials_per_batch
             end
         end
         if ~loc_found
+            this_trial_location_IDs(1,i_spot)=NaN;
             this_trial_locations(i_spot,:) = NaN;
             this_trial_power_levels(1,i_spot) = NaN;
+             this_trial_cell_IDs(1,i_spot)=NaN;
             pockels_ratios(i_trial,i_spot) = 0;
             pockels_ratio_refs = 0;
         else
