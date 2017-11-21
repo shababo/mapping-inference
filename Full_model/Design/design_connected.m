@@ -135,8 +135,8 @@ for i_cell = 1:number_cells_this_group
         
         switch  group_profile.design_func_params.trials_params.stim_design
             case 'Optimal'
-                this_trial_power_levels=power_selected(this_cell);
-                if rand(1) < mean_gamma(this_cell)
+                this_trial_power_levels=power_selected(i_cell);
+                if rand(1) < mean_gamma(i_cell)
                     this_trial_power_levels=...
                         experiment_setup.prior_info.induced_intensity.fire_stim_threshold./(neurons(i_cell).stim_locations.(group_ID).effect(this_cell,loc_selected(i_cell))...
                         *gain_samples(randsample(1:group_profile.inference_params.MCsamples_for_posterior,1),this_cell));

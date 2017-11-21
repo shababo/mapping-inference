@@ -18,8 +18,8 @@ experiment_setup.experiment_type='simulation'; % experiment; simulation; reprodu
     
 switch location_str
     case 'szchen'
-        experiment_setup.exp_root = 'C:/Users/Shizhe/Documents/Mapping_data/Data';
-        experiment_setup.analysis_root = 'C:/Users/Shizhe/Documents/Mapping_data/tmp/'; % make sure to add ending slash
+        experiment_setup.exp_root = 'C:/Users/Shizhe/Documents/Mapping_data/Data/';
+        experiment_setup.analysis_root = 'C:/Users/Shizhe/Documents/Mapping_data/tmp/';   
         experiment_setup.experiment_type='simulation';
     case 'adesnik_lab'
         experiment_setup.exp_root = 'C:\data\Shababo';
@@ -40,6 +40,8 @@ group_names{4}='alive';
 experiment_setup.group_names = group_names;
 experiment_setup.default_group='undefined';
 
+experiment_setup.terminator=@check_all_learned;
+
 max_spots_per_trial = 0;
 for i = 1:length(group_names)
     experiment_setup.groups.(group_names{i}) = eval(['get_' group_names{i}]);
@@ -57,6 +59,7 @@ experiment_setup.sim = get_simulation_setup;
 switch location_str
     case 'szchen'
         experiment_setup.sim.compute_phase_masks=0;
+        experiment_setup.sim.use_power_calib =0;
     case 'adesnik_lab'
         experiment_setup.sim.compute_phase_masks=1;
 end
@@ -69,8 +72,8 @@ experiment_setup.prior_info=struct;
 
 experiment_setup.prior_info.PR_prior = struct;
 experiment_setup.prior_info.PR_prior.type='spiked_logit_normal'; % spike and logitnorm slab
-experiment_setup.prior_info.PR_prior.pi_logit=0;
-experiment_setup.prior_info.PR_prior.alpha=0;
+experiment_setup.prior_info.PR_prior.pi_logit=-100;
+experiment_setup.prior_info.PR_prior.alpha=-0.5;
 experiment_setup.prior_info.PR_prior.beta=1;
 
 
@@ -131,8 +134,8 @@ experiment_setup.prior_info.template_cell,experiment_setup.prior_info.delay,expe
 
 experiment_setup.neighbourhood_params=struct;
 experiment_setup.neighbourhood_params.number=10;
-experiment_setup.neighbourhood_params.height=20;
-experiment_setup.neighbourhood_params.buffer_height=5;
+experiment_setup.neighbourhood_params.height=15;
+experiment_setup.neighbourhood_params.buffer_height=5; 
 
 
 
@@ -251,6 +254,9 @@ else
     experiment_setup.fine_spot_key = [];
     
 end
+
+
+
 
 
 % if filename given

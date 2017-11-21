@@ -2,7 +2,8 @@ function stim_location_this_group = ...
     get_stim_locations(this_cell,group_ID,cell_params,design_params,template_cell)
 
 % template_cell=experiment_setup.prior_info.template_cell;
-cell_locations_neighbourhood = reshape([cell_params(:).location]',[],3);
+cell_locations_neighbourhood = reshape([cell_params(:).location],3,[])';
+
 stim_location_this_group=struct;
 
 z_depth=mean(cell_locations_neighbourhood(:,3));

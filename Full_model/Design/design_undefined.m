@@ -159,7 +159,7 @@ for i_trial = 1:group_profile.design_func_params.trials_params.trials_per_batch
                 end
                 
 
-                if strcmp(expiriment_setup.experiment_type) || experiment_setup.sim.use_power_calib % NOT CODED FOR USE WITH REPLICATING WITHIN THIS FUNCTION!
+                if strcmp(experiment_setup.experiment_type,'experiment') || experiment_setup.sim.use_power_calib % NOT CODED FOR USE WITH REPLICATING WITHIN THIS FUNCTION!
                     this_loc = this_neighbourhood.neurons(this_cell).stim_locations.(group_ID).grid(temp_loc,:);
                     ratio_this_loc = round(experiment_setup.exp.ratio_map(round(this_loc(1))+ceil(size(experiment_setup.exp.ratio_map,1)/2),...
                         round(this_loc(2))+ceil(size(experiment_setup.exp.ratio_map,2)/2))*10000);
@@ -176,8 +176,10 @@ for i_trial = 1:group_profile.design_func_params.trials_params.trials_per_batch
             end
         end
         if ~loc_found
+            this_trial_location_IDs(1,i_spot)=NaN;
             this_trial_locations(i_spot,:) = NaN;
             this_trial_power_levels(1,i_spot) = NaN;
+             this_trial_cell_IDs(1,i_spot)=NaN;
             pockels_ratios(i_trial,i_spot) = 0;
             pockels_ratio_refs = 0;
         else

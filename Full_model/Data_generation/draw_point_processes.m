@@ -1,5 +1,6 @@
 function experiment_query_this_group = draw_point_processes(experiment_query_this_group, ...
         this_neighbourhood,experiment_setup)
+    
 time_max=length(experiment_setup.prior_info.current_template);
 %     number_of_cells=length(experiment_setup.neurons);
 number_of_cells=length(this_neighbourhood.neurons);

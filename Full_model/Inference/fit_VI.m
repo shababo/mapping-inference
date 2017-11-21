@@ -2,9 +2,18 @@ function [parameter_history] = fit_VI(...
     stim_size, mpp, background_rate, ...
     variational_params,prior_params,...
     inference_params,prior_info,varargin)
+%%
+% stim_size=designs_remained;
+% background_rate=experiment_setup.patched_neuron.background_rate;
+% mpp=mpp_remained;
+% inference_params=group_profile.inference_params;
+%%
 
-    %designs_remained, mpp_remained, variational_params,prior_params,...
-    
+if ~isempty(varargin) && ~isempty(varargin{1})
+   spike_indicator= varargin{1};
+else
+    spike_indicator= false;
+end
 intensity_grid=prior_info.induced_intensity.intensity_grid;
 
 stim_scale=prior_info.induced_intensity.stim_scale;
@@ -27,11 +36,6 @@ maxit=inference_params.maxit;
 lklh_func=inference_params.likelihood;
 
 
-if ~isempty(varargin) && ~isempty(varargin{1})
-   spike_indicator= varargin{1};
-else
-    spike_indicator= false;
-end
 
 %stim_size=designs_remained; mpp= mpp_remained;
 
@@ -107,6 +111,8 @@ while (change_history(iteration) > epsilon && iteration<maxit)
         dqdp_logit, dqdalpha, dqdbeta, dqdalpha_gain, dqdbeta_gain,...
         iteration,eta,eta_max,spike_indicator,spike_indicator);
 % parameter_current
+
+% fprintf('Iteration %d; change %d;\n',iteration, change_history(iteration))
 end
 fprintf('VI fitted after %d iteration;\n',iteration)
            

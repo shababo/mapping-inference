@@ -20,8 +20,7 @@ switch group_profile.regroup_func_params.regroup_type
         
         max_changes_undefined= max(abs(gamma_mean_previous-gamma_mean)); %
         cell_list_undefined_to_connected = ...
-            intersect(find(gamma_lower_quantile>group_profile.regroup_func_params.connected_threshold),...
-            cells_this_group);
+           cells_this_group(gamma_lower_quantile>group_profile.regroup_func_params.connected_threshold);
     case 'NonzeroProb'
 end
 
