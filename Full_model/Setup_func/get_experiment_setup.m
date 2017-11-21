@@ -6,7 +6,7 @@ function experiment_setup = get_experiment_setup(varargin)
 
 % parameters
 
-if length(varargin) > 0 && ~isempty(varargin{1})
+if ~isempty(varargin) && ~isempty(varargin{1})
     location_str = varargin{1};
 else
     location_str = 'adesnik_lab';
@@ -26,10 +26,9 @@ switch location_str
         experiment_setup.analysis_root = '/media/shababo/data/'; % make sure to add ending slash
 end
 clock_array = clock;
-experiment_setup.map_id = [num2str(clock_array(2)) '_' num2str(clock_array(3)) ...
+experiment_setup.exp_id = [num2str(clock_array(2)) '_' num2str(clock_array(3)) ...
     '_' num2str(clock_array(4)) ...
     '_' num2str(clock_array(5))];
-experiment_setup.exp_id = experiment_setup.map_id;
 experiment_setup.exp.fullsavefile = fullfile(experiment_setup.exp_root,[experiment_setup.exp_id '_data.mat']);
 
 % read this from argument
@@ -50,13 +49,6 @@ for i = 1:length(group_names)
     end
 end
 experiment_setup.max_spots_per_trial = max_spots_per_trial;
-% need a way to call these functions based on group names
-% 
-% experiment_setup.groups.undefined=get_undefined();
-% experiment_setup.groups.connected=get_connected();
-% experiment_setup.groups.disconnected=get_disconnected();
-% experiment_setup.groups.alive=get_alive();
-
 
 % Get sim paramters
 % sim params
@@ -64,9 +56,11 @@ experiment_setup.sim = get_simulation_setup;
  
 switch location_str
     case 'szchen'
-    experiment_setup.sim.compute_phase_masks=0;
+        experiment_setup.sim.compute_phase_masks=0;
+    case 'adesnik_lab'
+        experiment_setup.sim.compute_phase_masks=1;
 end
-%----------- Load the current template
+
 
 
 
@@ -86,10 +80,8 @@ experiment_setup.prior_info.gain_prior.pi_logit=-Inf;
 experiment_setup.prior_info.gain_prior.alpha=0;
 experiment_setup.prior_info.gain_prior.beta=1;
 
-
+%----------- Load the current template
 load('chrome-template-3ms.mat');
-
-
 
 
 experiment_setup.trials.downsamp = 1;
@@ -108,9 +100,7 @@ experiment_setup.prior_info.delay.n_grid=200;
 
 
 load('l23_template_cell.mat');
-
-
-temp=l23_average_shape;temp_max = max(max(max(temp)));
+temp = l23_average_shape; temp_max = max(max(max(temp)));
 l23_average_shape = temp/temp_max;
 shape_template=l23_average_shape;
 
@@ -118,7 +108,7 @@ shape_template=l23_average_shape;
 experiment_setup.prior_info.template_cell=struct;
 experiment_setup.prior_info.template_cell.V_reset=-1e5;
 experiment_setup.prior_info.template_cell.V_threshold=15;
-experiment_setup.prior_info.template_cell.membrane_resistance =0.02;
+experiment_setup.prior_info.template_cell.membrane_resistance = 0.02;
 experiment_setup.prior_info.template_cell.cell_shape = shape_template;
 experiment_setup.prior_info.template_cell.linkfunc = {@link_sig, @derlink_sig, @invlink_sig,@derinvlink_sig};
 
@@ -129,6 +119,8 @@ experiment_setup.prior_info.induced_intensity.linkfunc={@link_sig, @derlink_sig,
 experiment_setup.prior_info.induced_intensity.stim_scale = experiment_setup.prior_info.induced_intensity.num_stim_grid/experiment_setup.prior_info.induced_intensity.max_actual_stimulation;
 experiment_setup.prior_info.induced_intensity.stim_grid = (1:experiment_setup.prior_info.induced_intensity.num_stim_grid)/...
 experiment_setup.prior_info.induced_intensity.stim_scale;
+% we should have a file with the values below precomputed... or an option
+% to load from file if our priors haven't changed...
 experiment_setup.prior_info.induced_intensity=precalculate_intensity(experiment_setup.prior_info.induced_intensity,...
 experiment_setup.prior_info.template_cell,experiment_setup.prior_info.delay,experiment_setup.prior_info.current_template);
 %         experiment_setup.prior_info.induced_intensity.intensity_grid
@@ -216,7 +208,7 @@ experiment_setup.neighbourhood_params.buffer_height=5;
 % experiment_setup.exp.power_levels = '20 30 40 50 60 70'; % this should be a space delimited string
 experiment_setup.power_level=30:10:100;
 experiment_setup.exp.power_levels = mat2str(experiment_setup.power_level);
-experiment_setup.exp.power_levels = experiment_setup.exp.power_levels(2:end-1);
+experiment_setup.exp.power_levels = experiment_setup.exp.power_levels(2:end-1);% remove brackets
 experiment_setup.exp.z_width = 20;
 experiment_setup.exp.z_depths = '10 30 50 70 90';% this should be a space delimited string
 experiment_setup.exp.arbitrary_z = 0;
