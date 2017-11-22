@@ -217,8 +217,8 @@ experiment_setup.exp.z_depths = '10 30 50 70 90';% this should be a space delimi
 experiment_setup.exp.arbitrary_z = 0;
 
 load('power-calibration.mat');
-experiment_setup.exp.ratio_map = evalin('base','ratio_map');
-experiment_setup.exp.pockels_lut = evalin('base','pockels_lut');
+experiment_setup.exp.ratio_map = ratio_map;
+experiment_setup.exp.pockels_lut = pockels_lut;
 experiment_setup.exp.max_power_ref = max(experiment_setup.exp.pockels_lut(2,:));
 
 
@@ -240,13 +240,13 @@ if strcmp(experiment_setup.experiment_type,'experiment') || experiment_setup.sim
     else % load from base ws
         disk_grid_phase = evalin('base','disk_grid_phase');
         disk_grid_key = evalin('base','disk_grid_key');
-        fine_grid_spots_phase = evalin('base','fine_grid_spots_phase');
-        fine_grid_spots_key = evalin('base','fine_grid_spots_key');
+        fine_spots_grid_phase = evalin('base','fine_spots_grid_phase');
+        fine_spots_grid_key = evalin('base','fine_spots_grid_key');
     end
-    experiment_setup.coarse_disks = coarse_disks;
-    experiment_setup.disk_key = disk_key;
-    experiment_setup.fine_spot_grid = fine_spot_grid;
-    experiment_setup.fine_spot_key = fine_spot_key;
+    experiment_setup.disk_grid_phase = disk_grid_phase;
+    experiment_setup.disk_grid_key = disk_grid_key;
+    experiment_setup.fine_spots_grid_phase = fine_spots_grid_phase;
+    experiment_setup.fine_spots_grid_key = fine_spots_grid_key;
 else
     experiment_setup.coarse_disks = [];
     experiment_setup.disk_key = [];

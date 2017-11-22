@@ -28,9 +28,9 @@ mean_gamma=temp_output.PR_params.mean;
 if  group_profile.design_func_params.trials_params.weighted_indicator
     probability_weights = 1-mean_gamma;
 else
-    probability_weights =ones(number_cells_this_group,1);
+    probability_weights = ones(number_cells_this_group,1);
 end
-
+o
 switch group_profile.design_func_params.trials_params.stim_design
     case 'Optimal'
         gain_samples=zeros(group_profile.inference_params.MCsamples_for_posterior,...
@@ -146,13 +146,29 @@ for i_cell = 1:number_cells_this_group
             otherwise
                 this_trial_power_levels=randsample(group_profile.design_func_params.trials_params.power_levels,1,true);
         end
+        
+        if strcmp(experiment_setup.experiment_type,'experiment') || experiment_setup.sim.use_power_calib
+            high_power = 1;
+            while high_power
+                adj_pow_this_loc = round(experiment_setup.exp.ratio_map(round(this_trial_locations(1))+ceil(size(experiment_setup.exp.ratio_map,1)/2),...
+                    round(this_trial_locations(2))+ceil(size(experiment_setup.exp.ratio_map,2)/2))*this_trial_power_levels);
+                if adj_pow_this_loc > experiment_setup.exp.max_power_ref
+                    this_trial_power_levels = this_trial_power_levels - 5;
+                else
+                    high_power = 0;
+                end
+            end
+        else
+            adj_pow_this_loc = 0;
+        end
+        
             
         experiment_query_this_group.trials(i_trial).location_IDs=this_trial_location_IDs;
         experiment_query_this_group.trials(i_trial).cell_IDs=this_trial_cell_IDs;
         experiment_query_this_group.trials(i_trial).power_levels=this_trial_power_levels;
         experiment_query_this_group.trials(i_trial).locations=this_trial_locations;
         experiment_query_this_group.trials(i_trial).group_ID=group_ID;
-        
+        experiment_query_this_group.trials(i_trial).adj_power_per_spot = adj_pow_this_loc;
         
      end
     

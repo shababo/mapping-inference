@@ -292,6 +292,7 @@ else
                     try_count = try_count + 1;
                 end
             end
+            
             if ~loc_found
                 this_trial_locations(1,i_spot)=NaN;
                 this_trial_powers(1,i_spot)=0;
