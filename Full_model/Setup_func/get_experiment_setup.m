@@ -209,11 +209,11 @@ experiment_setup.neighbourhood_params.buffer_height=5;
 
 % some experimental experiment_setup
 % experiment_setup.exp.power_levels = '20 30 40 50 60 70'; % this should be a space delimited string
-experiment_setup.power_level=30:10:100;
-experiment_setup.exp.power_levels = mat2str(experiment_setup.power_level);
-experiment_setup.exp.power_levels = experiment_setup.exp.power_levels(2:end-1);% remove brackets
+% experiment_setup.power_level=30:10:100;
+% experiment_setup.exp.power_levels = mat2str(experiment_setup.power_level);
+% experiment_setup.exp.power_levels = experiment_setup.exp.power_levels(2:end-1);% remove brackets
 experiment_setup.exp.z_width = 20;
-experiment_setup.exp.z_depths = '10 30 50 70 90';% this should be a space delimited string
+% experiment_setup.exp.z_depths = '10 30 50 70 90';% this should be a space delimited string
 experiment_setup.exp.arbitrary_z = 0;
 
 load('power-calibration.mat');
@@ -222,16 +222,13 @@ experiment_setup.exp.pockels_lut = pockels_lut;
 experiment_setup.exp.max_power_ref = max(experiment_setup.exp.pockels_lut(2,:));
 
 
-experiment_setup.exp.max_spike_freq = 2; % don't revisit cells on average sooner than this in Hz
+experiment_setup.exp.max_spike_freq = .5; % don't revisit cells on average sooner than this in Hz
 experiment_setup.exp.max_stim_freq = 20; % max frequency for system
 experiment_setup.exp.foe_bounds = [-148 148; -148 149];
 
 % more experimental experiment_setup
 experiment_setup.exp.sim_locs = 0;
-
-experiment_setup.exp.rand_order = 1;
-% set(handles.num_repeats,'String',num2str(10));
-experiment_setup.exp.duration = .003; % length of laser on
+experiment_setup.exp.stim_duration = .003; % length of laser on
 
 experiment_setup.phase_base_file = 0;
 if strcmp(experiment_setup.experiment_type,'experiment') || experiment_setup.sim.compute_phase_masks
@@ -254,14 +251,4 @@ else
     experiment_setup.fine_spots_grid_key = [];
     
 end
-
-
-
-
-
-
-% if filename given
-% load filename
-% for every field in params from file
-% replace default with file version
 
