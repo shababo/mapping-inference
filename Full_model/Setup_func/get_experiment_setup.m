@@ -222,8 +222,8 @@ experiment_setup.exp.pockels_lut = pockels_lut;
 experiment_setup.exp.max_power_ref = max(experiment_setup.exp.pockels_lut(2,:));
 
 
-experiment_setup.exp.max_spike_freq = .5; % don't revisit cells on average sooner than this in Hz
-experiment_setup.exp.max_stim_freq = 15;
+experiment_setup.exp.max_spike_freq = 2; % don't revisit cells on average sooner than this in Hz
+experiment_setup.exp.max_stim_freq = 20; % max frequency for system
 experiment_setup.exp.foe_bounds = [-148 148; -148 149];
 
 % more experimental experiment_setup
@@ -248,12 +248,13 @@ if strcmp(experiment_setup.experiment_type,'experiment') || experiment_setup.sim
     experiment_setup.fine_spots_grid_phase = fine_spots_grid_phase;
     experiment_setup.fine_spots_grid_key = fine_spots_grid_key;
 else
-    experiment_setup.coarse_disks = [];
-    experiment_setup.disk_key = [];
-    experiment_setup.fine_spot_grid = [];
-    experiment_setup.fine_spot_key = [];
+    experiment_setup.disk_grid_phase = [];
+    experiment_setup.disk_grid_key = [];
+    experiment_setup.fine_spots_grid_phase = [];
+    experiment_setup.fine_spots_grid_key = [];
     
 end
+
 
 
 
