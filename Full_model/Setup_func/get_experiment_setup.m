@@ -88,8 +88,10 @@ load('chrome-template-3ms.mat');
 
 
 experiment_setup.trials.downsamp = 1;
+experiment_setup.trials.Fs = 20000;
 experiment_setup.trials.min_time = 40;
 experiment_setup.trials.max_time = 500;
+experiment_setup.trials.max_time_sec = experiment_setup.trials.max_time/experiment_setup.trials.Fs;
 current_template=template(1:experiment_setup.trials.downsamp:experiment_setup.trials.max_time);
 
 experiment_setup.prior_info.current_template = current_template;
@@ -239,11 +241,22 @@ if strcmp(experiment_setup.experiment_type,'experiment') || experiment_setup.sim
         disk_grid_key = evalin('base','disk_grid_key');
         fine_spots_grid_phase = evalin('base','fine_spots_grid_phase');
         fine_spots_grid_key = evalin('base','fine_spots_grid_key');
+        
+        % 2p image alignment params
+        image_zero_order_coord = evalin('base','image_zero_order_coord');
+        image_um_per_px = evalin('base','image_um_per_px');
+        stack_um_per_slice = evalin('base','stack_um_per_slice');
+        
     end
     experiment_setup.disk_grid_phase = disk_grid_phase;
     experiment_setup.disk_grid_key = disk_grid_key;
     experiment_setup.fine_spots_grid_phase = fine_spots_grid_phase;
     experiment_setup.fine_spots_grid_key = fine_spots_grid_key;
+    
+    experiment_setup.image_zero_order_coord = image_zero_order_coord;
+    experiment_setup.image_um_per_px = image_um_per_px;
+    experiment_setup.stack_um_per_slice = stack_um_per_slice;
+    
 else
     experiment_setup.disk_grid_phase = [];
     experiment_setup.disk_grid_key = [];
@@ -252,3 +265,7 @@ else
     
 end
 
+experiment_setup.exp.max_trials_per_sweep = 1250;
+experiment_setup.exp.first_stim_time = 1.0; % in sec
+experiment_setup.exp.filter_config = 'Femto Phasor';
+experiment_setup.exp.sweep_time_padding = 5.0; % in sec
