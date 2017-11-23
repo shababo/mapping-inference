@@ -30,7 +30,7 @@ if  group_profile.design_func_params.trials_params.weighted_indicator
 else
     probability_weights = ones(number_cells_this_group,1);
 end
-o
+
 switch group_profile.design_func_params.trials_params.stim_design
     case 'Optimal'
         gain_samples=zeros(group_profile.inference_params.MCsamples_for_posterior,...
