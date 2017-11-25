@@ -20,11 +20,11 @@ simulation_setup.cell_params.gain_range=[0.5 0.9];
 simulation_setup.cell_params.amp_mean = 2.5; %log norm
 simulation_setup.cell_params.amp_std = .5; % log norm
 
-simulation_setup.do_instructions = 0;
+simulation_setup.do_instructions = 1;
 simulation_setup.sim_vclamp = 0;
 simulation_setup.response_generation=struct;
 
 simulation_setup.use_power_calib = 1;
-simulation_setup.compute_phase_masks = 1;
+simulation_setup.compute_phase_masks = 0;
 %       simulation_setup.response_generation.function=@xxx
  

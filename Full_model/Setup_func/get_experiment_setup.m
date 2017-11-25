@@ -9,7 +9,7 @@ function experiment_setup = get_experiment_setup(varargin)
 if ~isempty(varargin) && ~isempty(varargin{1})
     location_str = varargin{1};
 else
-    location_str = 'adesnik_lab';
+    location_str = 'millennium_falcon';
 end
 
 % experiment; simulation; reproduction
@@ -21,9 +21,12 @@ switch location_str
         experiment_setup.exp_root = 'C:/Users/Shizhe/Documents/Mapping_data/Data/';
         experiment_setup.analysis_root = 'C:/Users/Shizhe/Documents/Mapping_data/tmp/';   
         experiment_setup.experiment_type='simulation';
-    case 'adesnik_lab'
+    case 'millennium_falcon'
         experiment_setup.exp_root = 'C:\data\Shababo';
         experiment_setup.analysis_root = '/media/shababo/data/'; % make sure to add ending slash
+    case 'shababo'
+        experiment_setup.exp_root = '/Users/shababo/projects/mapping/data/sim_tmp/';
+        experiment_setup.analysis_root = '/Users/shababo/projects/mapping/data/sim_tmp/';
 end
 clock_array = clock;
 experiment_setup.exp_id = [num2str(clock_array(2)) '_' num2str(clock_array(3)) ...
