@@ -63,7 +63,7 @@ switch location_str
     case 'szchen'
         experiment_setup.sim.compute_phase_masks=0;
         experiment_setup.sim.use_power_calib =0;
-    case 'adesnik_lab'
+    case 'millennium_falcon'
         experiment_setup.sim.compute_phase_masks=1;
 end
 
@@ -143,80 +143,6 @@ experiment_setup.neighbourhood_params.height=15;
 experiment_setup.neighbourhood_params.buffer_height=5; 
 
 
-
-%
-%
-% %----------- Design parameters
-% experiment_setup.design.num_groups = 3;
-% experiment_setup.design.n_spots_per_trial = 3;
-% experiment_setup.design.n_replicates=1;
-% experiment_setup.design.K_undefined=8;
-% experiment_setup.design.K_disconnected=12;
-% experiment_setup.design.K_connected=4;
-% experiment_setup.design.reps_undefined_single=8;
-% experiment_setup.design.reps_disconnected_single=12;
-% experiment_setup.design.reps_connected=4;
-%
-% experiment_setup.design.stim_loc_type = 1;
-% experiment_setup.r1=5;experiment_setup.r2=10;
-% experiment_setup.num_per_grid=12;
-% experiment_setup.num_per_grid_dense = 16;
-%
-% experiment_setup.design.single_spot_threshold=9; % switch to single spot stimulation if there are fewer than N cells in this group
-% experiment_setup.design.trial_max=20000;
-% experiment_setup.design.disconnected_threshold = 0.2;
-% experiment_setup.design.disconnected_confirm_threshold = 0.2;
-%
-%
-% experiment_setup.design.connected_threshold = 0.5;
-% experiment_setup.design.connected_confirm_threshold = 0.5;
-%
-% experiment_setup.design.n_MC_samples = 25;
-%
-%
-% % Prior distribution
-% experiment_setup.design.prior_pi0=0.8;
-%
-%
-% % Initialize the variational family
-% experiment_setup.design.gain_bound.up=0.03;
-% experiment_setup.design.gain_bound.low=0.005;
-%
-% experiment_setup.design.var_pi_ini=0.01;% not used.
-% experiment_setup.design.var_alpha_initial=1;
-% experiment_setup.design.var_beta_initial=1.78;
-% experiment_setup.design.var_alpha_gain_initial=...
-%     log( (0.02 - experiment_setup.design.gain_bound.low)./(experiment_setup.design.gain_bound.up-0.02));
-% experiment_setup.design.var_beta_gain_initial=0.5;
-%
-% % Initialize the parameters in the VI
-%
-% experiment_setup.design.C_threshold = 0.01;experiment_setup.design.maxit=1000;
-% experiment_setup.design.S=200;experiment_setup.design.epsilon=0.01;experiment_setup.design.eta_logit=0;experiment_setup.design.eta_beta=0.05;
-% experiment_setup.design.background_rt=experiment_setup.bg_rate*(experiment_setup.time.max_time - experiment_setup.time.min_time);
-%
-%
-% experiment_setup.design.prob_weight=0;
-%
-% experiment_setup.design.lklh_func=@calculate_likelihood_sum_bernoulli;
-% experiment_setup.design.stim_threshold = 10;
-
-
-% experiment_setup.design.id_notconnected=false;
-% experiment_setup.design.connected=true;
-%
-%  %  loc_to_cell_nuclei is from get_stim_locations
-%
-% experiment_setup.design.change_threshold=0.05;
-% experiment_setup.design.do_connected_vi = 1;
-
-
-
-% some experimental experiment_setup
-% experiment_setup.exp.power_levels = '20 30 40 50 60 70'; % this should be a space delimited string
-% experiment_setup.power_level=30:10:100;
-% experiment_setup.exp.power_levels = mat2str(experiment_setup.power_level);
-% experiment_setup.exp.power_levels = experiment_setup.exp.power_levels(2:end-1);% remove brackets
 experiment_setup.exp.z_width = 20;
 % experiment_setup.exp.z_depths = '10 30 50 70 90';% this should be a space delimited string
 experiment_setup.exp.arbitrary_z = 0;
@@ -240,9 +166,9 @@ if strcmp(experiment_setup.experiment_type,'experiment') || experiment_setup.sim
     if experiment_setup.phase_base_file
         load('phase-mask-base.mat');
     else % load from base ws
-        disk_grid_phase = evalin('base','disk_grid_phase');
+%         disk_grid_phase = evalin('base','disk_grid_phase');
         disk_grid_key = evalin('base','disk_grid_key');
-        fine_spots_grid_phase = evalin('base','fine_spots_grid_phase');
+%         fine_spots_grid_phase = evalin('base','fine_spots_grid_phase');
         fine_spots_grid_key = evalin('base','fine_spots_grid_key');
         
         % 2p image alignment params
@@ -251,9 +177,9 @@ if strcmp(experiment_setup.experiment_type,'experiment') || experiment_setup.sim
         stack_um_per_slice = evalin('base','stack_um_per_slice');
         
     end
-    experiment_setup.disk_grid_phase = disk_grid_phase;
+%     experiment_setup.disk_grid_phase = disk_grid_phase;
     experiment_setup.disk_grid_key = disk_grid_key;
-    experiment_setup.fine_spots_grid_phase = fine_spots_grid_phase;
+%     experiment_setup.fine_spots_grid_phase = fine_spots_grid_phase;
     experiment_setup.fine_spots_grid_key = fine_spots_grid_key;
     
     experiment_setup.image_zero_order_coord = image_zero_order_coord;
@@ -261,13 +187,13 @@ if strcmp(experiment_setup.experiment_type,'experiment') || experiment_setup.sim
     experiment_setup.stack_um_per_slice = stack_um_per_slice;
     
 else
-    experiment_setup.disk_grid_phase = [];
+%     experiment_setup.disk_grid_phase = [];
     experiment_setup.disk_grid_key = [];
-    experiment_setup.fine_spots_grid_phase = [];
+%     experiment_setup.fine_spots_grid_phase = [];
     experiment_setup.fine_spots_grid_key = [];
     
 end
-
+experiment_setup.exp.phase_mask_struct = 1;
 experiment_setup.exp.max_trials_per_sweep = 1250;
 experiment_setup.exp.first_stim_time = 1.0; % in sec
 experiment_setup.exp.filter_config = 'Femto Phasor';

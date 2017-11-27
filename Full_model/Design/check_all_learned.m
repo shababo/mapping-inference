@@ -9,11 +9,11 @@ for i_neighbourhood= 1:length(neighbourhoods)
     number_of_alive_cells= sum(get_group_inds(this_neighbourhood,learned_groups{2}));
     learned_indicators(i_neighbourhood)= (length(this_neighbourhood.neurons) ...
         == (number_of_alive_cells+number_of_disconnected_cells) );
-    fprintf('Nghbh %d: %d learned; ', i_neighbourhood, ((number_of_alive_cells+number_of_disconnected_cells)/length(this_neighbourhood.neurons)));
+%     fprintf('Nghbh %d: %d learned; ', i_neighbourhood, ((number_of_alive_cells+number_of_disconnected_cells)/length(this_neighbourhood.neurons)));
 
 end
 not_terminated = 1-prod(learned_indicators);
- fprintf('\n Not terminated.\n');
+%  fprintf('\n Not terminated.\n');
 end
 
 %% For debugging
