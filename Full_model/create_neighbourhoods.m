@@ -58,6 +58,13 @@ for i_neighbourhood = 1:number_of_neighbourhoods
                 cell_params=neighbourhoods(i_neighbourhood).neurons;
                 neighbourhoods(i_neighbourhood).neurons(i_cell).stim_locations.(group_names{i_group})=...
                     get_stim_locations(i_cell,group_names{i_group},cell_params,design_params,experiment_setup.prior_info.template_cell);
+                if experiment_setup.is_exp
+                    these_locs = neighbourhoods(i_neighbourhood).neurons(i_cell).stim_locations.(group_names{i_group});
+                    for i_dim = 1:size(experiment_setup.exp.foe_bounds,1)
+                        these_locs(these_locs(:,i_dim) < experiment_setup.exp.foe_bounds(i_dim,1),i_dim) = experiment_setup.exp.foe_bounds(i_dim,1);
+                        these_locs(these_locs(:,i_dim) > experiment_setup.exp.foe_bounds(i_dim,2),i_dim) = experiment_setup.exp.foe_bounds(i_dim,2);
+                    end
+                end
             end
         end
     end
