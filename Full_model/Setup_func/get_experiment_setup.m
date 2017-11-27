@@ -14,7 +14,7 @@ end
 
 % experiment; simulation; reproduction
 
-experiment_setup.experiment_type='simulation'; % experiment; simulation; reproduction
+experiment_setup.experiment_type='experiment'; % experiment; simulation; reproduction
     
 switch location_str
     case 'szchen'
@@ -145,7 +145,7 @@ experiment_setup.neighbourhood_params.buffer_height=5;
 
 experiment_setup.exp.z_width = 20;
 % experiment_setup.exp.z_depths = '10 30 50 70 90';% this should be a space delimited string
-experiment_setup.exp.arbitrary_z = 0;
+experiment_setup.exp.arbitrary_z = 1;
 
 load('power-calibration.mat');
 experiment_setup.exp.ratio_map = ratio_map;
@@ -158,13 +158,13 @@ experiment_setup.exp.max_stim_freq = 20; % max frequency for system
 experiment_setup.exp.foe_bounds = [-148 148; -148 148; 0 400];
 
 % more experimental experiment_setup
-experiment_setup.exp.sim_locs = 0;
+experiment_setup.exp.sim_locs = 1;
 experiment_setup.exp.stim_duration = .003; % length of laser on
 
-experiment_setup.phase_base_file = 0;
+experiment_setup.phase_base_file = 1;
 if strcmp(experiment_setup.experiment_type,'experiment') || experiment_setup.sim.compute_phase_masks
     if experiment_setup.phase_base_file
-        load('phase-mask-base.mat');
+        load('phase-mask-base-nocomp.mat');
     else % load from base ws
 %         disk_grid_phase = evalin('base','disk_grid_phase');
         disk_grid_key = evalin('base','disk_grid_key');
@@ -198,3 +198,5 @@ experiment_setup.exp.max_trials_per_sweep = 1250;
 experiment_setup.exp.first_stim_time = 1.0; % in sec
 experiment_setup.exp.filter_config = 'Femto Phasor';
 experiment_setup.exp.sweep_time_padding = 5.0; % in sec
+
+experiment_setup.exp.sim_response = 1;
