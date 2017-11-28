@@ -29,7 +29,8 @@ for i_neighbourhood = 1:number_of_neighbourhoods
    cell_list_this_neighbourhood=find(cell_group_idx==i_neighbourhood);
    for i_cell = 1:length(cell_list_this_neighbourhood)
        cell_ID=cell_list_this_neighbourhood(i_cell);
-        neighbourhoods(i_neighbourhood).neurons(i_cell)=experiment_setup.neurons(cell_ID);
+       neighbourhoods(i_neighbourhood).neurons(i_cell)=experiment_setup.neurons(cell_ID);
+       
    end
 %    location_vec = [neighbourhoods(i_neighbourhood).neurons.location];
 %    z_locs = location_vec(3:3:end);
@@ -48,7 +49,7 @@ group_names = experiment_setup.group_names;
 for i_neighbourhood = 1:number_of_neighbourhoods
     for i_cell = 1:length(neighbourhoods(i_neighbourhood).neurons)
         neighbourhoods(i_neighbourhood).neurons(i_cell).stim_locations=struct([]);
-        neighbourhoods(i_neighbourhood).neurons(i_cell).cell_ID=cell_ID;
+        neighbourhoods(i_neighbourhood).neurons(i_cell).cell_ID=i_cell;
         neighbourhoods(i_neighbourhood).neurons(i_cell).group_ID=experiment_setup.default_group; % all are initialized as undefined
         neighbourhoods(i_neighbourhood).neurons(i_cell).primary_indicator=true;
         neighbourhoods(i_neighbourhood).neurons(i_cell).stim_locations=struct;
