@@ -24,6 +24,7 @@ switch location_str
     case 'millennium_falcon'
         experiment_setup.exp_root = 'C:\data\Shababo';
         experiment_setup.analysis_root = '/media/shababo/data/'; % make sure to add ending slash
+        experiment_setup.ephys_mapped_drive = '/home/shababo/ephys-comp/';
     case 'shababo'
         experiment_setup.exp_root = '/Users/shababo/projects/mapping/data/sim_tmp/';
         experiment_setup.analysis_root = '/Users/shababo/projects/mapping/data/sim_tmp/';
@@ -164,7 +165,7 @@ experiment_setup.exp.stim_duration = .003; % length of laser on
 experiment_setup.phase_base_file = 0;
 if strcmp(experiment_setup.experiment_type,'experiment') || experiment_setup.sim.compute_phase_masks
     if experiment_setup.phase_base_file
-        load('phase-mask-base.mat');
+        load('phase-mask-base-nocomp.mat');
     else % load from base ws
 %         disk_grid_phase = evalin('base','disk_grid_phase');
         disk_grid_key = evalin('base','disk_grid_key');
@@ -198,3 +199,5 @@ experiment_setup.exp.max_trials_per_sweep = 1250;
 experiment_setup.exp.first_stim_time = 1.0; % in sec
 experiment_setup.exp.filter_config = 'Femto Phasor';
 experiment_setup.exp.sweep_time_padding = 5.0; % in sec
+experiment_setup.exp.sim_response = 1;
+experiment_setup.exp.run_online_detection = 1;
