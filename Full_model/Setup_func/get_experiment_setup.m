@@ -24,6 +24,7 @@ switch location_str
     case 'millennium_falcon'
         experiment_setup.exp_root = 'C:\data\Shababo';
         experiment_setup.analysis_root = '/media/shababo/data/'; % make sure to add ending slash
+        experiment_setup.ephys_mapped_drive = '/home/shababo/ephys-comp/';
     case 'shababo'
         experiment_setup.exp_root = '/Users/shababo/projects/mapping/data/sim_tmp/';
         experiment_setup.analysis_root = '/Users/shababo/projects/mapping/data/sim_tmp/';
@@ -200,3 +201,4 @@ experiment_setup.exp.filter_config = 'Femto Phasor';
 experiment_setup.exp.sweep_time_padding = 5.0; % in sec
 
 experiment_setup.exp.sim_response = 1;
+experiment_setup.exp.run_online_detection = 1;
