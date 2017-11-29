@@ -76,6 +76,7 @@ for i_cell = 1:number_of_cells
     neurons(i_cell).fluorescence= []; % need to generate some fluorescence level
     neurons(i_cell).V_reset= -1e4;
     neurons(i_cell).V_thresh=15;
+    neurons(i_cell).cell_ID=i_cell;
     neurons(i_cell).membrane_resistance=0.02;
     neurons(i_cell).location=cell_locations(i_cell,:);
     neurons(i_cell).optical_gain=[];
