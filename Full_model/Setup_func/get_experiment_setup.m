@@ -30,6 +30,7 @@ switch location_str
         experiment_setup.exp_root = '/Users/shababo/projects/mapping/data/sim_tmp/';
         experiment_setup.analysis_root = '/Users/shababo/projects/mapping/data/sim_tmp/';
 end
+
 clock_array = clock;
 experiment_setup.exp_id = [num2str(clock_array(2)) '_' num2str(clock_array(3)) ...
     '_' num2str(clock_array(4)) ...
