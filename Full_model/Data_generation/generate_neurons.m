@@ -87,6 +87,6 @@ for i_cell = 1:number_of_cells
     neurons(i_cell).truth.location=cell_locations(i_cell,:);
     neurons(i_cell).truth.optical_gain=gain_truth(i_cell);
     neurons(i_cell).truth.PR=gamma_truth(i_cell);
-%     neurons(i_cell).cell_ID = i_cell;
+    neurons(i_cell).cell_ID = i_cell;
 end
 
