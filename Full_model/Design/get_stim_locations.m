@@ -1,12 +1,22 @@
 function stim_location_this_group = ...
-    get_stim_locations(this_cell,group_ID,cell_params,design_params,template_cell)
+    get_stim_locations(this_cell,group_ID,cell_params,design_params,template_cell,varargin)
+
+if length(varargin) > 1 && ~isempty(varargin{2})
+    foe_bounds = varargin{2};
+else
+    foe_bounds = [];
+end
 
 % template_cell=experiment_setup.prior_info.template_cell;
 cell_locations_neighbourhood = reshape([cell_params(:).location],3,[])';
-
+if ~isempty(varargin) && ~isempty(varargin{1})
+    z_depth = varargin{1};
+else
+    z_depth = mean(cell_locations_neighbourhood(:,3));
+end
 stim_location_this_group=struct;
 
-z_depth=mean(cell_locations_neighbourhood(:,3));
+
 % The list of all related cells :
 grid_coord = zeros(sum(design_params.candidate_grid_params.number)+1,3);
 i_count=1;
@@ -31,6 +41,16 @@ switch group_ID
     case 'connected'
         
 end
+
+% cut based on slm range
+if ~isempty(foe_bounds)
+    for i_dim = 1:size(foe_bounds,1)
+        grid_this_cell(grid_this_cell(:,i_dim) < foe_bounds(i_dim,1),i_dim) = foe_bounds(i_dim,1);
+        grid_this_cell(grid_this_cell(:,i_dim) > foe_bounds(i_dim,2),i_dim) = foe_bounds(i_dim,2);
+    end
+end
+
+
 [effect_this_cell] = get_weights(cell_params, template_cell,grid_this_cell);
 stim_location_this_group.grid=grid_this_cell;
 stim_location_this_group.effect=effect_this_cell;

@@ -24,7 +24,8 @@ switch location_str
     case 'millennium_falcon'
         experiment_setup.exp_root = 'C:\data\Shababo';
         experiment_setup.analysis_root = '/media/shababo/data/'; % make sure to add ending slash
-        experiment_setup.ephys_mapped_drive = '/home/shababo/ephys-comp/';
+        experiment_setup.ephys_mapped_drive = '/home/shababo/slidebook-comp/';
+        experiment_setup.phase_mask_dir = 'W:\';
     case 'shababo'
         experiment_setup.exp_root = '/Users/shababo/projects/mapping/data/sim_tmp/';
         experiment_setup.analysis_root = '/Users/shababo/projects/mapping/data/sim_tmp/';

@@ -32,9 +32,9 @@ for i_neighbourhood = 1:number_of_neighbourhoods
        neighbourhoods(i_neighbourhood).neurons(i_cell)=experiment_setup.neurons(cell_ID);
        
    end
-%    location_vec = [neighbourhoods(i_neighbourhood).neurons.location];
-%    z_locs = location_vec(3:3:end);
-   neighbourhoods(i_neighbourhood).center = [0 0 mean(z_borders(i_neighbourhood:i_neighbourhood+1))];
+   location_vec = [neighbourhoods(i_neighbourhood).neurons.location];
+   z_locs = location_vec(3:3:end);
+   neighbourhoods(i_neighbourhood).center = [0 0 mean(z_locs)]; % mean(z_borders(i_neighbourhood:i_neighbourhood+1))];
    neighbourhoods(i_neighbourhood).computing_time=struct;
    neighbourhoods(i_neighbourhood).batch_ID=1;
    
@@ -58,14 +58,15 @@ for i_neighbourhood = 1:number_of_neighbourhoods
                 design_params=experiment_setup.groups.(group_names{i_group}).design_func_params;
                 cell_params=neighbourhoods(i_neighbourhood).neurons;
                 neighbourhoods(i_neighbourhood).neurons(i_cell).stim_locations.(group_names{i_group})=...
-                    get_stim_locations(i_cell,group_names{i_group},cell_params,design_params,experiment_setup.prior_info.template_cell);
+                    get_stim_locations(i_cell,group_names{i_group},cell_params,design_params,experiment_setup.prior_info.template_cell,...
+                                        neighbourhoods(i_neighbourhood).center(3),experiment_setup.exp.foe_bounds);
 %                 if experiment_setup.is_exp
-                    these_locs = neighbourhoods(i_neighbourhood).neurons(i_cell).stim_locations.(group_names{i_group}).grid;
-                    for i_dim = 1:size(experiment_setup.exp.foe_bounds,1)
-                        these_locs(these_locs(:,i_dim) < experiment_setup.exp.foe_bounds(i_dim,1),i_dim) = experiment_setup.exp.foe_bounds(i_dim,1);
-                        these_locs(these_locs(:,i_dim) > experiment_setup.exp.foe_bounds(i_dim,2),i_dim) = experiment_setup.exp.foe_bounds(i_dim,2);
-                    end
-                neighbourhoods(i_neighbourhood).neurons(i_cell).stim_locations.(group_names{i_group}).grid = these_locs;    
+%                     these_locs = neighbourhoods(i_neighbourhood).neurons(i_cell).stim_locations.(group_names{i_group}).grid;
+%                     for i_dim = 1:size(experiment_setup.exp.foe_bounds,1)
+%                         these_locs(these_locs(:,i_dim) < experiment_setup.exp.foe_bounds(i_dim,1),i_dim) = experiment_setup.exp.foe_bounds(i_dim,1);
+%                         these_locs(these_locs(:,i_dim) > experiment_setup.exp.foe_bounds(i_dim,2),i_dim) = experiment_setup.exp.foe_bounds(i_dim,2);
+%                     end
+%                     neighbourhoods(i_neighbourhood).neurons(i_cell).stim_locations.(group_names{i_group}).grid = these_locs;    
 %                 end
             end
         end
