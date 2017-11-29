@@ -5,21 +5,21 @@ function [stimuli_size] = get_stim_size(group_ID,trials,this_neighbourhood)
 
 number_of_trials=length(trials);
 number_of_cells =length(this_neighbourhood.neurons);
-stimuli_size=zeros(number_of_trials,number_of_cells);
 number_of_spots = length(trials(1).location_IDs);
-for i_trial = 1:number_of_trials
-    for i_loc= 1:number_of_spots 
-        if isnan(trials(i_trial).location_IDs(i_loc))
+
+stimuli_size=zeros(number_of_trials,number_of_cells);
+
+for l = 1:number_of_trials
+    for m = 1:number_of_spots
+        this_loc_ID=experiment_query_this_group.trials(l).location_IDs(m);
+        if isnan(this_loc_ID)
         else
-            this_loc_ID=trials(i_trial).location_IDs(i_loc);
-                this_loc_power = trials(i_trial).power_levels(i_loc);
-                this_cell=trials(i_trial).cell_IDs(i_loc);
-            stimuli_size(i_trial,:) = stimuli_size(i_trial,:)+...
-                 (this_neighbourhood.neurons(this_cell).stim_locations.(group_ID).effect(:,this_loc_ID)*this_loc_power)';
-             
+            this_loc_power = experiment_query_this_group.trials(l).power_levels(m);
+            cell_ID=experiment_query_this_group.trials(l).cell_IDs(m);
+            stimuli_size(l,:) = stimuli_size(l,:)+...
+                (this_neighbourhood.neurons(cell_ID_list == cell_ID).stim_locations.(group_ID).effect(:,this_loc_ID)*this_loc_power)';
         end
     end
-end
 end
 
 
