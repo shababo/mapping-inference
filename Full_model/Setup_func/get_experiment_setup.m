@@ -38,11 +38,12 @@ experiment_setup.exp_id = [num2str(clock_array(2)) '_' num2str(clock_array(3)) .
 experiment_setup.exp.fullsavefile = fullfile(experiment_setup.exp_root,[experiment_setup.exp_id '_data.mat']);
 
 % read this from argument
-group_names=cell([4 1]);
+group_names=cell([5 1]);
 group_names{1}='undefined';
 group_names{2}='connected';
 group_names{3}='disconnected';
 group_names{4}='alive';
+group_names{5}='secondary';
 experiment_setup.group_names = group_names;
 experiment_setup.default_group='undefined';
 
@@ -143,7 +144,7 @@ experiment_setup.prior_info.template_cell,experiment_setup.prior_info.delay,expe
 experiment_setup.neighbourhood_params=struct;
 experiment_setup.neighbourhood_params.number=10;
 experiment_setup.neighbourhood_params.height=15;
-experiment_setup.neighbourhood_params.buffer_height=5; 
+experiment_setup.neighbourhood_params.buffer_height=20; 
 
 
 experiment_setup.exp.z_width = 20;

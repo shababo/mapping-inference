@@ -1,8 +1,6 @@
 function neighbourhoods = create_neighbourhoods(experiment_setup)
 % initialize the neighbourhoods 
-
-
-        
+ 
 cell_locations=reshape([experiment_setup.neurons.location],length(experiment_setup.neurons(1).location),[])';
 % assignin('base','cell_locations',cell_locations)
 % assignin('base','experiment_setup',experiment_setup)
@@ -19,6 +17,7 @@ for i_cell = 1:size(cell_locations,1)
     cell_group_idx(i_cell)= sum(cell_locations(i_cell,3)>z_borders);
 end
 
+
 % Initialize the neighbourhoods
 % copying the neuron info from experiment setup 
 neighbourhoods=struct([]);
@@ -30,8 +29,8 @@ for i_neighbourhood = 1:number_of_neighbourhoods
    for i_cell = 1:length(cell_list_this_neighbourhood)
        cell_ID=cell_list_this_neighbourhood(i_cell);
        neighbourhoods(i_neighbourhood).neurons(i_cell)=experiment_setup.neurons(cell_ID);
-       
    end
+        
    location_vec = [neighbourhoods(i_neighbourhood).neurons.location];
    z_locs = location_vec(3:3:end);
    neighbourhoods(i_neighbourhood).center = [0 0 mean(z_locs)]; % mean(z_borders(i_neighbourhood:i_neighbourhood+1))];
@@ -41,6 +40,26 @@ for i_neighbourhood = 1:number_of_neighbourhoods
 end
 
 
+% % Include nearby cells 
+% 
+for i_neighbourhood = 1:number_of_neighbourhoods
+   %neighbourhoods(i_neighbourhood)=struct;
+   nearby_cell_list = find(cell_locations(:,3)<  neighbourhoods(i_neighbourhood).center(3)+experiment_setup.neighbourhood_params.buffer_height/2 & ...
+       cell_locations(:,3)>  neighbourhoods(i_neighbourhood).center(3)-experiment_setup.neighbourhood_params.buffer_height/2);
+   secondary_cell_list= setdiff(nearby_cell_list, [neighbourhoods(i_neighbourhood).neurons(:).cell_ID]);
+   number_of_prim_cells =length(neighbourhoods(i_neighbourhood).neurons);
+   for i_cell = 1:length(secondary_cell_list)
+       cell_ID=secondary_cell_list(i_cell);
+       neighbourhoods(i_neighbourhood).neurons(i_cell+number_of_prim_cells)=experiment_setup.neurons(cell_ID);
+   end
+   for i_cell = 1:length(neighbourhoods(i_neighbourhood).neurons)
+       if i_cell > number_of_prim_cells
+           neighbourhoods(i_neighbourhood).neurons(i_cell).group_ID='secondary';
+       else
+           neighbourhoods(i_neighbourhood).neurons(i_cell).group_ID=experiment_setup.default_group; % all are initialized as undefined
+       end
+   end
+end
 
 
 
@@ -48,8 +67,6 @@ end
 group_names = experiment_setup.group_names;
 for i_neighbourhood = 1:number_of_neighbourhoods
     for i_cell = 1:length(neighbourhoods(i_neighbourhood).neurons)
-        neighbourhoods(i_neighbourhood).neurons(i_cell).stim_locations=struct([]);
-        neighbourhoods(i_neighbourhood).neurons(i_cell).cell_ID=i_cell;
         neighbourhoods(i_neighbourhood).neurons(i_cell).group_ID=experiment_setup.default_group; % all are initialized as undefined
         neighbourhoods(i_neighbourhood).neurons(i_cell).primary_indicator=true;
         neighbourhoods(i_neighbourhood).neurons(i_cell).stim_locations=struct;
@@ -72,7 +89,6 @@ for i_neighbourhood = 1:number_of_neighbourhoods
         end
     end
 end
-
 
 
 % Initialize PR and gain parameters 

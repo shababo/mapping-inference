@@ -11,7 +11,7 @@ if ~isempty(varargin) && length(varargin)>1
 else
     draw_uncertainty = false;
 end
-
+%%
 group_names = unique({this_neighbourhood.neurons(:).group_ID});
 % find the neighbourhood info from the query
 i_neighbourhood=this_neighbourhood.neighbourhood_ID;

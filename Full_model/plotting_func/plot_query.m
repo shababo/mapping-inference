@@ -48,22 +48,23 @@ group_color_list=[{'m'} {'b'} {'y'} {'c'} ]; % these values should be defined in
 fig=figure(figure_index); 
 for i_cell = 1:length(this_neighbourhood.neurons)
     this_cell = this_neighbourhood.neurons(i_cell);
-    if ~this_cell.primary_indicator
-        markercolor=secondary_color;
-        markeralpha=0.2;
-    else
         switch this_cell.group_ID
             case 'connected'
                 markercolor=group_color_list{1};
+                markeralpha=1;
             case 'undefined'
                 markercolor=group_color_list{2};
+                markeralpha=1;
             case 'disconnected'
                 markercolor=group_color_list{3};
+                markeralpha=1;
             case 'alive'
                 markercolor=group_color_list{4};
+                    markeralpha=1;
+            case 'secondary'
+                markercolor=secondary_color;
+                markeralpha=0.2;
         end
-        markeralpha=1;
-    end
     scatter3(this_cell.location(2),this_cell.location(1),this_cell.location(3),...
         'SizeData',nucleisize,...
         'MarkerEdgeColor',markercolor,...

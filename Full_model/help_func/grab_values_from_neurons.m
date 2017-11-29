@@ -1,4 +1,5 @@
 function [output]=grab_values_from_neurons(i_batch,neurons,properties,summary_stat)
+
 number_of_cells=length(neurons);
 output=struct;
 for i_properties = 1:length(properties)
