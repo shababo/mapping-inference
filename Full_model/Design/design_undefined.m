@@ -10,17 +10,17 @@ disp('designs undef')
 group_ID=group_profile.group_ID;
 
 power_levels=group_profile.design_func_params.trials_params.power_levels;
-%cells_this_group=find((arrayfun(@(x) strcmp(this_neighbourhood.neurons(:).group_ID,group_ID),this_neighbourhood.neurons(:))));
-cells_this_group= find(get_group_inds(this_neighbourhood,group_ID));
-number_cells_this_group=length(cells_this_group);
+%i_cells_this_group=find((arrayfun(@(x) strcmp(this_neighbourhood.neurons(:).group_ID,group_ID),this_neighbourhood.neurons(:))));
+i_cells_this_group= find(get_group_inds(this_neighbourhood,group_ID));
+number_cells_this_group=length(i_cells_this_group);
 number_cells_all= length(this_neighbourhood.neurons);
 loc_counts=zeros(number_cells_this_group,1);
 
 % obtain posterior mean of gamma
-i_batch=this_neighbourhood.batch_ID;
-neurons=this_neighbourhood.neurons(cells_this_group);
+batch_ID=this_neighbourhood.batch_ID;
+neurons=this_neighbourhood.neurons(i_cells_this_group);
 properties={'PR_params'};summary_stat={'mean'};
-temp_output=grab_values_from_neurons(i_batch,neurons,properties,summary_stat);
+temp_output=grab_values_from_neurons(batch_ID,neurons,properties,summary_stat);
 mean_gamma=temp_output.PR_params.mean;
 
 if group_profile.design_func_params.trials_params.weighted_indicator
@@ -46,7 +46,7 @@ switch group_profile.design_func_params.trials_params.stim_design
         firing_prob=cell(number_cells_this_group,1);
         
         for i_cell = 1:number_cells_this_group
-            this_cell=cells_this_group(i_cell);
+            this_cell=i_cells_this_group(i_cell);
             candidate_grid=this_neighbourhood.neurons(this_cell).stim_locations.(group_ID);
             firing_prob{i_cell}=zeros(size(candidate_grid.effect,2),length(group_profile.design_func_params.trials_params.power_levels),...
                 size(candidate_grid.effect,1));
@@ -70,14 +70,14 @@ switch group_profile.design_func_params.trials_params.stim_design
         
         % Select the optimal locations based on firing_prob:
         for i_cell = 1:number_cells_this_group
-            this_cell=cells_this_group(i_cell);
+            this_cell=i_cells_this_group(i_cell);
             firing_prob_temp=firing_prob{i_cell};
             firing_prob_temp(:,:,this_cell)=0;
             firing_prob_difference= firing_prob{i_cell}(:,:,this_cell)-max(firing_prob_temp,[],3);
             [max_value_loc,index_loc] = max(firing_prob_difference);
             % Pick the lowest power if the objectives are not too different from each
             % other
-            weighted_max_value_loc = max_value_loc./log(group_profile.design_func_params.trials_params.power_levels(k));
+            weighted_max_value_loc = max_value_loc./log(group_profile.design_func_params.trials_params.power_levels);
             weighted_max_value_loc( weighted_max_value_loc<0)=0;
             if max( weighted_max_value_loc)==0
                 weighted_max_value_loc(:)=1;
@@ -94,10 +94,10 @@ switch group_profile.design_func_params.trials_params.stim_design
     case 'Random'
         loc_selected=zeros(number_cells_this_group,1); 
         for i_cell = 1:number_cells_this_group
+            this_cell=i_cells_this_group(i_cell);
             grid_points_this_cell =size(this_neighbourhood.neurons(this_cell).stim_locations.(group_ID).grid,1);
-        
-          loc_selected(i_cell)=randsample(1:grid_points_this_cell,1,true);
-         end
+            loc_selected(i_cell)=randsample(1:grid_points_this_cell,1,true);
+        end
         power_selected=zeros(number_cells_this_group,1);
     otherwise
         % throw a warning?
@@ -139,18 +139,18 @@ for i_trial = 1:group_profile.design_func_params.trials_params.trials_per_batch
                     case 'Random'
                         temp_index = ...
                             randsample(1:number_cells_this_group,1,true,prob_initial_thresh);
-                        this_cell = cells_this_group(temp_index);
+                        this_cell = i_cells_this_group(temp_index);
                         temp_loc = loc_selected(temp_index);
                     case 'Optimal'
                         temp_index = ...
                             randsample(1:number_cells_this_group,1,true,prob_initial_thresh);
-                        this_cell=cells_this_group(temp_index);
+                        this_cell=i_cells_this_group(temp_index);
                         
                         temp_loc =  loc_selected(temp_index);
                     case 'Nuclei'
                         temp_index = ...
                             randsample(1:number_cells_this_group,1,true,prob_initial_thresh);
-                        this_cell=cells_this_group(temp_index);
+                        this_cell=i_cells_this_group(temp_index);
                         
                         temp_loc =  loc_selected(temp_index);
                 end
@@ -198,12 +198,12 @@ for i_trial = 1:group_profile.design_func_params.trials_params.trials_per_batch
             loc_counts(temp_index)=loc_counts(temp_index)+1;
 
             this_trial_location_IDs(i_spot) = temp_loc;
-            this_trial_cell_IDs(i_spot) = this_cell;           
+            this_trial_cell_IDs(i_spot) = this_neighbourhood.neurons(this_cell).cell_ID;           
             this_trial_locations(i_spot,:) = this_neighbourhood.neurons(this_cell).stim_locations.(group_ID).grid(temp_loc,:);
-            this_cell = temp_index;
+%             this_cell = temp_index;
 
-            neurons = this_neighbourhood.neurons(cells_this_group);
-            prob_initial = subtract_stim_effects(group_ID,this_cell,prob_initial,loc_selected, neurons);
+            neurons = this_neighbourhood.neurons(i_cells_this_group);
+            prob_initial = subtract_stim_effects(group_ID,temp_index,prob_initial,loc_selected, neurons);
             prob_initial = max(0,prob_initial);
 
         end
