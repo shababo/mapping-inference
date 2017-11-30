@@ -44,8 +44,8 @@ end
 % 
 for i_neighbourhood = 1:number_of_neighbourhoods
    %neighbourhoods(i_neighbourhood)=struct;
-   nearby_cell_list = find(cell_locations(:,3)<  neighbourhoods(i_neighbourhood).center(3)+experiment_setup.neighbourhood_params.buffer_height/2 & ...
-       cell_locations(:,3)>  neighbourhoods(i_neighbourhood).center(3)-experiment_setup.neighbourhood_params.buffer_height/2);
+   nearby_cell_list = find(cell_locations(:,3) <  neighbourhoods(i_neighbourhood).center(3) + experiment_setup.neighbourhood_params.buffer_height/2 & ...
+       cell_locations(:,3) >  neighbourhoods(i_neighbourhood).center(3) - experiment_setup.neighbourhood_params.buffer_height/2);
    secondary_cell_list= setdiff(nearby_cell_list, [neighbourhoods(i_neighbourhood).neurons(:).cell_ID]);
    number_of_prim_cells =length(neighbourhoods(i_neighbourhood).neurons);
    for i_cell = 1:length(secondary_cell_list)
