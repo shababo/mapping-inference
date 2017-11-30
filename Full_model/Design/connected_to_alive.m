@@ -13,18 +13,16 @@ switch group_profile.regroup_func_params.regroup_type
         gamma_mean=temp_output.PR_params.mean;
         
         cell_list_connected_to_alive = ...
-                i_cell_group_to_nhood(gamma_lower_quantile > group_profile.regroup_func_params.connected_threshold);
+                i_cell_group_to_nhood(gamma_lower_quantile > group_profile.regroup_func_params.disconnected_threshold);
         
     case 'NonzeroProb'
 end
 
 
-
-
 if ~isempty(cell_list_connected_to_alive )
     for i_cell = 1:length(cell_list_connected_to_alive )
         this_cell=cell_list_connected_to_alive(i_cell);
-        this_neighbourhood.neurons(this_cell).group_ID='alive';
+        this_neighbourhood.neurons(this_cell).group_ID='alive'; 
     end
 end
 
