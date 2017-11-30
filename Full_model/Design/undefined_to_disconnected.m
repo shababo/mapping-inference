@@ -1,19 +1,19 @@
 function [this_neighbourhood] = undefined_to_disconnected(this_neighbourhood,group_profile)
 
 group_ID='undefined';
-cells_this_group= find(get_group_inds(this_neighbourhood,group_ID));
+i_cell_group_to_nhood= find(get_group_inds(this_neighbourhood,group_ID));
 
 switch group_profile.regroup_func_params.regroup_type
     case 'Quantiles'
         
         i_batch=this_neighbourhood.batch_ID;
-        neurons=this_neighbourhood.neurons(cells_this_group);
+        neurons=this_neighbourhood.neurons(i_cell_group_to_nhood);
         properties={'PR_params'};summary_stat={'upper_quantile'};
         temp_output=grab_values_from_neurons(i_batch,neurons,properties,summary_stat);
 
         gamma_upper_quantile=temp_output.PR_params.upper_quantile;
         cell_list_undefined_to_disconnected = ...
-            cells_this_group(gamma_upper_quantile<group_profile.regroup_func_params.disconnected_threshold);
+            i_cell_group_to_nhood(gamma_upper_quantile<group_profile.regroup_func_params.disconnected_threshold);
     case 'NonzeroProb'
 end
 
@@ -26,8 +26,6 @@ end
 
 
 
-
-end
 
 
 
