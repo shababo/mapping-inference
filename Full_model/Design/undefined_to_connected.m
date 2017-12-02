@@ -1,34 +1,34 @@
 function [this_neighbourhood] = undefined_to_connected(this_neighbourhood,group_profile)
 
 group_ID='undefined';
-cells_this_group= find(get_group_inds(this_neighbourhood,group_ID));
+i_cell_group_to_nhood= find(get_group_inds(this_neighbourhood,group_ID));
 
 switch group_profile.regroup_func_params.regroup_type
     case 'Quantiles'
         i_batch=this_neighbourhood.batch_ID;
-        neurons=this_neighbourhood.neurons(cells_this_group);
+        neurons=this_neighbourhood.neurons(i_cell_group_to_nhood);
         properties={'PR_params'};summary_stat={'lower_quantile','mean'};
         temp_output=grab_values_from_neurons(i_batch,neurons,properties,summary_stat);
         gamma_lower_quantile=temp_output.PR_params.lower_quantile;
         gamma_mean=temp_output.PR_params.mean;
         
         i_batch=max(1,this_neighbourhood.batch_ID-1);
-        neurons=this_neighbourhood.neurons(cells_this_group);
+%         neurons=this_neighbourhood.neurons(i_cell_group_to_nhood);
         properties={'PR_params'};summary_stat={'mean'};
         temp_output=grab_values_from_neurons(i_batch,neurons,properties,summary_stat);
         gamma_mean_previous=temp_output.PR_params.mean;
         
         max_changes_undefined= max(abs(gamma_mean_previous-gamma_mean)); %
         cell_list_undefined_to_connected = ...
-           cells_this_group(gamma_mean>group_profile.regroup_func_params.connected_threshold);
+           i_cell_group_to_nhood(gamma_mean > group_profile.regroup_func_params.connected_threshold);
     case 'NonzeroProb'
 end
 
-too_few_cells=(length(cells_this_group)-length(cell_list_undefined_to_connected)<group_profile.regroup_func_params.singlespot_threshold);
+too_few_cells=(length(i_cell_group_to_nhood)-length(cell_list_undefined_to_connected)<group_profile.regroup_func_params.singlespot_threshold);
 too_tiny_change=max_changes_undefined<group_profile.regroup_func_params.change_threshold;
 
 if too_few_cells || too_tiny_change
-    cell_list_undefined_to_connected =cells_this_group;
+    cell_list_undefined_to_connected =i_cell_group_to_nhood;
 end
 
 
@@ -40,7 +40,7 @@ if ~isempty(cell_list_undefined_to_connected)
 end
 
 
-end
+
 
 
 
