@@ -1,10 +1,9 @@
-
 function simulation_setup = get_simulation_setup(varargin)
 
 
 simulation_setup=struct;
 
-simulation_setup.dimension=[-150 -150 0;150 150 60];
+simulation_setup.dimension=[-150 -150 0;150 150 40];
 simulation_setup.use_real_map=false;
 simulation_setup.real_map_name=[]; % name of the cell map under 'experiment_setup.exp_root'
 simulation_setup.number_of_cells=300;
