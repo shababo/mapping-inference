@@ -7,6 +7,7 @@ function [gain_samples_final, gamma_samples_final] = Gibbs_first_spike(mpp, ...
     n_round_digit)
 
 
+
 delay_prob = zeros(delay_params.n_grid+1,1);
 if delay_params.type == 1 % normal
     delay_prob = normpdf((0:delay_params.n_grid),delay_params.mean,...
