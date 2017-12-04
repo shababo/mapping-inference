@@ -426,7 +426,7 @@ cell_to_run = 1:length(l23_cells);%cell_select;%[26:38];
 for i = 1:length(cell_to_run)
     
     this_cell = cell_to_run(i)
-    l23_cell_analyzed_shape(this_cell).v_th = ...
+    l23_cell_analyzed_shape(this_cell) = ...
         analyze_opto_response(l23_cells(this_cell));
 %        l23_cell_analyzed_shape(this_cell).v_reset; 
 %     l23_cell_analyzed_shape(this_cell).th_gain_ratio = ...
@@ -663,15 +663,17 @@ end
 
 
 %% num_spikes
-
 figure;
 % cell_select = 1:38;
-cell_select = find(~[l23_cells.do_cc]);
-% cell_select = setdiff(cell_select,[29 31 32]);
-% cell_select = cell_select([1 2 5 6]);
+% cell_select = find(~[l23_cells.do_cc]);
+% cell_select = setdiff(cell_select,[16]);
+% % cell_select = cell_select([1 2 5 6]);
+
+cell_select = [1:15 17:25 27:38]; 
+
 colors = parula(length(cell_select));
 count = 1;
-these_cells_analyzed = l23_cell_analyzed_shape;
+these_cells_analyzed = l23_cell_analyzed_10ms_fulldata_centavgshape_constg;
 for i = 1:length(cell_select)
     this_cell = cell_select(i);
 %     subplot(ceil(length(cell_select)/4),4,i)
@@ -1613,8 +1615,8 @@ mesh(X,Y,Z,'facealpha',0)
 
 %% compare mapping lif-glm data with calibration exp
 
-fitset1 = l23_cell_analyzed_shape;
-fitset2 = l23_cell_analyzed_10ms_fulldata_centavgshape;
+fitset1 = l23_cell_analyzed_10ms_fulldata_centavgshape_constg;
+fitset2 = l23_cell_analyzed_10ms_fulldata_centavgshape_constg;
 
 symbs = ['xo'];
 colors = ['rb'];
@@ -1684,20 +1686,497 @@ plot(xval,fsigm(param,xval),colors(1),'Linewidth',2)
             
             
 
+ %% plot intensity vs spiking stats for cells
+
+% cell_ind = 27;
+cell_select = find(~[l23_cells.do_cc]);
+cell_select = setdiff(cell_select,[9 15 16 21]);
+load('l23_centered_upres_cell.mat')
+upres_x_locs = -40:1:40;
+upres_y_locs = -40:1:40;
+upres_z_locs = -90:1:90;
+this_cell_shape = l23_average_shape_norm;
+figure
+x_counts = [];
+all_data_y_counts = [];
+all_preds_y_counts = [];
+
+x_times = [];
+all_data_y_times = [];
+all_preds_y_times = [];
+
+all_data_y_jitter = [];
+all_preds_y_jitter = [];
+
+colors = hot(101);
+colors_times = flipud(colors);
+do_sim = 1;
+all_count_means_sim = nan(5,5,length(cell_select),length(powers));
+all_count_means = nan(5,5,length(cell_select),length(powers));
+all_count_means_dist = nan(6,length(cell_select),length(powers));
+all_time_means_dist = nan(6,length(cell_select),length(powers));
+% distances = [0 1 10 14 14.9 20 21.9 22.4 22.8 24.1 24.5 24.9 27.6 28 28.3 30 34.6];
+% distances =0:1:40;
+all_count_occupancy = zeros(5,5,length(powers));
+all_time_means_sim = nan(5,5,length(cell_select),length(powers));
+all_time_means = nan(5,5,length(cell_select),length(powers));
+powers = [10 25 50 100];
+all_time_occupancy = zeros(5,5,length(powers));
+
+all_counts_all_cells = cell(4,1);
+all_counts_all_cells_sim = cell(4,1);
+all_counts_all_cells_dists = cell(4,1);
+all_times_all_cells = cell(4,1);
+all_times_all_cells_sim = cell(4,1);
+all_times_all_cells_dists = cell(4,1);
+all_times_all_cells_dists_sim = cell(4,1);
+for i = 1:length(cell_select)
+    
+    cell_ind = cell_select(i);
+
+    this_cell_spike_data = l23_cell_analyzed_10ms_fulldata_centavgshape_constg(cell_ind).spike_data;
+    this_cell_sim_data = l23_cell_analyzed_10ms_fulldata_centavgshape_constg(cell_ind).glm_sim;
+%     this_cell_shape = l23_cell_analyzed_10ms_fulldata_centavgshape_constg(cell_ind).current_data.shape_svd;
+%     this_cell_shape = this_cell_shape/max(this_cell_shape(:));
+    
+%     upres_x_locs = -40:10:40;
+%     upres_y_locs = -40:10:40;
+%     upres_z_locs = [-90 -50 -20 0 20 50 90];
     
     
     
+
+    for k = 1:length(this_cell_spike_data)
+        
+        for kk = 1:length(powers)
+            
+                this_loc = round(this_cell_spike_data(k).location,-1);
+                
+                location_ind = [find(this_loc(1) == upres_x_locs) ...
+                                find(this_loc(2) == upres_y_locs) ...
+                                find(this_loc(3) == upres_z_locs)];
+                            
+                
+
+%                 if length(location_ind) < 3 || this_loc(3)
+%                     continue
+%                 end
+                this_loc_jitter = this_loc + 3*rand(1,3)-1.5;
+%                 this_loc_jitter(3) = 0;
+                shape_gain = 1;
+        %         shape_gain = ...
+        %             this_cell_shape(location_ind(1),location_ind(2),location_ind(3));%*...
+                    %l23_cell_analyzed_10ms_fulldata_centavgshape_constg(cell_ind).gain(1);
+                stim_intensity = shape_gain*powers;
+                stim_intensity(stim_intensity < 0) = 0;
+            %     for i = 1:length(powers)
+                this_ax = subplot(2,4,kk);
+                
+                scatter(this_loc_jitter(1),-this_loc_jitter(2),10,this_cell_spike_data(k).num_spike_means(kk),'filled');
+                all_count_means(this_loc(1)/10+3,this_loc(2)/10+3,i,kk) = this_cell_spike_data(k).num_spike_means(kk);
+                
+                [dist_err,dist_ind] = min(abs(distances - this_cell_spike_data(k).distance));
+%                 if dist_err > .8
+%                     return
+%                 end
+                all_count_means_dist(dist_ind,i,kk) = this_cell_spike_data(k).num_spike_means(kk);
+                all_count_occupancy(this_loc(1)/10+3,this_loc(2)/10+3,kk) = all_count_occupancy(this_loc(1)/10+3,this_loc(2)/10+3,kk) + 1;
+                all_counts_all_cells{kk} = [all_counts_all_cells{kk} this_cell_spike_data(k).num_spike_means(kk)];
+                all_counts_all_cells_sim{kk} = [all_counts_all_cells_sim{kk} this_cell_sim_data.spike_count_means(k,kk)];
+                all_counts_all_cells_dists{kk} =[all_counts_all_cells_dists{kk} this_cell_spike_data(k).distance];
+                
+                
+%                 if i == length(cell_select)
+%                     set(this_ax,'color',[.33 .33 .75])
+%                     axis image
+%                     xlim([-25 25])
+%                     ylim([-25 25])
+%                     caxis([0 1])
+%                     colormap(this_ax,hot)
+%                     
+%                     if kk == length(powers)
+%                         colorbar(this_ax,'east')
+%                     end
+%                     
+%                 end
+                hold on
+                good_ind = this_cell_spike_data(k).num_spike_means(kk) > .5;
+                if good_ind
+                    this_ax = subplot(2,4,kk+4);
+                    scatter(this_loc_jitter(1),-this_loc_jitter(2),10,this_cell_spike_data(k).spike_times_means(kk)/20,'filled');
+                    all_time_means(this_loc(1)/10+3,this_loc(2)/10+3,i,kk) = this_cell_spike_data(k).spike_times_means(kk)/20;
+                    all_time_means_dist(dist_ind,i,kk) = this_cell_spike_data(k).spike_times_means(kk)/20;
+                    all_time_occupancy(this_loc(1)/10+3,this_loc(2)/10+3,kk) = all_time_occupancy(this_loc(1)/10+3,this_loc(2)/10+3,kk) + 1;
+                    all_times_all_cells{kk} = [all_times_all_cells{kk} this_cell_spike_data(k).spike_times_means(kk)/20];
+                    
+                    all_times_all_cells_dists{kk} = [all_times_all_cells_dists{kk} this_cell_spike_data(k).distance];
+                    if ~isnan(this_cell_sim_data.spike_time_means(k,kk))
+                        all_times_all_cells_sim{kk} = [all_times_all_cells_sim{kk} this_cell_sim_data.spike_time_means(k,kk)/20];
+                        all_times_all_cells_dists_sim{kk} = [all_times_all_cells_dists_sim{kk} this_cell_spike_data(k).distance];
+                    end
+                    hold on
+%                     if i == length(cell_select)
+%                         set(this_ax,'color',[.33 .33 .75])
+%                         axis image
+%                         xlim([-25 25])
+%                         ylim([-25 25])
+%                         caxis([0 8])
+%                         colormap(this_ax,flipud(hot))
+%                         if kk == length(powers)
+%                             colorbar
+%                         end
+%                     end
+%                     subplot(3,4,kk+8)
+%                     scatter3(this_loc(1),this_loc(2),this_loc(3),this_cell_spike_data(k).spike_times_std(kk)/20,'b','filled', 'jitter','on', 'jitterAmount',0.5);
+%                     hold on
+                end
+            end
+        end
     
+        
+%         x_counts = [x_counts stim_intensity];
+%         all_data_y_counts = [all_data_y_counts this_cell_spike_data(k).num_spike_means(1:4)];
+%         x_times = [x_times stim_intensity(good_inds)];
+%         all_data_y_times = [all_data_y_times this_cell_spike_data(k).spike_times_means(good_inds)/20];
+%         all_data_y_jitter = [all_data_y_jitter this_cell_spike_data(k).spike_times_std(good_inds)/20];
+end
+
+%%
+figure
+for i = 1:length(powers)
+    this_ax = subplot(2,4,i);
+    sta = nanmean(all_count_means(:,:,:,i),3);%.*all_count_occupancy(:,:,i)/max(max(all_count_occupancy(:,:,i)));
+    sta(isnan(sta)) = 0;
+    imagesc(sta)
+    caxis([0 1])
+    colormap(this_ax,parula)
     
+    this_ax = subplot(2,4,i+4);
+    sta = nanmean(all_time_means(:,:,:,i),3);%.*all_time_occupancy(:,:,i)/max(max(all_time_occupancy(:,:,i)));
+    sta(isnan(sta)) = 8;
+    imagesc(sta)
+    caxis([0 8])
+    colormap(this_ax,flipud(hot))
+end
+
+%%
+figure
+
+% for i = 1:length(powers)
+%     subplot(211)
+% 
+% 
+% for j = 1:length(cell_select)
+% %     plot(distances(~isnan(all_count_means_dist(:,j,i))),all_count_means_dist(~isnan(all_count_means_dist(:,j,i)),j,i),'color',[(i-1)*(1/3) .5 .5])
+%     plot(distances(~isnan(all_count_means_dist(:,j,i)))+rand(sum(~isnan(all_count_means_dist(:,j,i))),1)' - 0.5,...
+%         all_count_means_dist(~isnan(all_count_means_dist(:,j,i)),j,i),'-o','color',[(i-1)*(1/3) 0 0])
+%     hold on
+% end
+% hold on
+% end
+
+for i = 1:length(powers)
+errorbar(distances,squeeze(nanmean(all_count_means_dist(:,:,i),2)),...
+    squeeze(nanmean(all_count_means_dist(:,:,i),2)) - quantile(all_count_means_dist(:,:,i),[.25],2),...
+    quantile(all_count_means_dist(:,:,i),[.75],2) - squeeze(nanmean(all_count_means_dist(:,:,i),2)),'color',[(i-1)*(1/3) 0 0],'linewidth',2);
+plot(distances,squeeze(nanmean(all_count_means_dist(:,:,i),2)),'.-','color',[(i-1)*(1/3) 0 0],'linewidth',4);
+
+hold on
+xlim([-2 30])
+ylim([-.2 1.2])
+hold on
+% subplot(212)
+% errorbar(distances(1:4),squeeze(nanmean(all_time_means_dist(1:4,:,i),2)),quantile(all_time_means_dist(1:4,:,i),.75,2),'color',[(i-1)*(1/3) 0 0],'linewidth',2);
+% xlim([-2 30])
+% hold on
+end
+
+%%
+figure
+
+
+% for i = 1:length(powers)
+% % errorbar(distances,squeeze(nanmean(all_count_means_dist(:,:,i),2)),...
+% %     squeeze(nanmean(all_count_means_dist(:,:,i),2)) - quantile(all_count_means_dist(:,:,i),[.25],2),...
+% %     quantile(all_count_means_dist(:,:,i),[.75],2) - squeeze(nanmean(all_count_means_dist(:,:,i),2)),'color',[(i-1)*(1/3) 0 0],'linewidth',2);
+% 
+% % randcells = [randsample(length(cell_select),10)'];
+% subplot(211)
+% for j = 1:length(cell_select)
+%     
+% %     plot(distances(~isnan(all_count_means_dist(:,j,i))),all_count_means_dist(~isnan(all_count_means_dist(:,j,i)),j,i),'color',[(i-1)*(1/3) .5 .5])
+%     plot(distances(~isnan(all_count_means_dist(:,j,i))) + rand(sum(~isnan(all_count_means_dist(:,j,i))),1)' - 0.5,...
+%         all_count_means_dist(~isnan(all_count_means_dist(:,j,i)),j,i),'o','color',[0.75^(4-i) 0 0])
+%     hold on
+% end
+% subplot(212)
+% for j = 1:length(cell_select)
+% %     plot(distances(~isnan(all_count_means_dist(:,j,i))),all_count_means_dist(~isnan(all_count_means_dist(:,j,i)),j,i),'color',[(i-1)*(1/3) .5 .5])
+%     plot(distances(~isnan(all_time_means_dist(:,j,i))) + rand(sum(~isnan(all_time_means_dist(:,j,i))),1)' - 0.5,...
+%         all_time_means_dist(~isnan(all_time_means_dist(:,j,i)),j,i),'o','color',[0.75^(4-i) 0 0])
+%     hold on
+% end
+% % subplot(212)
+% % errorbar(distances(1:4),squeeze(nanmean(all_time_means_dist(1:4,:,i),2)),quantile(all_time_means_dist(1:4,:,i),.75,2),'color',[(i-1)*(1/3) 0 0],'linewidth',2);
+% % xlim([-2 30])
+% % hold on
+% end
+%%
+figure
+for i = 2:length(powers)
+    subplot(211)
+%     plot(distances,squeeze(nanmean(all_count_means_dist(:,:,i),2)),'.-','color',[0.75^(4-i) 0 0],'linewidth',4,'markersize',20);
+    scatter(all_counts_all_cells_dists{i}',all_counts_all_cells{i}',20,[0.75^(4-i) 0 0],'jitter','on','jitteramount',.5)
+    hold on
+%     [sorted_counts, sort_order] = sort(all_counts_all_cells_dists{i}');
+%     xval = min(all_counts_all_cells_dists{i}'):.01:max(all_counts_all_cells_dists{i}');
+%     fsigm = @(param,xval) param(1)+(param(2)-param(1))./(1+exp((param(3)-xval)*param(4)));
+%     [param]=sigm_fit(all_counts_all_cells_dists{i}(sort_order),all_counts_all_cells_dists{i}(sort_order),[0 1 NaN NaN],[],0);
+%     plot(xval,fsigm(param,xval),'color',[0.75^(4-i) 0 0],'Linewidth',2)
+
+    options = fitoptions('gauss1');
+    options.Lower = [0 0 0];
+    options.Upper = [1 0 50];
+    hl = plot(fit(all_counts_all_cells_dists{i}',all_counts_all_cells{i}','gauss1',options));
+    set(hl,'color',[0.75^(4-i) 0 0])
+    set(hl,'linewidth',3)
+    hold on
+%     hl = plot(fit(all_counts_all_cells_dists{i}',all_counts_all_cells_sim{i}','gauss1',options));
+%     set(hl,'color',[0 0 0.75^(4-i)])
+    xlim([-2 40])
+    ylim([-.2 1.2])
+% subplot(212)
+% plot(distances,squeeze(nanmean(all_time_means_dist(:,:,i),2)),'.-','color',[0.75^(4-i) 0 0],'linewidth',4,'markersize',20);
+% hold on
+
+hold on
+end
+
+for i = 2:length(powers)
+    subplot(212)
+%     plot(distances,squeeze(nanmean(all_count_means_dist(:,:,i),2)),'.-','color',[0.75^(4-i) 0 0],'linewidth',4,'markersize',20);
+    scatter(all_times_all_cells_dists{i}',all_times_all_cells{i}',20,[0.75^(4-i) 0 0],'jitter','on','jitteramount',.5)
+    hold on
+%     [sorted_counts, sort_order] = sort(all_counts_all_cells_dists{i}');
+%     xval = min(all_counts_all_cells_dists{i}'):.01:max(all_counts_all_cells_dists{i}');
+%     fsigm = @(param,xval) param(1)+(param(2)-param(1))./(1+exp((param(3)-xval)*param(4)));
+%     [param]=sigm_fit(all_counts_all_cells_dists{i}(sort_order),all_counts_all_cells_dists{i}(sort_order),[0 1 NaN NaN],[],0);
+%     plot(xval,fsigm(param,xval),'color',[0.75^(4-i) 0 0],'Linewidth',2)
+
+    options = fitoptions('exp1');
+%     options.Lower = [0 0 0];
+%     options.Upper = [1 0 50];
+    hl = plot(fit(all_times_all_cells_dists{i}',all_times_all_cells{i}','exp1',options));
+    set(hl,'color',[0.75^(4-i) 0 0])
+    set(hl,'linewidth',3)
+    hold on
+%     hl = plot(fit(all_times_all_cells_dists_sim{i}',all_times_all_cells_sim{i}','exp1',options));
+%     set(hl,'color',[0 0 0.75^(4-i)])
+    xlim([-2 40])
+%     ylim([-.2 1.2])
+% subplot(212)
+% plot(distances,squeeze(nanmean(all_time_means_dist(:,:,i),2)),'.-','color',[0.75^(4-i) 0 0],'linewidth',4,'markersize',20);
+% hold on
+
+hold on
+end
+%%
+
+figure; 
+
+for i = 1:size(all_count_means_dist,2)
+    scatter(powers,squeeze(all_count_means_dist(1,i,:)),'k','filled','jitter','on', 'jitterAmount',0.5)
+    hold on
+end
+
+% plot(powers,squeeze(nanmean(all_count_means_dist(1,:,:),2)))
+boxplot(squeeze(all_count_means_dist(1,:,:)),'Positions',powers);
+
+%%
+figure
+for i = 1:length(powers)
+% errorbar(distances,squeeze(nanmean(all_count_means_dist(:,:,i),2)),...
+%     squeeze(nanmean(all_count_means_dist(:,:,i),2)) - quantile(all_count_means_dist(:,:,i),[.25],2),...
+%     quantile(all_count_means_dist(:,:,i),[.75],2) - squeeze(nanmean(all_count_means_dist(:,:,i),2)),'color',[(i-1)*(1/3) 0 0],'linewidth',2);
+% plot(distances,squeeze(nanmean(all_count_means_dist(:,:,i),2)),'.-','color',[(i-1)*(1/3) 0 0],'linewidth',4);
+boxplot(all_count_means_dist(:,:,i)','Positions',distances);
+hold on
+xlim([-2 30])
+ylim([-.2 1.2])
+hold on
+% subplot(212)
+% errorbar(distances(1:4),squeeze(nanmean(all_time_means_dist(1:4,:,i),2)),quantile(all_time_means_dist(1:4,:,i),.75,2),'color',[(i-1)*(1/3) 0 0],'linewidth',2);
+% xlim([-2 30])
+% hold on
+end
+%%
+figure
+
+imagesc(squeeze(nanmean(all_count_means_dist,2)))
+%%
+
+if do_sim
+    figure
+for i = 1:length(cell_select)
+    cell_ind = cell_select(i);
+    this_cell_sim_data = l23_cell_analyzed_10ms_fulldata_centavgshape_constg(cell_ind).glm_sim; 
+        this_cell_spike_data = l23_cell_analyzed_10ms_fulldata_centavgshape_constg(cell_ind).spike_data;
+            
+            
+            
+            for k = 1:length(this_cell_spike_data)
+        
+                for kk = 1:length(powers)
+                    if ~isnan(this_cell_spike_data(k).num_spike_means(kk))
+                        this_loc = round(this_cell_spike_data(k).location,-1);
+
+                        location_ind = [find(this_loc(1) == upres_x_locs) ...
+                                        find(this_loc(2) == upres_y_locs) ...
+                                        find(this_loc(3) == upres_z_locs)];
+
+
+
+                        if length(location_ind) < 3 || this_loc(3)
+                            continue
+                        end
+                        this_loc_i_cell_group_to_nhood = this_loc + 3*rand(1,3)-1.5;
+                        this_loc_jitter(3) = 0;
+                        shape_gain = 1;
+                %         shape_gain = ...
+                %             this_cell_shape(location_ind(1),location_ind(2),location_ind(3));%*...
+                            %l23_cell_analyzed_10ms_fulldata_centavgshape_constg(cell_ind).gain(1);
+                        stim_intensity = shape_gain*powers;
+                        stim_intensity(stim_intensity < 0) = 0;
+                    %     for i = 1:length(powers)
+                        this_ax = subplot(2,4,kk);
+                        all_count_means_sim(this_loc(1)/10+3,this_loc(2)/10+3,i,kk) = this_cell_sim_data.spike_count_means(k,kk);
+                        scatter(this_loc_jitter(1),-this_loc_jitter(2),10,this_cell_sim_data.spike_count_means(k,kk),'filled');
+                        if i == length(cell_select)
+                            set(this_ax,'color',[.33 .33 .75])
+                            axis image
+                            xlim([-25 25])
+                            ylim([-25 25])
+                            colormap(this_ax,hot)
+                            caxis([0 1])
+                            if kk == length(powers)
+                                colorbar(this_ax,'east')
+                            end
+
+                        end
+                        hold on
+                        good_ind = this_cell_spike_data(k).num_spike_means(kk) > .5;
+                        if good_ind
+                            this_ax = subplot(2,4,kk+4);
+                            scatter(this_loc_jitter(1),-this_loc_jitter(2),10,this_cell_sim_data.spike_time_means(k,kk)/20,'filled');
+                            all_time_means_sim(this_loc(1)/10+3,this_loc(2)/10+3,i,kk) = this_cell_sim_data.spike_time_means(k,kk)/20;
+                            hold on
+                            if i == length(cell_select)
+                                set(this_ax,'color',[.33 .33 .75])
+                                axis image
+                                xlim([-25 25])
+                                ylim([-25 25])
+                                colormap(this_ax,flipud(hot))
+                                caxis([0 8])
+                                if kk == length(powers)
+                                    colorbar
+                                end
+                            end
+        %                     subplot(3,4,kk+8)
+        %                     scatter3(this_loc(1),this_loc(2),this_loc(3),this_cell_spike_data(k).spike_times_std(kk)/20,'b','filled', 'jitter','on', 'jitterAmount',0.5);
+        %                     hold on
+                        end
+                    end
+                end
+            end
+            
+            
+%             
+%             subplot(341)
+%             scatter(stim_intensity,this_cell_sim_data.spike_count_means(k,:),'r','filled', 'jitter','on', 'jitterAmount',0.5);
+%             hold on
+%     %         good_inds = this_cell_sim_data.spike_count_means(k,:) > .1;
+%             subplot(132)
+%             scatter(stim_intensity(good_inds),this_cell_sim_data.spike_time_means(k,good_inds)/20,'r','filled', 'jitter','on', 'jitterAmount',0.5);
+%             hold on
+%             subplot(133)
+%             scatter(stim_intensity(good_inds),this_cell_sim_data.spike_time_std(k,good_inds)/20,'r','filled', 'jitter','on', 'jitterAmount',0.5);
+%             hold on
+%             all_preds_y_counts = [all_preds_y_counts this_cell_sim_data.spike_count_means(k,:)];
+%             all_preds_y_times = [all_preds_y_times this_cell_sim_data.spike_time_means(k,good_inds)/20];
+%             all_preds_y_jitter = [all_preds_y_jitter this_cell_sim_data.spike_time_std(k,good_inds)/20];
+        end
+
+end
+
+figure
+for i = 1:length(powers)
+    this_ax = subplot(2,4,i);
+    sta = nanmean(all_count_means_sim(:,:,:,i),3);%.*all_count_occupancy(:,:,i)/max(max(all_count_occupancy(:,:,i)));
+    sta(isnan(sta)) = 0;
+    imagesc(sta)
+    caxis([0 1])
+    colormap(this_ax,parula)
     
-    
-    
-    
-    
-    
-    
-    
-    
+    this_ax = subplot(2,4,i+4);
+    sta = nanmean(all_time_means_sim(:,:,:,i),3);%.*all_time_occupancy(:,:,i)/max(max(all_time_occupancy(:,:,i)));
+    sta(isnan(sta)) = 8;
+    imagesc(sta)
+    caxis([0 8])
+    colormap(this_ax,flipud(hot))
+end
+% 
+% x_max = max(union(x_counts,x_times));
+% % figure
+% subplot(311)
+% % f = fit(x_counts',all_data_y_counts','smoothingspline','SmoothingParam',0.07);
+% xval = min(x_counts):.01:max(x_counts);
+% fsigm = @(param,xval) param(1)+(param(2)-param(1))./(1+10.^((param(3)-xval)*param(4)));
+% [param]=sigm_fit(x_counts,all_data_y_counts,[0 1 NaN NaN],[],0);
+% plot(xval,fsigm(param,xval),'b','Linewidth',2)
+% hold on
+% % f = fit(x_counts',all_preds_y_counts','smoothingspline','SmoothingParam',0.07);
+% if do_sim
+%     xval = min(x_counts):.01:max(x_counts);
+%     fsigm = @(param,xval) param(1)+(param(2)-param(1))./(1+10.^((param(3)-xval)*param(4)));
+%     [param]=sigm_fit(x_counts,all_preds_y_counts,[0 1 NaN NaN],[],0);
+%     plot(xval,fsigm(param,xval),'r','Linewidth',2)
+% end
+% set(gca,'xticklabels',{})
+% ylim([0 1.1])
+% xlim([0 x_max])
+% ylabel('Mean Spike Count')
+% title('Spiking Statistics')
+% 
+% 
+% subplot(312)
+% 
+% f = fit(x_times(~isnan(all_data_y_times))',all_data_y_times(~isnan(all_data_y_times))','exp1');%,'SmoothingParam',0.07);
+% h = plot(f,'b')
+% set(h,'linewidth',2)
+% hold on
+% if do_sim
+%     f = fit(x_times(~isnan(all_preds_y_times))',all_preds_y_times(~isnan(all_preds_y_times))','exp1');%,'SmoothingParam',0.07);
+%     h = plot(f,'r')
+%     set(h,'linewidth',2)
+% end
+% set(gca,'xticklabels',{})
+% ylim([0 10])
+% xlim([0 x_max])
+% ylabel('Mean First Spike Time (msec)')
+% subplot(313)
+% f = fit(x_times(~isnan(all_data_y_jitter))',all_data_y_jitter(~isnan(all_data_y_jitter))','exp1');%,'smoothingspline','SmoothingParam',0.07);
+% h = plot(f,'b')
+% set(h,'linewidth',2)
+% hold on
+% if do_sim
+%     f = fit(x_times(~isnan(all_preds_y_jitter))',all_preds_y_jitter(~isnan(all_preds_y_jitter))','exp1');%,'smoothingspline','SmoothingParam',0.07);
+%     h = plot(f,'r')
+%     set(h,'linewidth',2)
+% end
+% xlabel('Est. Stim Intensity (a.u., avg. shape gain x laser power x cell gain)')
+% ylim([0 2])
+% xlim([0 x_max])
+% ylabel('First Spike Time Std. Dev. (msec)')
     
     
     
