@@ -20,7 +20,7 @@ undefined_profile.design_func_params.min_trials_per_cell=10;
 undefined_profile.design_func_params.trials_params.power_levels=30:10:100;
 undefined_profile.design_func_params.trials_params.stim_design='Optimal';
 undefined_profile.design_func_params.trials_params.MCsamples_for_posterior=50;
-undefined_profile.design_func_params.trials_params.trials_per_batch=400;   
+undefined_profile.design_func_params.trials_params.trials_per_batch=100;   
 
 
 % Random, Nuclei, or Optimal
