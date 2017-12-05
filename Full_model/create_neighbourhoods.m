@@ -4,8 +4,13 @@ function neighbourhoods = create_neighbourhoods(experiment_setup)
 cell_locations=reshape([experiment_setup.neurons.location],length(experiment_setup.neurons(1).location),[])';
 % assignin('base','cell_locations',cell_locations)
 % assignin('base','experiment_setup',experiment_setup)
+if isempty(experiment_setup.neighbourhood_params.bounds)
 z_min=min(cell_locations(:,3));
 z_max=max(cell_locations(:,3));
+else
+   z_min =  experiment_setup.neighbourhood_params.bounds(1);
+   z_max =  experiment_setup.neighbourhood_params.bounds(2);
+end
 z_slide_width=experiment_setup.neighbourhood_params.height;
 z_borders=[z_min:z_slide_width:z_max];% z_max];
 % assignin('base','z_borders',z_borders)

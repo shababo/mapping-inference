@@ -20,7 +20,7 @@ undefined_profile.design_func_params.min_trials_per_cell=10;
 undefined_profile.design_func_params.trials_params.power_levels=30:10:100;
 undefined_profile.design_func_params.trials_params.stim_design='Optimal';
 undefined_profile.design_func_params.trials_params.MCsamples_for_posterior=50;
-undefined_profile.design_func_params.trials_params.trials_per_batch=400;   
+undefined_profile.design_func_params.trials_params.trials_per_batch=100;   
 
 
 % Random, Nuclei, or Optimal
@@ -52,7 +52,7 @@ undefined_profile.regroup_function.disconnected=@undefined_to_disconnected;
 undefined_profile.regroup_func_params=struct;
 undefined_profile.regroup_func_params.connected_threshold=0.5;
 undefined_profile.regroup_func_params.disconnected_threshold=0.2;
-undefined_profile.regroup_func_params.quantile_prob=[0.1 0.9];
+undefined_profile.regroup_func_params.quantile_prob=[0.05 0.95];
 undefined_profile.regroup_func_params.regroup_type='Quantiles'; % Quantiles or NonzeroProb
 undefined_profile.regroup_func_params.singlespot_threshold=0.2;% certain proportion of cells 
 undefined_profile.regroup_func_params.change_threshold =0.05;
