@@ -142,6 +142,8 @@ experiment_setup.prior_info.template_cell,experiment_setup.prior_info.delay,expe
 
 
 experiment_setup.neighbourhood_params=struct;
+
+experiment_setup.neighbourhood_params.bounds=[]; % leave empty for no bounds 
 experiment_setup.neighbourhood_params.number=10;
 experiment_setup.neighbourhood_params.height=15;
 experiment_setup.neighbourhood_params.buffer_height=20; 
