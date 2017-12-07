@@ -125,13 +125,13 @@ end
 
 % nuc_locs_img = nuc_locs(:,1:3);
 nuc_locs_img = data.trial_metadata(end).nuclear_locs(:,1:3);
-nuc_locs_img(:,1:2) = nuc_locs_img(:,1:2)/exp_data.image_um_per_px;
-nuc_locs_img(:,3) = nuc_locs_img(:,3)/exp_data.stack_um_per_slice;
-nuc_locs_img = bsxfun(@plus,nuc_locs_img,[exp_data.image_zero_order_coord' 0]);
+nuc_locs_img(:,1:2) = nuc_locs_img(:,1:2)/1.9;%exp_data.image_um_per_px;
+nuc_locs_img(:,3) = nuc_locs_img(:,3)/2;%exp_data.stack_um_per_slice;
+nuc_locs_img = bsxfun(@plus,nuc_locs_img,[126 128 0]);%exp_data.image_zero_order_coord'
 nuc_locs_img(:,1:2) = nuc_locs_img(:,[2 1]);
 
 
-plot_nuclear_detect_3D([mappingroot exp_data.params.map_id '_stack.tif'],nuc_locs_img');
+plot_nuclear_detect_3D(['6_27_13_35' '.tif'],nuc_locs_img');%mappingroot exp_data.params.map_id
 
 %% plot targets
 
@@ -152,13 +152,18 @@ for i = 1:length(trials)
     
 end
 
-nuc_locs_img(:,1:2) = nuc_locs_img(:,1:2)/exp_data.image_um_per_px;
-nuc_locs_img(:,3) = nuc_locs_img(:,3)/exp_data.stack_um_per_slice;
-nuc_locs_img = bsxfun(@plus,nuc_locs_img,[exp_data.image_zero_order_coord' 0]);
+nuc_locs_img(:,1:2) = nuc_locs_img(:,1:2)/1.8;%exp_data.image_um_per_px;
+nuc_locs_img(:,3) = nuc_locs_img(:,3)/2;%exp_data.stack_um_per_slice;
+nuc_locs_img = bsxfun(@plus,nuc_locs_img,[127 130 0]);%exp_data.image_zero_order_coord'
 nuc_locs_img(:,1:2) = nuc_locs_img(:,[2 1]);
 
+% nuc_locs_img(:,1:2) = nuc_locs_img(:,1:2)/exp_data.image_um_per_px;
+% nuc_locs_img(:,3) = nuc_locs_img(:,3)/exp_data.stack_um_per_slice;
+% nuc_locs_img = bsxfun(@plus,nuc_locs_img,[exp_data.image_zero_order_coord' 0]);
+% nuc_locs_img(:,1:2) = nuc_locs_img(:,[2 1]);
 
-plot_nuclear_detect_3D([mappingroot exp_data.params.map_id '_stack.tif'],nuc_locs_img');
+plot_nuclear_detect_3D(['s1c1_2_post2_C0-01' '.tif'],nuc_locs_img');
+% plot_nuclear_detect_3D([mappingroot exp_data.params.map_id '_stack.tif'],nuc_locs_img');
 
 
 %%
@@ -314,32 +319,42 @@ ys = [52, 45, 30, 37]
 xs = [24]
 ys = [21]
 
+%% ground truth 3 spots
+xs = [8 11 20];
+ys = [41 47 47];
+
 %%
-spots_use = 1:4;%[1, 4, 8, 10, 11, 12]
+spots_use = 1:3;%[1, 4, 8, 10, 11, 12]
 figure
 count = 1;
 for i = 1:length(spots_use)
-    ind = spots_use(i)
-    binx = xs(ind);
-    biny = ys(ind);
     
-    map_id = 3
-%     figure
-    subplot(length(spots_use),2,count)
-    count = count + 1;
-    plot_trace_stack(maps_single{map_id}{1}{binx,biny},0,'',[],[],[],1)
-    ylim([-90 30])
-    xlim([0 2000])
-    subplot(length(spots_use),2,count)
-    count = count + 1;
-    if i == 4
-        binx = 22; biny = 40;
-    elseif i == 3
-        binx = 29; biny = 30;
+    for j = 1:3
+        ind = spots_use(i)
+        binx = xs(ind);
+        biny = ys(ind);
+
+        map_id = j;
+    %     figure
+        subplot(3,length(spots_use),(i-1)*3 + j)
+        hold on
+        count = count + 1;
+        if ~isempty(maps_ablate{map_id}{1}{binx,biny})
+            plot_trace_stack(maps_ablate{map_id}{1}{binx,biny},50,'',[],[],[],0)
+        end
+    %     ylim([-90 30])
+    %     xlim([0 2000])
+    %     subplot(length(spots_use),2,count)
+    %     count = count + 1;
+    %     if i == 4
+    %         binx = 22; biny = 40;
+    %     elseif i == 3
+    %         binx = 29; biny = 30;
+    %     end
+    %     plot_trace_stack(maps_stp{map_id}{1}{binx,biny},0,'',[],[],[],1)
+    %     ylim([-90 30])
+    %     xlim([0 2000])
     end
-    plot_trace_stack(maps_stp{map_id}{1}{binx,biny},0,'',[],[],[],1)
-    ylim([-90 30])
-    xlim([0 2000])
 end
 
 

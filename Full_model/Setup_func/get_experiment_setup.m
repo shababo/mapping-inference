@@ -157,7 +157,7 @@ load('power-calibration.mat');
 experiment_setup.exp.ratio_map = ratio_map;
 experiment_setup.exp.pockels_lut = pockels_lut;
 experiment_setup.exp.max_power_ref = max(experiment_setup.exp.pockels_lut(2,:));
-experiment_setup.exp.min_adj_power = experiment_setup.exp.max_power_ref/max(ratio_map(:));
+experiment_setup.exp.min_full_foe_power = experiment_setup.exp.max_power_ref/max(ratio_map(:));
 
 experiment_setup.exp.max_spike_freq = .5; % don't revisit cells on average sooner than this in Hz
 experiment_setup.exp.max_stim_freq = 20; % max frequency for system
