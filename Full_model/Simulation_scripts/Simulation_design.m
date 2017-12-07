@@ -136,12 +136,12 @@ target_cell_list(1).secondary=setdiff(related_cells_by_plane{this_plane},target_
 
 
 %% For simulation
-% related_cell_list=[target_cell_list.primary; target_cell_list.secondary];
+related_cell_list=[target_cell_list.primary; target_cell_list.secondary];
 % v_th_known_related= v_th_known(related_cell_list);
 % v_reset_known_related=v_reset_known(related_cell_list);
 % g_related = g_truth(related_cell_list);
-% gamma_related = gamma_truth(related_cell_list);
-% gain_related=gain_truth(related_cell_list);
+gamma_related = gamma_truth(related_cell_list);
+gain_related=gain_truth(related_cell_list);
 
                 
 %% Specify settings in this experiment 
@@ -222,7 +222,7 @@ neighbourhoods(1)=struct;
 %-------------------------------------------------%
 %% Parameters in the design stage
 n_replicates=1; % number of replicates for each trial
-n_spots_per_trial = 4;trial_max=2000;
+n_spots_per_trial = 4;trial_max=8000;
 K_connected=10;K_undefined=20;
 
 switch assignment_type
