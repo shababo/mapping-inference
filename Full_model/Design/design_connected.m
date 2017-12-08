@@ -65,45 +65,69 @@ switch group_profile.design_func_params.trials_params.stim_design
                 end
             end
         end
-        loc_selected=zeros(number_cells_this_group,1);
-        power_selected=zeros(number_cells_this_group,1);
+        loc_selected=zeros(number_cells_this_group,group_profile.design_func_params.trials_params.num_stim_sites);
+        power_selected=zeros(number_cells_this_group,group_profile.design_func_params.trials_params.num_stim_sites);
         
         % Select the optimal locations based on firing_prob:
         for i_cell_group = 1:number_cells_this_group
             i_cell_nhood=i_cell_group_to_nhood(i_cell_group);
+            candidate_grid=this_neighbourhood.neurons(i_cell_nhood).stim_locations.(group_ID).grid;
+            
             firing_prob_temp=firing_prob{i_cell_group};
             firing_prob_temp(:,:,i_cell_nhood)=0;
             firing_prob_difference= firing_prob{i_cell_group}(:,:,i_cell_nhood)-max(firing_prob_temp,[],3);
-            [max_value_loc,index_loc] = max(firing_prob_difference);
+            [max_value_loc,index_I] = max(firing_prob_difference');
             % Pick the lowest power if the objectives are not too different from each
             % other
-            weighted_max_value_loc = max_value_loc./log(group_profile.design_func_params.trials_params.power_levels);
+            %weighted_max_value_loc = max_value_loc./log(group_profile.design_func_params.trials_params.power_levels);
+            weighted_max_value_loc = max_value_loc;
             weighted_max_value_loc( weighted_max_value_loc<0)=0;
             if max( weighted_max_value_loc)==0
                 weighted_max_value_loc(:)=1;
             end
-            index_I = ...
-                randsample(1:length(weighted_max_value_loc),1,true,weighted_max_value_loc);
-            %         [~,index_I]=max(weighted_max_value_loc);
-            loc_selected(i_cell_group)=index_loc(index_I);
-            power_selected(i_cell_group)=group_profile.design_func_params.trials_params.power_levels(index_I);
+            % for each cell find more places:
+            still_available=weighted_max_value_loc;
+            still_available(:)=1;
+            %still_available
+            for i_loc = 1:group_profile.design_func_params.trials_params.num_stim_sites
+                %still_available
+                %weighted_max_value_loc
+                prob_available = weighted_max_value_loc.*still_available;
+                
+                if sum(prob_available) >0 % if there are still some options..
+                    index_loc = ...
+                        randsample(1:length(weighted_max_value_loc),1,true,prob_available);
+                    % Update the availability:
+%                     fprintf('%d',index_I);
+                    na_index=find(sqrt(sum((candidate_grid - ones(size(candidate_grid,1),1)*candidate_grid(index_loc,:)).^2,2))<group_profile.design_func_params.trials_params.min_gap_stim);
+                   still_available(na_index)=0;
+                    
+                else % Randomly pick one
+                    index_loc = ...
+                        randsample(1:length(weighted_max_value_loc),1,true,ones(length(weighted_max_value_loc),1));
+                    
+                end
+                loc_selected(i_cell_group,i_loc)=index_I(index_loc);
+                power_selected(i_cell_group,i_loc)=group_profile.design_func_params.trials_params.power_levels(index_I(index_loc));
+                
+            end
         end
-          
+        
     case 'Nuclei'
-         
+        
         loc_selected=ones(number_cells_this_group,1);
         power_selected=zeros(number_cells_this_group,1);
         
     case 'Random'
         
-        loc_selected=zeros(number_cells_this_group,1); 
+        loc_selected=zeros(number_cells_this_group,1);
         for i_cell_group = 1:number_cells_this_group
             i_cell_nhood=i_cell_group_to_nhood(i_cell_group);
             grid_points_this_cell = size(this_neighbourhood.neurons(i_cell_nhood).stim_locations.(group_ID).grid,1);
             loc_selected(i_cell_group)=randsample(1:grid_points_this_cell,1,true);
         end
         
-        power_selected=zeros(number_cells_this_group,1);  
+        power_selected=zeros(number_cells_this_group,1);
         
     otherwise
         % throw a warning?
@@ -120,7 +144,7 @@ experiment_query_this_group.trials=struct([]);
 %num_trials_per_cell = round(group_profile.design_func_params.trials_params.trials_per_batch*probability_weights/sum(probability_weights));
 %num_trials_per_cell(num_trials_per_cell<group_profile.design_func_params.min_trials_per_cell)=group_profile.design_func_params.min_trials_per_cell;
 
-num_trials_per_cell=ones(number_cells_this_group,1)*group_profile.design_func_params.min_trials_per_cell;
+num_trials_per_cell=ones(number_cells_this_group,1)*group_profile.design_func_params.trials_per_cell;
 if sum(num_trials_per_cell)>group_profile.design_func_params.trials_params.trials_per_batch
     num_trials_per_cell= ceil( num_trials_per_cell*group_profile.design_func_params.trials_params.trials_per_batch/sum(num_trials_per_cell));
 end
@@ -136,12 +160,12 @@ this_trial_locations=zeros(group_profile.design_func_params.trials_params.spots_
 for i_cell_group = 1:number_cells_this_group
     i_cell_nhood=i_cell_group_to_nhood(i_cell_group);
     for i_trial = (trial_counts(i_cell_group)+1):trial_counts(i_cell_group+1)
-        this_trial_location_IDs=loc_selected(i_cell_group);
+        this_trial_location_IDs=randsample(loc_selected(i_cell_group,:),1);
         i_cell_nhood=i_cell_group_to_nhood(i_cell_group);
         this_trial_cell_IDs= this_neighbourhood.neurons(i_cell_nhood).cell_ID;
         this_trial_power_levels=power_selected(i_cell_group);
         this_trial_locations=this_neighbourhood.neurons(i_cell_nhood).stim_locations.(group_ID).grid(loc_selected(i_cell_group),:);
-            
+        
         
         switch  group_profile.design_func_params.trials_params.stim_design
             case 'Optimal'
@@ -175,7 +199,7 @@ for i_cell_group = 1:number_cells_this_group
             adj_pow_this_loc = 0;
         end
         
-            
+        
         experiment_query_this_group.trials(i_trial).location_IDs=this_trial_location_IDs;
         experiment_query_this_group.trials(i_trial).cell_IDs=this_trial_cell_IDs;
         experiment_query_this_group.trials(i_trial).power_levels=this_trial_power_levels;
@@ -183,7 +207,7 @@ for i_cell_group = 1:number_cells_this_group
         experiment_query_this_group.trials(i_trial).group_ID=group_ID;
         experiment_query_this_group.trials(i_trial).adj_power_per_spot = adj_pow_this_loc;
         
-     end
+    end
     
 end
 

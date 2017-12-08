@@ -109,11 +109,11 @@ experiment_query_this_group.neighbourhood_ID=this_neighbourhood.neighbourhood_ID
 experiment_query_this_group.instruction='Compute hologram';
 experiment_query_this_group.trials=struct([]);
 
+% DETERMINE NUMBER OF TRIALS
+num_trials = min(group_profile.design_func_params.trials_params.trials_per_batch,number_cells_this_group*group_profile.design_func_params.trials_per_cell);
 
 
-
-
-for i_trial = 1:group_profile.design_func_params.trials_params.trials_per_batch
+for i_trial = 1:num_trials
     
     this_trial_location_IDs=zeros(1,group_profile.design_func_params.trials_params.spots_per_trial);
     this_trial_cell_IDs=zeros(1,group_profile.design_func_params.trials_params.spots_per_trial);

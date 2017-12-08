@@ -143,11 +143,14 @@ experiment_setup.prior_info.template_cell,experiment_setup.prior_info.delay,expe
 
 experiment_setup.neighbourhood_params=struct;
 
-experiment_setup.neighbourhood_params.bounds=[]; % leave empty for no bounds 
+experiment_setup.neighbourhood_params.z_bounds=[10 70]; % leave empty for no bounds 
+experiment_setup.neighbourhood_params.x_bounds=[-145 145]; % leave empty for no bounds 
+experiment_setup.neighbourhood_params.y_bounds=[-145 145]; % leave empty for no bounds 
 experiment_setup.neighbourhood_params.number=10;
 experiment_setup.neighbourhood_params.height=15;
-experiment_setup.neighbourhood_params.buffer_height=20; 
-
+experiment_setup.neighbourhood_params.buffer_height=20;  %NOTE: this count from the plane
+experiment_setup.neighbourhood_params.buffer_x=20;  % NOTE: These two from the boundariesedi
+experiment_setup.neighbourhood_params.buffer_y=20; 
 
 experiment_setup.exp.z_width = 20;
 % experiment_setup.exp.z_depths = '10 30 50 70 90';% this should be a space delimited string

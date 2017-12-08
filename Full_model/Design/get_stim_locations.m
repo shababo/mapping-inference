@@ -1,6 +1,11 @@
 function stim_location_this_group = ...
     get_stim_locations(this_cell,group_ID,cell_params,design_params,template_cell,varargin)
 
+% this_cell=i_cell;
+% group_ID=group_names{i_group};
+% template_cell=experiment_setup.prior_info.template_cell;
+% foe_bounds=experiment_setup.exp.foe_bounds;
+% z_depth = mean(cell_locations_neighbourhood(:,3));
 if length(varargin) > 1 && ~isempty(varargin{2})
     foe_bounds = varargin{2};
 else
