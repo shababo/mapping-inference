@@ -28,7 +28,7 @@ group_color_list=[{'g'} {'b'} {'r'} {'c'} {'y'}]; % these values
 fig=figure(figure_index);
 subplot(1,2,1)       % add first plot in 2 x 1 grid
 for i=1:length(neurons)
-    switch neurons(i).group_ID
+    switch neurons(i).group_ID{end}
         case 'undefined'
             
             markercolor=group_color_list{1};

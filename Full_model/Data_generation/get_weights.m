@@ -1,6 +1,9 @@
 function [pi_stim] = get_weights(...
     cell_params, template_cell,stim_locations)
 
+%cell_params, template_cell,
+% stim_locations=grid_this_cell;
+
 % NEED TO ALLOW FOR CELL-SPECIFIC EFFECT
 
 number_of_cells = length(cell_params);

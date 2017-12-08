@@ -4,12 +4,12 @@ function neighbourhoods = create_neighbourhoods(experiment_setup)
 cell_locations=reshape([experiment_setup.neurons.location],length(experiment_setup.neurons(1).location),[])';
 % assignin('base','cell_locations',cell_locations)
 % assignin('base','experiment_setup',experiment_setup)
-if isempty(experiment_setup.neighbourhood_params.bounds)
+if isempty(experiment_setup.neighbourhood_params.z_bounds)
 z_min=min(cell_locations(:,3));
 z_max=max(cell_locations(:,3));
 else
-   z_min =  experiment_setup.neighbourhood_params.bounds(1);
-   z_max =  experiment_setup.neighbourhood_params.bounds(2);
+   z_min =  experiment_setup.neighbourhood_params.z_bounds(1);
+   z_max =  experiment_setup.neighbourhood_params.z_bounds(2);
 end
 z_slide_width=experiment_setup.neighbourhood_params.height;
 z_borders=[z_min:z_slide_width:z_max];% z_max];
@@ -25,15 +25,34 @@ end
 
 % Initialize the neighbourhoods
 % copying the neuron info from experiment setup 
+
 neighbourhoods=struct([]);
 for i_neighbourhood = 1:number_of_neighbourhoods
    %neighbourhoods(i_neighbourhood)=struct;
    neighbourhoods(i_neighbourhood).neighbourhood_ID=i_neighbourhood;
    %neighbourhoods(i_neighbourhood).neurons=struct;
    cell_list_this_neighbourhood=find(cell_group_idx==i_neighbourhood);
+   i_count =1;
    for i_cell = 1:length(cell_list_this_neighbourhood)
        cell_ID=cell_list_this_neighbourhood(i_cell);
-       neighbourhoods(i_neighbourhood).neurons(i_cell)=experiment_setup.neurons(cell_ID);
+       cell_loc=experiment_setup.neurons(cell_ID).location;
+       
+       % CHECK BOUNDARIES
+       accept_flag=true;
+       if ~isempty(experiment_setup.neighbourhood_params.x_bounds)
+       if (cell_loc(1) > experiment_setup.neighbourhood_params.x_bounds(2)) ||(cell_loc(1) < experiment_setup.neighbourhood_params.x_bounds(1))
+           accept_flag=false;
+       end
+       end
+       if ~isempty(experiment_setup.neighbourhood_params.y_bounds)
+       if (cell_loc(2) > experiment_setup.neighbourhood_params.y_bounds(2)) ||(cell_loc(2) < experiment_setup.neighbourhood_params.y_bounds(1))
+           accept_flag=false;
+       end
+       end
+       if accept_flag
+       neighbourhoods(i_neighbourhood).neurons(i_count)=experiment_setup.neurons(cell_ID);
+       i_count=i_count+1;
+       end
    end
         
    location_vec = [neighbourhoods(i_neighbourhood).neurons.location];
@@ -49,8 +68,14 @@ end
 % 
 for i_neighbourhood = 1:number_of_neighbourhoods
    %neighbourhoods(i_neighbourhood)=struct;
+   % Find nearby cells: z range, x range, y range 
    nearby_cell_list = find(cell_locations(:,3) <  neighbourhoods(i_neighbourhood).center(3) + experiment_setup.neighbourhood_params.buffer_height/2 & ...
-       cell_locations(:,3) >  neighbourhoods(i_neighbourhood).center(3) - experiment_setup.neighbourhood_params.buffer_height/2);
+       cell_locations(:,3) >  neighbourhoods(i_neighbourhood).center(3) - experiment_setup.neighbourhood_params.buffer_height/2 & ...
+       cell_locations(:,1) <  experiment_setup.neighbourhood_params.x_bounds(2)+experiment_setup.neighbourhood_params.buffer_x &...
+       cell_locations(:,1) >  experiment_setup.neighbourhood_params.x_bounds(1)-experiment_setup.neighbourhood_params.buffer_x &...
+cell_locations(:,2) <  experiment_setup.neighbourhood_params.y_bounds(2)+experiment_setup.neighbourhood_params.buffer_y &...
+       cell_locations(:,2) >  experiment_setup.neighbourhood_params.y_bounds(1)-experiment_setup.neighbourhood_params.buffer_y);
+   
    secondary_cell_list= setdiff(nearby_cell_list, [neighbourhoods(i_neighbourhood).neurons(:).cell_ID]);
    number_of_prim_cells =length(neighbourhoods(i_neighbourhood).neurons);
    for i_cell = 1:length(secondary_cell_list)
@@ -100,14 +125,14 @@ end
 for i_neighbourhood = 1:number_of_neighbourhoods
     for i_cell = 1:length(neighbourhoods(i_neighbourhood).neurons)
         current_params=experiment_setup.prior_info.PR_prior;
-        group_profile=experiment_setup.groups.(neighbourhoods(i_neighbourhood).neurons(i_cell).group_ID);
+        group_profile=experiment_setup.groups.(neighbourhoods(i_neighbourhood).neurons(i_cell).group_ID{end});
         bounds= group_profile.inference_params.bounds.PR;
         quantile_prob=group_profile.regroup_func_params.quantile_prob;
         neighbourhoods(i_neighbourhood).neurons(i_cell).PR_params(1)=calculate_posterior(...
             current_params,bounds,quantile_prob);
 
         current_params=experiment_setup.prior_info.gain_prior;
-        group_profile=experiment_setup.groups.(neighbourhoods(i_neighbourhood).neurons(i_cell).group_ID);
+        group_profile=experiment_setup.groups.(neighbourhoods(i_neighbourhood).neurons(i_cell).group_ID{end});
         bounds= group_profile.inference_params.bounds.gain;
         quantile_prob=group_profile.regroup_func_params.quantile_prob;
         neighbourhoods(i_neighbourhood).neurons(i_cell).gain_params(1)=calculate_posterior(...

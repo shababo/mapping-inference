@@ -1,213 +1,188 @@
-function [] = plot_one_neighbourhood(this_neighbourhood,prior_info,save_path,varargin)
+function [] = plot_one_neighbourhood(this_neighbourhood)
 
-if ~isempty(varargin) 
-    draw_shape = varargin{1};
-else
-    draw_shape = false;
-end
+%% Draw three plots
+% Max projection, 3D location with group colors, Uncertainty of gain and
+% gamma 
+default_color={'k'};
+default_fill_color={'w'};
 
-if ~isempty(varargin) && length(varargin)>1
-    draw_uncertainty = varargin{2};
-else
-    draw_uncertainty = false;
-end
-%%
-group_names = unique({this_neighbourhood.neurons(:).group_ID});
-% find the neighbourhood info from the query
-i_neighbourhood=this_neighbourhood.neighbourhood_ID;
-       
-figure_index=i_neighbourhood;
-cell_locations = reshape([this_neighbourhood.neurons(:).location],3,[])';
+group_colors={'r' 'k' 'b' 'g' 'y'}; % disconnected, undefined, connected, alive, secondary
+fill_colors={'w' 'k' 'b' 'g' 'w'}; % disconnected, undefined, connected, alive, secondary
+group_names={'disconnected','undefined','connected','alive','secondary'};
+neuron_alpha=0.5; % transparency
+neuron_size=50;
+
+    barcolor=[0 0 0 0.2];
+    r=15; %length of bars
+    barwidth=3;
+    bargap=2;
+    gain_bounds=[0.005 0.03];
+    
+fig_size=[0 0 15 5];
+%
+
+
+neurons=this_neighbourhood.neurons;
+cell_locations = reshape([neurons(:).location],3,[])';
 x=cell_locations(:,1);
 y=cell_locations(:,2);
 z=cell_locations(:,3);
-xlims=[min(x) max(x)];
-ylims=[min(y) max(y)];
-zlims=[min(z) max(z)];
-
-if draw_uncertainty
-    % for uncertainty
-    r_z=range(zlims)/20;
-    r_x=range(xlims)/20;
-end
-
-if draw_shape 
-    shape_grid = meshgrid(x_grid,y_grid,z_grid);
-    stim_thresh=prior_info.induced_intensity.fire_stim_threshold;
-    gain_bounds=struct;
-    gain_bounds.low=group_profile.inference_params.bounds.gain(1);
-    gain_bounds.up=group_profile.inference_params.bounds.gain(2);
-    template_power=50;
-    template_shape=prior_info.template_cell.cell_shape;
-    
-    x_grid = [-25 -15  -6 0 6  15 25];x_shift=41;
-    y_grid=[-25 -15  -6 0 6  15 25];y_shift=41;
-    z_grid=2*[-25 -15   -6  0 6  15 25];z_shift=91;
-    pixelsize=8; % for drawing the cell shape (not implemented)
-
-end
-
-% for cells 
-nucleisize=45;
-secondary_color='g';
-group_color_list=[{'m'} {'b'} {'y'} {'c'} ]; % these values should be defined in the get_structure()
-maxpixelsize=8; % for drawing the cell shape (not implemented)
-
-%% Obtain current estimates 
+xlims=[-152 152];
+ylims=[-152 152];
+zlims=[min(cell_locations(:,3)) max(cell_locations(:,3))];
 
 i_batch=this_neighbourhood.batch_ID;
-neurons=this_neighbourhood.neurons;
-properties={'PR_params'};summary_stat={'mean','lower_quantile','upper_quantile'};
-temp_output=grab_values_from_neurons(i_batch,neurons,properties,summary_stat);
+properties={'PR_params','gain_params'};summary_stat={'lower_quantile','mean','upper_quantile'};
+posteriors=grab_values_from_neurons(i_batch,neurons,properties,summary_stat);
 
-estimates=temp_output.PR_params;
-%%
-fig=figure(figure_index); 
-for i_cell = 1:length(this_neighbourhood.neurons)
-    this_cell = this_neighbourhood.neurons(i_cell);
-    if ~this_cell.primary_indicator
-        markercolor=secondary_color;
-        markeralpha=0.1;
-    else
-        switch this_cell.group_ID
-            case 'connected'
-                markercolor=group_color_list{1};
-            case 'undefined'
-                markercolor=group_color_list{2};
-            case 'disconnected'
-                markercolor=group_color_list{3};
-            case 'alive'
-                markercolor=group_color_list{4};
-        end
-        markeralpha=estimates.mean(i_cell)*0.9+0.1;
+
+%% Draw 2D max proj
+figure_index=1;
+fig=figure(figure_index);
+subplot(1,3,1) 
+
+for i_cell = 1:length(neurons)
+    switch this_neighbourhood.neurons(i_cell).group_ID{end}
+        case 'disconnected'
+           i_group = 1;
+        case 'undefined'
+            i_group = 2;
+        case 'connected'
+            i_group = 3;
+        case 'alive'
+            i_group = 4;
+        case 'secondary'
+            i_group = 5;
     end
-    scatter3(this_cell.location(2),this_cell.location(1),this_cell.location(3),...
-        'SizeData',nucleisize,...
-        'MarkerEdgeColor',markercolor,...
-        'MarkerFaceColor',markercolor,...
-        'MarkerFaceAlpha',markeralpha,...
-        'MarkerEdgeAlpha',markeralpha)
-    
-    hold on;
-    
-    if draw_shape && strcmp(this_cell.group_ID,'connected')
-        % we can change this to 
-        alpha_gain=this_neighbourhood.neurons(i_cell).gain_params(end).alpha;
-        beta_gain=this_neighbourhood.neurons(i_cell).gain_params(end).beta;
-        temp=normrnd(alpha_gain,beta_gain,[group_profile.inference_params.MCsamples_for_posterior 1]);
-        for i_x = x_grid
-            for i_y = y_grid
-                for i_z = z_grid
-                     gain_thresh=stim_thresh/template_power/template_shape(i_x+x_shift,i_y+y_shift,i_z+z_shift);
-                    if gain_thresh > gain_bounds.up
-                       markeralpha=0; 
-                    elseif gain_thresh < gain_bounds.low
-                        markeralpha=1;
-                    else
-                        gain_trans= (gain_thresh-gain_bounds.low)/(gain_bounds.up-gain_bounds.low);
-                        gain_logit = log(gain_trans/(1-gain_trans));
-                        markeralpha = 1-normcdf(gain_logit,alpha_gain,beta_gain);
-                    end
-                    scatter3(this_cell.location(2)+i_y,this_cell.location(1)+i_x,this_cell.location(3)+i_z,...
-                        'SizeData',pixelsize,...
-                        'MarkerEdgeColor',markercolor,...
-                        'MarkerFaceColor',markercolor,...
-                        'MarkerFaceAlpha',markeralpha,...
-                        'MarkerEdgeAlpha',markeralpha)
-                    hold on;
-                end
-            end
-        end
-        
-    end
- 
-    if draw_uncertainty
-         	range_bar = [this_cell.location(3)+ 2*r_z*(estimates.lower_quantile(i_cell)-0.5), this_cell.location(3)+2*r_z*(estimates.upper_quantile(i_cell)-0.5)];
-        line((this_cell.location(2))*ones(1,2),(this_cell.location(1)-r_x)*ones(1,2),range_bar,...
-            'LineStyle','-','LineWidth',3,...
-            'Color',[1 0 0 0.5])
-        hold on;
-        
-        full_bar = [ [this_cell.location(3)- r_z this_cell.location(3)+ 2*r_z*(estimates.lower_quantile(i_cell)-0.5)]' ...
-            [this_cell.location(3)+ r_z this_cell.location(3)+ 2*r_z*(estimates.upper_quantile(i_cell)-0.5)]'];
-        line( (this_cell.location(2))*ones(2,2),(this_cell.location(1)-r_x)*ones(2,2),full_bar,...
-            'LineStyle','-','LineWidth',3,...
-            'Color',[0 0 0 0.2])
-        hold on;
-%         range(range_bar)
-    end
-    
-    
+     edgecolor=group_colors{i_group};
+            fillcolor=fill_colors{i_group};
+scatter(x(i_cell),y(i_cell),...
+    'SizeData',neuron_size,...
+    'MarkerEdgeColor',edgecolor,...
+    'MarkerFaceColor',fillcolor,...
+    'MarkerFaceAlpha',neuron_alpha)
+hold on;
 end
-view(-20,20)
+xlim(xlims);
+ylim(ylims);
+xlabel('x (um)')
+ylabel('y (um)')
+
+hold off;
+
+
+% Draw 3D loc 
+subplot(1,3,2) 
+
+for i_cell = 1:length(neurons)
+    switch this_neighbourhood.neurons(i_cell).group_ID{end}
+        case 'disconnected'
+           i_group = 1;
+        case 'undefined'
+            i_group = 2;
+        case 'connected'
+            i_group = 3;
+        case 'alive'
+            i_group = 4;
+        case 'secondary'
+            i_group = 5;
+    end
+     edgecolor=group_colors{i_group};
+            fillcolor=edgecolor;
+scatter3(x(i_cell),y(i_cell),z(i_cell),...
+    'SizeData',neuron_size,...
+    'MarkerEdgeColor',edgecolor,...
+    'MarkerFaceColor',fillcolor,...
+    'MarkerFaceAlpha',neuron_alpha)
+hold on;
+end
+view(-30,10)
 xlim(xlims);
 ylim(ylims);
 zlim(zlims);
+xlabel('x (um)')
+ylabel('y (um)')
+zlabel('z (um)')
 
-% 
-% for i_legend = 1:length(group_color_list)
-%   LegendHandels(i_legend) =  scatter3(nan,nan,nan,...
-%                 'Marker','o',...
-%                 'SizeData',nucleisize,...
-%                 'MarkerEdgeColor',group_color_list{i_legend},...
-%                 'MarkerFaceColor','w',...
-%                 'MarkerEdgeAlpha',1);
-%             hold on;
-% end
-% 
-% LegendHandels(i_legend+1) =  scatter3(nan,nan,nan,...
-%     'Marker','s',...
-%     'SizeData',markersize,...
-%     'MarkerEdgeColor',color_list{1},...
-%     'MarkerFaceColor',color_list{1},...
-%     'MarkerEdgeAlpha',0.5);
-% hold on;
-% 
-% 
-% LegendHandels(i_legend+2) =  scatter3(nan,nan,nan,...
-%     'Marker','s',...
-%     'SizeData',markersize,...
-%     'MarkerEdgeColor',color_list{2},...
-%     'MarkerFaceColor',color_list{2},...
-%     'MarkerFaceAlpha',0.5);
-% hold on;
-% 
-% 
-% LegendHandels(i_legend+3) =  scatter3(nan,nan,nan,...
-%     'Marker','s',...
-%     'SizeData',markersize,...
-%     'MarkerEdgeColor',color_list{2},...
-%     'MarkerFaceColor','w',...
-%     'MarkerEdgeAlpha',0.2);
-% hold on;
-% 
-% LegendHandels(i_legend+4) =  scatter3(nan,nan,nan,...
-%     'Marker','s',...
-%     'SizeData',markersize,...
-%     'MarkerEdgeColor',color_list{2},...
-%     'MarkerFaceColor',color_list{2},...
-%     'MarkerFaceAlpha',0.2);
-% hold on;
-% 
-% 
-% 
-% LegendHandels(i_legend+5) =  scatter3(nan,nan,nan,...
-%     'Marker','s',...
-%     'SizeData',markersize,...
-%     'MarkerEdgeColor',color_list{2},...
-%     'MarkerFaceColor',color_list{2},...
-%     'MarkerFaceAlpha',0.8);
-% hold on;
-% 
-% legend(LegendHandels,{'connected cell', 'undefined cell','disconnected cell','alive cell',...
-%     'singlespot trials','multispot trials (lifted)','multispot trials (original)',...
-%     '20% responses','80% responses'});
+hold off;
+
+% Draw uncertainty 
+
+subplot(1,3,3) 
+
+for i_cell = 1:length(neurons)
+    switch this_neighbourhood.neurons(i_cell).group_ID{end}
+        case 'disconnected'
+           i_group = 1;
+        case 'undefined'
+            i_group = 2;
+        case 'connected'
+            i_group = 3;
+        case 'alive'
+            i_group = 4;
+        case 'secondary'
+            i_group = 5;
+    end
+    
+     edgecolor=group_colors{i_group};
+     fillcolor=default_fill_color{1};
+    
+
+xloc=x(i_cell)*ones(2,1)-barwidth/2-bargap;
+yloc =[r*(-0.5),  r*(0.5)]+y(i_cell);
+line(xloc,yloc,...
+    'LineStyle','-','LineWidth',barwidth,...
+    'Color',barcolor)
+hold on;
+xloc=x(i_cell)*ones(2,1)-barwidth/2-bargap;
+yloc =[r*( posteriors.PR_params.lower_quantile(i_cell)-0.5),  r*(  posteriors.PR_params.upper_quantile(i_cell)-0.5)]+...
+    y(i_cell);
+line(xloc,yloc,...
+    'LineStyle','-','LineWidth',barwidth,...
+    'Color',edgecolor)
+hold on;
+
+xloc=x(i_cell)*ones(2,1)+barwidth/2+bargap;
+yloc =[r*(-0.5),  r*(0.5)]+y(i_cell);
+line(xloc,yloc,...
+    'LineStyle','-','LineWidth',barwidth,...
+    'Color',barcolor)
+hold on;
+xloc=x(i_cell)*ones(2,1)+barwidth/2+bargap;
+yloc =[r* (( posteriors.gain_params.lower_quantile(i_cell)-gain_bounds(1))/range(gain_bounds)-0.5),  ...
+    r*((gain_bounds(2)- posteriors.gain_params.lower_quantile(i_cell))/range(gain_bounds)-0.5)]+...
+    y(i_cell);
+line(xloc,yloc,...
+    'LineStyle','-','LineWidth',barwidth,...
+    'Color',edgecolor)
+hold on;
+
+end
+
+
+
+for i_legend = 1:length(group_colors)
+  LegendHandels(i_legend) =  scatter(nan,nan,...
+                'Marker','o',...
+                'SizeData',neuron_size,...
+                'MarkerEdgeColor',group_colors{i_legend},...
+                'MarkerFaceColor',group_colors{i_legend},...
+                'MarkerEdgeAlpha',neuron_alpha);
+            hold on;
+end
+legend(LegendHandels,group_names,'Location','southeast');
+
+xlim(xlims);
+ylim(ylims);
+xlabel('x (um)')
+ylabel('y (um)')
+hold off;
 
 
 fig.Units = 'inches';
-fig.Position = [0 0 8 5];
-hold off;
+fig.Position =fig_size;
+
 %%
-saveas(figure_index,strcat(save_path,'plots/', 'neighbourhood',num2str(figure_index),'.png'));
+saveas(figure_index,strcat('plots/', 'Summary_n',num2str(figure_index),'_b',num2str(i_batch),'.png'));
 close(figure_index)
 end
