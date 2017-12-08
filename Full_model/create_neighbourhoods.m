@@ -100,14 +100,14 @@ end
 for i_neighbourhood = 1:number_of_neighbourhoods
     for i_cell = 1:length(neighbourhoods(i_neighbourhood).neurons)
         current_params=experiment_setup.prior_info.PR_prior;
-        group_profile=experiment_setup.groups.(neighbourhoods(i_neighbourhood).neurons(i_cell).group_ID);
+        group_profile=experiment_setup.groups.(neighbourhoods(i_neighbourhood).neurons(i_cell).group_ID{end});
         bounds= group_profile.inference_params.bounds.PR;
         quantile_prob=group_profile.regroup_func_params.quantile_prob;
         neighbourhoods(i_neighbourhood).neurons(i_cell).PR_params(1)=calculate_posterior(...
             current_params,bounds,quantile_prob);
 
         current_params=experiment_setup.prior_info.gain_prior;
-        group_profile=experiment_setup.groups.(neighbourhoods(i_neighbourhood).neurons(i_cell).group_ID);
+        group_profile=experiment_setup.groups.(neighbourhoods(i_neighbourhood).neurons(i_cell).group_ID{end});
         bounds= group_profile.inference_params.bounds.gain;
         quantile_prob=group_profile.regroup_func_params.quantile_prob;
         neighbourhoods(i_neighbourhood).neurons(i_cell).gain_params(1)=calculate_posterior(...
