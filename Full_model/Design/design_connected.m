@@ -117,8 +117,13 @@ experiment_query_this_group.trials=struct([]);
 % pockels_ratios = zeros(num_trials,n_spots_per_trial);
 
 
-num_trials_per_cell = round(group_profile.design_func_params.trials_params.trials_per_batch*probability_weights/sum(probability_weights));
-num_trials_per_cell(num_trials_per_cell<group_profile.design_func_params.min_trials_per_cell)=group_profile.design_func_params.min_trials_per_cell;
+%num_trials_per_cell = round(group_profile.design_func_params.trials_params.trials_per_batch*probability_weights/sum(probability_weights));
+%num_trials_per_cell(num_trials_per_cell<group_profile.design_func_params.min_trials_per_cell)=group_profile.design_func_params.min_trials_per_cell;
+
+num_trials_per_cell=ones(number_cells_this_group,1)*group_profile.design_func_params.min_trials_per_cell;
+if sum(num_trials_per_cell)>group_profile.design_func_params.trials_params.trials_per_batch
+    num_trials_per_cell= ceil( num_trials_per_cell*group_profile.design_func_params.trials_params.trials_per_batch/sum(num_trials_per_cell));
+end
 trial_counts=cumsum(num_trials_per_cell);
 trial_counts=[0; trial_counts];
 

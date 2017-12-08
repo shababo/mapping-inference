@@ -20,7 +20,7 @@ end
 if ~isempty(cell_list_undefined_to_disconnected)
     for i_cell = 1:length(cell_list_undefined_to_disconnected)
         this_cell=cell_list_undefined_to_disconnected(i_cell);
-        this_neighbourhood.neurons(this_cell).group_ID='disconnected';
+        this_neighbourhood.neurons(this_cell).group_ID{i_batch+1}='disconnected';
     end
 end
 
