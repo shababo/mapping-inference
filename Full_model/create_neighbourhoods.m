@@ -59,9 +59,9 @@ for i_neighbourhood = 1:number_of_neighbourhoods
    end
    for i_cell = 1:length(neighbourhoods(i_neighbourhood).neurons)
        if i_cell > number_of_prim_cells
-           neighbourhoods(i_neighbourhood).neurons(i_cell).group_ID='secondary';
+           neighbourhoods(i_neighbourhood).neurons(i_cell).group_ID={'secondary'};
        else
-           neighbourhoods(i_neighbourhood).neurons(i_cell).group_ID=experiment_setup.default_group; % all are initialized as undefined
+           neighbourhoods(i_neighbourhood).neurons(i_cell).group_ID={experiment_setup.default_group}; % all are initialized as undefined
        end
    end
 end
