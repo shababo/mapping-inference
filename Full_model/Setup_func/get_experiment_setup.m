@@ -22,7 +22,7 @@ switch location_str
         experiment_setup.analysis_root = 'C:/Users/Shizhe/Documents/Mapping_data/tmp/';   
         experiment_setup.experiment_type='simulation';
     case 'millennium_falcon'
-        experiment_setup.exp_root = 'C:\data\Shababo';
+        experiment_setup.exp_root = 'C:\data\Shababo\';
         experiment_setup.analysis_root = '/media/shababo/data/'; % make sure to add ending slash
         experiment_setup.ephys_mapped_drive = '/home/shababo/slidebook-comp/';
         experiment_setup.phase_mask_dir = 'W:\';
@@ -143,7 +143,7 @@ experiment_setup.prior_info.template_cell,experiment_setup.prior_info.delay,expe
 
 experiment_setup.neighbourhood_params=struct;
 
-experiment_setup.neighbourhood_params.bounds=[]; % leave empty for no bounds 
+experiment_setup.neighbourhood_params.bounds=[0 58]; % leave empty for no bounds 
 experiment_setup.neighbourhood_params.number=10;
 experiment_setup.neighbourhood_params.height=15;
 experiment_setup.neighbourhood_params.buffer_height=20; 

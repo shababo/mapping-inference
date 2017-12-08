@@ -23,7 +23,7 @@ end
 
 
 
-group_color_list=[{'g'} {'b'} {'r'} {'c'}]; % these values 
+group_color_list=[{'g'} {'b'} {'r'} {'c'} {'y'}]; % these values 
 
 fig=figure(figure_index);
 subplot(1,2,1)       % add first plot in 2 x 1 grid
@@ -40,6 +40,8 @@ for i=1:length(neurons)
             markercolor=group_color_list{3};
         case 'alive'
             markercolor=group_color_list{4};
+        case 'secondary'
+             markercolor=group_color_list{5};
     end
 scatter(gamma_truth(i),gamma_est(i),'Marker','o','SizeData',25,...
     'MarkerFaceColor',markercolor, 'MarkerEdgeColor',markercolor, 'MarkerFaceAlpha',0.8)

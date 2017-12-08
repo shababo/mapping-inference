@@ -39,12 +39,18 @@ while ((n_trials < trial_max))
        break; 
         
     end
+    
+       fixed_power=[];
     if cell_killing==2
         num_trials_undefined=num_trials_per_batch;
         num_trials_connected=0;
     elseif cell_killing==3
         num_trials_undefined=0;
         num_trials_connected=num_trials_per_batch;
+    elseif cell_killing == 4
+        num_trials_undefined=0;
+        num_trials_connected=num_trials_per_batch;  
+       fixed_power=50; 
     end
     %---------------------------------------------%
     % Design and conduct trials
@@ -61,7 +67,7 @@ while ((n_trials < trial_max))
             pi_target, inner_normalized_products,...
             variational_params,n_MC_samples,gamma_bound,gain_bound,prob_trace_full,...
             fire_stim_threshold,stim_scale, ...
-            n_spots_per_trial,[],n_replicates,[],[],[],[],design_type_multi,design_type_single,weighted_design);
+            n_spots_per_trial,[],n_replicates,[],[],[],[],design_type_multi,design_type_single,weighted_design,fixed_power);
         [mpp_temp] = draw_samples(...
             trials_locations, trials_powers, pi_target_truth, background_rate,...
             cell_params(related_cell_list), current_template, funcs, delay_params,stim_threshold,time_max);
@@ -91,7 +97,7 @@ while ((n_trials < trial_max))
                  related_cell_list,cell_list,pi_target_nuclei, [],...
             variational_params,n_MC_samples,gamma_bound,gain_bound,prob_trace_full,...
             fire_stim_threshold,stim_scale, ...
-            1,K_connected,n_replicates,[],[],[],[],design_type_multi,design_type_single,weighted_design);
+            1,K_connected,n_replicates,[],[],[],[],design_type_multi,design_type_single,weighted_design,fixed_power);
        
        [mpp_temp] = draw_samples(...
             trials_locations, trials_powers, pi_target_nuclei_truth, background_rate,...

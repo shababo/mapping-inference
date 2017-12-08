@@ -1,6 +1,6 @@
 function [not_terminated] = check_all_learned(neighbourhoods)
 
-learned_groups = {'disconnected', 'alive'};
+learned_groups = {'disconnected', 'alive','secondary'};
 learned_indicators= zeros(length(neighbourhoods),1);
 
 for i_neighbourhood= 1:length(neighbourhoods)

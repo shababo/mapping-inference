@@ -72,7 +72,7 @@ end
 group_names = experiment_setup.group_names;
 for i_neighbourhood = 1:number_of_neighbourhoods
     for i_cell = 1:length(neighbourhoods(i_neighbourhood).neurons)
-        neighbourhoods(i_neighbourhood).neurons(i_cell).group_ID=experiment_setup.default_group; % all are initialized as undefined
+%         neighbourhoods(i_neighbourhood).neurons(i_cell).group_ID=experiment_setup.default_group; % all are initialized as undefined
         neighbourhoods(i_neighbourhood).neurons(i_cell).primary_indicator=true;
         neighbourhoods(i_neighbourhood).neurons(i_cell).stim_locations=struct;
         for i_group = 1:length(group_names) % if this is costly we could move to when a neuron is initialized into a group
