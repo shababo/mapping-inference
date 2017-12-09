@@ -95,8 +95,12 @@ switch group_profile.design_func_params.trials_params.stim_design
                 prob_available = weighted_max_value_loc.*still_available;
                 
                 if sum(prob_available) >0 % if there are still some options..
+                if i_loc == 1
+                    index_loc=1;
+                else
                     index_loc = ...
                         randsample(1:length(weighted_max_value_loc),1,true,prob_available);
+                end
                     % Update the availability:
 %                     fprintf('%d',index_I);
                     na_index=find(sqrt(sum((candidate_grid - ones(size(candidate_grid,1),1)*candidate_grid(index_loc,:)).^2,2))<group_profile.design_func_params.trials_params.min_gap_stim);
@@ -107,7 +111,7 @@ switch group_profile.design_func_params.trials_params.stim_design
                         randsample(1:length(weighted_max_value_loc),1,true,ones(length(weighted_max_value_loc),1));
                     
                 end
-                loc_selected(i_cell_group,i_loc)=index_I(index_loc);
+                loc_selected(i_cell_group,i_loc)=index_loc;
                 power_selected(i_cell_group,i_loc)=group_profile.design_func_params.trials_params.power_levels(index_I(index_loc));
                 
             end
@@ -164,7 +168,7 @@ for i_cell_group = 1:number_cells_this_group
         i_cell_nhood=i_cell_group_to_nhood(i_cell_group);
         this_trial_cell_IDs= this_neighbourhood.neurons(i_cell_nhood).cell_ID;
         this_trial_power_levels=power_selected(i_cell_group);
-        this_trial_locations=this_neighbourhood.neurons(i_cell_nhood).stim_locations.(group_ID).grid(loc_selected(i_cell_group),:);
+        this_trial_locations=this_neighbourhood.neurons(i_cell_nhood).stim_locations.(group_ID).grid(this_trial_location_IDs,:);
         
         
         switch  group_profile.design_func_params.trials_params.stim_design
