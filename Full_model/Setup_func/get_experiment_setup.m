@@ -106,7 +106,7 @@ experiment_setup.prior_info.gain_model=[];
 experiment_setup.prior_info.delay=struct;
 experiment_setup.prior_info.delay.delayed=true;
 experiment_setup.prior_info.delay.type='gamma';
-experiment_setup.prior_info.delay.mean=58;
+experiment_setup.prior_info.delay.mean=38;
 experiment_setup.prior_info.delay.std=15;
 experiment_setup.prior_info.delay.n_grid=200;
 
@@ -150,8 +150,8 @@ experiment_setup.neighbourhood_params.y_bounds=[-150 150]; % leave empty for no 
 experiment_setup.neighbourhood_params.number=10;
 experiment_setup.neighbourhood_params.height=15;
 experiment_setup.neighbourhood_params.buffer_height=40;  %NOTE: this count from the plane
-experiment_setup.neighbourhood_params.buffer_x=20;  % NOTE: These two from the boundariesedi
-experiment_setup.neighbourhood_params.buffer_y=20; 
+experiment_setup.neighbourhood_params.buffer_x=10;  % NOTE: These two from the boundariesedi
+experiment_setup.neighbourhood_params.buffer_y=10; 
 
 experiment_setup.exp.z_width = 20;
 % experiment_setup.exp.z_depths = '10 30 50 70 90';% this should be a space delimited string
@@ -164,12 +164,12 @@ experiment_setup.exp.max_power_ref = max(experiment_setup.exp.pockels_lut(2,:));
 experiment_setup.exp.min_full_foe_power = experiment_setup.exp.max_power_ref/max(ratio_map(:));
 
 experiment_setup.exp.max_spike_freq = .5; % don't revisit cells on average sooner than this in Hz
-experiment_setup.exp.max_stim_freq = 18.5; % max frequency for system
+experiment_setup.exp.max_stim_freq = 1000/(50+4); % max frequency for system
 % experiment_setup.exp.min_iti = 55; % min iti for slidebook
 experiment_setup.exp.foe_bounds = [-148 148; -148 148; 0 400];
 
 % more experimental experiment_setup
-experiment_setup.exp.sim_locs = 1;
+experiment_setup.exp.sim_locs = 0;
 experiment_setup.exp.stim_duration = .003; % length of laser on
 experiment_setup.run_parfor = 0;
 
@@ -206,10 +206,10 @@ else
     
 end
 experiment_setup.exp.phase_mask_struct = 1;
-experiment_setup.exp.max_trials_per_sweep = 1250;
+experiment_setup.exp.max_trials_per_sweep = 400;
 experiment_setup.exp.first_stim_time = 1.0; % in sec
 experiment_setup.exp.filter_config = 'Femto Phasor';
 experiment_setup.exp.sweep_time_padding = 2.5; % in sec
 
-experiment_setup.exp.sim_response = 1;
+experiment_setup.exp.sim_response = 0;
 experiment_setup.exp.run_online_detection = 1;

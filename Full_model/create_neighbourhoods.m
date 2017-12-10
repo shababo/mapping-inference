@@ -4,15 +4,18 @@ function neighbourhoods = create_neighbourhoods(experiment_setup)
 cell_locations=reshape([experiment_setup.neurons.location],length(experiment_setup.neurons(1).location),[])';
 % assignin('base','cell_locations',cell_locations)
 % assignin('base','experiment_setup',experiment_setup)
+
 if isempty(experiment_setup.neighbourhood_params.z_bounds)
-z_min=min(cell_locations(:,3));
-z_max=max(cell_locations(:,3));
+    z_min = min(cell_locations(:,3));
+    z_max = max(cell_locations(:,3));
 else
-   z_min =  experiment_setup.neighbourhood_params.z_bounds(1);
-   z_max =  experiment_setup.neighbourhood_params.z_bounds(2);
+   z_min = experiment_setup.neighbourhood_params.z_bounds(1);
+   z_max = experiment_setup.neighbourhood_params.z_bounds(2);
 end
-z_slide_width=experiment_setup.neighbourhood_params.height;
-z_borders=[z_min:z_slide_width:z_max];% z_max];
+
+z_slide_width = experiment_setup.neighbourhood_params.height;
+% z_borders=[z_min:z_slide_width:z_max];% z_max];
+z_borders = 10:20:70;
 % assignin('base','z_borders',z_borders)
 number_of_neighbourhoods = length(z_borders)-1;
 
@@ -60,6 +63,7 @@ for i_neighbourhood = 1:number_of_neighbourhoods
    neighbourhoods(i_neighbourhood).center = [0 0 mean(z_locs)]; % mean(z_borders(i_neighbourhood:i_neighbourhood+1))];
    neighbourhoods(i_neighbourhood).computing_time=struct;
    neighbourhoods(i_neighbourhood).batch_ID=1;
+   neighbourhoods(i_neighbourhood).stack = experiment_setup.stack(:,:,(5:15) + (i_neighbourhood-1)*10);
    
 end
 
