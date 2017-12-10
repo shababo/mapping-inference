@@ -8,6 +8,7 @@ number_of_cells = size(nuclear_locs,1);
 
 neurons=struct([]);
 for i_cell = 1:number_of_cells 
+    neurons(i_cell).cell_ID = i_cell;
     neurons(i_cell).fluorescence= fluor_vals(i_cell); % need to generate some fluorescence level 
     neurons(i_cell).V_reset= -1e4;
     neurons(i_cell).V_thresh=15;

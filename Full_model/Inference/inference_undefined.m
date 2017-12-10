@@ -37,7 +37,7 @@ temp=num2cell(temp_output.PR_params.beta); [variational_params(1:number_of_stim_
 temp=num2cell(temp_output.gain_params.alpha); [variational_params(1:number_of_stim_cells).alpha_gain]=temp{:};
 temp=num2cell(temp_output.gain_params.beta); [variational_params(1:number_of_stim_cells).beta_gain]=temp{:};
 
-
+save('tmp.mat')
 prior_params=variational_params;
 
 %prior_params=variational_params_path(max(iter-num_trace_back,1),cell_list);
