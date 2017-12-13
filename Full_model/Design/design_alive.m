@@ -7,7 +7,7 @@ function [experiment_query_this_group] = design_alive(this_neighbourhood,group_p
 %        experiment_query_this_group.trials(i_trial).locations=this_trial_locations;
 
 
-% group_profile = get_alive;
+group_profile = get_alive;
 disp('designs alive')
 group_ID=group_profile.group_ID;
 
@@ -96,17 +96,17 @@ end
                 prob_available = weighted_max_value_loc.*still_available;
                 
                 if sum(prob_available) >0 % if there are still some options..
-                if i_loc == 1
-                    index_loc=1;
-                else
-                    index_loc = ...
-                        randsample(1:length(weighted_max_value_loc),1,true,prob_available);
-                end
-                    % Update the availability:
-%                     fprintf('%d',index_I);
-                    na_index=find(sqrt(sum((candidate_grid - ones(size(candidate_grid,1),1)*candidate_grid(index_loc,:)).^2,2))<group_profile.design_func_params.trials_params.min_gap_stim);
-                   still_available(na_index)=0;
-                    
+                    if i_loc == 1
+                        index_loc=1;
+                    else
+                        index_loc = ...
+                            randsample(1:length(weighted_max_value_loc),1,true,prob_available);
+                    end
+                        % Update the availability:
+    %                     fprintf('%d',index_I);
+                       na_index=find(sqrt(sum((candidate_grid - ones(size(candidate_grid,1),1)*candidate_grid(index_loc,:)).^2,2))<group_profile.design_func_params.trials_params.min_gap_stim);
+                       still_available(na_index)=0;
+
                 else % Randomly pick one
                     index_loc = ...
                         randsample(1:length(weighted_max_value_loc),1,true,ones(length(weighted_max_value_loc),1));

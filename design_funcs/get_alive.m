@@ -21,6 +21,8 @@ alive_profile.design_func_params.trials_params.stim_design='Optimal';
 alive_profile.design_func_params.trials_params.MCsamples_for_posterior=50;
 alive_profile.design_func_params.trials_params.trials_per_batch=200;   
 alive_profile.design_func_params.trials_params.bounds.gain=[0.005 0.03];
+alive_profile.design_func_params.trials_params.num_stim_sites = 1;
+alive_profile.design_func_params.trials_params.min_gap_stim = 0;
 
 %   whether to conduct more trials on low PR cells
 alive_profile.design_func_params.trials_params.weighted_indicator=true;
