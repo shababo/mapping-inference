@@ -37,4 +37,4 @@ end
 [vclamp_map, psc_time_map] = build_vclamp_grid(experiment_setup,trials,3);
     
 
-plot_trace_stack_grid(vclamp_map,Inf,1,0,[],[],[],psc_time_map);
+plot_trace_stack_grid(vclamp_map,5,1,0,[],[],[],psc_time_map);
