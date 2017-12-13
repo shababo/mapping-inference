@@ -164,7 +164,11 @@ this_trial_locations=zeros(group_profile.design_func_params.trials_params.spots_
 for i_cell_group = 1:number_cells_this_group
     i_cell_nhood=i_cell_group_to_nhood(i_cell_group);
     for i_trial = (trial_counts(i_cell_group)+1):trial_counts(i_cell_group+1)
-        this_trial_location_IDs=randsample(loc_selected(i_cell_group,:),1);
+        if length(loc_selected(i_cell_group,:)) > 1
+            this_trial_location_IDs=randsample(loc_selected(i_cell_group,:),1);
+        else
+            this_trial_location_IDs=loc_selected(i_cell_group,:);
+        end
         i_cell_nhood=i_cell_group_to_nhood(i_cell_group);
         this_trial_cell_IDs= this_neighbourhood.neurons(i_cell_nhood).cell_ID;
         this_trial_power_levels=power_selected(i_cell_group);
