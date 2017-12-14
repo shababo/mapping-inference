@@ -24,7 +24,7 @@ switch group_profile.regroup_func_params.regroup_type
     case 'NonzeroProb'
 end
 
-too_few_cells=(length(i_cell_group_to_nhood)-length(cell_list_undefined_to_connected)<group_profile.regroup_func_params.singlespot_threshold);
+too_few_cells=(length(i_cell_group_to_nhood)-length(cell_list_undefined_to_connected)) < group_profile.regroup_func_params.singlespot_threshold;
 too_tiny_change=max_changes_undefined<group_profile.regroup_func_params.change_threshold;
 
 if too_few_cells || too_tiny_change

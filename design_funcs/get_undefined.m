@@ -54,7 +54,7 @@ undefined_profile.regroup_func_params.connected_threshold=0.5;
 undefined_profile.regroup_func_params.disconnected_threshold=0.2;
 undefined_profile.regroup_func_params.quantile_prob=[0.05 0.95];
 undefined_profile.regroup_func_params.regroup_type='Quantiles'; % Quantiles or NonzeroProb
-undefined_profile.regroup_func_params.singlespot_threshold=0.2;% certain proportion of cells 
+undefined_profile.regroup_func_params.singlespot_threshold=25;%0.2;% certain proportion of cells 
 undefined_profile.regroup_func_params.change_threshold =0.05;
 
 
