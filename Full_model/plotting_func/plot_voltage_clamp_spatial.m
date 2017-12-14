@@ -8,7 +8,7 @@ else
     
     dirpath = experiment_setup.analysis_root;
 end
-    
+linespecs = cell(0);    
 group_names = experiment_setup.group_names;
 
 % load batches and collect trials
@@ -34,7 +34,7 @@ for i = 1:length(batch_IDs)
                 
 end
 
-[vclamp_map, psc_time_map] = build_vclamp_grid(experiment_setup,trials,3);
+[vclamp_map, psc_time_map, color_map] = build_vclamp_grid(experiment_setup,trials,3);
     
 
-plot_trace_stack_grid(vclamp_map,Inf,1,0,[],[],[],psc_time_map);
+plot_timeseries_map(vclamp_map,Inf,1,0,color_map,[],[],psc_time_map);
