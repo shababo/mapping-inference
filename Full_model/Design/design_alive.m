@@ -121,8 +121,8 @@ end
 %         
 %     case 'Nuclei'
         
-        loc_selected=ones(number_cells_this_group,1);
-        power_selected=zeros(number_cells_this_group,1);
+%         loc_selected=ones(number_cells_this_group,1);
+%         power_selected=zeros(number_cells_this_group,1);
         
 %     case 'Random'
 %         
@@ -177,8 +177,8 @@ for i_cell_group = 1:number_cells_this_group
         this_trial_locations=this_neighbourhood.neurons(i_cell_nhood).stim_locations.(group_ID).grid(this_trial_location_IDs,:);
         
         
-        switch  group_profile.design_func_params.trials_params.stim_design
-            case 'Optimal'
+%         switch  group_profile.design_func_params.trials_params.stim_design
+%             case 'Optimal'
                 this_trial_power_levels=power_selected(i_cell_group);
 %                 if rand(1) < mean_gamma(i_cell_group)
 %                     this_trial_power_levels=...
@@ -187,9 +187,9 @@ for i_cell_group = 1:number_cells_this_group
 %                     this_trial_power_levels=max(min(power_levels),min(this_trial_power_levels,max(power_levels)));
 %                 end
                 
-            otherwise
-                this_trial_power_levels=randsample(group_profile.design_func_params.trials_params.power_levels,1,true);
-        end
+%             otherwise
+%                 this_trial_power_levels=randsample(group_profile.design_func_params.trials_params.power_levels,1,true);
+%         end
         
         if strcmp(experiment_setup.experiment_type,'experiment') || experiment_setup.sim.use_power_calib
             high_power = 1;
