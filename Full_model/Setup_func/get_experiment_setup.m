@@ -206,7 +206,7 @@ else
     
 end
 experiment_setup.exp.phase_mask_struct = 1;
-experiment_setup.exp.max_trials_per_sweep = 400;
+experiment_setup.exp.max_trials_per_sweep = 1000;
 experiment_setup.exp.first_stim_time = 1.0; % in sec
 experiment_setup.exp.filter_config = 'Femto Phasor';
 experiment_setup.exp.sweep_time_padding = 2.5; % in sec
