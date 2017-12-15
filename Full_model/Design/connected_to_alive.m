@@ -1,7 +1,7 @@
 function [this_neighbourhood] = connected_to_alive(this_neighbourhood,group_profile)
 
 group_ID='connected';
-i_cell_group_to_nhood= find(get_group_inds(this_neighbourhood,group_ID));
+i_cell_group_to_nhood= find(get_group_inds(this_neighbourhood,group_ID,this_neighbourhood.batch_ID));
 
 switch group_profile.regroup_func_params.regroup_type
     case 'Quantiles'
@@ -12,10 +12,10 @@ switch group_profile.regroup_func_params.regroup_type
         gamma_lower_quantile=temp_output.PR_params.lower_quantile;
         gamma_mean=temp_output.PR_params.mean;
         
-        i_batch=max(1,this_neighbourhood.batch_ID-1);
+        i_batch_prev=max(1,this_neighbourhood.batch_ID-1);
         %         neurons=this_neighbourhood.neurons(i_cell_group_to_nhood);
         properties={'PR_params'};summary_stat={'mean'};
-        temp_output=grab_values_from_neurons(i_batch,neurons,properties,summary_stat);
+        temp_output=grab_values_from_neurons(i_batch_prev,neurons,properties,summary_stat);
         gamma_mean_previous=temp_output.PR_params.mean;
         
         flags=   (abs(gamma_mean-gamma_mean_previous)<group_profile.regroup_func_params.change_threshold) & ...

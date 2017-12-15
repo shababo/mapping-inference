@@ -26,7 +26,7 @@ stim_location_this_group=struct;
 grid_coord = zeros(sum(design_params.candidate_grid_params.number)+1,3);
 i_count=1;
 grid_coord(i_count,:)=zeros(1,3);
-for i_circle=1:length(design_params.candidate_grid_params.number)
+for i_circle=1:length(design_params.candidate_grid_params.radius)
     this_grid_number=design_params.candidate_grid_params.number(i_circle);
     for i_grid = 1:this_grid_number
         i_count=i_count+1;
@@ -44,6 +44,8 @@ switch group_ID
         grid_this_cell(:,3)= z_depth;
         
     case 'connected'
+        
+    case 'alive'
         
 end
 

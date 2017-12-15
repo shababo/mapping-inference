@@ -1,4 +1,4 @@
-function [experiment_query_this_group] = design_connected(this_neighbourhood,group_profile,experiment_setup)
+function [experiment_query_this_group] = design_alive(this_neighbourhood,group_profile,experiment_setup)
 % Output:
 % The experiment_query_this_group struct with fields:
 %    experiment_query_this_group.trials(i_trial).location_IDs=this_trial_location_IDs;
@@ -7,7 +7,8 @@ function [experiment_query_this_group] = design_connected(this_neighbourhood,gro
 %        experiment_query_this_group.trials(i_trial).locations=this_trial_locations;
 
 
-disp('designs connected')
+group_profile = get_alive;
+disp('designs alive')
 group_ID=group_profile.group_ID;
 
 power_levels=group_profile.design_func_params.trials_params.power_levels;
@@ -31,16 +32,16 @@ else
     probability_weights = ones(number_cells_this_group,1);
 end
 
-switch group_profile.design_func_params.trials_params.stim_design
-    case 'Optimal'
-        gain_samples=zeros(group_profile.inference_params.MCsamples_for_posterior,...
+% switch group_profile.design_func_params.trials_params.stim_design
+%     case 'Optimal'
+        gain_samples=zeros(group_profile.design_func_params.trials_params.MCsamples_for_posterior,...
             number_cells_nhood);
         for i_cell_group = 1:number_cells_nhood
             alpha_gain=this_neighbourhood.neurons(i_cell_group).gain_params(end).alpha;
             beta_gain=this_neighbourhood.neurons(i_cell_group).gain_params(end).beta;
-            temp=normrnd(alpha_gain,beta_gain,[group_profile.inference_params.MCsamples_for_posterior 1]);
+            temp=normrnd(alpha_gain,beta_gain,[group_profile.design_func_params.trials_params.MCsamples_for_posterior 1]);
             gain_samples(:,i_cell_group) = exp(temp)./(1+exp(temp))*...
-                range(group_profile.inference_params.bounds.gain)+group_profile.inference_params.bounds.gain(1);
+                range(group_profile.design_func_params.trials_params.bounds.gain)+group_profile.design_func_params.trials_params.bounds.gain(1);
         end
         
         % calculate the firing probability
@@ -95,47 +96,48 @@ switch group_profile.design_func_params.trials_params.stim_design
                 prob_available = weighted_max_value_loc.*still_available;
                 
                 if sum(prob_available) >0 % if there are still some options..
-                if i_loc == 1
-                    index_loc=1;
-                else
-                    index_loc = ...
-                        randsample(1:length(weighted_max_value_loc),1,true,prob_available);
-                end
-                    % Update the availability:
-%                     fprintf('%d',index_I);
-                    na_index=find(sqrt(sum((candidate_grid - ones(size(candidate_grid,1),1)*candidate_grid(index_loc,:)).^2,2))<group_profile.design_func_params.trials_params.min_gap_stim);
-                   still_available(na_index)=0;
-                    
+                    if i_loc == 1
+                        index_loc=1;
+                    else
+                        index_loc = ...
+                            randsample(1:length(weighted_max_value_loc),1,true,prob_available);
+                    end
+                        % Update the availability:
+    %                     fprintf('%d',index_I);
+                       na_index=find(sqrt(sum((candidate_grid - ones(size(candidate_grid,1),1)*candidate_grid(index_loc,:)).^2,2))<group_profile.design_func_params.trials_params.min_gap_stim);
+                       still_available(na_index)=0;
+
                 else % Randomly pick one
                     index_loc = ...
                         randsample(1:length(weighted_max_value_loc),1,true,ones(length(weighted_max_value_loc),1));
                     
                 end
                 loc_selected(i_cell_group,i_loc)=index_loc;
-                power_selected(i_cell_group,i_loc)=group_profile.design_func_params.trials_params.power_levels(index_I(index_loc));
+                power_ind = min(index_I(index_loc)+1,length(group_profile.design_func_params.trials_params.power_levels));
+                power_selected(i_cell_group,i_loc)=group_profile.design_func_params.trials_params.power_levels(power_ind);
                 
             end
         end
+%         
+%     case 'Nuclei'
         
-    case 'Nuclei'
+%         loc_selected=ones(number_cells_this_group,1);
+%         power_selected=zeros(number_cells_this_group,1);
         
-        loc_selected=ones(number_cells_this_group,1);
-        power_selected=zeros(number_cells_this_group,1);
-        
-    case 'Random'
-        
-        loc_selected=zeros(number_cells_this_group,1);
-        for i_cell_group = 1:number_cells_this_group
-            i_cell_nhood=i_cell_group_to_nhood(i_cell_group);
-            grid_points_this_cell = size(this_neighbourhood.neurons(i_cell_nhood).stim_locations.(group_ID).grid,1);
-            loc_selected(i_cell_group)=randsample(1:grid_points_this_cell,1,true);
-        end
-        
-        power_selected=zeros(number_cells_this_group,1);
-        
-    otherwise
-        % throw a warning?
-end
+%     case 'Random'
+%         
+%         loc_selected=zeros(number_cells_this_group,1);
+%         for i_cell_group = 1:number_cells_this_group
+%             i_cell_nhood=i_cell_group_to_nhood(i_cell_group);
+%             grid_points_this_cell = size(this_neighbourhood.neurons(i_cell_nhood).stim_locations.(group_ID).grid,1);
+%             loc_selected(i_cell_group)=randsample(1:grid_points_this_cell,1,true);
+%         end
+%         
+%         power_selected=zeros(number_cells_this_group,1);
+%         
+%     otherwise
+%         % throw a warning?
+% end
 
 experiment_query_this_group=struct;
 experiment_query_this_group.group_ID=group_ID;
@@ -175,19 +177,19 @@ for i_cell_group = 1:number_cells_this_group
         this_trial_locations=this_neighbourhood.neurons(i_cell_nhood).stim_locations.(group_ID).grid(this_trial_location_IDs,:);
         
         
-        switch  group_profile.design_func_params.trials_params.stim_design
-            case 'Optimal'
+%         switch  group_profile.design_func_params.trials_params.stim_design
+%             case 'Optimal'
                 this_trial_power_levels=power_selected(i_cell_group);
-                if rand(1) < mean_gamma(i_cell_group)
-                    this_trial_power_levels=...
-                        experiment_setup.prior_info.induced_intensity.fire_stim_threshold./(neurons_this_group(i_cell_group).stim_locations.(group_ID).effect(i_cell_nhood,loc_selected(i_cell_group))...
-                        *gain_samples(randsample(1:group_profile.inference_params.MCsamples_for_posterior,1),i_cell_nhood));
-                    this_trial_power_levels=max(min(power_levels),min(this_trial_power_levels,max(power_levels)));
-                end
+%                 if rand(1) < mean_gamma(i_cell_group)
+%                     this_trial_power_levels=...
+%                         experiment_setup.prior_info.induced_intensity.fire_stim_threshold./(neurons_this_group(i_cell_group).stim_locations.(group_ID).effect(i_cell_nhood,loc_selected(i_cell_group))...
+%                         *gain_samples(randsample(1:group_profile.inference_params.MCsamples_for_posterior,1),i_cell_nhood));
+%                     this_trial_power_levels=max(min(power_levels),min(this_trial_power_levels,max(power_levels)));
+%                 end
                 
-            otherwise
-                this_trial_power_levels=randsample(group_profile.design_func_params.trials_params.power_levels,1,true);
-        end
+%             otherwise
+%                 this_trial_power_levels=randsample(group_profile.design_func_params.trials_params.power_levels,1,true);
+%         end
         
         if strcmp(experiment_setup.experiment_type,'experiment') || experiment_setup.sim.use_power_calib
             high_power = 1;

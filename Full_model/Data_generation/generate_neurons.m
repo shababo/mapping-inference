@@ -30,11 +30,11 @@ else
             simulation_params.dimension(1,i_dimension);
     end
 end
-
+number_of_cells = size(cell_locations,1);
 
 extra_locations = 2*pi*rand(simulation_params.siblings.number,size(simulation_params.dimension,2)); % only need the first two columns
 for i= 1:simulation_params.siblings.number
-    temp_cell=randsample(1:simulation_params.number_of_cells,1);
+    temp_cell=randsample(1:number_of_cells,1);
     extra_locations(i,:)=cell_locations(temp_cell,:)+ ...
         simulation_params.siblings.distance*[sin(extra_locations(i,1))*sin(extra_locations(i,2)),...
         cos(extra_locations(i,1))*sin(extra_locations(i,2)),cos(extra_locations(i,2))];
@@ -42,7 +42,7 @@ end
 
 cell_locations=[cell_locations;extra_locations];
 
-number_of_cells = size(cell_locations,1);
+
 
 
 funcs.invlink = @invlink_sig;%@(resp) log(1 + exp(resp));%@(x) exp(x);
