@@ -143,7 +143,7 @@ experiment_setup.prior_info.template_cell,experiment_setup.prior_info.delay,expe
 
 experiment_setup.neighbourhood_params=struct;
 
-experiment_setup.neighbourhood_params.z_bounds=[10 70]; % leave empty for no bounds 
+experiment_setup.neighbourhood_params.z_bounds=[]; % leave empty for no bounds 
 experiment_setup.neighbourhood_params.x_bounds=[-145 145]; % leave empty for no bounds 
 experiment_setup.neighbourhood_params.y_bounds=[-145 145]; % leave empty for no bounds 
 experiment_setup.neighbourhood_params.number=10;
