@@ -31,7 +31,7 @@ for k = 1:num_neighbourhoods
     end
     
     figure
-    [vclamp_map, psc_time_map, color_map] = build_vclamp_grid(experiment_setup,trials,3);
+    [vclamp_map, psc_time_map, color_map] = build_vclamp_grid(experiment_setup,trials,1);
     plot_timeseries_map(vclamp_map,Inf,1,0,color_map,[],[],psc_time_map);
     title(['Neighbourhood ' num2str(k)])
 
