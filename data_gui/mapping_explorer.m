@@ -106,7 +106,7 @@ primary_neurons = neighbourhood.neurons(~get_group_inds(neighbourhood,'secondary
 neuron_locs = get_rowmat_from_structarray(primary_neurons,'location');
 neuron_groups = cell(0);
 neuron_colors = zeros(size(neuron_locs));
-group_colors={'DarkRed', 'DarkGreen', 'DarkCyan' 'BlueViolet' 'Black'};
+group_colors={'DarkRed', 'DarkGray', 'ForestGreen' 'BlueViolet' 'Black'};
 for i_cell = 1:length(primary_neurons)
     neuron_groups{i_cell} = primary_neurons(i_cell).group_ID{handles.data.batch_ID};
     switch primary_neurons(i_cell).group_ID{handles.data.batch_ID}
