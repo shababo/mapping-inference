@@ -17,7 +17,7 @@ bin
 build
 
 *.mat
-*.fig
+#*.fig
 *.jpg
 *.png
 *.pdf
