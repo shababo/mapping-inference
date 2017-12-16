@@ -9,7 +9,7 @@ locs_img(:,1:2) = locs_img(:,[2 1]);
 % sizes = 5*ones(size(locs_img,1),1);
 
 imagesc(max(image,[],3));
-% caxis([0 4000])
+caxis([0 2500])
 M = 12500;
 G = linspace(0,1,M)';
 myGmap = horzcat(G, zeros(size(G)) , zeros(size(G)));
