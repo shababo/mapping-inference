@@ -1,8 +1,31 @@
 function reproduction_setup = get_reproduction_setup(varargin)
+% General idea:
+%  - Run each step of run_mapping_experiment (neighbourhood creations,
+%  design trials, phase mask calibration, collect data (simulate data), 
+%  event detection via OASIS, variational inference
+%  - At each step, report discrepency between the reproduced results and
+%  records, AND replace the reproduced results with records to continue the
+%  process 
 
 
 reproduction_setup=struct;
 reproduction_setup.file_name='./Data/NewData/12_14_16_49/12_14_16_49_data.mat';
+
+% FLAG FOR USING THE EXACT SAME SETTING
+% NOTE: this should be relaxed to allow for using different hyperparameters
+% etc for sensitivity analysis 
+reproduction_setup.use_same_setting = true;
+
+reproduction_setup.rep_params=struct;
+reproduction_setup.rep_params.neighbourhoods = true; % Create neighbourhoods
+reproduction_setup.rep_params.trials = false; % Design trials 
+reproduction_setup.rep_params.phase_mask = false; % Calculate phase masks
+reproduction_setup.rep_params.events = false;  % Simulate events
+reproduction_setup.rep_params.VC = false;  % Simulate voltage clamp
+reproduction_setup.rep_params.event_detection=false; % Run event detection
+reproduction_setup.rep_params.inference=true; % Fit the model
+
+
 
 % 
 % 
