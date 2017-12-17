@@ -1,4 +1,4 @@
-function experiment_setup = get_experiment_setup_dev(varargin)
+function experiment_setup = get_experiment_setup(varargin)
 
 
 
