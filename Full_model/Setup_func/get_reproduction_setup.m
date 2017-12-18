@@ -28,8 +28,9 @@ reproduction_setup.rep_params.write_out=false; % whether to write out files
 
 % FUNCTIONS FOR EVALUATING DISCREPENCY
 reproduction_setup.rep_func=struct;
-reproduction_setup.rep_func.neighbourhoods_comparison=[]; 
-reproduction_setup.rep_func.designs_comparison=[]; 
+reproduction_setup.rep_func.neighbourhoods_comparison=@(a, b) []; 
+reproduction_setup.rep_func.designs_comparison=@(a, b) []; 
+reproduction_setup.rep_func.posteriors_comparison=@(a, b) [];
 reproduction_setup.visualize =false;
 % 
 % 
