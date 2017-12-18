@@ -44,7 +44,7 @@ for i=1:length(neurons)
              markercolor=group_color_list{5};
     end
 scatter(gamma_truth(i),gamma_est(i),'Marker','o','SizeData',25,...
-    'MarkerFaceColor',markercolor, 'MarkerEdgeColor',markercolor, 'MarkerFaceAlpha',0.8)
+    'MarkerFaceColor',markercolor, 'MarkerEdgeColor',markercolor);%, 'MarkerFaceAlpha',0.8)
 hold on;
 end
 x=[0 1];y=[0 1];
@@ -63,7 +63,7 @@ subplot(1,2,2)       % add first plot in 2 x 1 grid
 
 
 scatter(gain_truth(find(gamma_truth>0)),gain_est(find(gamma_truth>0)),'Marker','o','SizeData',25,...
-    'MarkerFaceColor','k', 'MarkerEdgeColor','k', 'MarkerFaceAlpha',0.8)
+    'MarkerFaceColor','k', 'MarkerEdgeColor','k');%, 'MarkerFaceAlpha',0.8)
 hold on;
 x=[0 1];y=[0 1];
 line(x,y,'Color','red','LineStyle','--')
@@ -80,7 +80,7 @@ ylabel('Estimated optical gain');
 fig.Units = 'inches';
 fig.Position = [0 0 8 4];
 
-saveas(figure_index,strcat(save_path,'plots/', 'Fits',num2str(figure_index),'.png'));
+saveas(figure_index,fullfile(save_path,'plots', ['Fits' num2str(figure_index) '.png']));
 close(figure_index)
 
 

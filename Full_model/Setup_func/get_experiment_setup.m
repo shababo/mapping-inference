@@ -67,7 +67,7 @@ experiment_setup.max_spots_per_trial = max_spots_per_trial;
 % Get sim paramters
 % sim params
 switch  experiment_setup.experiment_type
-    case 'simulation'
+    case {'simulation','experiment'}
         experiment_setup.sim = get_simulation_setup;
     case 'reproduction'
         experiment_setup.rep = get_reproduction_setup;
@@ -208,7 +208,7 @@ else
     experiment_setup.exp.foe_bounds = [-148 148; -148 148; 0 400];
     
     % more experimental experiment_setup
-    experiment_setup.exp.sim_locs = 0;
+    experiment_setup.exp.sim_locs = 1;
     experiment_setup.exp.stim_duration = .003; % length of laser on
     experiment_setup.run_parfor = 0;
     
@@ -250,16 +250,7 @@ else
     experiment_setup.exp.filter_config = 'Femto Phasor';
     experiment_setup.exp.sweep_time_padding = 2.5; % in sec
     
-    experiment_setup.exp.sim_response = 0;
+    experiment_setup.exp.sim_response = 1;
     experiment_setup.exp.run_online_detection = 1;
 end
-
-experiment_setup.exp.phase_mask_struct = 1;
-experiment_setup.exp.max_trials_per_sweep = 1000;
-experiment_setup.exp.first_stim_time = 1.0; % in sec
-experiment_setup.exp.filter_config = 'Femto Phasor';
-experiment_setup.exp.sweep_time_padding = 2.5; % in sec
-
-experiment_setup.exp.sim_response = 0;
-experiment_setup.exp.run_online_detection = 1;
 
