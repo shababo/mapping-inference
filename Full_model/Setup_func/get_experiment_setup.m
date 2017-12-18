@@ -101,10 +101,16 @@ if strcmp(experiment_setup.experiment_type,'reproduction')
         experiment_setup.analysis_root=temp_setup.analysis_root;
        
         experiment_setup.rep=temp_setup.rep;
+        if isfield(temp_setup,'sim')
+            experiment_setup.sim=temp_setup.sim;
+        end
         experiment_setup.records=struct;
         experiment_setup.records.queries=experiment_queries;
         experiment_setup.records.neighbourhoods=neighbourhoods;
-        
+        experiment_setup.reproduced=struct;
+        % INITIALIZE WITH RECORDS TO AVOID DISSIMILAR STRUCTURES
+        experiment_setup.reproduced.queries=experiment_queries;
+        experiment_setup.reproduced.neighbourhoods=neighbourhoods;
     end
 else
     

@@ -17,15 +17,19 @@ reproduction_setup.file_name='./Data/NewData/12_14_16_49/12_14_16_49_data.mat';
 reproduction_setup.use_same_setting = true;
 
 reproduction_setup.rep_params=struct;
-reproduction_setup.rep_params.neighbourhoods = true; % Create neighbourhoods
+reproduction_setup.rep_params.neighbourhoods = false; % Create neighbourhoods
 reproduction_setup.rep_params.trials = false; % Design trials 
 reproduction_setup.rep_params.phase_mask = false; % Calculate phase masks
 reproduction_setup.rep_params.events = false;  % Simulate events
 reproduction_setup.rep_params.VC = false;  % Simulate voltage clamp
 reproduction_setup.rep_params.event_detection=false; % Run event detection
 reproduction_setup.rep_params.inference=true; % Fit the model
+reproduction_setup.rep_params.write_out=false; % whether to write out files
 
-
+% FUNCTIONS FOR EVALUATING DISCREPENCY
+reproduction_setup.rep_func=struct;
+reproduction_setup.rep_func.neighbourhoods_comparison=[]; 
+reproduction_setup.rep_func.designs_comparison=[]; 
 
 % 
 % 
