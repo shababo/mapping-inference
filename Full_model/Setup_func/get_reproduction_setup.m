@@ -30,7 +30,7 @@ reproduction_setup.rep_params.write_out=false; % whether to write out files
 reproduction_setup.rep_func=struct;
 reproduction_setup.rep_func.neighbourhoods_comparison=[]; 
 reproduction_setup.rep_func.designs_comparison=[]; 
-
+reproduction_setup.visualize =false;
 % 
 % 
 % reproduction_setup.dimension=[-150 -150 0;150 150 30]; % there will be only two neighbourhoods 
