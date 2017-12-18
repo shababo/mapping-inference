@@ -47,7 +47,9 @@ posteriors=grab_values_from_neurons(i_batch,neurons,properties,summary_stat);
 figure(fighandle);
 
 subplot(3,4,(neighbourhood.neighbourhood_ID - 1)*4 + 1) 
-imagesc(max(neighbourhood.stack,[],3));
+if isfield(neighbourhood,'stack')
+    imagesc(max(neighbourhood.stack,[],3));
+end
 title(['Neighbourhood ' num2str(neighbourhood.neighbourhood_ID)])
 %%
 % subplot(3,4,(neighbourhood.neighbourhood_ID - 1)*4 + 2) 

@@ -63,8 +63,9 @@ for i_neighbourhood = 1:number_of_neighbourhoods
    neighbourhoods(i_neighbourhood).center = [0 0 mean(z_locs)]; % mean(z_borders(i_neighbourhood:i_neighbourhood+1))];
    neighbourhoods(i_neighbourhood).computing_time=struct;
    neighbourhoods(i_neighbourhood).batch_ID=1;
+   if isfield(experiment_setup,'stack')
    neighbourhoods(i_neighbourhood).stack = experiment_setup.stack(:,:,(5:15) + (i_neighbourhood-1)*10);
-   
+   end
 end
 
 

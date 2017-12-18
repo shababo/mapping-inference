@@ -1,40 +1,40 @@
-function plot_voltage_clamp_spatial(experiment_setup,neighbourhood_ID,batch_IDs,varargin)
+function plot_voltage_clamp_spatial(datafilename)
 
-if ~isempty(varargin) && ~isempty(varargin{1})
-    
-    dirpath = varargin{1};
- 
-else
-    
-    dirpath = experiment_setup.analysis_root;
-end
-    
+load(datafilename)
+
 group_names = experiment_setup.group_names;
+num_neighbourhoods = size(neighbourhoods,1);
+num_batches = size(neighbourhoods,2);
 
 % load batches and collect trials
-for i = 1:length(batch_IDs)
+
+for k = 1:num_neighbourhoods
     
-    batchsavepath = [dirpath experiment_setup.exp_id ...
-                    '_n' num2str(neighbourhood_ID)...
-                    '_b' num2str(batch_IDs(i)) '_complete.mat'];
-                
-    load(batchsavepath)
-    for j = 1:length(group_names)
+    clear trials
+    for i = 2:num_batches
         
-        if isfield(experiment_query,group_names{j}) && ...
-                isfield(experiment_query.(group_names{j}),'trials') && ~isempty(experiment_query.(group_names{j}).trials)
-            if ~exist('trials','var')
-                trials = experiment_query.(group_names{j}).trials;
-            else
-                trials = [trials experiment_query.(group_names{j}).trials];
+        experiment_query = experiment_queries(k,i);
+        
+        for j = 1:length(group_names)
+
+            if isfield(experiment_query,group_names{j}) && ...
+                    isfield(experiment_query.(group_names{j}),'trials') && ~isempty(experiment_query.(group_names{j}).trials)
+                if ~exist('trials','var')
+                    trials = experiment_query.(group_names{j}).trials;
+                else
+                    trials = [trials experiment_query.(group_names{j}).trials];
+                end
             end
-        end
-        
-    end
-                
-end
 
-[vclamp_map, psc_time_map] = build_vclamp_grid(experiment_setup,trials,3);
+        end
+
+    end
+    
+    figure
+    [vclamp_map, psc_time_map, color_map, linewidth_map, cell_map] = build_vclamp_grid(experiment_setup,trials,1);
+    assignin('base','cell_map',cell_map)
+    plot_timeseries_map(vclamp_map,Inf,1,0,color_map,linewidth_map,cell_map,psc_time_map);
+    title(['Neighbourhood ' num2str(k)])
     
 
-plot_trace_stack_grid(vclamp_map,Inf,1,0,[],[],[],psc_time_map);
+end
