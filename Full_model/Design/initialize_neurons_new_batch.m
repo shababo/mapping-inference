@@ -1,6 +1,6 @@
 function  [this_neighbourhood] =initialize_neurons_new_batch(this_neighbourhood)
 
-
+% this_neighbourhood =neighbourhood;
 number_of_cells=length(this_neighbourhood.neurons);
 i_batch=this_neighbourhood.batch_ID;
 
