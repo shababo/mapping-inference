@@ -252,6 +252,6 @@ else
     experiment_setup.exp.sweep_time_padding = 2.5; % in sec
     
     experiment_setup.exp.sim_response = 1;
-    experiment_setup.exp.run_online_detection = 1;
+%     experiment_setup.exp.run_online_detection = 1;
 end
 
