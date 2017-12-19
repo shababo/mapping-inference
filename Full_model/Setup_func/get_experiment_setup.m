@@ -7,16 +7,16 @@ function experiment_setup = get_experiment_setup(varargin)
 % parameters
 
 if ~isempty(varargin) && ~isempty(varargin{1})
-    location_str = varargin{1};
+    param_preset_ID = varargin{1};
 else
-    location_str = 'millennium_falcon';
+    param_preset_ID = 'millennium-falcon-mapping';
 end
 
 % experiment; simulation; reproduction
 
-experiment_setup.experiment_type='experiment'; % experiment; simulation; reproduction
+ % experiment; simulation; reproduction
 
-switch location_str
+switch param_preset_ID
     case 'szchen-sim'
         experiment_setup.exp_root = 'C:/Users/Shizhe/Documents/Mapping_data/Data/';
         experiment_setup.analysis_root = 'C:/Users/Shizhe/Documents/Mapping_data/tmp/';
@@ -26,12 +26,25 @@ switch location_str
         experiment_setup.analysis_root = 'C:/Users/Shizhe/Documents/Mapping_data/tmp/';
         experiment_setup.experiment_type='reproduction';
         
-    case 'millennium_falcon'
+    case 'millennium-falcon-mapping'
+        experiment_setup.experiment_type='experiment';
         experiment_setup.exp_root = 'C:\data\Shababo\';
         experiment_setup.analysis_root = '/media/shababo/data/'; % make sure to add ending slash
         experiment_setup.ephys_mapped_drive = '/home/shababo/slidebook-comp/';
         experiment_setup.phase_mask_dir = 'W:\';
-    case 'shababo'
+    case 'millennium-falcon-exp-sim'
+        experiment_setup.experiment_type='experiment';
+        experiment_setup.exp_root = 'C:\data\Shababo\';
+        experiment_setup.analysis_root = '/media/shababo/data/'; % make sure to add ending slash
+        experiment_setup.ephys_mapped_drive = '/home/shababo/slidebook-comp/';
+        experiment_setup.phase_mask_dir = 'W:\';
+    case 'turing-rep'
+        experiment_setup.experiment_type='reproduction';
+        experiment_setup.exp_root = '/media/shababo/data/';
+        experiment_setup.analysis_root = '/media/shababo/data/'; % make sure to add ending slash
+        experiment_setup.ephys_mapped_drive = '/home/shababo/slidebook-comp/';
+        experiment_setup.phase_mask_dir = '/home/shababo/slidebook-comp/';
+    case 'shababo-mbp-sim'
         experiment_setup.exp_root = '/Users/shababo/projects/mapping/data/sim_tmp/';
         experiment_setup.analysis_root = '/Users/shababo/projects/mapping/data/sim_tmp/';
 end
@@ -73,14 +86,15 @@ switch  experiment_setup.experiment_type
         experiment_setup.rep = get_reproduction_setup;
 end
 
-switch location_str
+switch param_preset_ID
     case 'szchen-sim'
         experiment_setup.sim.compute_phase_masks=0;
         experiment_setup.sim.use_power_calib =0;
-    case 'szchen-rep'
+    case {'szchen-rep','turing-rep'}
         experiment_setup.rep.compute_phase_masks=0;
         experiment_setup.rep.use_power_calib =0;
-    case 'millennium_falcon'
+        experiment_setup.rep.file_name=[experiment_setup.analysis_root '/12_13_17_0/12_13_17_0_data.mat'];
+    case 'millennium-falcon-mapping'
         experiment_setup.sim.compute_phase_masks=1;
 end
 
