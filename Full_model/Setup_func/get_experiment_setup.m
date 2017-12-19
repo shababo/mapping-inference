@@ -202,8 +202,7 @@ else
     experiment_setup.exp.max_power_ref = max(experiment_setup.exp.pockels_lut(2,:));
     experiment_setup.exp.min_full_foe_power = experiment_setup.exp.max_power_ref/max(ratio_map(:));
     
-    experiment_setup.exp.max_spike_freq = .5; % don't revisit cells on average sooner than this in Hz
-    experiment_setup.exp.max_stim_freq = 1000/(50+4); % max frequency for system
+    
     % experiment_setup.exp.min_iti = 55; % min iti for slidebook
     experiment_setup.exp.foe_bounds = [-148 148; -148 148; 0 400];
     
@@ -211,6 +210,8 @@ else
     experiment_setup.exp.sim_locs = 1;
     experiment_setup.exp.stim_duration = .003; % length of laser on
     experiment_setup.run_parfor = 0;
+    experiment_setup.exp.max_spike_freq = .5; % don't revisit cells on average sooner than this in Hz
+    experiment_setup.exp.max_stim_freq = 1/(.050 + experiment_setup.exp.stim_duration + .001); % max frequency for system
     
     experiment_setup.phase_base_file = 1;
     if strcmp(experiment_setup.experiment_type,'experiment') || experiment_setup.sim.compute_phase_masks
@@ -245,7 +246,7 @@ else
         
     end
     experiment_setup.exp.phase_mask_struct = 1;
-    experiment_setup.exp.max_trials_per_sweep = 400;
+    experiment_setup.exp.max_trials_per_sweep = 1000;
     experiment_setup.exp.first_stim_time = 1.0; % in sec
     experiment_setup.exp.filter_config = 'Femto Phasor';
     experiment_setup.exp.sweep_time_padding = 2.5; % in sec

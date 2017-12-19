@@ -33,7 +33,7 @@ stim_threshold=prior_info.induced_intensity.minimum_stim_threshold/group_profile
 batch_ID=this_neighbourhood.batch_ID;
 neurons=this_neighbourhood.neurons(:);
 properties={'PR_params','gain_params'};summary_stat={'pi_logit','alpha','beta'};
-temp_output=grab_values_from_neurons(batch_ID,neurons,properties,summary_stat);
+temp_output=grab_values_from_neurons(Inf,neurons,properties,summary_stat);
 
 variational_params=struct;
 temp=num2cell(temp_output.PR_params.pi_logit);[variational_params(1:num_cells_nhood).p_logit]=temp{:};
