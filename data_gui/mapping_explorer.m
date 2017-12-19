@@ -104,6 +104,7 @@ set(handles.batch_ID_text,'string',['Batch ID: ' num2str(handles.data.batch_ID)]
 
 primary_neurons = neighbourhood.neurons(~get_group_inds(neighbourhood,'secondary',handles.data.batch_ID));
 neuron_locs = get_rowmat_from_structarray(primary_neurons,'location');
+all_neurons = get_rowmat_from_structarray(handles.data.experiment_setup.neurons,'location');
 neuron_groups = cell(0);
 neuron_colors = zeros(size(neuron_locs));
 group_colors={'DarkRed', 'DarkGray', 'ForestGreen' 'BlueViolet' 'Black'};
@@ -127,7 +128,7 @@ end
 
 % max proj of stack
 axes(handles.stack_axes) 
-plot_max_proj_w_locs(neighbourhood.stack,neuron_locs,handles.data.experiment_setup);
+plot_max_proj_w_locs(neighbourhood.stack,neuron_locs,all_neurons,handles.data.experiment_setup);
 
 % plot parameter estimates from posteriors
 properties = {'PR_params','gain_params'};

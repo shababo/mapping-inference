@@ -1,3 +1,4 @@
+
 function connected_profile= get_connected()
 
 % basics
@@ -20,7 +21,8 @@ connected_profile.design_func_params.trials_per_cell=20;
 connected_profile.design_func_params.trials_params.power_levels=30:10:100;
 connected_profile.design_func_params.trials_params.stim_design='Optimal';
 connected_profile.design_func_params.trials_params.MCsamples_for_posterior=50;
-connected_profile.design_func_params.trials_params.trials_per_batch=200;   
+connected_profile.design_func_params.trials_params.trials_per_batch=400
+;   
 connected_profile.design_func_params.trials_params.num_stim_sites=4;   
 connected_profile.design_func_params.trials_params.min_gap_stim=9.5;   
 connected_profile.design_func_params.trials_params.bounds.gain=[0.005 0.03];
