@@ -9,7 +9,11 @@ if simulation_params.use_real_map
         warning('Real cell maps not specified.')
         
     else
-        cell_map_path =[experiment_setup.exp_root simulation_params.real_map_name];
+        if strcmp(experiment_setup.experiment_type,'simulation')
+            cell_map_path =[experiment_setup.exp_root simulation_params.real_map_name];
+        else
+            cell_map_path =[experiment_setup.analysis_root simulation_params.real_map_name];
+        end
         if ~exist(cell_map_path, 'file')
             warning(['Specified cell maps not found in ' cell_map_path '.'])
         else

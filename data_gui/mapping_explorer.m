@@ -102,15 +102,16 @@ set(handles.exp_id_text,'string',['Experiment ID: ' handles.data.experiment_setu
 set(handles.neighbourhood_ID_text,'string',['Neighbourhood ID: ' num2str(handles.data.neighbourhood_ID)])
 set(handles.batch_ID_text,'string',['Batch ID: ' num2str(handles.data.batch_ID)])
 
-primary_neurons = neighbourhood.neurons(~get_group_inds(neighbourhood,'secondary',handles.data.batch_ID));
-neuron_locs = get_rowmat_from_structarray(primary_neurons,'location');
-all_neurons = get_rowmat_from_structarray(handles.data.experiment_setup.neurons,'location');
+primary_neuron_inds = ~get_group_inds(neighbourhood,'secondary',handles.data.batch_ID);
+all_neurons = neighbourhood.neurons;
+neuron_locs = get_rowmat_from_structarray(all_neurons,'location');
 neuron_groups = cell(0);
 neuron_colors = zeros(size(neuron_locs));
 group_colors={'DarkRed', 'DarkGray', 'ForestGreen' 'BlueViolet' 'Black'};
-for i_cell = 1:length(primary_neurons)
-    neuron_groups{i_cell} = primary_neurons(i_cell).group_ID{handles.data.batch_ID};
-    switch primary_neurons(i_cell).group_ID{handles.data.batch_ID}
+true_connections = zeros(length(all_neurons),1);
+for i_cell = 1:length(all_neurons)
+    neuron_groups{i_cell} = all_neurons(i_cell).group_ID{handles.data.batch_ID+1};
+    switch neuron_groups{i_cell}
         case 'disconnected'
             i_group = 1;
         case 'undefined'
@@ -123,36 +124,45 @@ for i_cell = 1:length(primary_neurons)
             i_group = 5;
     end
     neuron_colors(i_cell,:) = rgb(group_colors{i_group});
+    if all_neurons(i_cell).truth.PR
+        true_connections(i_cell) = 1;
+    end
 end
-
+true_connections = true_connections & primary_neuron_inds';
+assignin('base','true_connections',true_connections)
 
 % max proj of stack
 axes(handles.stack_axes) 
-plot_max_proj_w_locs(neighbourhood.stack,neuron_locs,all_neurons,handles.data.experiment_setup);
+plot_max_proj_w_locs(neighbourhood.stack,neuron_locs,neuron_colors,handles.data.experiment_setup);
 
 % plot parameter estimates from posteriors
 properties = {'PR_params','gain_params'};
 summary_stat = {'lower_quantile','mean','upper_quantile'};
-posteriors = grab_values_from_neurons(handles.data.batch_ID,primary_neurons,properties,summary_stat);
+posteriors = grab_values_from_neurons(handles.data.batch_ID,all_neurons(primary_neuron_inds),properties,summary_stat);
 
 axes(handles.gamma_axes)
-scatter(neuron_locs(:,2),neuron_locs(:,1),posteriors.PR_params.mean*100,neuron_colors,'filled')
+scatter(neuron_locs(primary_neuron_inds,2),neuron_locs(primary_neuron_inds,1),posteriors.PR_params.mean*100,neuron_colors(primary_neuron_inds,:),'filled')
 axis ij
 ylim([-152 152])
 xlim([-152 152])
+hold on
+scatter(neuron_locs(true_connections,2),neuron_locs(true_connections,1),1.2*100,neuron_colors(true_connections,:))
+hold off
 
 axes(handles.gain_axes)
-scatter(neuron_locs(:,2),neuron_locs(:,1),posteriors.gain_params.mean*2500,neuron_colors,'filled')
+scatter(neuron_locs(primary_neuron_inds,2),neuron_locs(primary_neuron_inds,1),posteriors.gain_params.mean*2500,neuron_colors(primary_neuron_inds,:),'filled')
 axis ij
 ylim([-152 152])
 xlim([-152 152])
 
 axes(handles.batch_path_axes)
-hold off
-for i_cell = 1:length(primary_neurons)
-    plot([primary_neurons(i_cell).PR_params.mean],'Color',neuron_colors(i_cell,:))
-    hold on
+for i_cell = 1:length(all_neurons)
+    if primary_neuron_inds(i_cell)
+        plot([all_neurons(i_cell).PR_params.mean],'Color',neuron_colors(i_cell,:))
+        hold on
+    end
 end
+hold off
 
 
 

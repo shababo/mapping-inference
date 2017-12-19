@@ -6,7 +6,7 @@ neurons = this_neighbourhood(:).neurons;
 if ~isempty(varargin)
    figure_index = varargin{1}; 
 else
-    figure_index=1; % can change to random numbers 
+   figure_index=randi(500); % can change to random numbers 
 end
 number_of_cells = length(neurons);
 gain_truth=zeros(number_of_cells,1);
@@ -23,7 +23,8 @@ end
 
 
 
-group_color_list=[{'g'} {'b'} {'r'} {'c'} {'y'}]; % these values 
+% group_color_list=[{'g'} {'b'} {'r'} {'c'} {'y'}]; % these values 
+group_colors={'DarkRed', 'DarkGray', 'ForestGreen' 'BlueViolet' 'Black'};
 
 fig=figure(figure_index);
 subplot(1,2,1)       % add first plot in 2 x 1 grid
@@ -31,19 +32,20 @@ for i=1:length(neurons)
     switch neurons(i).group_ID{end}
         case 'undefined'
             
-            markercolor=group_color_list{1};
+            markercolor=rgb(group_colors{2});
         case 'connected'
             
-            markercolor=group_color_list{2};
+            markercolor=rgb(group_colors{3});
         case 'disconnected'
             
-            markercolor=group_color_list{3};
+            markercolor=rgb(group_colors{1});
         case 'alive'
-            markercolor=group_color_list{4};
+            markercolor=rgb(group_colors{4});
         case 'secondary'
-             markercolor=group_color_list{5};
+            continue
+             markercolor=rgb(group_colors{5});
     end
-scatter(gamma_truth(i),gamma_est(i),'Marker','o','SizeData',25,...
+    scatter(gamma_truth(i),gamma_est(i),'Marker','o','SizeData',25,...
     'MarkerFaceColor',markercolor, 'MarkerEdgeColor',markercolor);%, 'MarkerFaceAlpha',0.8)
 hold on;
 end
@@ -57,7 +59,7 @@ ylim([0 1]);
 
 xlabel('True \gamma');
 ylabel('Estimated \gamma');
-
+title(['Neighbourhood: ' num2str(this_neighbourhood.neighbourhood_ID) ', Gamma Performance'])
 
 subplot(1,2,2)       % add first plot in 2 x 1 grid
 
@@ -74,15 +76,16 @@ ylim([0.00 0.03]);
 
 xlabel('True optical gain');
 ylabel('Estimated optical gain');
-
+title(['Neighbourhood: ' num2str(this_neighbourhood.neighbourhood_ID) ', Gain Performance'])
 
 
 fig.Units = 'inches';
 fig.Position = [0 0 8 4];
 
-saveas(figure_index,fullfile(save_path,'plots', ['Fits' num2str(figure_index) '.png']));
-close(figure_index)
-
+if ~isempty(save_path)
+    saveas(figure_index,fullfile(save_path,'plots', ['Fits' num2str(figure_index) '.png']));
+    close(figure_index)
+end
 
 
 end
