@@ -99,6 +99,7 @@ if strcmp(experiment_setup.experiment_type,'reproduction')
         experiment_setup.experiment_type=temp_setup.experiment_type;
         experiment_setup.exp_root=temp_setup.exp_root;
         experiment_setup.analysis_root=temp_setup.analysis_root;
+        experiment_setup.groups=temp_setup.groups;
        
         experiment_setup.rep=temp_setup.rep;
         if isfield(temp_setup,'sim')
