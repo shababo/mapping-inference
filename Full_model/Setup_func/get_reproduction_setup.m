@@ -9,9 +9,7 @@ function reproduction_setup = get_reproduction_setup(varargin)
 
 
 reproduction_setup=struct;
-% reproduction_setup.file_name='./Data/NewData/12_13_17_0/12_13_17_0_data.mat';
 reproduction_setup.file_name='./Data/NewData/12_14_16_49/12_14_16_49_data.mat';
-
 
 % FLAG FOR USING THE EXACT SAME SETTING
 % NOTE: this should be relaxed to allow for using different hyperparameters
