@@ -1,7 +1,12 @@
-function [trial_intensity] = get_intensity_one_trial(trial, neighbourhood,experiment_setup)
+function [trial_intensity] = get_intensity_one_trial(trial, neighbourhood,experiment_setup,varargin)
 
 % neighbourhood = neighbourhoods(2,9);
 % experiment_queries(2,2)
+if ~isempty(varargin)
+   thresholding = varargin{1};
+else
+    thresholding = false;
+end
 
 %%
 
@@ -22,8 +27,13 @@ gamma_mean=temp_output.PR_params.mean;
 gain_mean=temp_output.gain_params.mean;
 %%
 stim_received= gain_mean.*stim_size;
+
 minimum_stim_threshold=experiment_setup.prior_info.induced_intensity.minimum_stim_threshold;
+if thresholding
 stimulated_cells = find(stim_received>minimum_stim_threshold);
+else
+    stimulated_cells = find(stim_received>0);
+end
 stim_effective = stim_received(stimulated_cells);
 gamma_effective=gamma_mean(stimulated_cells);
 
