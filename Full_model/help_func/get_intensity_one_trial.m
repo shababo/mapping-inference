@@ -40,7 +40,7 @@ if ~isempty(stimulated_cells)
     % initialize the struct array before modifying them
     for i_cell = 1:length(stimulated_cells)
         i_cell_this_hood=stimulated_cells(i_cell);
-       trial_intensity.stim_neurons(i_cell).cell_ID=neighbourhood.neurons().cell_ID;
+       trial_intensity.stim_neurons(i_cell).cell_ID=neighbourhood.neurons(i_cell_this_hood).cell_ID;
        trial_intensity.stim_neurons(i_cell).PR=gamma_mean(i_cell_this_hood);
        trial_intensity.stim_neurons(i_cell).gain=gain_mean(i_cell_this_hood);
        trial_intensity.stim_neurons(i_cell).intensity=intensity_grid(stim_index(i_cell),:);
@@ -65,4 +65,5 @@ trial_intensity.scaled_times=scaled_times;
 trial_intensity.event_times=trial.event_times;
 
 trial_intensity.estimated_intensity=estimated_intensity;
-
+trial_intensity.background_rate= experiment_setup.patched_neuron.background_rate;
+trial_intensity.trial_ID=trial.trial_ID;
