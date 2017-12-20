@@ -5,9 +5,12 @@ load(datafilename)
 group_names = experiment_setup.group_names;
 num_neighbourhoods = size(neighbourhoods,1);
 num_batches = size(neighbourhoods,2);
-
+if isfield(experiment_setup,'reproduced')
+    experiment_queries = experiment_setup.records.queries;
+end
 % load batches and collect trials
 
+    
 for k = 1:num_neighbourhoods
     
     clear trials
@@ -27,7 +30,15 @@ for k = 1:num_neighbourhoods
             end
 
         end
+        
 
+    end
+    
+    for i = 1:length(neighbourhoods(k,end).neurons)
+        if ~strcmp(neighbourhoods(k,end).neurons(i).group_ID{end},'secondary')
+            this_ind = find([experiment_setup.neurons.cell_ID] == neighbourhoods(k,end).neurons(i).cell_ID);
+            experiment_setup.neurons(this_ind).group_ID = neighbourhoods(k,end).neurons(i).group_ID{end};
+        end
     end
     
     figure

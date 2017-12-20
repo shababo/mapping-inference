@@ -124,8 +124,8 @@ for i_cell = 1:length(all_neurons)
             i_group = 5;
     end
     neuron_colors(i_cell,:) = rgb(group_colors{i_group});
-    if all_neurons(i_cell).truth.PR
-        true_connections(i_cell) = 1;
+    if ~isnan(all_neurons(i_cell).truth.PR)
+        true_connections(i_cell) = logical(all_neurons(i_cell).truth.PR);
     end
 end
 true_connections = true_connections & primary_neuron_inds';

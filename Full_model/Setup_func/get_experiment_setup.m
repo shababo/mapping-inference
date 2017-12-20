@@ -93,7 +93,7 @@ switch param_preset_ID
     case {'szchen-rep','turing-rep'}
         experiment_setup.rep.compute_phase_masks=0;
         experiment_setup.rep.use_power_calib =0;
-        experiment_setup.rep.file_name=[experiment_setup.analysis_root '/12_13_17_0/12_13_17_0_data.mat'];
+        experiment_setup.rep.file_name=[experiment_setup.analysis_root '/12_14_16_49/12_14_16_49_data.mat'];
     case 'millennium-falcon-mapping'
         experiment_setup.sim.compute_phase_masks=1;
 end
