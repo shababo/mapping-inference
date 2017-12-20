@@ -7,21 +7,21 @@ event_color='r';
 %% Extract all trials that are related to this cell
 
 
-current_group=neighbourhood.neurons(find([neighbourhood.neurons(:).cell_ID]==this_cell_ID)).group_ID{end};
+% current_group=neighbourhood.neurons([neighbourhood.neurons(:).cell_ID]==this_cell_ID).group_ID{end}
 
 % find trials that stimulate this cell
 % NOTE: we are missing cells that target its neighbours.
-num_of_trials = length(this_query.(current_group).trials);
+num_of_trials = length(this_query.trials);
 related_trial_flag = zeros(num_of_trials,1);
 for i_trial = 1:num_of_trials
-    related_trial_flag(i_trial)=ismember(this_cell_ID,this_query.(current_group).trials(i_trial).cell_IDs);
+    related_trial_flag(i_trial)=ismember(this_cell_ID,this_query.trials(i_trial).cell_IDs);
 end
 
 
 % related_trials = struct;
 related_trial_index=find(related_trial_flag);
 for i=1:sum(related_trial_flag)
-    related_trials(i)=get_intensity_one_trial(this_query.(current_group).trials(related_trial_index(i)),...
+    related_trials(i)=get_intensity_one_trial(this_query.trials(related_trial_index(i)),...
         neighbourhood,experiment_setup);
 end
 
@@ -88,7 +88,7 @@ if ~rescaled
     yticks(sort(y_order))
     yticklabels(y_tick)
     ylabel('Trial', 'FontSize',14)
-    title(['Trials involved neuron', ' ',num2str(trial_intensity.trial_ID)],'FontSize',14)
+    title(['Trials #', ' ',mat2str([related_trials.trial_ID])],'FontSize',14)
     
 else % DRAW RESCALED EVENT TIMES
     %
