@@ -193,7 +193,7 @@ switch plot_type
     legend(LegendHandels,legend_names,'Location','northeast');
     %
     xlabel('Time (ms)', 'FontSize',14)
-    yticks(1:length(stim_bounds))
+    yticks(0:(length(stim_bounds)-1))
     yticklabels(y_tick)
     ylabel('Stimulation', 'FontSize',14)
     title(['Trials #', ' ',mat2str([related_trials.trial_ID])],'FontSize',14)
