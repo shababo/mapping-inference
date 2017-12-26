@@ -7,7 +7,18 @@ function [gain_samples_final, gamma_samples_final] = inference_offline(mpp, ...
     n_round_digit)
 % Input: queries, experiment_setup
 % Steps:
-% 1
+% 1. Merge all queries: 
+% 2. Calculate the stimulation size based o
+%     Stim location, cell location (maybe reduce comp cost based on
+%     distance?) 
+%     Need to leave room for shape estimation
+% 3. Initialize gamma and gain, initialize the intensity estimate (for all
+% trials)
+% 4. Put cells into near-independent clusters
+% 5. Run Gibbs sampler
+%       - Subtract the effect of one cell from all relevant trials
+%       - Draw gain and gamma based on the likelihood 
+%       - Add the intensity back 
 
 full_queries
 experiment_setup
