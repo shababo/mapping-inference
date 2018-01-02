@@ -8,8 +8,8 @@ undefined_profile.design_function=@design_undefined;
 
 undefined_profile.design_func_params=struct;
 undefined_profile.design_func_params.candidate_grid_params=struct;
-undefined_profile.design_func_params.candidate_grid_params.radius=[5 12.5];
-undefined_profile.design_func_params.candidate_grid_params.number=[12 16];
+undefined_profile.design_func_params.candidate_grid_params.radius=[2.5 6.5];
+undefined_profile.design_func_params.candidate_grid_params.number=[8 12];
 undefined_profile.design_func_params.candidate_grid_params.grid_type='ring'; % 2d ring or 3d sphere
 
 
@@ -41,7 +41,7 @@ undefined_profile.inference_params.MCsamples_for_posterior=50;
 undefined_profile.inference_params.recent_batches=2;
 undefined_profile.inference_params.bounds=struct;
 undefined_profile.inference_params.bounds.PR=[0.05 1];
-undefined_profile.inference_params.bounds.gain=[0.005 0.03];
+undefined_profile.inference_params.bounds.gain=[0.002 0.04];
 undefined_profile.inference_params.bounds.spike_indicator=false;
 
 

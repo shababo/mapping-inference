@@ -150,7 +150,7 @@ else
     
     experiment_setup.trials.downsamp = 1;
     experiment_setup.trials.Fs = 20000;
-    experiment_setup.trials.min_time = 40;
+    experiment_setup.trials.min_time = 50;
     experiment_setup.trials.max_time = 500;
     experiment_setup.trials.max_time_sec = experiment_setup.trials.max_time/experiment_setup.trials.Fs;
     current_template=template(1:experiment_setup.trials.downsamp:experiment_setup.trials.max_time);
@@ -160,8 +160,8 @@ else
     experiment_setup.prior_info.delay=struct;
     experiment_setup.prior_info.delay.delayed=true;
     experiment_setup.prior_info.delay.type='gamma';
-    experiment_setup.prior_info.delay.mean=38;
-    experiment_setup.prior_info.delay.std=15;
+    experiment_setup.prior_info.delay.mean=58;
+    experiment_setup.prior_info.delay.std=20;
     experiment_setup.prior_info.delay.n_grid=200;
     
     
@@ -222,7 +222,7 @@ else
     experiment_setup.exp.foe_bounds = [-148 148; -148 148; 0 400];
     
     % more experimental experiment_setup
-    experiment_setup.exp.sim_locs = 1;
+    experiment_setup.exp.sim_locs = 0;
     experiment_setup.exp.stim_duration = .003; % length of laser on
     experiment_setup.run_parfor = 0;
     experiment_setup.exp.max_spike_freq = .5; % don't revisit cells on average sooner than this in Hz
@@ -266,7 +266,7 @@ else
     experiment_setup.exp.filter_config = 'Femto Phasor';
     experiment_setup.exp.sweep_time_padding = 2.5; % in sec
     
-    experiment_setup.exp.sim_response = 1;
+    experiment_setup.exp.sim_response = 0;
 %     experiment_setup.exp.run_online_detection = 1;
 end
 
