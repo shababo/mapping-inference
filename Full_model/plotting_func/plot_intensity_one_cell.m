@@ -150,7 +150,7 @@ switch plot_type
     for i = 1:length(stim_bounds)
         
         group_trials{i}= find(  stim>(stim_bounds{i}(1)-0.1) & stim<(stim_bounds{i}(2)+0.1));
-        y_tick{i}= num2str(mean(stim(group_trials{i}) ));
+        y_tick{i}= num2str( round(mean(stim(group_trials{i}))) );
     end
     %
     
@@ -160,7 +160,7 @@ switch plot_type
             
             trial_intensity=related_trials(group_trials{i}(j));
             
-            plot(xgrid,trial_intensity.estimated_intensity/max(ymax) +i-1,'LineWidth',2,'Color',overall_color)
+            plot(xgrid,trial_intensity.estimated_intensity/max(ymax) +i-1,'LineWidth',1,'Color',overall_color)
             hold on;
             if ~isempty(trial_intensity.event_times)
                 for i_event = 1:length(trial_intensity.event_times)
@@ -173,7 +173,7 @@ switch plot_type
             
             temp_intensity=trial_intensity.stim_neurons(i_cell_this_trial...
                 ).intensity*trial_intensity.stim_neurons(i_cell_this_trial).PR;
-            plot(xgrid,temp_intensity/max(ymax)+ i-1,'LineWidth',2,'Color',target_cell_color)
+            plot(xgrid,temp_intensity/max(ymax)+ i-1,'LineWidth',1,'Color',target_cell_color)
             hold on;
         end
         
@@ -193,9 +193,9 @@ switch plot_type
     legend(LegendHandels,legend_names,'Location','northeast');
     %
     xlabel('Time (ms)', 'FontSize',14)
-    yticks(1:length(stim_bounds))
+    yticks(0:(length(stim_bounds)-1))
     yticklabels(y_tick)
-    ylabel('Trial', 'FontSize',14)
+    ylabel('Stimulation', 'FontSize',14)
     title(['Trials #', ' ',mat2str([related_trials.trial_ID])],'FontSize',14)
    
 end
