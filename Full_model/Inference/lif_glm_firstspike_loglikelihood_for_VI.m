@@ -1,6 +1,5 @@
 function [loss] = lif_glm_firstspike_loglikelihood_for_VI(...
-    mpp_this_trial,...
-                prob_this_trial)
+    mpp_this_trial, prob_this_trial)
             
 %             mpp_this_trial=mpp(i_trial);
             
