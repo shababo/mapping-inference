@@ -9,7 +9,7 @@ function experiment_setup = get_experiment_setup(varargin)
 if ~isempty(varargin) && ~isempty(varargin{1})
     param_preset_ID = varargin{1};
 else
-    param_preset_ID = 'millennium-falcon-mapping';
+    param_preset_ID = 'millennium-falcon-exp-sim';
 end
 
 % experiment; simulation; reproduction
