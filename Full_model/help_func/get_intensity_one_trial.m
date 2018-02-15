@@ -10,9 +10,9 @@ end
 
 %%
 
-num_spots = sum(~isnan(trial.cell_IDs));
+good_spots = find(~isnan(trial.cell_IDs));
 stim_size = zeros(length(neighbourhood.neurons),1);
-for i_spot = 1:num_spots
+for i_spot = good_spots
    i_cell_this_hood= find([neighbourhood.neurons(:).cell_ID]==trial.cell_IDs(i_spot));
    stim_size=stim_size+trial.power_levels(i_spot)*...
        neighbourhood.neurons(i_cell_this_hood).stim_locations.(trial.group_ID).effect(:,trial.location_IDs(i_spot)); 
