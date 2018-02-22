@@ -9,6 +9,11 @@ function [] = get_variational_distribution(...
 n_cell=length(parameter_distribution);
 params_list=fieldnames(parameter_distribution(1));
 S=size(parameter_sample.(params_list{1}),2);
+log_dist = struct;
+% initial all the fields:
+for i_param = 1:length(params_list)
+    
+end 
 for i_cell = 1:n_cell    
     for s=1:S
         % Calculate and store the log p for all parameter
