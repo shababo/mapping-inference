@@ -8,6 +8,11 @@ function [parameter_history] = fit_VI_dev2(...
 % mpp=mpp_remained;
 % spike_indicator=false;
 %%
+% et=[mpp.event_times];
+% figure(1)
+% histogram(et)
+% xlim([0 300])
+%%
 
 if ~isempty(varargin) && ~isempty(varargin{1})
    spike_indicator= varargin{1};
@@ -115,7 +120,7 @@ while (change_history(iteration) > epsilon && iteration<maxit)
     [parameter_current, change_history(iteration)]= update_parameters_logitnormal(...
         parameter_current,loglklh, logprior, logvariational,...
         dqdp_logit, dqdalpha, dqdbeta, dqdalpha_gain, dqdbeta_gain,...
-        iteration,eta,eta_max,spike_indicator,spike_indicator);
+        iteration,eta,eta_max,spike_indicator);
 % parameter_current
 
 % fprintf('Iteration %d; change %d;\n',iteration, change_history(iteration))

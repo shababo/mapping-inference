@@ -2,15 +2,20 @@ function [parameter_out, changes] = update_parameters_logitnormal(...
     parameter,loglklh, logprior, logvariational,...
     dqdp_logit, dqdalpha, dqdbeta, dqdalpha_gain, dqdbeta_gain,...
     iteration,eta,eta_max,varargin)
+%%
+% parameter_current,loglklh, logprior, logvariational,...
+%         dqdp_logit, dqdalpha, dqdbeta, dqdalpha_gain, dqdbeta_gain,...
+%         iteration,eta,eta_max,spike_indicator,spike_indicator
+% parameter=parameter_current;
 
-
+%%
 if ~isempty(varargin) && ~isempty(varargin{1})
    spike_indicator= varargin{1};
 else
     spike_indicator= false;
 end
 
-
+%%
 n_cell=size(dqdalpha,1);
 S=size(dqdalpha,2);
 
@@ -23,7 +28,7 @@ h_alpha_gain=zeros(n_cell,S);h_beta_gain=zeros(n_cell,S);
 
 
 parameter_out=parameter;
-    changes=0;
+    changes=0;changes_logit=0;
 for i_cell = 1:n_cell
     sum_of_logs = loglklh(i_cell,:)+logprior(i_cell,:)-logvariational(i_cell,:);
     
@@ -75,13 +80,14 @@ for i_cell = 1:n_cell
     parameter_out(i_cell).beta=parameter(i_cell).beta+grad_beta;
     parameter_out(i_cell).alpha_gain=parameter(i_cell).alpha_gain+grad_alpha_gain;
     parameter_out(i_cell).beta_gain=parameter(i_cell).beta_gain+grad_beta_gain;
-    changes= changes+  abs(grad_logit)+abs(grad_alpha)+abs(grad_beta)+abs(grad_alpha_gain)+...
+    changes_logit = changes_logit+abs(grad_logit);
+    changes= changes+  abs(grad_alpha)+abs(grad_beta)+abs(grad_alpha_gain)+...
         abs(grad_beta_gain);
     
     
 end
 
-    changes= changes/(sum(abs([parameter(:).p_logit]))+...
+    changes= changes_logit/sum(abs([parameter(:).p_logit]))+ changes/(...
         sum(abs([parameter(:).alpha]))+sum(abs([parameter(:).beta]))+...
         sum(abs([parameter(:).alpha_gain]))+sum(abs([parameter(:).beta_gain])));
     
