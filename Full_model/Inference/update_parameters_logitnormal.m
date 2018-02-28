@@ -65,6 +65,9 @@ for i_cell = 1:n_cell
     grad_beta_gain=step_size*mean(f_beta_gain(i_cell,:)-a_constant*h_beta_gain(i_cell,:));
     grad_max = max(abs([grad_logit grad_alpha grad_beta grad_alpha_gain grad_beta_gain]));
     
+    if eta_max>step_size
+        eta_max=step_size;
+    end
     if grad_max > eta_max
         grad_scale= grad_max/eta_max;
         grad_logit= grad_logit/grad_scale;
