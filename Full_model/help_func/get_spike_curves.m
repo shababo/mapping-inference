@@ -41,6 +41,8 @@ else
 
 %     specs.F_mean = @(x,xdata)x(1)*exp(-x(2)*xdata) + x(3);
     specs.F_mean = @(x,xdata) min(y_spike_mean) + x(2)./(xdata);
+    specs.F_dev = @(x,xdata) x(1) + x(2)./(xdata);
+    
     specs.F_sd = @(x,xdata) min(y_spike_sd) + x(1)./(xdata);
 
     specs.current_multiplier=1e-3;
@@ -51,26 +53,49 @@ else
     specs.sd_min=1;
     specs.sd_max=5;
 
-
+specs.dev_max=5; % bound the deviation as well
 end
 
 
 
 
 
-%% Call fmincon:
-
+%% Call fminunc:
 % ni_mean=isnan(y_spike_mean) | y_spike_mean > 160 | x_current > 3500;
 ni_mean=isnan(y_spike_mean) | x_current > 3500;
 xdata=x_current(~ni_mean);ydata=y_spike_mean(~ni_mean);
 
-x0=[120 .01 min(y_spike_mean)];
+% x0=[120 .01 min(y_spike_mean)];
 x0 = [1 1];
 Fsumsquares = @(x)sum((specs.F_mean(x,xdata) - ydata).^2);
 opts = optimoptions('fminunc','Algorithm','quasi-newton');
 [mean_param,ressquared,eflag,outputu] = fminunc(Fsumsquares,x0,opts)
 % F_mean=fit(xdata',ydata','smoothingspline');
+
+%% Obtain a smooth curve the for errors in fitting a mean curve 
+yfit=specs.F_mean(mean_param,xdata);
+ydev=(yfit-ydata).^2;
+index_dev= ydev > 1e3;
+
+
+% x0=[120 .01 min(y_spike_mean)];
+x0 = [1 1];
+Fsumabs = @(x)sum((specs.F_dev(x,xdata(~index_dev)) - ydev(~index_dev)).^2);
+opts = optimoptions('fminunc','Algorithm','quasi-newton');
+[dev_param,ressquared,eflag,outputu] = fminunc(Fsumabs,x0,opts)
+% F_mean=fit(xdata',ydata','smoothingspline');
+
 %%
+% scatter(xdata,ydev)
+% hold on;
+% current_grid = specs.current_min:specs.current_gap:specs.current_max;
+% x_grid= current_grid;
+% 
+% y_dev=specs.F_dev(dev_param,x_grid);
+% plot(x_grid,y_dev)
+% ylim([0 400])
+
+%% Obtain a crude curve for SD (within condition variability)
 ni_sd=ni_mean;%isnan(y_spike_sd) | y_spike_mean > 10*200;
 cap_sd=y_spike_sd>quantile(y_spike_sd, 0.9);
 xdata=x_current(~ni_sd & ~cap_sd);ydata=y_spike_sd(~ni_sd & ~cap_sd);
@@ -95,6 +120,7 @@ x_grid= current_grid;
 
 spike_mean_grid=specs.F_mean(mean_param,x_grid);
 spike_sd_grid=specs.F_sd(sd_param,x_grid);
+spike_dev_grid=sqrt(specs.F_dev(dev_param,x_grid));
 
 % spike_mean_grid=F_mean(x_grid);
 % spike_sd_grid=F_sd(x_grid);
@@ -105,12 +131,20 @@ spike_curves=struct;
 spike_curves.current=current_grid*specs.current_multiplier;
 spike_curves.mean=spike_mean_grid;
 spike_curves.sd=spike_sd_grid;
+spike_curves.dev=spike_dev_grid;
 
 min_sd_index=find(spike_sd_grid<specs.sd_min);
 spike_curves.sd(min_sd_index)=specs.sd_min;
 max_sd_index=find(spike_sd_grid>specs.sd_max);
 spike_curves.sd(max_sd_index)=specs.sd_max;
 
+max_dev_index=find(spike_dev_grid>specs.dev_max);
+spike_curves.dev(max_dev_index)=specs.sd_max;
+min_dev_index=find(spike_dev_grid<0);
+spike_curves.dev(min_dev_index)=0;
+
 spike_curves.x_current=x_current;
 spike_curves.y_spike_mean=y_spike_mean;
 spike_curves.y_spike_sd=y_spike_sd;
+
+
