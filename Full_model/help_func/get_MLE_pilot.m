@@ -1,4 +1,4 @@
-function [gain_this_cell]=get_MLE_pilot(result_spikes_this_cell, spike_curves,varargin)
+function [gain_this_cell,gain_sample_mat,loglklh]=get_MLE_pilot(result_spikes_this_cell, spike_curves,varargin)
 % result_spikes_this_cell contains info only about one cell
 % call:
 % for this_cell = 1:length(result_spikes)
@@ -11,7 +11,7 @@ else
     specs=struct;
     specs.gain_gap=0.001;
     specs.low=0.005;
-    specs.up=0.1;
+    specs.up=0.4;
     
     specs.Tmax=500;
     specs.power_ref=4.79;
@@ -19,7 +19,20 @@ else
     specs.lklh_func=@lif_glm_firstspike_loglikelihood_for_VI;
     
 end
+% 
+% %%
+% result_spikes_this_cell=result_spikes(this_cell);
+%   specs=struct;
+%     specs.gain_gap=0.001;
+%     specs.low=0.005;
+%     specs.up=0.3;
+%     
+%     specs.Tmax=500;
+%     specs.power_ref=4.79;
+%     specs.background_rate=3e-4;
+%     specs.lklh_func=@lif_glm_firstspike_loglikelihood_for_VI;
 
+%%
 gain_sample_mat = specs.low:specs.gain_gap:specs.up; % grid of gains
 
 number_of_trials = length(result_spikes_this_cell.power{1});
@@ -65,3 +78,5 @@ end
 [~, i_gain]=max(loglklh);
 gain_this_cell=gain_sample_mat(i_gain);
 
+%%
+% scatter(gain_sample_mat,loglklh)
