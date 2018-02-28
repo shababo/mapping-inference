@@ -7,7 +7,8 @@ n_cell=size(gamma_sample_mat,1);
 S=size(gamma_sample_mat,2);
 n_trial=length(mpp);
 % n_grid=size(prob_trace_full,2);
-n_grid=300;
+n_grid=length(spike_curves.current);
+n_grid=500;
 t_grid= 1:n_grid;
 loglklh=zeros(n_cell,S);
 for s=1:S
@@ -54,4 +55,4 @@ for s=1:S
 end
 
 %%
-% scatter(gain_sample_mat,loglklh)
+% 
