@@ -27,7 +27,8 @@ else
         for j= 1:size(orders_of_cells,1)
             cond_prob = not_fire_prob;
             for i_event = 1:n_events
-                cond_prob(orders_of_cells(i_event))=prob_this_trial(orders_of_cells(i_event), round(mpp_this_trial.event_times(i_event)));
+                cond_prob(orders_of_cells(i_event))=prob_this_trial(orders_of_cells(i_event), ...
+                    round(mpp_this_trial.event_times(i_event)));
             end
             prob_combs( (k-1)*size(orders_of_cells,1)+j)=prod(cond_prob);
         end

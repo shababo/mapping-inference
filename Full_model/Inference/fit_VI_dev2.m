@@ -2,7 +2,7 @@ function [parameter_history] = fit_VI_dev2(...
     stim_size, mpp, background_rate, ...
     variational_params,prior_params,...
     inference_params,prior_info,spike_curves,varargin)
-%%
+% %%
 % stim_size=designs_remained;
 % background_rate=bg_rate;
 % mpp=mpp_remained;
@@ -78,8 +78,6 @@ while (change_history(iteration) > epsilon && iteration<maxit)
     % precalculate some quantities 
     [gamma_constants] = get_logitnormal_constants([parameter_current(:).alpha],[parameter_current(:).beta]);
     [gain_constants] = get_logitnormal_constants([parameter_current(:).alpha_gain],[parameter_current(:).beta_gain]);
-    %
-    %
     for s= 1:S
         % drawing samples 
         [logit_gamma, gamma_sample] = draw_spiked_logitnormal(...
@@ -123,7 +121,7 @@ while (change_history(iteration) > epsilon && iteration<maxit)
         iteration,eta,eta_max,spike_indicator);
 % parameter_current
 
-% fprintf('Iteration %d; change %d;\n',iteration, change_history(iteration))
+fprintf('Iteration %d; gain (alpha) %d; change %d; \n',iteration,parameter_current.alpha_gain, change_history(iteration))
 end
 fprintf('VI fitted after %d iteration;\n',iteration)
            

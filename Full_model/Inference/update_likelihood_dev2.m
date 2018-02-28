@@ -2,7 +2,7 @@ function [loglklh] = update_likelihood_dev2(...
     gamma_sample_mat,gain_sample_mat,stim_size,mpp,...
     prob_trace_full,minimum_stim_threshold,stim_scale,background_rate,...
     relevant_trials,lklh_func,spike_curves)
-
+%%
 n_cell=size(gamma_sample_mat,1);
 S=size(gamma_sample_mat,2);
 n_trial=length(mpp);
@@ -34,13 +34,16 @@ for s=1:S
         if ~isempty(stimulated_cells)
             prob_this_trial=zeros(length(stimulated_cells),n_grid);
             for i_stim = 1:length(stimulated_cells)
-                prob_this_trial(i_stim,:)=...
+                prob_this_trial(i_stim,:)=gamma_sample(i_stim)*...
                     normpdf(t_grid,spike_curves.mean(stim_index(i_stim)),spike_curves.sd(stim_index(i_stim)));
             end
             prob_this_trial=[background_rate*ones(1, n_grid); prob_this_trial];
         else
             prob_this_trial=[background_rate*ones(1, n_grid)];
         end
+%         plot(1:300,prob_this_trial(1,:))
+%         hold on;
+%         scatter(mpp(i_trial).event_times,0)
         
         [loglklh_vec(i_trial)]=  lklh_func(mpp(i_trial),prob_this_trial);
        
@@ -50,4 +53,5 @@ for s=1:S
     end
 end
 
-end
+%%
+% scatter(gain_sample_mat,loglklh)
