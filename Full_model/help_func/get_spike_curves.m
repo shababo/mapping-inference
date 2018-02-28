@@ -45,9 +45,9 @@ for i_cell = 1:length(result_current)
         [~,i_c,i_s] = intersect(result_current(i_cell).these_powers,result_spikes(i_cell).these_powers);
             % make sure the power levels line with those in result_current and
             % result_spikes
-            x_current =[ x_current result_current(i_cell).current_means(i_c)];
+            x_current =[ x_current result_current(i_cell).peak_current_means(i_c)];
             y_spike_mean=[y_spike_mean result_spikes(i_cell).spike_time_means(i_s)];
-            y_spike_sd=[y_spike_sd result_spikes(i_cell).spike_time_stddev(i_s)];
+            y_spike_sd=[y_spike_sd result_spikes(i_cell).spike_time_jitter(i_s)];
 %         end
 %     end
     %     end

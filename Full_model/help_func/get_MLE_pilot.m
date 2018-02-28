@@ -26,7 +26,7 @@ number_of_trials = length(result_spikes_this_cell.power{1});
 stim_size = result_spikes_this_cell.power{1}-specs.power_ref;
 mpp=struct;
 for i_trial = 1:number_of_trials
-    mpp(i_trial).event_times = result_spikes_this_cell.spike_times_trials{1}(i_trial);
+    mpp(i_trial).event_times = result_spikes_this_cell.spike_times{1}(i_trial);
     if isnan(mpp(i_trial).event_times)
         mpp(i_trial).event_times=[];
     elseif mpp(i_trial).event_times>specs.Tmax
