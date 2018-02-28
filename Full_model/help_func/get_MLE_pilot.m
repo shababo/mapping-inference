@@ -14,7 +14,7 @@ else
     specs.up=0.4;
     
     specs.Tmax=500;
-    specs.power_ref=4.79;
+    specs.power_ref=0;
     specs.background_rate=1e-5;% just to prevent singularity 
     specs.lklh_func=@lif_glm_firstspike_loglikelihood_for_VI;
     

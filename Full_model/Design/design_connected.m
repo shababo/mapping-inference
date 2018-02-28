@@ -184,7 +184,6 @@ for i_cell_group = 1:number_cells_this_group
                         *gain_samples(randsample(1:group_profile.inference_params.MCsamples_for_posterior,1),i_cell_nhood));
                     this_trial_power_levels=max(min(power_levels),min(this_trial_power_levels,max(power_levels)));
                 end
-                
             otherwise
                 this_trial_power_levels=randsample(group_profile.design_func_params.trials_params.power_levels,1,true);
         end

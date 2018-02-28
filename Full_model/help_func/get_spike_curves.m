@@ -1,4 +1,4 @@
-function [spike_curves] = get_spike_curves(result_current,result_spikes,varargin)
+function [spike_curves, x_current, y_spike_mean] = get_spike_curves(result_current,result_spikes,varargin)
 % inputs are the two result_current and result_spikes data structures 
 % call get_spike_curves(result_current,result_spikes)
 % To plot the fitted curve, call
@@ -10,30 +10,11 @@ function [spike_curves] = get_spike_curves(result_current,result_spikes,varargin
 % hold off;
 % xlim([400 3000])
 % xlabel('Actual current');ylabel('Mean spike time');
-
-if ~isempty(varargin) && ~isempty(varargin{1})
-   specs= varargin{1};
-else
-    specs=struct;
-
-specs.F_mean = @(x,xdata)x(1)+ x(2)./xdata;
-specs.F_sd = @(x,xdata)x(1)+ x(2)./(xdata);
-
-specs.current_multiplier=1e-3;
-specs.current_min=10;
-specs.current_max=6000;
-specs.current_gap=2;
-
-specs.sd_min=1;
-specs.sd_max=5;
-
+% 
 x_current=[];
 y_spike_mean=[];
 y_spike_sd=[];
-end
-
-
-
+    
 for i_cell = 1:length(result_current)
     %     if i_cell ~= 11
 %     if length(result_current(i_cell).these_powers) ==  length(result_spikes(i_cell).these_powers)
@@ -53,18 +34,43 @@ for i_cell = 1:length(result_current)
     %     end
 end
 
+if ~isempty(varargin) && ~isempty(varargin{1})
+    specs= varargin{1};
+else
+    specs=struct;
+
+%     specs.F_mean = @(x,xdata)x(1)*exp(-x(2)*xdata) + x(3);
+    specs.F_mean = @(x,xdata) min(y_spike_mean) + x(2)./(xdata);
+    specs.F_sd = @(x,xdata) min(y_spike_sd) + x(1)./(xdata);
+
+    specs.current_multiplier=1e-3;
+    specs.current_min=10;
+    specs.current_max=3000;
+    specs.current_gap=2;
+
+    specs.sd_min=1;
+    specs.sd_max=5;
+
+
+end
+
+
+
+
+
 %% Call fmincon:
 
-ni_mean=isnan(y_spike_mean);
+ni_mean=isnan(y_spike_mean) | y_spike_mean > 200 | x_current > 2500;
 xdata=x_current(~ni_mean);ydata=y_spike_mean(~ni_mean);
 
-x0=[1 1];
+x0=[120 .01 min(y_spike_mean)];
+x0 = [1 1];
 Fsumsquares = @(x)sum((specs.F_mean(x,xdata) - ydata).^2);
 opts = optimoptions('fminunc','Algorithm','quasi-newton');
-[mean_param,ressquared,eflag,outputu] = fminunc(Fsumsquares,x0,opts);
+[mean_param,ressquared,eflag,outputu] = fminunc(Fsumsquares,x0,opts)
 % F_mean=fit(xdata',ydata','smoothingspline');
 %%
-ni_sd=isnan(y_spike_sd);
+ni_sd=ni_mean;%isnan(y_spike_sd) | y_spike_mean > 10*200;
 cap_sd=y_spike_sd>quantile(y_spike_sd, 0.9);
 xdata=x_current(~ni_sd & ~cap_sd);ydata=y_spike_sd(~ni_sd & ~cap_sd);
 
