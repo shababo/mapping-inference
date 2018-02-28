@@ -60,7 +60,8 @@ end
 
 %% Call fmincon:
 
-ni_mean=isnan(y_spike_mean) | y_spike_mean > 200 | x_current > 2500;
+% ni_mean=isnan(y_spike_mean) | y_spike_mean > 160 | x_current > 3500;
+ni_mean=isnan(y_spike_mean) | x_current > 3500;
 xdata=x_current(~ni_mean);ydata=y_spike_mean(~ni_mean);
 
 x0=[120 .01 min(y_spike_mean)];

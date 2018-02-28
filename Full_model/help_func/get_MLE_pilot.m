@@ -10,7 +10,7 @@ if ~isempty(varargin) && ~isempty(varargin{1})
 else
     specs=struct;
     specs.gain_gap=0.001;
-    specs.low=0.005;
+    specs.low=0.001;
     specs.up=0.4;
     
     specs.Tmax=500;
