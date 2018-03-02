@@ -1,5 +1,7 @@
 % build structs to aggregate all spike + current data
-
+clear results_current_all
+clear results_spikes_tofit
+clear results_current_all
 count = 1;
 
 for i_cell = 1:length(result_current)
@@ -24,7 +26,7 @@ for i_cell = 1:length(result_xy)
     results_spikes_all(count).spike_time_means = [result_xy(i_cell).x_spike_time_means result_xy(i_cell).y_spike_time_means];
     results_spikes_all(count).spike_time_jitter = [result_xy(i_cell).x_spike_time_jitter result_xy(i_cell).y_spike_time_jitter];
     
-    results_spikes_tofit(count).power = {result_xy(i_cell).spike_targ_power};
+    results_spikes_tofit(count).power = {result_xy(i_cell).spatial_adj_power};
     results_spikes_tofit(count).spike_times = {result_xy(i_cell).spike_times};
     results_spikes_tofit(count).spike_time_means = [result_xy(i_cell).x_spike_time_means result_xy(i_cell).y_spike_time_means];
     
@@ -36,10 +38,11 @@ end
 [spike_curves, x_current, y_spikes]=get_spike_curves(results_current_all,results_spikes_all);
 %%
 % results_spikes needs fields: power (a cell of length 1 annoyingly),
-% spike_times (same cell thing), 
+% spike_times (same cell thing), [1
 
-for this_cell = 1:length(result_spikes)
-   [gain_mle(this_cell)]=get_MLE_pilot(result_spikes(this_cell), spike_curves);
+for this_cell = 1:length(results_spikes_tofit)
+    this_cell
+    [gain_mle(this_cell), gain_MC, loglklh]=get_MLE_pilot(results_spikes_tofit(this_cell), spike_curves);
 end
 
 
@@ -49,7 +52,7 @@ end
 
 % ni_mean=isnan(y_spike_mean) | y_spike_mean > 200 | x_current > 1200;
 % xdata=x_current(~ni_mean);ydata=y_spike_mean(~ni_mean);
-
+cells_to_plot = [29:31 33:35];
 h = figure;
 subplot(121)
 plot(spike_curves.current*1000,spike_curves.mean/20)
@@ -59,11 +62,12 @@ ylim([0 10])
 xlim([0 2500])
 xlabel('mean peak current (pA)')
 ylabel('mean spike time (msec)')
-title('Fitting Mean Peak Current -> Mean Spike Time Function (28 cells, 5 to 21 powers per cell)')
+title('Fitting Mean Peak Current -> Mean Spike Time Function (35 cells, 5 to 21 powers per cell)')
 subplot(122)
 % figure
-plot_spike_pred(result_spikes(1:28),spike_curves,gain_mle(1:28))
-ylim([0 15])
+colors = lines(35);%[repmat([0 0 1],28,1); repmat([0 1 0],7,1)];
+plot_spike_pred(results_spikes_tofit(cells_to_plot),spike_curves,gain_mle(cells_to_plot),colors(cells_to_plot,:))
+% ylim([0 15])
 xlim([0 15])
 
 

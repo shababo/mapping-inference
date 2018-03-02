@@ -1,6 +1,10 @@
 function plot_spike_pred(result_spikes,spike_curves,gain, varargin)
 %plot_spike_pred(result_spikes,spike_curves,gain,figure_handle)
-colors=colorcube(length(gain)+1);
+if ~isempty(varargin) && ~isempty(varargin{1})
+    colors = varargin{1};
+else
+    colors=colorcube(length(gain)+1);
+end
 power_ref=0;
 
 for i = 1:length(gain)

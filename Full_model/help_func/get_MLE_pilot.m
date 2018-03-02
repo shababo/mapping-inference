@@ -9,9 +9,9 @@ if ~isempty(varargin) && ~isempty(varargin{1})
     specs= varargin{1};
 else
     specs=struct;
-    specs.gain_gap=0.001;
-    specs.low=0.001;
-    specs.up=0.4;
+    specs.gain_gap=0.0005;
+    specs.low=0.00001;
+    specs.up=0.2;
     
     specs.Tmax=500;
     specs.power_ref=0;

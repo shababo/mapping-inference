@@ -16,6 +16,7 @@ y_spike_mean=[];
 y_spike_sd=[];
     
 for i_cell = 1:length(result_current)
+    i_cell
     %     if i_cell ~= 11
 %     if length(result_current(i_cell).these_powers) ==  length(result_spikes(i_cell).these_powers)
 %         if min(result_current(i_cell).these_powers ==  result_spikes(i_cell).these_powers)==1 
@@ -40,6 +41,7 @@ else
     specs=struct;
 
 %     specs.F_mean = @(x,xdata)x(1)*exp(-x(2)*xdata) + x(3);
+
     specs.F_mean = @(x,xdata) min(y_spike_mean) + x(2)./(xdata);
     specs.F_dev = @(x,xdata) x(1) + x(2)./(xdata);
     
@@ -56,13 +58,18 @@ else
 specs.dev_max=30; % bound the deviation as well
 end
 
-%% Call fminunc:
-% ni_mean=isnan(y_spike_mean) | y_spike_mean > 160 | x_current > 3500;
-ni_mean=isnan(y_spike_mean) | x_current > 3500;
+
+
+%% Call fmincon:
+
+ni_mean=isnan(y_spike_mean) | y_spike_mean > 160 | x_current > 3500;
+% ni_mean=isnan(y_spike_mean) | x_current > 3500;
+>>>>>>> origin/master
 xdata=x_current(~ni_mean);ydata=y_spike_mean(~ni_mean);
 
 % x0=[120 .01 min(y_spike_mean)];
 x0 = [1 1];
+x0 = 1;
 Fsumsquares = @(x)sum((specs.F_mean(x,xdata) - ydata).^2);
 opts = optimoptions('fminunc','Algorithm','quasi-newton');
 [mean_param,ressquared,eflag,outputu] = fminunc(Fsumsquares,x0,opts)
