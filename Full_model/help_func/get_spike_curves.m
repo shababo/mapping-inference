@@ -16,7 +16,7 @@ y_spike_mean=[];
 y_spike_sd=[];
     
 for i_cell = 1:length(result_current)
-    i_cell
+%     i_cell
     %     if i_cell ~= 11
 %     if length(result_current(i_cell).these_powers) ==  length(result_spikes(i_cell).these_powers)
 %         if min(result_current(i_cell).these_powers ==  result_spikes(i_cell).these_powers)==1 
@@ -52,10 +52,10 @@ else
     specs.current_max=3000;
     specs.current_gap=2;
 
-    specs.sd_min=1;
-    specs.sd_max=30;
+    specs.sd_min=2;
+    specs.sd_max=15;
 
-specs.dev_max=30; % bound the deviation as well
+specs.dev_max=15; % bound the deviation as well
 end
 
 
@@ -64,12 +64,10 @@ end
 
 ni_mean=isnan(y_spike_mean) | y_spike_mean > 160 | x_current > 3500;
 % ni_mean=isnan(y_spike_mean) | x_current > 3500;
->>>>>>> origin/master
 xdata=x_current(~ni_mean);ydata=y_spike_mean(~ni_mean);
 
 % x0=[120 .01 min(y_spike_mean)];
 x0 = [1 1];
-x0 = 1;
 Fsumsquares = @(x)sum((specs.F_mean(x,xdata) - ydata).^2);
 opts = optimoptions('fminunc','Algorithm','quasi-newton');
 [mean_param,ressquared,eflag,outputu] = fminunc(Fsumsquares,x0,opts)
@@ -152,6 +150,8 @@ spike_curves.x_current=x_current;
 spike_curves.y_spike_mean=y_spike_mean;
 spike_curves.y_spike_sd=y_spike_sd;
 spike_curves.mean_param=mean_param;
+spike_curves.sd_param=sd_param;
+spike_curves.dev_param=dev_param;
 spike_curves.specs=specs;
 
 
