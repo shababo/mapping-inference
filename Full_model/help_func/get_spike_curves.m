@@ -51,14 +51,10 @@ else
     specs.current_gap=2;
 
     specs.sd_min=1;
-    specs.sd_max=5;
+    specs.sd_max=30;
 
-specs.dev_max=5; % bound the deviation as well
+specs.dev_max=30; % bound the deviation as well
 end
-
-
-
-
 
 %% Call fminunc:
 % ni_mean=isnan(y_spike_mean) | y_spike_mean > 160 | x_current > 3500;
@@ -77,12 +73,11 @@ yfit=specs.F_mean(mean_param,xdata);
 ydev=(yfit-ydata).^2;
 index_dev= ydev > 1e3;
 
-
 % x0=[120 .01 min(y_spike_mean)];
 x0 = [1 1];
 Fsumabs = @(x)sum((specs.F_dev(x,xdata(~index_dev)) - ydev(~index_dev)).^2);
 opts = optimoptions('fminunc','Algorithm','quasi-newton');
-[dev_param,ressquared,eflag,outputu] = fminunc(Fsumabs,x0,opts)
+[dev_param,ressquared,eflag,outputu] = fminunc(Fsumabs,x0,opts);
 % F_mean=fit(xdata',ydata','smoothingspline');
 
 %%
@@ -120,7 +115,10 @@ x_grid= current_grid;
 
 spike_mean_grid=specs.F_mean(mean_param,x_grid);
 spike_sd_grid=specs.F_sd(sd_param,x_grid);
-spike_dev_grid=sqrt(specs.F_dev(dev_param,x_grid));
+spike_dev_2_grid=specs.F_dev(dev_param,x_grid);
+index_neg=find(spike_dev_2_grid<0);
+spike_dev_2_grid(index_neg)=0;
+spike_dev_grid=sqrt(spike_dev_2_grid);
 
 % spike_mean_grid=F_mean(x_grid);
 % spike_sd_grid=F_sd(x_grid);
@@ -139,12 +137,15 @@ max_sd_index=find(spike_sd_grid>specs.sd_max);
 spike_curves.sd(max_sd_index)=specs.sd_max;
 
 max_dev_index=find(spike_dev_grid>specs.dev_max);
-spike_curves.dev(max_dev_index)=specs.sd_max;
+spike_curves.dev(max_dev_index)=specs.dev_max;
 min_dev_index=find(spike_dev_grid<0);
 spike_curves.dev(min_dev_index)=0;
 
 spike_curves.x_current=x_current;
 spike_curves.y_spike_mean=y_spike_mean;
 spike_curves.y_spike_sd=y_spike_sd;
+spike_curves.mean_param=mean_param;
+spike_curves.specs=specs;
+
 
 
