@@ -16,6 +16,7 @@ y_spike_mean=[];
 y_spike_sd=[];
     
 for i_cell = 1:length(result_current)
+    if ~isempty(result_current(i_cell).peak_current_means)
     i_cell
     %     if i_cell ~= 11
 %     if length(result_current(i_cell).these_powers) ==  length(result_spikes(i_cell).these_powers)
@@ -33,6 +34,7 @@ for i_cell = 1:length(result_current)
 %         end
 %     end
     %     end
+    end
 end
 
 if ~isempty(varargin) && ~isempty(varargin{1})
@@ -61,7 +63,10 @@ end
 
 %% Call fmincon:
 
-ni_mean=isnan(y_spike_mean) | y_spike_mean > 160 | x_current > 3500;
+ni_mean=isnan(y_spike_mean) | y_spike_mean > 160 | x_current > 3500 | isnan(x_current);
+assignin('base','y_spike_mean',y_spike_mean)
+assignin('base','x_current',x_current)
+find(ni_mean)
 % ni_mean=isnan(y_spike_mean) | x_current > 3500;
 xdata=x_current(~ni_mean);ydata=y_spike_mean(~ni_mean);
 

@@ -52,7 +52,7 @@ end
 
 % ni_mean=isnan(y_spike_mean) | y_spike_mean > 200 | x_current > 1200;
 % xdata=x_current(~ni_mean);ydata=y_spike_mean(~ni_mean);
-cells_to_plot = [29:31 33:35];
+cells_to_plot = [1:28];
 h = figure;
 subplot(121)
 plot(spike_curves.current*1000,spike_curves.mean/20)
@@ -62,12 +62,12 @@ ylim([0 10])
 xlim([0 2500])
 xlabel('mean peak current (pA)')
 ylabel('mean spike time (msec)')
-title('Fitting Mean Peak Current -> Mean Spike Time Function (35 cells, 5 to 21 powers per cell)')
+title('Fitting f(), 35 cells, 5 to 21 powers per cell')
 subplot(122)
 % figure
 colors = lines(35);%[repmat([0 0 1],28,1); repmat([0 1 0],7,1)];
 plot_spike_pred(results_spikes_tofit(cells_to_plot),spike_curves,gain_mle(cells_to_plot),colors(cells_to_plot,:))
-% ylim([0 15])
+ylim([0 15])
 xlim([0 15])
 
 
