@@ -1,4 +1,4 @@
-function [parameter_history] = fit_VI_dev3(...
+function [parameter_history, loglklh_rec] = fit_VI_dev3(...
     stim_size, mpp, background_rate, ...
     variational_params,prior_params,...
     inference_params,prior_info,spike_curves,varargin)
@@ -81,10 +81,15 @@ for i_cell = 1:n_cell
     relevant_trials{i_cell}=find(stim_size(:,i_cell)>(minimum_stim_threshold/gain_bound.up));
 end
 changes=1;iteration = 1;
+loglklh_rec=[];
 %%
+% tic;
+% time_rec=zeros(10,1);
 while (change_history(iteration) > epsilon && iteration<maxit)
     %%
     parameter_history(iteration,:)=parameter_current;
+%     parameter_current=parameter_history(end,:);
+  
     iteration=iteration+1;
     
     % precalculate some quantities 
@@ -95,6 +100,7 @@ while (change_history(iteration) > epsilon && iteration<maxit)
     
     for s= 1:S
         % drawing samples 
+%         t1s=toc;
         [logit_gamma, gamma_sample] = draw_spiked_logitnormal(...
             [parameter_current(:).alpha],[parameter_current(:).beta],gamma_bound,[parameter_current(:).p_logit],spike_indicator);
         [logit_gain, gain_sample] = draw_spiked_logitnormal(...
@@ -104,35 +110,39 @@ while (change_history(iteration) > epsilon && iteration<maxit)
             [parameter_current(:).alpha_m],[parameter_current(:).beta_m],delay_mu_bound);
         [logit_delay_sigma, delay_sigma_sample] = draw_spiked_logitnormal(...
             [parameter_current(:).alpha_s],[parameter_current(:).beta_s],delay_sigma_bound);
-        
+%         t1e=toc;        time_rec(1)=time_rec(1)+t1e-t1s;
         
         delay_mu_sample_mat(:,s)=delay_mu_sample;
         delay_sigma_sample_mat(:,s)=delay_sigma_sample;
         gamma_sample_mat(:,s)=gamma_sample;
         gain_sample_mat(:,s)=gain_sample;
         
+%         ts=toc;
 %         % Calculate log pdf of prior and variational dist.
         logprior(:,s)=calculate_logpdf_spiked_logitnormal_dev(prior_params,...
             logit_gamma,gamma_sample,logit_gain,gain_sample,...
             logit_delay_mu,delay_mu_sample,logit_delay_sigma,delay_sigma_sample,...
              delay_mu_bound,delay_sigma_bound,gamma_bound,gain_bound,spike_indicator);
-       
 
         logvariational(:,s)=calculate_logpdf_spiked_logitnormal_dev(parameter_current,...
             logit_gamma,gamma_sample,logit_gain,gain_sample,...
             logit_delay_mu,delay_mu_sample,logit_delay_sigma,delay_sigma_sample,...
              delay_mu_bound,delay_sigma_bound,gamma_bound,gain_bound);
         
+%         te=toc;        time_rec(2)=time_rec(2)+te-ts;
         
+%         ts=toc;
         [dqdp_logit(:,s),dqdalpha(:,s),dqdbeta(:,s)] = get_dvariational_dist(gamma_sample,logit_gamma,...
             [parameter_current(:).alpha],[parameter_current(:).beta],gamma_constants,[parameter_current(:).p_logit],spike_indicator);
         [~,dqdalpha_gain(:,s),dqdbeta_gain(:,s)] = get_dvariational_dist(gain_sample,logit_gain,...
             [parameter_current(:).alpha_gain],[parameter_current(:).beta_gain],gain_constants);
-        [~,dqdalpha_s(:,s),dqdbeta_s(:,s)] = get_dvariational_dist(delay_sigma_sample,logit_delay_sigma,...
-            [parameter_current(:).alpha_s],[parameter_current(:).beta_s],delay_sigma_constants);
         [~,dqdalpha_m(:,s),dqdbeta_m(:,s)] = get_dvariational_dist(delay_mu_sample,logit_delay_mu,...
             [parameter_current(:).alpha_m],[parameter_current(:).beta_m],delay_mu_constants);
-        
+        [~,dqdalpha_s(:,s),dqdbeta_s(:,s)] = get_dvariational_dist(delay_sigma_sample,logit_delay_sigma,...
+            [parameter_current(:).alpha_s],[parameter_current(:).beta_s],delay_sigma_constants);
+            
+%         te=toc;        time_rec(3)=time_rec(3)+te-ts;
+  
     end
     
     %%
@@ -144,20 +154,31 @@ while (change_history(iteration) > epsilon && iteration<maxit)
 
         % Only thing that needs to change if we use the new way to get
         % intensity: 
+%         ts=toc;
     [loglklh] = update_likelihood_dev3(gamma_sample_mat,gain_sample_mat,stim_size,mpp,...
             delay_mu_sample_mat,delay_sigma_sample_mat,...
             intensity_grid,minimum_stim_threshold,stim_scale,background_rate,relevant_trials,lklh_func,...
         spike_curves);
-    
+        
+%         te=toc;        time_rec(4)=time_rec(4)+te-ts;
+  
 % scatter(gain_sample_mat,loglklh)
+% ts=toc;
     [parameter_current, change_history(iteration)]= update_parameters_logitnormal_dev(...
         parameter_current,loglklh, logprior, logvariational,...
         dqdp_logit, dqdalpha, dqdbeta, dqdalpha_gain, dqdbeta_gain,...
          dqdalpha_m, dqdbeta_m, dqdalpha_s, dqdbeta_s,...
         iteration,eta,eta_max,spike_indicator);
+         
+%         te=toc;        time_rec(5)=time_rec(5)+te-ts;
+  
 % parameter_current
-
-fprintf('Iteration %d; gain (alpha) %d; change %d; \n',iteration,parameter_current.alpha_gain, change_history(iteration))
+loglklh_rec(iteration)=mean(mean(loglklh));
+% parameter_current.alpha_m=-5;
+% parameter_current.beta_m=-1;
+% parameter_current.beta_s=-1;
+% parameter_current.alpha_s=-1;
+fprintf('Iteration %d; change %d; \n',iteration,change_history(iteration))
 end
 fprintf('VI fitted after %d iteration;\n',iteration)
            

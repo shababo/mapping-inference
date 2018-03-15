@@ -2,6 +2,13 @@ function plot_event_pred(delay_params,spike_curves,varargin)
 %%
 %     ax1=axes('Position',[0.08 0.08 0.85 0.85],'Visible','off');
 %     axes(ax1)
+
+if ~isempty(varargin)
+    i_neuron=varargin{1};
+else
+    i_neuron=1;
+end
+
     avai_index=[];
     for i = 1:length(delay_params.mpp)
         if ~isnan(delay_params.mpp(i).event_times)
@@ -10,7 +17,7 @@ function plot_event_pred(delay_params,spike_curves,varargin)
     end
     
     event_times=[delay_params.mpp(avai_index).event_times];
-    stim_size=[delay_params.mpp(avai_index).stimulation];
+    stim_size=[delay_params.mpp(avai_index).stimulation(i_neuron)];
     
     scatter(stim_size,event_times/20,'o','SizeData',20,...
         'MarkerFaceColor','b',...
@@ -22,11 +29,11 @@ function plot_event_pred(delay_params,spike_curves,varargin)
     
     %%
     % Mean of spike time:
-    plot(spike_curves.current/delay_params.gain,spike_curves.mean/20,'Color','r','LineWidth',2)
+    plot(spike_curves.current/delay_params.gain,spike_curves.mean/20,'Color','r','LineWidth',1)
     hold on;
     % Mean of event time:
     predicted_mean=spike_curves.mean+delay_params.mean;
-    plot(spike_curves.current/delay_params.gain,predicted_mean/20,'Color','b','LineWidth',2)
+    plot(spike_curves.current/delay_params.gain,predicted_mean/20,'Color','b','LineWidth',1)
     hold on;
     %%
     % The error bar (spike var)
