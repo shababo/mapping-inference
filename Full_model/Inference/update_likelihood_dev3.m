@@ -56,7 +56,7 @@ end
 %       prob_this_trial=[background_rate*ones(1, size(prob_this_trial,2)); prob_this_trial];
 
 if ~isempty(stimulated_cells)
-    prob_this_trial=zeros(length(stimulated_cells),length(event_times)+1);
+    prob_this_trial=zeros(length(stimulated_cells)+1,length(event_times)+1);
     % the extra one is for no event
     
     for i_stim = 1:length(stimulated_cells)
