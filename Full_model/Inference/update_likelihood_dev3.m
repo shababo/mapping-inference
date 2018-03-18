@@ -1,17 +1,14 @@
-function [loglklh] = update_likelihood_dev3(...
-    gamma_sample_mat,gain_sample_mat,stim_size,mpp,...
-    delay_mu_sample_mat,delay_sigma_sample_mat,...
-    prob_trace_full,minimum_stim_threshold,stim_scale,background_rate,...
-    relevant_trials,lklh_func,spike_curves)
+function [loglklh] = update_likelihood_dev3(stim_size,mpp,...
+    gamma_sample_mat,gain_sample_mat, delay_mu_sample_mat,delay_sigma_sample_mat,...
+    minimum_stim_threshold,background_rate,...
+    relevant_trials,lklh_func,spike_curves,Tmax)
 %%
 n_cell=size(gamma_sample_mat,1);
 S=size(gamma_sample_mat,2);
 n_trial=length(mpp);
 
-Tmax=300; % need to fix this 
 % Calculate a grid for standard normal r.v. for quick CDF calculation:
-grid.bound=4;
-grid.gap=0.1;
+grid.bound=4;grid.gap=0.1;
 normal_grid = -grid.bound:grid.gap:grid.bound;
 for i = 1:length(normal_grid)
     cdf_grid(i) = normcdf(normal_grid(i),0,1);
@@ -60,21 +57,13 @@ if ~isempty(stimulated_cells)
     % the extra one is for no event
     
     for i_stim = 1:length(stimulated_cells)
-        
-        
         expectation=delay_mu_temp(i_stim)+spike_curves.mean(stim_index(i_stim));
         standard_dev=sqrt(delay_sigma_temp(i_stim)^2+...
             spike_curves.sd(stim_index(i_stim))^2+spike_curves.dev(stim_index(i_stim))^2);
-        %                         ts=toc;
         cdf_index = max(1,min(length(cdf_grid),round( ((Tmax-expectation)/standard_dev +grid.bound)/grid.gap)));
         prob_this_trial(i_stim,:)=gamma_sample(i_stim)*...
             [normpdf(event_times,expectation,standard_dev) cdf_grid(cdf_index)];
-        %                     normcdf(Tmax,expectation,standard_dev)];
-        %             te=toc;
-        % time_rec(3)=time_rec(3)+te-ts;
-        % prob_test=normpdf(1:Tmax,expectation,standard_dev);
     end
-    
     prob_this_trial(end,:)=background_rate*ones(1,length(event_times)+1);
     prob_this_trial(end,end)=background_rate*Tmax; % this is an approximation
     
@@ -83,21 +72,11 @@ else
     prob_this_trial(end)=background_rate*Tmax;
 end
 
-%         plot(1:300,prob_this_trial(1,:))
-%         hold on;
-%         scatter(mpp(i_trial).event_times,0)
-        
-% ts=toc;
         [loglklh_vec(i_trial)]=  lklh_func(mpp(i_trial),prob_this_trial);
-%             te=toc;time_rec(4)=time_rec(4)+te-ts;
-
     end
-%     ts=toc;
     for i_cell = 1:n_cell
         loglklh(i_cell,s)=sum(loglklh_vec(relevant_trials{i_cell}));
     end
-%          te=toc;time_rec(5)=time_rec(5)+te-ts;
-%%
 end
 
 %%

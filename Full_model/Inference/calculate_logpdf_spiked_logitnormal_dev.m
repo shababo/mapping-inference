@@ -43,7 +43,6 @@ else
         normpdf(logit_delay_sigma,[parameter_dist(:).alpha_s]',exp([parameter_dist(:).beta_s]'))...
         ./( (delay_sigma_sample-delay_sigma_bound.low ).*(delay_sigma_bound.up-delay_sigma_sample)) *(delay_sigma_bound.up-delay_sigma_bound.low))));
     
-    
 end
 
 end
