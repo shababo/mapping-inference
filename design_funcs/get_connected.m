@@ -31,13 +31,13 @@ connected_profile.design_func_params.trials_params.weighted_indicator=true;
 
 
 connected_profile.psc_detect_function = @run_oasis;
-connected_profile.inference_function = @inference_connected_dev;
+connected_profile.inference_function = @inference_connected;
 
 connected_profile.inference_params=struct;
 % Three likelihoods: 
 % undefined_profile.inference_params.likelihood=@calculate_loglikelihood_bernoulli;
-connected_profile.inference_params.likelihood=@lif_glm_firstspike_loglikelihood_for_VI_dev;
-% undefined_profile.inference_params.likelihood=@lif_glm_firstevent_loglikelihood_for_VI_dev;
+connected_profile.inference_params.likelihood=@lif_glm_firstspike_loglikelihood_for_VI;
+% undefined_profile.inference_params.likelihood=@lif_glm_firstevent_loglikelihood_for_VI;
 connected_profile.inference_params.maxit=1e3;
 connected_profile.inference_params.MCsamples_for_gradient=50;
 connected_profile.inference_params.convergence_threshold=1e-4;

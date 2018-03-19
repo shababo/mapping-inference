@@ -80,7 +80,7 @@ xdata=x_current(~ni_mean);ydata=y_spike_mean(~ni_mean);
 % x0=[120 .01 min(y_spike_mean)];
 x0 = [1 1];
 Fsumsquares = @(x)sum((specs.F_mean(x,xdata) - ydata).^2);
-opts = optimoptions('fminunc','Algorithm','quasi-newton');
+opts = optimoptions('fminunc','Algorithm','quasi-newton','Display','off');
 [mean_param,ressquared,eflag,outputu] = fminunc(Fsumsquares,x0,opts);
 % F_mean=fit(xdata',ydata','smoothingspline');
 
@@ -92,7 +92,7 @@ index_dev= ydev > 1e3;
 % x0=[120 .01 min(y_spike_mean)];
 x0 = [1 1];
 Fsumabs = @(x)sum((specs.F_dev(x,xdata(~index_dev)) - ydev(~index_dev)).^2);
-opts = optimoptions('fminunc','Algorithm','quasi-newton');
+opts = optimoptions('fminunc','Algorithm','quasi-newton','Display','off');
 [dev_param,ressquared,eflag,outputu] = fminunc(Fsumabs,x0,opts);
 % F_mean=fit(xdata',ydata','smoothingspline');
 
@@ -113,7 +113,7 @@ xdata=x_current(~ni_sd & ~cap_sd);ydata=y_spike_sd(~ni_sd & ~cap_sd);
 
 x0=[1 1];
 Fsumsquares = @(x)sum((specs.F_sd(x,xdata) - ydata).^2);
-opts = optimoptions('fminunc','Algorithm','quasi-newton');
+opts = optimoptions('fminunc','Algorithm','quasi-newton','Display','off');
 [sd_param,ressquared,eflag,outputu] =  fminunc(Fsumsquares,x0,opts);
 
 % qbounds=quantile(ydata,[0.1 0.9]);
