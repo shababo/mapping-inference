@@ -35,7 +35,7 @@ for i_cell = 1:length(result_xy)
 end
 %%
 
-[spike_curves, x_current, y_spikes]=get_spike_curves(results_current_all,results_spikes_all);
+[~, x_current_xy, y_spikes_xy]=get_spike_curves(results_current_all(29:end),results_spikes_all(1:29:end));
 %%
 % results_spikes needs fields: power (a cell of length 1 annoyingly),
 % spike_times (same cell thing), [1
@@ -57,7 +57,8 @@ h = figure;
 subplot(121)
 plot(spike_curves.current*1000,spike_curves.mean/20)
 hold on
-scatter(x_current,y_spikes/20)
+scatter(x_current_pow,y_spikes_pow/20)
+scatter(x_current_xy,y_spikes_xy/20)
 ylim([0 10])
 xlim([0 2500])
 xlabel('mean peak current (pA)')
