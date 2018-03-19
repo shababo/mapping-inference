@@ -81,13 +81,17 @@ for i_cell = 1:n_cell
         +0.01);
     
     step_size = (eta/iteration);
+%     eta/sqrt(iteration)*log(iteration+1);%
     grad_logit=spike_indicator*step_size*mean(f_p_logit(i_cell,:)-a_constant*h_p_logit(i_cell,:));
     grad_alpha = step_size*mean(f_alpha(i_cell,:)-a_constant*h_alpha(i_cell,:));
     grad_beta = step_size*mean(f_beta(i_cell,:)-a_constant*h_beta(i_cell,:));
+    
     grad_alpha_gain=step_size*mean(f_alpha_gain(i_cell,:)-a_constant*h_alpha_gain(i_cell,:));
     grad_beta_gain=step_size*mean(f_beta_gain(i_cell,:)-a_constant*h_beta_gain(i_cell,:));
+    
     grad_alpha_m=step_size*mean(f_alpha_m(i_cell,:)-a_constant*h_alpha_m(i_cell,:));
     grad_beta_m=step_size*mean(f_beta_m(i_cell,:)-a_constant*h_beta_m(i_cell,:));
+    
     grad_alpha_s=step_size*mean(f_alpha_s(i_cell,:)-a_constant*h_alpha_s(i_cell,:));
     grad_beta_s=step_size*mean(f_beta_s(i_cell,:)-a_constant*h_beta_s(i_cell,:));
     
@@ -100,12 +104,16 @@ for i_cell = 1:n_cell
     if grad_max > eta_max
         grad_scale= grad_max/eta_max;
         grad_logit= grad_logit/grad_scale;
+        
         grad_alpha = grad_alpha/grad_scale;
         grad_beta = grad_beta/grad_scale;
+        
         grad_alpha_gain=grad_alpha_gain/grad_scale;
         grad_beta_gain=grad_beta_gain/grad_scale;
+        
         grad_alpha_m=grad_alpha_m/grad_scale;
         grad_beta_m=grad_beta_m/grad_scale;
+        
         grad_alpha_s=grad_alpha_s/grad_scale;
         grad_beta_s=grad_beta_s/grad_scale;
     end
@@ -114,10 +122,13 @@ for i_cell = 1:n_cell
     parameter_out(i_cell).p_logit=parameter(i_cell).p_logit+spike_indicator*grad_logit;
     parameter_out(i_cell).alpha=parameter(i_cell).alpha+grad_alpha;
     parameter_out(i_cell).beta=parameter(i_cell).beta+grad_beta;
+    
     parameter_out(i_cell).alpha_gain=parameter(i_cell).alpha_gain+grad_alpha_gain;
     parameter_out(i_cell).beta_gain=parameter(i_cell).beta_gain+grad_beta_gain;
+    
     parameter_out(i_cell).alpha_m=parameter(i_cell).alpha_m+grad_alpha_m;
     parameter_out(i_cell).beta_m=parameter(i_cell).beta_m+grad_beta_m;
+    
     parameter_out(i_cell).alpha_s=parameter(i_cell).alpha_s+grad_alpha_s;
     parameter_out(i_cell).beta_s=parameter(i_cell).beta_s+grad_beta_s;
     

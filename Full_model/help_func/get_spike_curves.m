@@ -1,4 +1,4 @@
-function [spike_curves, x_current, y_spike_mean] = get_spike_curves(result_current,result_spikes,varargin)
+function [spike_curves, x_current, y_spike_mean] = get_spike_curves(single_patch_path,varargin)
 % inputs are the two result_current and result_spikes data structures 
 % call get_spike_curves(result_current,result_spikes)
 % To plot the fitted curve, call
@@ -11,6 +11,9 @@ function [spike_curves, x_current, y_spike_mean] = get_spike_curves(result_curre
 % xlim([400 3000])
 % xlabel('Actual current');ylabel('Mean spike time');
 % 
+
+load(single_patch_path); % should contain result_current,result_spikes
+
 x_current=[];
 y_spike_mean=[];
 y_spike_sd=[];
@@ -38,11 +41,13 @@ for i_cell = 1:length(result_current)
     end
 end
 
+
 if ~isempty(varargin) && ~isempty(varargin{1})
     specs= varargin{1};
 else
+     
     specs=struct;
-
+specs.Tmax=300;
 %     specs.F_mean = @(x,xdata)x(1)*exp(-x(2)*xdata) + x(3);
 
     specs.F_mean = @(x,xdata) min(y_spike_mean) + x(2)./(xdata);
@@ -66,9 +71,9 @@ end
 %% Call fmincon:
 
 ni_mean=isnan(y_spike_mean) | y_spike_mean > 160 | x_current > 3500 | isnan(x_current);
-assignin('base','y_spike_mean',y_spike_mean)
-assignin('base','x_current',x_current)
-find(ni_mean)
+assignin('base','y_spike_mean',y_spike_mean);
+assignin('base','x_current',x_current);
+% find(ni_mean)
 % ni_mean=isnan(y_spike_mean) | x_current > 3500;
 xdata=x_current(~ni_mean);ydata=y_spike_mean(~ni_mean);
 
@@ -76,7 +81,7 @@ xdata=x_current(~ni_mean);ydata=y_spike_mean(~ni_mean);
 x0 = [1 1];
 Fsumsquares = @(x)sum((specs.F_mean(x,xdata) - ydata).^2);
 opts = optimoptions('fminunc','Algorithm','quasi-newton');
-[mean_param,ressquared,eflag,outputu] = fminunc(Fsumsquares,x0,opts)
+[mean_param,ressquared,eflag,outputu] = fminunc(Fsumsquares,x0,opts);
 % F_mean=fit(xdata',ydata','smoothingspline');
 
 %% Obtain a smooth curve the for errors in fitting a mean curve 
@@ -159,6 +164,12 @@ spike_curves.mean_param=mean_param;
 spike_curves.sd_param=sd_param;
 spike_curves.dev_param=dev_param;
 spike_curves.specs=specs;
-
+%%
+% time_grid = 1:Tmax;
+spike_curves.prob=zeros(length(spike_curves.mean),1);
+for l=1:length(spike_curves.mean)
+    spike_curves.prob(l)=normcdf(specs.Tmax,spike_curves.mean(l),...
+    sqrt(spike_curves.sd(l)^2+spike_dev_grid(l)^2));
+end
 
 

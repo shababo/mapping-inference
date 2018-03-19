@@ -64,7 +64,8 @@ for s=1:length(gain_sample_mat)
         % find the index of the actual stimulation in the vector:
         [~, stim_index]=min(abs(effective_stim - spike_curves.current));
         prob_this_trial=zeros(1,specs.Tmax);
-        standard_dev=sqrt(spike_curves.sd(stim_index)^2+spike_curves.dev(stim_index)^2);
+        standard_dev=sqrt(spike_curves.sd(stim_index)^2);
+        %+spike_curves.dev(stim_index)^2);
         prob_this_trial(:)=...
             normpdf(t_grid,spike_curves.mean(stim_index), standard_dev);
         prob_this_trial=[specs.background_rate*ones(1, specs.Tmax); prob_this_trial];
