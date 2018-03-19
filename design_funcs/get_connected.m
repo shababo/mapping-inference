@@ -31,13 +31,13 @@ connected_profile.design_func_params.trials_params.weighted_indicator=true;
 
 
 connected_profile.psc_detect_function = @run_oasis;
-connected_profile.inference_function = @inference_connected;
+connected_profile.inference_function = @inference_connected_dev;
 
 connected_profile.inference_params=struct;
 % Three likelihoods: 
 % undefined_profile.inference_params.likelihood=@calculate_loglikelihood_bernoulli;
-% undefined_profile.inference_params.likelihood=@lif_glm_firstspike_loglikelihood_for_VI_dev;
-undefined_profile.inference_params.likelihood=@lif_glm_firstevent_loglikelihood_for_VI_dev;
+connected_profile.inference_params.likelihood=@lif_glm_firstspike_loglikelihood_for_VI_dev;
+% undefined_profile.inference_params.likelihood=@lif_glm_firstevent_loglikelihood_for_VI_dev;
 connected_profile.inference_params.maxit=1e3;
 connected_profile.inference_params.MCsamples_for_gradient=50;
 connected_profile.inference_params.convergence_threshold=1e-4;
@@ -46,11 +46,11 @@ connected_profile.inference_params.step_size_max=2;
 connected_profile.inference_params.MCsamples_for_posterior=50;
 connected_profile.inference_params.recent_batches=2;
 connected_profile.inference_params.bounds=struct;
-undefined_profile.inference_params.bounds.PR=[0.05 1];
-undefined_profile.inference_params.bounds.gain=[0.001 0.1];
-undefined_profile.inference_params.bounds.spike_indicator=false;
-undefined_profile.inference_params.bounds.delay_mu=[0 60];
-undefined_profile.inference_params.bounds.delay_sigma=[0.1 10];
+connected_profile.inference_params.bounds.PR=[0.05 1];
+connected_profile.inference_params.bounds.gain=[0.001 0.1];
+connected_profile.inference_params.bounds.spike_indicator=false;
+connected_profile.inference_params.bounds.delay_mu=[0 60];
+connected_profile.inference_params.bounds.delay_sigma=[0.1 10];
 
 
 

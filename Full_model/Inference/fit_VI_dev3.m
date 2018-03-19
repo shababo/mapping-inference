@@ -1,7 +1,7 @@
 function [parameter_history, loglklh_rec] = fit_VI_dev3(...
     stim_size, mpp, background_rate, ...
     variational_params,prior_params,...
-    inference_params,prior_info,spike_curves,varargin)
+    inference_params,prior_info,varargin)
 % Fit the delay for each cell:
 % %%
 % stim_size=designs_remained;
@@ -9,10 +9,8 @@ function [parameter_history, loglklh_rec] = fit_VI_dev3(...
 % mpp=mpp_remained;
 % spike_indicator=false;
 %%
-% et=[mpp.event_times];
-% figure(1)
-% histogram(et)
-% xlim([0 300])
+%   background_rate=experiment_setup.patched_neuron.background_rate;
+% inference_params=  group_profile.inference_params;
 %%
 if ~isempty(varargin) && ~isempty(varargin{1})
    spike_indicator= varargin{1};
@@ -49,7 +47,7 @@ lklh_func=inference_params.likelihood;
 
 n_cell=size(stim_size,2);n_trial=size(stim_size,1);
 
-Tmax=inference_params.Tmax;
+Tmax=spike_curves.time_max;
 
 % initialize storages 
 sum_of_logs=zeros(S,1);logvariational=zeros(n_cell,S);

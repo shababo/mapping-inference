@@ -57,9 +57,15 @@ switch group_profile.design_func_params.trials_params.stim_design
                         if candidate_grid.effect(j_cell,i_loc)>5e-2
                             stimulation_received=candidate_grid.effect(j_cell,i_loc)*group_profile.design_func_params.trials_params.power_levels(k);
                             effective_stim= stimulation_received*gain_samples(:,j_cell);
-                            stim_index=max(1,round(effective_stim*experiment_setup.prior_info.induced_intensity.stim_scale));
-                            prob_collapsed=sum(experiment_setup.prior_info.induced_intensity.intensity_grid(stim_index,:),2);
-                            firing_prob{i_cell_group}(i_loc,k,j_cell)=mean(prob_collapsed);
+%                             stim_index=max(1,round(effective_stim*experiment_setup.prior_info.induced_intensity.stim_scale));
+%                             prob_collapsed=sum(experiment_setup.prior_info.induced_intensity.intensity_grid(stim_index,:),2);
+                           
+   [~, stim_index]=min(abs(effective_stim - experiment_setup.prior_info.induced_intensity.current));
+      
+
+                            prob_collapsed=experiment_setup.prior_info.induced_intensity.prob(stim_index);                            
+%                         
+firing_prob{i_cell_group}(i_loc,k,j_cell)=mean(prob_collapsed);
                         end
                     end
                 end
@@ -178,12 +184,12 @@ for i_cell_group = 1:number_cells_this_group
         switch  group_profile.design_func_params.trials_params.stim_design
             case 'Optimal'
                 this_trial_power_levels=power_selected(i_cell_group);
-                if rand(1) < mean_gamma(i_cell_group)
-                    this_trial_power_levels=...
-                        experiment_setup.prior_info.induced_intensity.fire_stim_threshold./(neurons_this_group(i_cell_group).stim_locations.(group_ID).effect(i_cell_nhood,loc_selected(i_cell_group))...
-                        *gain_samples(randsample(1:group_profile.inference_params.MCsamples_for_posterior,1),i_cell_nhood));
-                    this_trial_power_levels=max(min(power_levels),min(this_trial_power_levels,max(power_levels)));
-                end
+%                 if rand(1) < mean_gamma(i_cell_group)
+%                     this_trial_power_levels=...
+%                         experiment_setup.prior_info.induced_intensity.fire_stim_threshold./(neurons_this_group(i_cell_group).stim_locations.(group_ID).effect(i_cell_nhood,loc_selected(i_cell_group))...
+%                         *gain_samples(randsample(1:group_profile.inference_params.MCsamples_for_posterior,1),i_cell_nhood));
+%                     this_trial_power_levels=max(min(power_levels),min(this_trial_power_levels,max(power_levels)));
+%                 end
             otherwise
                 this_trial_power_levels=randsample(group_profile.design_func_params.trials_params.power_levels,1,true);
         end

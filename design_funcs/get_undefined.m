@@ -28,7 +28,7 @@ undefined_profile.design_func_params.trials_params.trials_per_batch=300;
 undefined_profile.design_func_params.trials_params.weighted_indicator=true;
 
 undefined_profile.psc_detect_function = @run_oasis;
-undefined_profile.inference_function = @inference_undefined;
+undefined_profile.inference_function = @inference_undefined_dev;
 
 undefined_profile.inference_params=struct;
 % Three likelihoods: 
@@ -48,7 +48,6 @@ undefined_profile.inference_params.bounds.gain=[0.001 0.1];
 undefined_profile.inference_params.bounds.spike_indicator=false;
 undefined_profile.inference_params.bounds.delay_mu=[0 60];
 undefined_profile.inference_params.bounds.delay_sigma=[0.1 10];
-undefined_profile.inference_params.Tmax=500;
 
 
 undefined_profile.regroup_function=struct;

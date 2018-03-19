@@ -88,10 +88,13 @@ cell_locations(:,2) <  experiment_setup.neighbourhood_params.y_bounds(2)+experim
        neighbourhoods(i_neighbourhood).neurons(i_cell+number_of_prim_cells)=experiment_setup.neurons(cell_ID);
    end
    for i_cell = 1:length(neighbourhoods(i_neighbourhood).neurons)
+        neighbourhoods(i_neighbourhood).neurons(i_cell).group_ID=cell(1);
+          
        if i_cell > number_of_prim_cells
-           neighbourhoods(i_neighbourhood).neurons(i_cell).group_ID={'secondary'};
+           neighbourhoods(i_neighbourhood).neurons(i_cell).group_ID{1}='secondary';
        else
-           neighbourhoods(i_neighbourhood).neurons(i_cell).group_ID={experiment_setup.default_group}; % all are initialized as undefined
+           neighbourhoods(i_neighbourhood).neurons(i_cell).group_ID{1}=...
+               experiment_setup.default_group; % all are initialized as undefined
        end
    end
 end
@@ -137,11 +140,25 @@ for i_neighbourhood = 1:number_of_neighbourhoods
             current_params,bounds,quantile_prob);
 
         current_params=experiment_setup.prior_info.gain_prior;
-        group_profile=experiment_setup.groups.(neighbourhoods(i_neighbourhood).neurons(i_cell).group_ID{end});
         bounds= group_profile.inference_params.bounds.gain;
         quantile_prob=group_profile.regroup_func_params.quantile_prob;
         neighbourhoods(i_neighbourhood).neurons(i_cell).gain_params(1)=calculate_posterior(...
             current_params,bounds,quantile_prob);
+
+
+        current_params=experiment_setup.prior_info.delay_mu_prior;
+        bounds= group_profile.inference_params.bounds.delay_mu;
+        quantile_prob=group_profile.regroup_func_params.quantile_prob;
+        neighbourhoods(i_neighbourhood).neurons(i_cell).delay_mu_params(1)=calculate_posterior(...
+            current_params,bounds,quantile_prob);
+
+            
+            current_params=experiment_setup.prior_info.delay_sigma_prior;
+            bounds= group_profile.inference_params.bounds.delay_sigma;
+  quantile_prob=group_profile.regroup_func_params.quantile_prob;
+          neighbourhoods(i_neighbourhood).neurons(i_cell).delay_sigma_params(1)=calculate_posterior(...
+            current_params,bounds,quantile_prob);
+
 
     end
 end
