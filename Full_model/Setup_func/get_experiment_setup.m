@@ -21,7 +21,7 @@ switch param_preset_ID
         experiment_setup.exp_root = 'C:/Users/Shizhe/Documents/Mapping_data/Data/';
         experiment_setup.analysis_root = 'C:/Users/Shizhe/Documents/Mapping_data/tmp/';
         experiment_setup.experiment_type='simulation';
-        experiment_setup.single_patch_path='../Data/more_cells.mat';
+        experiment_setup.single_patch_path='C:/Users/Shizhe/Documents/Mapping_data/Data/more_cells.mat';
     case 'szchen-rep'
         experiment_setup.exp_root = 'C:/Users/Shizhe/Documents/Mapping_data/Data/';
         experiment_setup.analysis_root = 'C:/Users/Shizhe/Documents/Mapping_data/tmp/';

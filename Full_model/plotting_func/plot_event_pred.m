@@ -17,7 +17,7 @@ end
     end
     
     event_times=[delay_params.mpp(avai_index).event_times];
-    stim_size=[delay_params.mpp(avai_index).stimulation(i_neuron)];
+    stim_size=[delay_params.mpp(avai_index).stimulation];
     
     scatter(stim_size,event_times/20,'o','SizeData',20,...
         'MarkerFaceColor','b',...
