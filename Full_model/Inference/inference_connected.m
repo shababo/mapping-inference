@@ -88,13 +88,13 @@ for i_cluster= 1:length(clusters_of_cells)
             this_neighbourhood.neurons(neighbour_list(i_cell)).gain_params(batch_ID)=calculate_posterior(...
                 current_params,bounds,quantile_prob);
             
-            current_params=reformat_to_neurons(parameter_history(end, this_cell),'delay_mu','spiked_logit_normal');
-            bounds= [delay_mu_bound.low delay_mu_bound.up];
+            current_params=reformat_to_neurons(parameter_history(end, i_cell),'delay_mu','spiked_logit_normal');
+            bounds= group_profile.inference_params.bounds.delay_mu;
             this_neighbourhood.neurons(i_stimulated_cell_list(i_cell)).delay_mu_params=calculate_posterior(...
                 current_params,bounds,quantile_prob);
             
-            current_params=reformat_to_neurons(parameter_history(end, this_cell),'delay_sigma','spiked_logit_normal');
-            bounds= [delay_sigma_bound.low delay_sigma_bound.up];
+            current_params=reformat_to_neurons(parameter_history(end, i_cell),'delay_sigma','spiked_logit_normal');
+            bounds= group_profile.inference_params.bounds.delay_sigma;
             this_neighbourhood.neurons(i_stimulated_cell_list(i_cell)).delay_sigma_params=calculate_posterior(...
                 current_params,bounds,quantile_prob);
             
