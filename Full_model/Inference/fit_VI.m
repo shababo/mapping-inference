@@ -19,11 +19,11 @@ if ~isempty(varargin) && ~isempty(varargin{1})
 else
     zero_delay_indicator= false;
 end
-if ~isempty(varargin) && ~isempty(varargin{2})
-   spike_indicator= varargin{2};
-else
+% if ~isempty(varargin) && ~isempty(varargin{2})
+%    spike_indicator= varargin{2};
+% else
     spike_indicator= false;
-end
+% end
 
 if zero_delay_indicator
 variational_params.alpha_s=-200;
