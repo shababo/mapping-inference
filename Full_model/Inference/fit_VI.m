@@ -13,11 +13,26 @@ function [parameter_history, loglklh_rec] = fit_VI(...
 % inference_params=  group_profile.inference_params;
 %  spike_indicator= false;
 %%
+
 if ~isempty(varargin) && ~isempty(varargin{1})
-   spike_indicator= varargin{1};
+    zero_delay_indicator= varargin{1};
+else
+    zero_delay_indicator= false;
+end
+if ~isempty(varargin) && ~isempty(varargin{2})
+   spike_indicator= varargin{2};
 else
     spike_indicator= false;
 end
+
+if zero_delay_indicator
+variational_params.alpha_s=-200;
+variational_params.alpha_m=-200;
+
+prior_params.alpha_s=-200;
+prior_params.alpha_m=-200;
+end
+
 %%
 % intensity_grid=prior_info.induced_intensity.intensity_grid;
 % stim_scale=prior_info.induced_intensity.stim_scale;
