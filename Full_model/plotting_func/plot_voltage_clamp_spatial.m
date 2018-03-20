@@ -1,10 +1,20 @@
-function plot_voltage_clamp_spatial(datafilename)
+function plot_voltage_clamp_spatial(datafilename,varargin)
+
+if ~isempty(varargin) && ~isempty(varargin{1})
+    batches = varargin{1};
+else
+    batches = [];
+end
 
 load(datafilename)
 
 group_names = experiment_setup.group_names;
 num_neighbourhoods = size(neighbourhoods,1);
 num_batches = size(neighbourhoods,2);
+if isempty(batches)
+    batches = 2:num_batches;
+end
+
 if isfield(experiment_setup,'reproduced')
     experiment_queries = experiment_setup.records.queries;
 end
@@ -14,7 +24,7 @@ end
 for k = 1:num_neighbourhoods
     
     clear trials
-    for i = 2:num_batches
+    for i = batches
         
         experiment_query = experiment_queries(k,i);
         
@@ -46,6 +56,7 @@ for k = 1:num_neighbourhoods
     assignin('base','cell_map',cell_map)
     plot_timeseries_map(vclamp_map,Inf,1,0,color_map,linewidth_map,cell_map,psc_time_map);
     title(['Neighbourhood ' num2str(k)])
+%     hold on
     
 
 end

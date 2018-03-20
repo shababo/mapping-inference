@@ -26,7 +26,7 @@ i_this_cell = find([neighbourhood.neurons(:).cell_ID]==this_cell_ID);
 effective_stim_this_cell=stim_size(:,i_this_cell)*neighbourhood.neurons(i_this_cell).gain_params(end).mean;
 minimum_stim_threshold=experiment_setup.prior_info.induced_intensity.minimum_stim_threshold;
 
-related_trial_flag = effective_stim_this_cell>(minimum_stim_threshold/2);
+related_trial_flag = effective_stim_this_cell>(minimum_stim_threshold/3);
 
 num_of_trials = length(this_query.trials);
 

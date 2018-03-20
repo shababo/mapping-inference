@@ -28,7 +28,7 @@ gain_mean=temp_output.gain_params.mean;
 %%
 stim_received= gain_mean.*stim_size;
 
-minimum_stim_threshold=experiment_setup.prior_info.induced_intensity.minimum_stim_threshold;
+minimum_stim_threshold=experiment_setup.prior_info.induced_intensity.minimum_stim_threshold/3;
 if thresholding
 stimulated_cells = find(stim_received>minimum_stim_threshold);
 else

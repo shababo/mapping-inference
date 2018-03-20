@@ -1,4 +1,4 @@
-function [spike_curves, x_current, y_spike_mean] = get_spike_curves(result_current,result_spikes,varargin)
+function [spike_curves, x_current, y_spike_mean, spike_curve_cell_ids] = get_spike_curves(result_current,result_spikes,varargin)
 % inputs are the two result_current and result_spikes data structures 
 % call get_spike_curves(result_current,result_spikes)
 % To plot the fitted curve, call
@@ -12,9 +12,10 @@ function [spike_curves, x_current, y_spike_mean] = get_spike_curves(result_curre
 % xlabel('Actual current');ylabel('Mean spike time');
 % 
 x_current=[];
+spike_curve_cell_ids = [];
 y_spike_mean=[];
 y_spike_sd=[];
-    
+
 for i_cell = 1:length(result_current)
     if ~isempty(result_current(i_cell).peak_current_means)
 %     i_cell
@@ -30,6 +31,7 @@ for i_cell = 1:length(result_current)
             % make sure the power levels line with those in result_current and
             % result_spikes
             x_current =[ x_current result_current(i_cell).peak_current_means(i_c)];
+            spike_curve_cell_ids = [spike_curve_cell_ids i_cell*ones(size(result_current(i_cell).peak_current_means(i_c)))];
             y_spike_mean=[y_spike_mean result_spikes(i_cell).spike_time_means(i_s)];
             y_spike_sd=[y_spike_sd result_spikes(i_cell).spike_time_jitter(i_s)];
 %         end
@@ -45,7 +47,7 @@ else
 
 %     specs.F_mean = @(x,xdata)x(1)*exp(-x(2)*xdata) + x(3);
 
-    specs.F_mean = @(x,xdata) min(y_spike_mean) + x(2)./(xdata);
+    specs.F_mean = @(x,xdata) x(2)./(xdata) + x(3); %min(y_spike_mean) + 
     specs.F_dev = @(x,xdata) x(1) + x(2)./(xdata);
     
     specs.F_sd = @(x,xdata) min(y_spike_sd) + x(1)./(xdata);
@@ -65,7 +67,7 @@ end
 
 %% Call fmincon:
 
-ni_mean=isnan(y_spike_mean) | y_spike_mean > 160 | x_current > 3500 | isnan(x_current);
+ni_mean=isnan(y_spike_mean) | y_spike_mean > 200 | x_current > 3000 | isnan(x_current);
 assignin('base','y_spike_mean',y_spike_mean)
 assignin('base','x_current',x_current)
 find(ni_mean)
@@ -73,7 +75,7 @@ find(ni_mean)
 xdata=x_current(~ni_mean);ydata=y_spike_mean(~ni_mean);
 
 % x0=[120 .01 min(y_spike_mean)];
-x0 = [1 1];
+x0 = [1 1 0];
 Fsumsquares = @(x)sum((specs.F_mean(x,xdata) - ydata).^2);
 opts = optimoptions('fminunc','Algorithm','quasi-newton');
 [mean_param,ressquared,eflag,outputu] = fminunc(Fsumsquares,x0,opts)
@@ -85,7 +87,7 @@ ydev=(yfit-ydata).^2;
 index_dev= ydev > 1e3;
 
 % x0=[120 .01 min(y_spike_mean)];
-x0 = [1 1];
+x0 = [1 1 0];
 Fsumabs = @(x)sum((specs.F_dev(x,xdata(~index_dev)) - ydev(~index_dev)).^2);
 opts = optimoptions('fminunc','Algorithm','quasi-newton');
 [dev_param,ressquared,eflag,outputu] = fminunc(Fsumabs,x0,opts);
