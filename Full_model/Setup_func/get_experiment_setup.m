@@ -138,17 +138,20 @@ else
     experiment_setup.prior_info.PR_prior.beta=1;
     
     experiment_setup.prior_info.gain_prior = struct;
-    experiment_setup.prior_info.gain_prior.type='logit_normal'; % spike and logitnorm slab
+    experiment_setup.prior_info.gain_prior.type='spiked_logit_normal'; % spike and logitnorm slab
+    experiment_setup.prior_info.gain_prior.pi_logit=-100;
     experiment_setup.prior_info.gain_prior.alpha=0;
     experiment_setup.prior_info.gain_prior.beta=1;
    
     experiment_setup.prior_info.delay_mu_prior=struct;
-    experiment_setup.prior_info.delay_mu_prior.type='logit_normal'; 
+    experiment_setup.prior_info.delay_mu_prior.type='spiked_logit_normal'; 
+    experiment_setup.prior_info.delay_mu_prior.pi_logit=-100;
     experiment_setup.prior_info.delay_mu_prior.alpha=0;
     experiment_setup.prior_info.delay_mu_prior.beta=2;
    
     experiment_setup.prior_info.delay_sigma_prior=struct;
-    experiment_setup.prior_info.delay_sigma_prior.type='logit_normal'; 
+    experiment_setup.prior_info.delay_sigma_prior.type='spiked_logit_normal'; 
+    experiment_setup.prior_info.delay_sigma_prior.pi_logit=-100;
     experiment_setup.prior_info.delay_sigma_prior.alpha=0;
     experiment_setup.prior_info.delay_sigma_prior.beta=2;
   

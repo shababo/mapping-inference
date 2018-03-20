@@ -1,7 +1,7 @@
 function [current_params] = calculate_posterior(current_params,bounds,quantile_prob)
               
-switch current_params.type
-    case 'spiked_logit_normal'
+% switch current_params.type
+%     case 'spiked_logit_normal'
         
 
 n_cell=length(current_params);
@@ -31,14 +31,12 @@ current_params.nonzero_prob=nonzero_prob_temp;
 % temp=num2cell(var_gain_temp);[posterior_params(1:n_cell).gain_var]=temp{:};
 
 
-    otherwise
+%     otherwise
         
-end
+% end
 
       
-        
-end
-
+     
 
 
 

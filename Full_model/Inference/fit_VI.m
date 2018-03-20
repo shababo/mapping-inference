@@ -11,6 +11,7 @@ function [parameter_history, loglklh_rec] = fit_VI(...
 %%
 %   background_rate=experiment_setup.patched_neuron.background_rate;
 % inference_params=  group_profile.inference_params;
+%  spike_indicator= false;
 %%
 if ~isempty(varargin) && ~isempty(varargin{1})
    spike_indicator= varargin{1};
@@ -119,8 +120,7 @@ while (change_history(iteration) > epsilon && iteration<maxit)
         logvariational(:,s)=calculate_logpdf_spiked_logitnormal(parameter_current,...
             logit_gamma,gamma_sample,logit_gain,gain_sample,...
             logit_delay_mu,delay_mu_sample,logit_delay_sigma,delay_sigma_sample,...
-             delay_mu_bound,delay_sigma_bound,gamma_bound,gain_bound);
-        
+             delay_mu_bound,delay_sigma_bound,gamma_bound,gain_bound);  
 %         te=toc;        time_rec(2)=time_rec(2)+te-ts;
         
 %         ts=toc;
@@ -132,7 +132,6 @@ while (change_history(iteration) > epsilon && iteration<maxit)
             [parameter_current(:).alpha_m],[parameter_current(:).beta_m],delay_mu_constants);
         [~,dqdalpha_s(:,s),dqdbeta_s(:,s)] = get_dvariational_dist(delay_sigma_sample,logit_delay_sigma,...
             [parameter_current(:).alpha_s],[parameter_current(:).beta_s],delay_sigma_constants);
-            
 %         te=toc;        time_rec(3)=time_rec(3)+te-ts;
   
     end
@@ -152,7 +151,6 @@ while (change_history(iteration) > epsilon && iteration<maxit)
         dqdp_logit, dqdalpha, dqdbeta, dqdalpha_gain, dqdbeta_gain,...
          dqdalpha_m, dqdbeta_m, dqdalpha_s, dqdbeta_s,...
         iteration,eta,eta_max,spike_indicator);
-         
 %         te=toc;        time_rec(5)=time_rec(5)+te-ts;
   
 % parameter_current

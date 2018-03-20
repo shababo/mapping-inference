@@ -1,6 +1,10 @@
 function [this_neighbourhood]=inference_undefined(...
     experiment_query_this_group,this_neighbourhood,group_profile,experiment_setup)
-
+%%
+% (experiment_query.(this_group),neighbourhood,group_profile, experiment_setup);
+% experiment_query_this_group=experiment_query.(this_group);
+% this_neighbourhood = neighbourhood;
+%%
 group_ID=group_profile.group_ID;
 [cells_this_group, group_cell_IDs] = get_group_inds(this_neighbourhood,group_ID);
 cells_this_group = find(cells_this_group);
@@ -48,13 +52,13 @@ prior_params=variational_params;
 
 %prior_params=variational_params_path(max(iter-num_trace_back,1),cell_list);
 
-
+%%
 [parameter_history,loglklh_rec] = fit_VI(...
     stim_size, mpp, experiment_setup.patched_neuron.background_rate,...
     variational_params,prior_params,...
      group_profile.inference_params,prior_info);
 
-
+%%
     % need a function that writes the values into the parameter history in
     % this_neighbourhood 
 

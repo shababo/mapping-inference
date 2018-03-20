@@ -32,9 +32,9 @@ undefined_profile.inference_function = @inference_undefined;
 
 undefined_profile.inference_params=struct;
 % Three likelihoods: 
-% undefined_profile.inference_params.likelihood=@calculate_loglikelihood_bernoulli;
+undefined_profile.inference_params.likelihood=@calculate_loglikelihood_bernoulli;
 % undefined_profile.inference_params.likelihood=@lif_glm_firstspike_loglikelihood_for_VI;
-undefined_profile.inference_params.likelihood=@lif_glm_firstevent_loglikelihood_for_VI;
+% undefined_profile.inference_params.likelihood=@lif_glm_firstevent_loglikelihood_for_VI;
 undefined_profile.inference_params.maxit=500;
 undefined_profile.inference_params.MCsamples_for_gradient=100;
 undefined_profile.inference_params.convergence_threshold=1e-3;
