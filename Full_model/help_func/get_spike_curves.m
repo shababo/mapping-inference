@@ -1,4 +1,5 @@
 function [spike_curves, x_current, y_spike_mean, spike_curve_cell_ids] = get_spike_curves(result_current,result_spikes,varargin)
+
 % inputs are the two result_current and result_spikes data structures 
 % call get_spike_curves(result_current,result_spikes)
 % To plot the fitted curve, call
@@ -11,6 +12,9 @@ function [spike_curves, x_current, y_spike_mean, spike_curve_cell_ids] = get_spi
 % xlim([400 3000])
 % xlabel('Actual current');ylabel('Mean spike time');
 % 
+
+load(single_patch_path); % should contain result_current,result_spikes
+
 x_current=[];
 spike_curve_cell_ids = [];
 y_spike_mean=[];
@@ -40,11 +44,13 @@ for i_cell = 1:length(result_current)
     end
 end
 
+
 if ~isempty(varargin) && ~isempty(varargin{1})
     specs= varargin{1};
 else
+     
     specs=struct;
-
+specs.time_max=300;
 %     specs.F_mean = @(x,xdata)x(1)*exp(-x(2)*xdata) + x(3);
 
     specs.F_mean = @(x,xdata) x(2)./(xdata) + x(3); %min(y_spike_mean) + 
@@ -71,14 +77,15 @@ ni_mean=isnan(y_spike_mean) | y_spike_mean > 200 | x_current > 3000 | isnan(x_cu
 assignin('base','y_spike_mean',y_spike_mean)
 assignin('base','x_current',x_current)
 find(ni_mean)
+
 % ni_mean=isnan(y_spike_mean) | x_current > 3500;
 xdata=x_current(~ni_mean);ydata=y_spike_mean(~ni_mean);
 
 % x0=[120 .01 min(y_spike_mean)];
 x0 = [1 1 0];
 Fsumsquares = @(x)sum((specs.F_mean(x,xdata) - ydata).^2);
-opts = optimoptions('fminunc','Algorithm','quasi-newton');
-[mean_param,ressquared,eflag,outputu] = fminunc(Fsumsquares,x0,opts)
+opts = optimoptions('fminunc','Algorithm','quasi-newton','Display','off');
+[mean_param,ressquared,eflag,outputu] = fminunc(Fsumsquares,x0,opts);
 % F_mean=fit(xdata',ydata','smoothingspline');
 
 %% Obtain a smooth curve the for errors in fitting a mean curve 
@@ -89,7 +96,7 @@ index_dev= ydev > 1e3;
 % x0=[120 .01 min(y_spike_mean)];
 x0 = [1 1 0];
 Fsumabs = @(x)sum((specs.F_dev(x,xdata(~index_dev)) - ydev(~index_dev)).^2);
-opts = optimoptions('fminunc','Algorithm','quasi-newton');
+opts = optimoptions('fminunc','Algorithm','quasi-newton','Display','off');
 [dev_param,ressquared,eflag,outputu] = fminunc(Fsumabs,x0,opts);
 % F_mean=fit(xdata',ydata','smoothingspline');
 
@@ -110,7 +117,7 @@ xdata=x_current(~ni_sd & ~cap_sd);ydata=y_spike_sd(~ni_sd & ~cap_sd);
 
 x0=[1 1];
 Fsumsquares = @(x)sum((specs.F_sd(x,xdata) - ydata).^2);
-opts = optimoptions('fminunc','Algorithm','quasi-newton');
+opts = optimoptions('fminunc','Algorithm','quasi-newton','Display','off');
 [sd_param,ressquared,eflag,outputu] =  fminunc(Fsumsquares,x0,opts);
 
 % qbounds=quantile(ydata,[0.1 0.9]);
@@ -161,6 +168,13 @@ spike_curves.mean_param=mean_param;
 spike_curves.sd_param=sd_param;
 spike_curves.dev_param=dev_param;
 spike_curves.specs=specs;
-
+%%
+% time_grid = 1:Tmax;
+spike_curves.prob=zeros(length(spike_curves.mean),1);
+for l=1:length(spike_curves.mean)
+    spike_curves.prob(l)=normcdf(specs.time_max,spike_curves.mean(l),...
+    sqrt(spike_curves.sd(l)^2+spike_dev_grid(l)^2));
+end
+spike_curves.time_max=specs.time_max;
 
 

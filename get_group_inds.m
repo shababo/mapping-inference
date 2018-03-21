@@ -7,6 +7,6 @@ else
 end
 
 
-inds = arrayfun(@(x) strcmp(x.group_ID{batch_ID},group_ID), neighbourhood.neurons);
+inds = arrayfun(@(x) strcmp(x.group_ID{batch_ID},{group_ID}), neighbourhood.neurons);
 all_cell_IDs = [neighbourhood.neurons.cell_ID];
 cell_IDs = all_cell_IDs(inds);

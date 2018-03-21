@@ -21,32 +21,37 @@ switch param_preset_ID
         experiment_setup.exp_root = 'C:/Users/Shizhe/Documents/Mapping_data/Data/';
         experiment_setup.analysis_root = 'C:/Users/Shizhe/Documents/Mapping_data/tmp/';
         experiment_setup.experiment_type='simulation';
+        experiment_setup.single_patch_path='C:/Users/Shizhe/Documents/Mapping_data/Data/more_cells.mat';
     case 'szchen-rep'
         experiment_setup.exp_root = 'C:/Users/Shizhe/Documents/Mapping_data/Data/';
         experiment_setup.analysis_root = 'C:/Users/Shizhe/Documents/Mapping_data/tmp/';
         experiment_setup.experiment_type='reproduction';
-        
+        experiment_setup.single_patch_path=[];
     case 'millennium-falcon-mapping'
         experiment_setup.experiment_type='experiment';
         experiment_setup.exp_root = 'C:\data\Shababo\';
         experiment_setup.analysis_root = '/media/shababo/data/'; % make sure to add ending slash
         experiment_setup.ephys_mapped_drive = '/home/shababo/slidebook-comp/';
         experiment_setup.phase_mask_dir = 'W:\';
+        experiment_setup.single_patch_path=[];
     case 'millennium-falcon-exp-sim'
         experiment_setup.experiment_type='experiment';
         experiment_setup.exp_root = 'C:\data\Shababo\';
         experiment_setup.analysis_root = '/media/shababo/data/'; % make sure to add ending slash
         experiment_setup.ephys_mapped_drive = '/home/shababo/slidebook-comp/';
         experiment_setup.phase_mask_dir = 'W:\';
+        experiment_setup.single_patch_path=[];
     case 'turing-rep'
         experiment_setup.experiment_type='reproduction';
         experiment_setup.exp_root = '/media/shababo/data/';
         experiment_setup.analysis_root = '/media/shababo/data/'; % make sure to add ending slash
         experiment_setup.ephys_mapped_drive = '/home/shababo/slidebook-comp/';
         experiment_setup.phase_mask_dir = '/home/shababo/slidebook-comp/';
+        experiment_setup.single_patch_path=[];
     case 'shababo-mbp-sim'
         experiment_setup.exp_root = '/Users/shababo/projects/mapping/data/sim_tmp/';
         experiment_setup.analysis_root = '/Users/shababo/projects/mapping/data/sim_tmp/';
+        experiment_setup.single_patch_path=[];
 end
 
 clock_array = clock;
@@ -103,19 +108,14 @@ end
 if strcmp(experiment_setup.experiment_type,'reproduction')
     if experiment_setup.rep.use_same_setting
         temp_setup=experiment_setup; % to preserve paths, etc.
-        
-        
         % NOTE: this will overwrite the experiment_setup
         load(temp_setup.rep.file_name)
-        
         % Rewrite the path info on experiment_setup
-        
         experiment_setup.experiment_type=temp_setup.experiment_type;
         experiment_setup.exp_root=temp_setup.exp_root;
         experiment_setup.analysis_root=temp_setup.analysis_root;
         experiment_setup.groups=temp_setup.groups;
-       
-        experiment_setup.rep=temp_setup.rep;
+       experiment_setup.rep=temp_setup.rep;
         if isfield(temp_setup,'sim')
             experiment_setup.sim=temp_setup.sim;
         end
@@ -137,13 +137,25 @@ else
     experiment_setup.prior_info.PR_prior.alpha=-0.5;
     experiment_setup.prior_info.PR_prior.beta=1;
     
-    
     experiment_setup.prior_info.gain_prior = struct;
     experiment_setup.prior_info.gain_prior.type='spiked_logit_normal'; % spike and logitnorm slab
-    experiment_setup.prior_info.gain_prior.pi_logit=-Inf;
+    experiment_setup.prior_info.gain_prior.pi_logit=-100;
     experiment_setup.prior_info.gain_prior.alpha=0;
     experiment_setup.prior_info.gain_prior.beta=1;
-    
+   
+    experiment_setup.prior_info.delay_mu_prior=struct;
+    experiment_setup.prior_info.delay_mu_prior.type='spiked_logit_normal'; 
+    experiment_setup.prior_info.delay_mu_prior.pi_logit=-100;
+    experiment_setup.prior_info.delay_mu_prior.alpha=0;
+    experiment_setup.prior_info.delay_mu_prior.beta=2;
+   
+    experiment_setup.prior_info.delay_sigma_prior=struct;
+    experiment_setup.prior_info.delay_sigma_prior.type='spiked_logit_normal'; 
+    experiment_setup.prior_info.delay_sigma_prior.pi_logit=-100;
+    experiment_setup.prior_info.delay_sigma_prior.alpha=0;
+    experiment_setup.prior_info.delay_sigma_prior.beta=2;
+  
+
     %----------- Load the current template
     load('chrome-template-3ms.mat');
     
@@ -157,13 +169,12 @@ else
     
     experiment_setup.prior_info.current_template = current_template;
     experiment_setup.prior_info.gain_model=[];
-    experiment_setup.prior_info.delay=struct;
-    experiment_setup.prior_info.delay.delayed=true;
-    experiment_setup.prior_info.delay.type='gamma';
-    experiment_setup.prior_info.delay.mean=58;
-    experiment_setup.prior_info.delay.std=20;
-    experiment_setup.prior_info.delay.n_grid=200;
-    
+%     experiment_setup.prior_info.delay=struct;
+%     experiment_setup.prior_info.delay.delayed=true;
+%     experiment_setup.prior_info.delay.type='gamma';
+%     experiment_setup.prior_info.delay.mean=58;
+%     experiment_setup.prior_info.delay.std=20;
+%     experiment_setup.prior_info.delay.n_grid=200;
     
     load('l23_template_cell.mat');
     temp = l23_average_shape; temp_max = max(max(max(temp)));
@@ -172,31 +183,32 @@ else
     
     
     experiment_setup.prior_info.template_cell=struct;
-    experiment_setup.prior_info.template_cell.V_reset=-1e5;
-    experiment_setup.prior_info.template_cell.V_threshold=15;
-    experiment_setup.prior_info.template_cell.membrane_resistance = 0.02;
     experiment_setup.prior_info.template_cell.cell_shape = shape_template;
-    experiment_setup.prior_info.template_cell.linkfunc = {@link_sig, @derlink_sig, @invlink_sig,@derinvlink_sig};
+%     experiment_setup.prior_info.template_cell.V_reset=-1e5;
+%     experiment_setup.prior_info.template_cell.V_threshold=15;
+%     experiment_setup.prior_info.template_cell.membrane_resistance = 0.02;
+%     experiment_setup.prior_info.template_cell.linkfunc = {@link_sig, @derlink_sig, @invlink_sig,@derinvlink_sig};
     
-    experiment_setup.prior_info.induced_intensity=struct;
-    experiment_setup.prior_info.induced_intensity.max_actual_stimulation=5;
-    experiment_setup.prior_info.induced_intensity.num_stim_grid=1000;
-    experiment_setup.prior_info.induced_intensity.linkfunc={@link_sig, @derlink_sig, @invlink_sig,@derinvlink_sig};
-    experiment_setup.prior_info.induced_intensity.stim_scale = experiment_setup.prior_info.induced_intensity.num_stim_grid/experiment_setup.prior_info.induced_intensity.max_actual_stimulation;
-    experiment_setup.prior_info.induced_intensity.stim_grid = (1:experiment_setup.prior_info.induced_intensity.num_stim_grid)/...
-        experiment_setup.prior_info.induced_intensity.stim_scale;
+%     experiment_setup.prior_info.induced_intensity=struct;
+%     experiment_setup.prior_info.induced_intensity.max_actual_stimulation=5;
+%     experiment_setup.prior_info.induced_intensity.num_stim_grid=1000;
+%     experiment_setup.prior_info.induced_intensity.linkfunc={@link_sig, @derlink_sig, @invlink_sig,@derinvlink_sig};
+%     experiment_setup.prior_info.induced_intensity.stim_scale = experiment_setup.prior_info.induced_intensity.num_stim_grid/experiment_setup.prior_info.induced_intensity.max_actual_stimulation;
+%     experiment_setup.prior_info.induced_intensity.stim_grid = (1:experiment_setup.prior_info.induced_intensity.num_stim_grid)/...
+%         experiment_setup.prior_info.induced_intensity.stim_scale;
     % we should have a file with the values below precomputed... or an option
     % to load from file if our priors haven't changed...
-    experiment_setup.prior_info.induced_intensity=precalculate_intensity(experiment_setup.prior_info.induced_intensity,...
-        experiment_setup.prior_info.template_cell,experiment_setup.prior_info.delay,experiment_setup.prior_info.current_template);
+%     experiment_setup.prior_info.induced_intensity=precalculate_intensity(experiment_setup.prior_info.induced_intensity,...
+%         experiment_setup.prior_info.template_cell,experiment_setup.prior_info.delay,experiment_setup.prior_info.current_template);
     %         experiment_setup.prior_info.induced_intensity.intensity_grid
     %         experiment_setup.prior_info.induced_intensity.probility_grid
     %         experiment_setup.prior_info.induced_intensity.minimum_stim_threshold
     %         experiment_setup.prior_info.induced_intensity.fire_stim_threshold
-    
-    
+    experiment_setup.prior_info.induced_intensity=get_spike_curves(experiment_setup.single_patch_path); 
+    experiment_setup.prior_info.induced_intensity.minimum_stim_threshold = ...
+       experiment_setup.prior_info.induced_intensity.current(min(find(experiment_setup.prior_info.induced_intensity.prob<0.1))+1);
+
     experiment_setup.neighbourhood_params=struct;
-    
     
     experiment_setup.neighbourhood_params.z_bounds=[10 70]; % leave empty for no bounds
     experiment_setup.neighbourhood_params.x_bounds=[-150 150]; % leave empty for no bounds

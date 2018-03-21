@@ -1,4 +1,3 @@
-
 function connected_profile= get_connected()
 
 % basics
@@ -24,7 +23,7 @@ connected_profile.design_func_params.trials_params.MCsamples_for_posterior=50;
 connected_profile.design_func_params.trials_params.trials_per_batch=500;   
 connected_profile.design_func_params.trials_params.num_stim_sites=4;   
 connected_profile.design_func_params.trials_params.min_gap_stim=9.5;   
-connected_profile.design_func_params.trials_params.bounds.gain=[0.002 0.04];
+connected_profile.design_func_params.trials_params.bounds.gain=[0.001 0.1];
 
 % Random, Nuclei, or Optimal
 %   whether to conduct more trials on low PR cells
@@ -35,18 +34,24 @@ connected_profile.psc_detect_function = @run_oasis;
 connected_profile.inference_function = @inference_connected;
 
 connected_profile.inference_params=struct;
+% Three likelihoods: 
+% undefined_profile.inference_params.likelihood=@calculate_loglikelihood_bernoulli;
 connected_profile.inference_params.likelihood=@lif_glm_firstspike_loglikelihood_for_VI;
-connected_profile.inference_params.maxit=1e4;
+% undefined_profile.inference_params.likelihood=@lif_glm_firstevent_loglikelihood_for_VI;
+connected_profile.inference_params.maxit=1e3;
 connected_profile.inference_params.MCsamples_for_gradient=50;
-connected_profile.inference_params.convergence_threshold=1e-4;
+connected_profile.inference_params.convergence_threshold=1e-3;
 connected_profile.inference_params.step_size=1;
 connected_profile.inference_params.step_size_max=2;
 connected_profile.inference_params.MCsamples_for_posterior=50;
 connected_profile.inference_params.recent_batches=2;
 connected_profile.inference_params.bounds=struct;
 connected_profile.inference_params.bounds.PR=[0.05 1];
-connected_profile.inference_params.bounds.gain=[0.002 0.04];
+connected_profile.inference_params.bounds.gain=[0.001 0.1];
 connected_profile.inference_params.bounds.spike_indicator=false;
+connected_profile.inference_params.bounds.delay_mu=[0 60];
+connected_profile.inference_params.bounds.delay_sigma=[0.1 10];
+
 
 
 connected_profile.regroup_function=struct;

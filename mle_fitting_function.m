@@ -37,11 +37,15 @@ for i_cell = 1:length(result_xy)
 end
 %%
 % power_cells = 1:28
-[spike_curves_power, x_current_power, y_spikes_power, spike_curve_cell_ids_power] = ...
-    get_spike_curves(results_current_all(power_cells),results_spikes_all(power_cells));
+% [spike_curves_power, x_current_power, y_spikes_power, spike_curve_cell_ids_power] = ...
+%     get_spike_curves(results_current_all(power_cells),results_spikes_all(power_cells));
+% 
+% 
+% [spike_curves_shape, x_current_shape, y_spikes_shape, spike_curve_cell_ids_shape] = ...
+%     get_spike_curves(results_current_all(shape_cells),results_spikes_all(shape_cells));
 
-[spike_curves_shape, x_current_shape, y_spikes_shape, spike_curve_cell_ids_shape] = ...
-    get_spike_curves(results_current_all(shape_cells),results_spikes_all(shape_cells));
+[~, x_current_xy, y_spikes_xy]=get_spike_curves(results_current_all(29:end),results_spikes_all(1:29:end));
+
 %%
 % results_spikes needs fields: power (a cell of length 1 annoyingly),
 % spike_times (same cell thing), [1
@@ -69,11 +73,16 @@ h = figure;
 subplot(121)
 plot(spike_curves_power.current*1000,spike_curves_power.mean/20,'color',[0 0 1])
 hold on
+
 % plot(spike_curves_shape.current*1000,spike_curves_shape.mean/20,'color',[0 1 0])
 hold on
 scatter(x_current_power,y_spikes_power/20,[],[0 0 1])
 hold on
 scatter(x_current_shape,y_spikes_shape/20,[],[0 1 0])
+
+% scatter(x_current_pow,y_spikes_pow/20)
+% scatter(x_current_xy,y_spikes_xy/20)
+
 ylim([0 10])
 xlim([0 2500])
 xlabel('mean peak current (pA)')

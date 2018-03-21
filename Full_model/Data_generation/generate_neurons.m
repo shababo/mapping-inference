@@ -71,6 +71,7 @@ switch simulation_params.cell_params.type
         gamma_truth(weak_index)=(0.15+0.1*rand([length(weak_index) 1]));
         gain_truth=0.02+(rand([number_of_cells  1])-0.5)*0.01;
     otherwise
+    
         % throw a warning
 end
 
@@ -85,13 +86,22 @@ for i_cell = 1:number_of_cells
     neurons(i_cell).location=cell_locations(i_cell,:);
     neurons(i_cell).optical_gain=[];
     neurons(i_cell).PR=[];
-    neurons(i_cell).truth=struct;
+    
+  neurons(i_cell).delay_mean=(rand(1)-0.5)*40+40;
+    neurons(i_cell).delay_var=(rand(1)-0.5)*20+15;
+
+neurons(i_cell).truth=struct;
     neurons(i_cell).truth.V_reset= -1e4;
     neurons(i_cell).truth.V_thresh=15;
     neurons(i_cell).truth.membrane_resistance=0.02;
     neurons(i_cell).truth.location=cell_locations(i_cell,:);
     neurons(i_cell).truth.optical_gain=gain_truth(i_cell);
     neurons(i_cell).truth.PR=gamma_truth(i_cell);
-    neurons(i_cell).cell_ID = i_cell;
+    neurons(i_cell).truth.delay_mean=neurons(i_cell).delay_mean;
+    neurons(i_cell).truth.delay_var=neurons(i_cell).delay_var;
+    
+    
+neurons(i_cell).cell_ID = i_cell;
+  
 end
 

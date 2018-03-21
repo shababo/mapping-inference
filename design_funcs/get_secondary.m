@@ -18,6 +18,8 @@ secondary_profile.inference_params.bounds.PR=[0.05 1];
 secondary_profile.inference_params.bounds.gain=[0.005 0.03];
 secondary_profile.inference_params.bounds.spike_indicator=false;
 
+secondary_profile.inference_params.bounds.delay_mu=[0 60];
+secondary_profile.inference_params.bounds.delay_sigma=[0.1 10];
 
 secondary_profile.regroup_func_params=struct;
 secondary_profile.regroup_func_params.connected_threshold=0.5;
