@@ -27,7 +27,7 @@ switch param_preset_ID
         experiment_setup.analysis_root = 'C:/Users/Shizhe/Documents/Mapping_data/Data/NewData';
         experiment_setup.experiment_type='reproduction';
         experiment_setup.single_patch_path='C:/Users/Shizhe/Documents/Mapping_data/Data/more_cells.mat';
-        experiment_setup.rep.file_name=[experiment_setup.analysis_root '/12_14_16_49/12_14_16_49_data.mat'];
+        experiment_setup.rep.file_name=[experiment_setup.exp_root '/12_14_16_49/12_14_16_49_data.mat'];
     case 'szchen-sim-hab'
         experiment_setup.exp_root = '../Data/';
         experiment_setup.analysis_root = '../Data/tmp';
@@ -38,13 +38,13 @@ switch param_preset_ID
         experiment_setup.analysis_root = '../Data/tmp';
         experiment_setup.experiment_type='reproduction';
         experiment_setup.single_patch_path='../Data/Environments/more_cells.mat';
-        experiment_setup.rep.file_name=[experiment_setup.analysis_root '/12_14_16_49/12_14_16_49_data.mat'];
+        experiment_setup.rep.file_name=[experiment_setup.exp_root '/12_14_16_49/12_14_16_49_data.mat'];
     case 'szchen-rep-hab2'
         experiment_setup.exp_root = '../Data/';
         experiment_setup.analysis_root = '../Data/tmp';
         experiment_setup.experiment_type='reproduction';
         experiment_setup.single_patch_path='../Data/Environments/more_cells.mat';
-        experiment_setup.rep.file_name=[experiment_setup.analysis_root '/12_13_17_0/12_13_17_0_data.mat'];
+        experiment_setup.rep.file_name=[experiment_setup.exp_root '/12_13_17_0/12_13_17_0_data.mat'];
     case 'millennium-falcon-mapping'
         experiment_setup.experiment_type='experiment';
         experiment_setup.exp_root = 'C:\data\Shababo\';
