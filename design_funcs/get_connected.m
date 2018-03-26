@@ -23,7 +23,7 @@ connected_profile.design_func_params.trials_params.MCsamples_for_posterior=50;
 connected_profile.design_func_params.trials_params.trials_per_batch=500;   
 connected_profile.design_func_params.trials_params.num_stim_sites=4;   
 connected_profile.design_func_params.trials_params.min_gap_stim=9.5;   
-connected_profile.design_func_params.trials_params.bounds.gain=[0.001 0.1];
+connected_profile.design_func_params.trials_params.bounds.gain=[0.001 0.06];
 
 % Random, Nuclei, or Optimal
 %   whether to conduct more trials on low PR cells

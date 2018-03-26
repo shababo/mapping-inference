@@ -206,7 +206,8 @@ else
     %         experiment_setup.prior_info.induced_intensity.fire_stim_threshold
     experiment_setup.prior_info.induced_intensity=get_spike_curves(experiment_setup.single_patch_path); 
     experiment_setup.prior_info.induced_intensity.minimum_stim_threshold = ...
-       experiment_setup.prior_info.induced_intensity.current(min(find(experiment_setup.prior_info.induced_intensity.prob<0.1))+1);
+       experiment_setup.prior_info.induced_intensity.current(max(find(experiment_setup.prior_info.induced_intensity.prob<0.2))+1);
+    experiment_setup.prior_info.induced_intensity.stim_threshold=5;
 
     experiment_setup.neighbourhood_params=struct;
     

@@ -1,4 +1,4 @@
-function [spike_curves, x_current, y_spike_mean, spike_curve_cell_ids] = get_spike_curves(result_current,result_spikes,varargin)
+function [spike_curves, x_current, y_spike_mean, spike_curve_cell_ids] = get_spike_curves(single_patch_path,varargin)
 
 % inputs are the two result_current and result_spikes data structures 
 % call get_spike_curves(result_current,result_spikes)
@@ -173,7 +173,7 @@ spike_curves.specs=specs;
 spike_curves.prob=zeros(length(spike_curves.mean),1);
 for l=1:length(spike_curves.mean)
     spike_curves.prob(l)=normcdf(specs.time_max,spike_curves.mean(l),...
-    sqrt(spike_curves.sd(l)^2+spike_dev_grid(l)^2));
+    sqrt(spike_curves.sd(l)^2));
 end
 spike_curves.time_max=specs.time_max;
 

@@ -53,7 +53,7 @@ if ~isempty(stimulated_cells)
     for i_stim = 1:length(stimulated_cells)
 %         [~, stim_index(i_stim)]=min(abs(effective_stim(i_stim) - spike_curves.current));
     stim_index(i_stim)= min(current_max_grid,...
-        max(0,round((effective_stim(i_stim)-current_lb)/current_gap))); 
+        max(1,round((effective_stim(i_stim)-current_lb)/current_gap))); 
     end
 end
 % te=toc;time_rec(2)=time_rec(2)+te-ts;
@@ -72,7 +72,7 @@ if ~isempty(stimulated_cells)
         expectation=delay_mu_temp(i_stim)+spike_curves.mean(stim_index(i_stim));
         standard_dev=sqrt(delay_sigma_temp(i_stim)^2+...
             spike_curves.sd(stim_index(i_stim))^2);
-%         +spike_curves.dev(stim_index(i_stim))^2);
+%                 spike_curves.dev(stim_index(i_stim))^2);
 %             te=toc;time_rec(3)=time_rec(3)+te-ts;
 %         ts=toc;
         cdf_index = max(1,min(length(cdf_grid),round( ((Tmax-expectation)/standard_dev +grid.bound)/grid.gap)));

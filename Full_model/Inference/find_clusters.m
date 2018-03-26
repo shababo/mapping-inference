@@ -4,8 +4,11 @@ function [ cluster_of_cells] = find_clusters(...
         stim_size=stim_size(:,cell_list);
         if length(cell_list)>1
             % Use inner product:
+            stim_size=(stim_size>stim_threshold).*stim_size;
             adj_corr= abs(stim_size'*stim_size)./size(stim_size,1);
-            adj_corr=1*(adj_corr> stim_threshold^2);
+%             adj_corr=1*(adj_corr> stim_threshold^2);
+            adj_corr=adj_corr>0;
+            adj_corr=adj_corr+diag(ones(size(adj_corr,1),1));
             
             cc_corr=expm(adj_corr);
             cell_cluster_ind=zeros(length(cell_list),1);

@@ -43,7 +43,7 @@ end
     hold on;
     legend_names{i_legend+3}='Background';
     legend(LegendHandels,legend_names,'Location','northeast');
-
+ylim([0 0.2])
     xlabel('Time (ms)', 'FontSize',14)
     ylabel('Intensity', 'FontSize',14)
     title(['Trial', ' ',num2str(trial_intensity.trial_ID)],'FontSize',14)

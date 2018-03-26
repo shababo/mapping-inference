@@ -21,7 +21,7 @@ stim_all = get_stim_size(group_ID,experiment_query_this_group.trials,this_neighb
 
 
 % include all cells that have been stimulated:
-stim_threshold=prior_info.induced_intensity.minimum_stim_threshold/group_profile.inference_params.bounds.gain(2);
+stim_threshold=prior_info.induced_intensity.stim_threshold;
 %stimulated_cell_list= find(sum(stim_all>stim_threshold,1)>0);
 
 %number_of_stim_cells=length(stimulated_cell_list);
@@ -90,12 +90,12 @@ for i_cluster= 1:length(clusters_of_cells)
             
             current_params=reformat_to_neurons(parameter_history(end, i_cell),'delay_mu','spiked_logit_normal');
             bounds= group_profile.inference_params.bounds.delay_mu;
-            this_neighbourhood.neurons(i_stimulated_cell_list(i_cell)).delay_mu_params(batch_ID)=calculate_posterior(...
+            this_neighbourhood.neurons(neighbour_list(i_cell)).delay_mu_params(batch_ID)=calculate_posterior(...
                 current_params,bounds,quantile_prob);
             
             current_params=reformat_to_neurons(parameter_history(end, i_cell),'delay_sigma','spiked_logit_normal');
             bounds= group_profile.inference_params.bounds.delay_sigma;
-            this_neighbourhood.neurons(i_stimulated_cell_list(i_cell)).delay_sigma_params(batch_ID)=calculate_posterior(...
+            this_neighbourhood.neurons(neighbour_list(i_cell)).delay_sigma_params(batch_ID)=calculate_posterior(...
                 current_params,bounds,quantile_prob);
             
         end

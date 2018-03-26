@@ -1,5 +1,6 @@
 function [trial_intensity] = get_intensity_one_trial(trial, neighbourhood,experiment_setup,varargin)
 
+% trial, neighbourhood,experiment_setup,thresholding
 % neighbourhood = neighbourhoods(2,9);
 % experiment_queries(2,2)
 if ~isempty(varargin)
@@ -7,7 +8,7 @@ if ~isempty(varargin)
 else
     thresholding = false;
 end
-
+spike_curves=experiment_setup.prior_info.induced_intensity;
 %%
 
 good_spots = find(~isnan(trial.cell_IDs));
@@ -21,10 +22,13 @@ end
 %% Calculate the actual intensity received by neurons 
 batch_ID=neighbourhood.batch_ID;
 neurons=neighbourhood.neurons;
-properties={'PR_params','gain_params'};summary_stat={'mean'};
+properties={'PR_params','gain_params','delay_mu_params','delay_sigma_params'};summary_stat={'mean'};
 temp_output=grab_values_from_neurons(batch_ID,neurons,properties,summary_stat);
 gamma_mean=temp_output.PR_params.mean;
 gain_mean=temp_output.gain_params.mean;
+delay_mu_mean=temp_output.delay_mu_params.mean;
+delay_sigma_mean=temp_output.delay_sigma_params.mean;
+
 %%
 stim_received= gain_mean.*stim_size;
 
@@ -36,38 +40,49 @@ else
 end
 stim_effective = stim_received(stimulated_cells);
 gamma_effective=gamma_mean(stimulated_cells);
+delay_mean_effective=delay_mu_mean(stimulated_cells);
+delay_sigma_effective=delay_sigma_mean(stimulated_cells);
 
-stim_scale=experiment_setup.prior_info.induced_intensity.stim_scale;
-intensity_grid=experiment_setup.prior_info.induced_intensity.intensity_grid;
-stim_index=min(size(intensity_grid,1),max(1,round(stim_effective*stim_scale)));
 %%
+% Use evenly-spaced grid for spike_curves.current for easy mapping:
+current_lb=min(spike_curves.current);
+current_gap=spike_curves.current(2)-spike_curves.current(1);
+current_max_grid = length(spike_curves.current);
+time_grid = 1:(2*spike_curves.time_max);
 trial_intensity=struct;
 trial_intensity.stim_neurons = struct;
-if ~isempty(stimulated_cells)
-    for i_cell = 1:length(stimulated_cells)
-       trial_intensity.stim_neurons(i_cell)=struct;
-    end
-    % initialize the struct array before modifying them
-    for i_cell = 1:length(stimulated_cells)
-        i_cell_this_hood=stimulated_cells(i_cell);
-       trial_intensity.stim_neurons(i_cell).cell_ID=neighbourhood.neurons(i_cell_this_hood).cell_ID;
-       trial_intensity.stim_neurons(i_cell).PR=gamma_mean(i_cell_this_hood);
-       trial_intensity.stim_neurons(i_cell).gain=gain_mean(i_cell_this_hood);
-       trial_intensity.stim_neurons(i_cell).intensity=intensity_grid(stim_index(i_cell),:);
-       trial_intensity.stim_neurons(i_cell).stimulation=stim_effective(i_cell)/gain_mean(i_cell_this_hood);
-    end
+estimated_intensity=zeros(1,length(1:length(time_grid)));
+stim_index=zeros(length(stimulated_cells),1);
+for i_cell = 1:length(stimulated_cells)
+    trial_intensity.stim_neurons(i_cell)=struct;
 end
+for i_stim = 1:length(stimulated_cells)
+    stim_index(i_stim)= min(current_max_grid,...
+        max(1,round((stim_effective(i_stim)-current_lb)/current_gap)));
+    expectation=delay_mean_effective(i_stim)+spike_curves.mean(stim_index(i_stim));
+    standard_dev=sqrt(delay_sigma_effective(i_stim)^2+...
+        spike_curves.sd(stim_index(i_stim))^2);
+    
+    i_cell_this_hood=stimulated_cells(i_stim);
+    trial_intensity.stim_neurons(i_stim).cell_ID=neighbourhood.neurons(i_cell_this_hood).cell_ID;
+    trial_intensity.stim_neurons(i_stim).PR=gamma_mean(i_cell_this_hood);
+    trial_intensity.stim_neurons(i_stim).gain=gain_mean(i_cell_this_hood);
+    trial_intensity.stim_neurons(i_stim).intensity=normpdf(time_grid,expectation,standard_dev);
+    trial_intensity.stim_neurons(i_stim).stimulation=stim_effective(i_stim)/gain_mean(i_cell_this_hood); 
+   estimated_intensity=estimated_intensity+ trial_intensity.stim_neurons(i_stim).intensity*trial_intensity.stim_neurons(i_stim).PR;
+end
+estimated_intensity=estimated_intensity+experiment_setup.patched_neuron.background_rate;
 %% Total intensity
-
-ps_intensity =intensity_grid(stim_index,:).*(gamma_effective*ones(1,size(intensity_grid(stim_index,:),2)));
-estimated_intensity= sum(ps_intensity,1)+experiment_setup.patched_neuron.background_rate;
 
 % Time-rescaled version (accumulated intensity)
 scaled_times=[];
 if ~isempty(trial.event_times)
     events= [0 trial.event_times];
+    
     for i_event = 2:length(events)
-        scaled_times(1)=sum(estimated_intensity( (events(i_event-1)+1):events(i_event))); 
+        if trial.event_times(i_event-1) < spike_curves.time_max
+            scaled_times(1)=sum(estimated_intensity( (events(i_event-1)+1):events(i_event)));
+        end
     end
 end
 %%
