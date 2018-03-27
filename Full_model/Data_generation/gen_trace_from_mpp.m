@@ -36,7 +36,7 @@ bg_params.firing_rate = 0; %spike/sec
 % evoked_params.evoked_params.stim_amp = 0;
 % evoked_params.evoked_params.stim_start = .05*20000;
 % evoked_params.evoked_params.stim_duration = .05*20000;
-% evoked_params.times
+% evoked_params.event_times
 % evoked_params.a
 % evoked_params.tau_r
 % evoked_params.tau_f
@@ -129,9 +129,9 @@ nc = 1; %trials
     
 
     
-    for i = 1:length(evoked_params.times)        
+    for i = 1:length(evoked_params.event_times)        
         
-        tmpi = evoked_params.times(i); 
+        tmpi = evoked_params.event_times(i); 
         ssi_ = [ssi tmpi];
         cti_ = ci;
 

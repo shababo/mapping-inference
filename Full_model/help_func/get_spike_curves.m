@@ -74,9 +74,9 @@ end
 %% Call fmincon:
 
 ni_mean=isnan(y_spike_mean) | y_spike_mean > 200 | x_current > 3000 | isnan(x_current);
-assignin('base','y_spike_mean',y_spike_mean)
-assignin('base','x_current',x_current)
-find(ni_mean)
+assignin('base','y_spike_mean',y_spike_mean);
+assignin('base','x_current',x_current);
+% find(ni_mean)
 
 % ni_mean=isnan(y_spike_mean) | x_current > 3500;
 xdata=x_current(~ni_mean);ydata=y_spike_mean(~ni_mean);
