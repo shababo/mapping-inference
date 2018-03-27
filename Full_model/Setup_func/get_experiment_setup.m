@@ -30,7 +30,7 @@ switch param_preset_ID
         experiment_setup.rep.file_name=[experiment_setup.exp_root '/12_14_16_49/12_14_16_49_data.mat'];
     case 'szchen-sim-hab'
         experiment_setup.exp_root = '../Data/';
-        experiment_setup.analysis_root = '../Data/tmp';
+        experiment_setup.analysis_root = '../Data/AnalysisRoot/';
         experiment_setup.experiment_type='simulation';
         experiment_setup.single_patch_path='../Data/Environments/more_cells.mat';
     case 'szchen-rep-hab1'
@@ -110,7 +110,7 @@ switch  experiment_setup.experiment_type
 end
 
 switch param_preset_ID
-    case 'szchen-sim'
+    case {'szchen-sim','szchen-sim-hab'}
         experiment_setup.sim.compute_phase_masks=0;
         experiment_setup.sim.use_power_calib =0;
     case {'szchen-rep','turing-rep'}

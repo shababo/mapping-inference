@@ -91,9 +91,9 @@ for i_cell = 1:number_of_cells
     neurons(i_cell).delay_var=(rand(1)-0.5)*20+15;
 
 neurons(i_cell).truth=struct;
-    neurons(i_cell).truth.V_reset= -1e4;
-    neurons(i_cell).truth.V_thresh=15;
-    neurons(i_cell).truth.membrane_resistance=0.02;
+%     neurons(i_cell).truth.V_reset= -1e4;
+%     neurons(i_cell).truth.V_thresh=15;
+%     neurons(i_cell).truth.membrane_resistance=0.02;
     neurons(i_cell).truth.location=cell_locations(i_cell,:);
     neurons(i_cell).truth.optical_gain=gain_truth(i_cell);
     neurons(i_cell).truth.PR=gamma_truth(i_cell);
