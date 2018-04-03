@@ -20,7 +20,7 @@ K = 1;
 data_params.T = 500; %bins - start not too long
 data_params.dt = 1/20000; %
 data_params.baseline = 0;
-data_params.sigmasq = 3.5;
+data_params.sigmasq = 3.5; % was 3.5
 data_params.phi = [1, .80, -.12]; %this determines what the AR noise looks like.
 c_noise = sqrt(data_params.sigmasq);
 % 
@@ -71,8 +71,6 @@ nc = 1; %trials
         % startingSpikeTimes = [10 20];
         startingSpikeTimes = [];
 
-    num_spikes = poissrnd(n_spike);
-    startingSpikeTimes = data_params.T*rand(1,num_spikes);
 %         startingSpikeTimes = times(rand(1,data_params.T)<p_spike)/(data_params.dt*1e-3);
 
     ci = data_params.baseline*ones(nc,data_params.T); %initial calcium is set to data_params.baseline 
@@ -90,37 +88,41 @@ nc = 1; %trials
     trace_amps = [];
     trace_taus = {};
 
-    % generate bg events
-    for i = 1:length(startingSpikeTimes)        
-        tmpi = startingSpikeTimes(i); 
-        ssi_ = [ssi tmpi];
-        cti_ = ci;
-
-        ati_ = ati;
-        logC_ = 0;
-        for ti = 1:nc
-            a_init = bg_params.a_min + (bg_params.a_max-bg_params.a_min)*rand;
-            tmpi_ = tmpi+(st_std*randn);
-            tau(1) = diff(bg_params.tau_r_bounds)*rand() + bg_params.tau_r_bounds(1);
-            tau(2) = diff(bg_params.tau_f_bounds)*rand() + bg_params.tau_f_bounds(1);
-            ef=genEfilt(tau,data_params.T);
-            [si_, ci_, logC_] = addSpike(sti{ti},ci(ti,:),logC_,ef,a_init,tau,ci(ti,:),tmpi_, N+1, 1, A); %adds all trials' spikes at same time
-            sti_{ti} = si_;
-            cti_(ti,:) = ci_;
-            ati_{ti} = [ati_{ti} a_init];
-        end
-        ati = ati_;
-        ssi = ssi_;
-        sti = sti_;
-        ci = cti_;
-        logC = logC_;
-        N = length(ssi); %number of spikes in spiketrain
-        trace_amps = [trace_amps a_init];
-        trace_taus{i} = tau;
-        taus = [taus; tau];
-    end
+%     %%
+%         num_spikes = poissrnd(n_spike);
+%     startingSpikeTimes = data_params.T*rand(1,num_spikes);
+% 
+%     % generate bg events
+%     for i = 1:length(startingSpikeTimes)        
+%         tmpi = startingSpikeTimes(i); 
+%         ssi_ = [ssi tmpi];
+%         cti_ = ci;
+% 
+%         ati_ = ati;
+%         logC_ = 0;
+%         for ti = 1:nc
+%             a_init = bg_params.a_min + (bg_params.a_max-bg_params.a_min)*rand;
+%             tmpi_ = tmpi+(st_std*randn);
+%             tau(1) = diff(bg_params.tau_r_bounds)*rand() + bg_params.tau_r_bounds(1);
+%             tau(2) = diff(bg_params.tau_f_bounds)*rand() + bg_params.tau_f_bounds(1);
+%             ef=genEfilt(tau,data_params.T);
+%             [si_, ci_, logC_] = addSpike(sti{ti},ci(ti,:),logC_,ef,a_init,tau,ci(ti,:),tmpi_, N+1, 1, A); %adds all trials' spikes at same time
+%             sti_{ti} = si_;
+%             cti_(ti,:) = ci_;
+%             ati_{ti} = [ati_{ti} a_init];
+%         end
+%         ati = ati_;
+%         ssi = ssi_;
+%         sti = sti_;
+%         ci = cti_;
+%         logC = logC_;
+%         N = length(ssi); %number of spikes in spiketrain
+%         trace_amps = [trace_amps a_init];
+%         trace_taus{i} = tau;
+%         taus = [taus; tau];
+%     end
     
-    % evoked spikes
+    %% Calculate spikes?
 %     ssi = [];
 %     ati = cell(nc,1); % array of lists of individual trial spike times
 %     ati_ = cell(nc,1); 
@@ -139,12 +141,17 @@ nc = 1; %trials
         logC_ = 0;
         for ti = 1:nc
             a_init = evoked_params.a(i);
+            
 %             tmpi_ = tmpi+(st_std*randn);
             tmpi_ = tmpi;
-            tau(1) = evoked_params.tau_r(i);
-            tau(2) = evoked_params.tau_f(i);
-            ef=genEfilt(tau,data_params.T);
-            [si_, ci_, logC_] = addSpike(sti{ti},ci(ti,:),logC_,ef,a_init,tau,ci(ti,:),tmpi_, N+1, 1, A); %adds all trials' spikes at same time
+%             tau(1) = evoked_params.tau_r(i);
+%             tau(2) = evoked_params.tau_f(i);
+%             ef=genEfilt(tau,data_params.T);
+%             [si_, ci_, logC_] = addSpike(sti{ti},ci(ti,:),logC_,ef,a_init,tau,ci(ti,:),tmpi_, N+1, 1, A); %adds all trials' spikes at same time
+            decay_rate=evoked_params.decay_rate(i);
+            ci_=ci;
+        ci_=ci_+ a_init*exp(log(decay_rate)*((1:data_params.T)- tmpi_).*((1:data_params.T)>tmpi_)).*((1:data_params.T)>tmpi_);
+            si_=tmpi_;
             sti_{ti} = si_;
             cti_(ti,:) = ci_;
             ati_{ti} = [ati_{ti} a_init];
@@ -230,7 +237,9 @@ Spk = startingSpikeTimes;
 
 % linkaxes([ax1 ax2 ax3])
 
-trace = -Y_AR;
+% trace = -Y_AR;
+trace = -Y;
+
 true_signal.trace = -C;
 true_signal.event_times = ssi;
 true_signal.amplitudes = trace_amps; true_signal.taus = taus;

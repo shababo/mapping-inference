@@ -6,11 +6,10 @@ function [output] =l0detection(...
 % decay_rate = 0.98; %gamma in the paper
 % l0penalty=16; %lambda in the paper 
 
-
 if ~isempty(varargin) && ~isempty(varargin{1})
-    
+    event_mag_sign = varargin{1};
 else
-    
+    event_mag_sign='negative';
 end
 
 %% Apply the l0 spike detection:
@@ -51,6 +50,7 @@ end
 %%
 %Calculate the estimated calcium concentrations
 y_fit=zeros(length(y_trace),1);
+changepoints_final=[];
 for s = 1:length(y_trace)
     prior_changepoints=find(changepoints{end}< s);
     if ~isempty(prior_changepoints)
@@ -66,6 +66,19 @@ for s = 1:length(y_trace)
            decay_rate_vec=decay_rate.^(0:(next_changepoint-last_changepoint-1));
            tmp_trace=y_trace((last_changepoint+1):next_changepoint);
            y_fit(s)= sum(tmp_trace.*decay_rate_vec)/sum(decay_rate_vec.^2);
+           if event_mag_sign=='negative'
+               if y_fit(s)>0
+                   y_fit(s)=0;
+               else
+                   changepoints_final=[changepoints_final s];
+               end
+           elseif event_mag_sign=='positive'
+               if y_fit(s)<0
+                   y_fit(s)=0;
+               else
+                   changepoints_final=[changepoints_final s];
+               end
+           end
        end
     else
         
@@ -75,7 +88,7 @@ output=struct;
 output.trace=y_trace;
 output.fit=y_fit;
 if ~isempty(changepoints{end})
-output.changepoints=changepoints{end}+1;
+output.changepoints= changepoints_final+1;
 else
     output.changepoints=[];
 end
