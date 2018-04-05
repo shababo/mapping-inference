@@ -66,7 +66,7 @@ prior_params=variational_params;
 
 for i_cell = 1:number_of_stim_cells
     
-    current_params=reformat_to_neurons(parameter_history(end,i_cell),'gamma','spiked_logit_normal');
+    current_params=reformat_to_neurons(parameter_history(end,i_cell),'PR','spiked_logit_normal');
     
 %     group_profile=experiment_setup.groups.(this_neighbourhood.neurons(i_cell).group_ID);
     bounds= group_profile.inference_params.bounds.PR;

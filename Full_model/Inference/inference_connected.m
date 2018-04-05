@@ -75,7 +75,7 @@ for i_cluster= 1:length(clusters_of_cells)
        
          
         for i_cell = 1:length(neighbour_list)
-            current_params=reformat_to_neurons(parameter_history(end,i_cell),'gamma','spiked_logit_normal');
+            current_params=reformat_to_neurons(parameter_history(end,i_cell),'PR','spiked_logit_normal');
 %             group_profile=experiment_setup.groups.(this_neighbourhood.neurons(i_cell).group_ID);
             bounds= group_profile.inference_params.bounds.PR;
             quantile_prob=group_profile.regroup_func_params.quantile_prob;

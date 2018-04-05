@@ -4,7 +4,7 @@ function [output]=reformat_to_neurons(fitted_params,property_type,dist_type)
 % property_type='gamma';
 output=struct;
 switch property_type
-    case 'gamma'
+    case 'PR'
         
         output.type=dist_type;
         output.pi_logit=fitted_params.p_logit;
