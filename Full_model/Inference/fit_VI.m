@@ -170,6 +170,7 @@ while (change_history(iteration) > epsilon && iteration<maxit)
   
 % parameter_current
 loglklh_rec(iteration)=mean(mean(loglklh));
+change_history(iteration)=abs(loglklh_rec(iteration)-loglklh_rec(iteration-1))/abs(loglklh_rec(iteration));
 % parameter_current.alpha_m=-5;
 % parameter_current.beta_m=-1;
 % parameter_current.beta_s=-1;

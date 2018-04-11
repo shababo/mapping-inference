@@ -80,7 +80,8 @@ for i_cell = 1:n_cell
         quick_cov(h_beta_s(i_cell,:),h_beta_s(i_cell,:))...
         +0.01);
     
-    step_size = (eta/iteration);
+    step_size =  eta*(iteration)^(-1/1.8);
+    %(eta/iteration);
 %     eta/sqrt(iteration)*log(iteration+1);%
     grad_logit=spike_indicator*step_size*mean(f_p_logit(i_cell,:)-a_constant*h_p_logit(i_cell,:));
     grad_alpha = step_size*mean(f_alpha(i_cell,:)-a_constant*h_alpha(i_cell,:));
