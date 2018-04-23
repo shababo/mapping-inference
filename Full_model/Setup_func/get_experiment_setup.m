@@ -24,7 +24,7 @@ switch param_preset_ID
         experiment_setup.single_patch_path='C:/Users/Shizhe/Documents/Mapping_data/Data/more_cells.mat';
     case 'szchen-rep'
         experiment_setup.exp_root = 'C:/Users/Shizhe/Documents/Mapping_data/Data/';
-        experiment_setup.analysis_root = 'C:/Users/Shizhe/Documents/Mapping_data/Data/NewData';
+        experiment_setup.analysis_root = 'C:/Users/Shizhe/Documents/Mapping_data/Data/NewData/';
         experiment_setup.experiment_type='reproduction';
         experiment_setup.single_patch_path='C:/Users/Shizhe/Documents/Mapping_data/Data/more_cells.mat';
         experiment_setup.rep.file_name=[experiment_setup.exp_root '/12_14_16_49/12_14_16_49_data.mat'];
