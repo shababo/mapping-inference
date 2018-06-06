@@ -14,13 +14,14 @@ for i_cell = 1:n_cell
         this_params=params(i_cell).(fldnames{i_field});
         switch this_params.dist
             case 'normal'
-                this_logprior=normpdf(this_sample,this_params.mean,exp(this_params.log_sigma));
+                this_logdist=log(normpdf(this_sample,this_params.mean,exp(this_params.log_sigma)));
             case 'log-normal'
-                   this_logprior=normpdf(log(this_sample),this_params.mean,exp(this_params.log_sigma));
+                   this_logdist=log(normpdf(log(this_sample),this_params.mean,exp(this_params.log_sigma)));
         end
-        logprior_mat(i_cell,i_field)=this_logprior; 
-        if strcmp(this_params.type, 'common')
-            logprior_mat(i_cell,i_field)=0;
+        logdist_mat(i_cell,i_field)=this_logdist; 
+        
+        if (strcmp(this_params.type, 'common') & (i_cell >1)) %only count the common parameter once
+            logdist_mat(i_cell,i_field)=0;
         end
         
     end

@@ -1,6 +1,6 @@
 function [new_gradient]=sum_gradient(gradients,eta,eta_max,iteration)
 
-step_size =  eta*(iteration)^(-1/1.5);
+step_size =  eta*(iteration)^(-1);
 %     step_size =  eta*(iteration)^(-1);
 if eta_max>step_size
     eta_max=step_size;
@@ -26,7 +26,7 @@ for i_cell = 1:n_cell
             this_field_sigma_h(s) = gradients(s,i_cell).(fldnames{i_field}).sigma_h;
         end
         new_gradient(i_cell).(fldnames{i_field})=struct;
-        new_gradient(i_cell).(fldnames{i_field}).type=gradients(1,i_cell).(fldnames{i_field}).type;
+        new_gradient(i_cell).(fldnames{i_field}).type=gradients(s,i_cell).(fldnames{i_field}).type;
         
         if strcmp(gradients(1,i_cell).(fldnames{i_field}).type,'individual')
          a= quick_cov( this_field_mean_f, this_field_mean_h)+quick_cov( this_field_sigma_f, this_field_sigma_h);

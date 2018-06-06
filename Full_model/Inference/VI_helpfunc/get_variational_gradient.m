@@ -9,6 +9,10 @@ for i_cell = 1:n_cell
         this_params=params(i_cell).(fldnames{i_field});
         this_sample=variational_sample(i_cell).(fldnames{i_field});
         
+        if strcmp(this_params.dist,'log-normal')
+           this_sample = log(this_sample); 
+        end
+        
         switch this_params.dist
             case {'normal','log-normal'}
             dmean =   -(this_params.mean-this_sample)./exp(2*this_params.log_sigma);

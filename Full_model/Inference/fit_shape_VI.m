@@ -58,6 +58,7 @@ while (change_history(iteration) > epsilon && iteration<maxit)
             loglklh(s)=loglklh(s)+log(mvnpdf(Y,mean_func(X),K));
         end
         
+        
         if isinf(loglklh(s))
            loglklh(s)= -1e5; 
         end
@@ -84,7 +85,14 @@ while (change_history(iteration) > epsilon && iteration<maxit)
     loglklh_rec(iteration)=mean(mean(loglklh));
     elbo_rec(iteration)=mean(logprior+loglklh-logvariational);
    
-    fprintf('Iteration %d; change %d; \n',iteration,change_history(iteration))
+    fprintf('Iteration %d; change %d; ELBO %d \n',iteration,change_history(iteration),elbo_rec(iteration))
 end
 fprintf('VI fitted after %d iteration;\n',iteration)
-           
+%%
+% exp(parameter_current(1).GP_tau.mean)
+
+% exp(parameter_current(1).GP_sigma.mean)
+
+% exp(parameter_current(1).current_sigma.mean)
+
+% plot(loglklh_rec)
