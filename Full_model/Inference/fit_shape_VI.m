@@ -54,7 +54,7 @@ while (change_history(iteration) > epsilon && iteration<maxit)
             K=bsxfun(@plus,nsq,nsq');
             K=bsxfun(@minus,K,(2*X)*X.');
             K=variational_samples(1).GP_sigma*exp(-K/variational_samples(1).GP_tau);
-            K=K+ diag(ones(length(corrected_grid{s,i_cell}),1))*variational_samples(1).current_sigma;
+            K=K+ diag(ones(length(corrected_grid{s,i_cell}),1))*variational_samples(i_cell).current_sigma;
             loglklh(s)=loglklh(s)+log(mvnpdf(Y,mean_func(X),K));
         end
         
