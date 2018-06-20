@@ -1,5 +1,5 @@
 function [parameter_history, loglklh_rec] = fit_shape_VI(...
-    neurons,variational_params,prior_params,inference_params)
+    neurons,variational_params,prior_params,inference_params,prior_opt)
 %%
 epsilon=inference_params.convergence_threshold;
 S=inference_params.MCsamples_for_gradient;
@@ -9,7 +9,7 @@ maxit=inference_params.maxit;
 mean_func=inference_params.mean_func;
 n_cell = length(neurons);
 % initialize storages
-sum_of_logs=zeros(S,1);logvariational=zeros(S,1);
+logvariational=zeros(S,1);
 logprior=zeros(S,1);loglklh=zeros(S,1);
 
 corrected_grid=cell([S n_cell]);
@@ -41,8 +41,11 @@ while (change_history(iteration) > epsilon && iteration<maxit)
         end
        
         % Calculate the log pdf of prior  dist.
+        if prior_opt
         logprior(s)=get_logdistribution(variational_samples,prior_params);
-        
+        else
+        logprior(s)=0;
+        end
         % Calculate the log pdf of variational dist.
         logvariational(s)=get_logdistribution(variational_samples,parameter_current);
         
