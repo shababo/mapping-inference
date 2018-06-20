@@ -1,5 +1,5 @@
 function [parameter_history, loglklh_rec,elbo_rec] = fit_shape_VI(...
-    neurons,variational_params,prior_params,inference_params,prior_opt)
+    neurons,variational_params,prior_params,inference_params,prior_opt,noise_sigma)
 %%
 epsilon=inference_params.convergence_threshold;
 S=inference_params.MCsamples_for_gradient;
@@ -57,7 +57,7 @@ while (change_history(iteration) > epsilon && iteration<maxit)
             K=bsxfun(@plus,nsq,nsq');
             K=bsxfun(@minus,K,(2*X)*X.');
             K=variational_samples(1).GP_sigma*exp(-K/variational_samples(1).GP_tau);
-            K=K+ diag(ones(length(corrected_grid{s,i_cell}),1))*variational_samples(i_cell).current_sigma;
+            K=K+ diag(ones(length(corrected_grid{s,i_cell}),1))*noise_sigma(i_cell);
             loglklh(s)=loglklh(s)+log(mvnpdf(Y,mean_func(X),K));
         end
         
@@ -91,11 +91,3 @@ while (change_history(iteration) > epsilon && iteration<maxit)
     fprintf('Iteration %d; change %d; ELBO %d \n',iteration,change_history(iteration),elbo_rec(iteration))
 end
 fprintf('VI fitted after %d iteration;\n',iteration)
-%%
-% exp(parameter_current(1).GP_tau.mean)
-
-% exp(parameter_current(1).GP_sigma.mean)
-
-% exp(parameter_current(1).current_sigma.mean)
-
-% plot(loglklh_rec)
