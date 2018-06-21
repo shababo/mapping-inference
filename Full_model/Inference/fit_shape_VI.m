@@ -7,6 +7,7 @@ eta=inference_params.step_size;
 eta_max=inference_params.step_size_max;
 maxit=inference_params.maxit;
 mean_func=inference_params.mean_func;
+var_func=inference_params.var_func;
 n_cell = length(neurons);
 % initialize storages
 logvariational=zeros(S,1);
@@ -52,13 +53,18 @@ while (change_history(iteration) > epsilon && iteration<maxit)
         loglklh(s)=0;
         for i_cell = 1:n_cell
             X=corrected_grid{s,i_cell}';
+            sigma_grid = sqrt(var_func(X));
+            
             Y=neurons(i_cell).scaled_current';
             nsq=sum(X.^2,2);
             K=bsxfun(@plus,nsq,nsq');
             K=bsxfun(@minus,K,(2*X)*X.');
-            K=variational_samples(1).GP_sigma*exp(-K/variational_samples(1).GP_tau);
-            K=K+ diag(ones(length(corrected_grid{s,i_cell}),1))*noise_sigma(i_cell);
-            loglklh(s)=loglklh(s)+log(mvnpdf(Y,mean_func(X),K));
+            K=exp(-K/variational_samples(1).GP_tau);
+            sigma_mat = sigma_grid*ones(1,length(X));
+            Kcov=sigma_mat.*K.*sigma_mat';
+           
+            Kmarcov=Kcov+ diag(ones(length(corrected_grid{s,i_cell}),1))*noise_sigma(i_cell);
+            loglklh(s)=loglklh(s)+log(mvnpdf(Y,mean_func(X),Kmarcov));
         end
         
         
