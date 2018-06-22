@@ -10,6 +10,7 @@ mean_func=inference_params.mean_func;
 var_func=inference_params.var_func;
 n_cell = length(neurons);
 % initialize storages
+eig_epsilon=inference_params.eig_epsilon;
 logvariational=zeros(S,1);
 logprior=zeros(S,1);loglklh=zeros(S,1);
 
@@ -53,8 +54,12 @@ while (change_history(iteration) > epsilon && iteration<maxit)
         loglklh(s)=0;
         for i_cell = 1:n_cell
             X=corrected_grid{s,i_cell}';
-            sigma_grid = sqrt(var_func(X));
+            mean_func=inference_params.mean_func;
+
+
+            sigma_grid = sqrt(var_func.func(X,var_func.params));
             
+            sigma_grid =max(sigma_grid,eig_epsilon);
             Y=neurons(i_cell).scaled_current';
             nsq=sum(X.^2,2);
             K=bsxfun(@plus,nsq,nsq');
@@ -62,9 +67,10 @@ while (change_history(iteration) > epsilon && iteration<maxit)
             K=exp(-K/variational_samples(1).GP_tau);
             sigma_mat = sigma_grid*ones(1,length(X));
             Kcov=sigma_mat.*K.*sigma_mat';
+            Kcov=(Kcov+Kcov')/2;
            
             Kmarcov=Kcov+ diag(ones(length(corrected_grid{s,i_cell}),1))*noise_sigma(i_cell);
-            loglklh(s)=loglklh(s)+log(mvnpdf(Y,mean_func(X),Kmarcov));
+            loglklh(s)=loglklh(s)+log(mvnpdf(Y,mean_func.func(X,mean_func.params),Kmarcov));
         end
         
         
