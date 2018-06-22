@@ -57,9 +57,9 @@ while (change_history(iteration) > epsilon && iteration<maxit)
             mean_func=inference_params.mean_func;
 
 
-            sigma_grid = sqrt(var_func.func(X,var_func.params));
+            sigma_grid = sqrt(max(eig_epsilon,var_func.func(X,var_func.params)));
             
-            sigma_grid =max(sigma_grid,eig_epsilon);
+            
             Y=neurons(i_cell).scaled_current';
             nsq=sum(X.^2,2);
             K=bsxfun(@plus,nsq,nsq');
