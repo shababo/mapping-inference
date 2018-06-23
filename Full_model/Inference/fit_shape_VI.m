@@ -1,5 +1,5 @@
 function [parameter_history, loglklh_rec,elbo_rec] = fit_shape_VI(...
-    neurons,variational_params,prior_params,inference_params,prior_opt,noise_sigma)
+    neurons,variational_params,prior_params,inference_params)
 %%
 epsilon=inference_params.convergence_threshold;
 S=inference_params.MCsamples_for_gradient;
@@ -9,6 +9,10 @@ maxit=inference_params.maxit;
 mean_func=inference_params.mean_func;
 var_func=inference_params.var_func;
 n_cell = length(neurons);
+
+prior_opt =inference_params.prior_opt;
+    noise_sigma =[neurons(:).noise_sigma];
+    
 % initialize storages
 eig_epsilon=inference_params.eig_epsilon;
 logvariational=zeros(S,1);
@@ -39,7 +43,7 @@ while (change_history(iteration) > epsilon && iteration<maxit)
         % Calculate the new grid
         
         for i_cell = 1:n_cell
-            corrected_grid{s,i_cell}=[neurons(i_cell).stim_grid - variational_samples(i_cell).shift];
+            corrected_grid{s,i_cell}=[neurons(i_cell).adjusted_grid - variational_samples(i_cell).shift];
         end
        
         % Calculate the log pdf of prior  dist.
