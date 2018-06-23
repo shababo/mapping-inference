@@ -6,13 +6,17 @@ function  [mean_params, var_params,neurons]=pre_processing(neurons,params)
         neurons(i_cell).avg_current=zeros(length(ugrid),1);
         neurons(i_cell).sq_deviation=zeros(length(ugrid),1);
         
+         neurons(i_cell).current=...
+             neurons(i_cell).raw_current./(neurons(i_cell).power);
+        
         for i_grid = 1:length(ugrid)
             indices = find(ua==i_grid);
-            neurons(i_cell).avg_current(i_grid) =mean(neurons(i_cell).current(indices));
+            neurons(i_cell).avg_current(i_grid) =mean(neurons(i_cell).raw_current(indices));
+            neurons(i_cell).raw_sq_deviation(i_grid) =var(neurons(i_cell).raw_current(indices));
             neurons(i_cell).sq_deviation(i_grid) =var(neurons(i_cell).current(indices));
         end
         max_current = max(neurons(i_cell).avg_current);
-        neurons(i_cell).scaled_current = neurons(i_cell).current/max_current;
+        neurons(i_cell).scaled_current = neurons(i_cell).raw_current/max_current;
         neurons(i_cell).scale=max_current;
         neurons(i_cell).noise_sigma =  sqrt(mean(neurons(i_cell).sq_deviation))/(neurons(i_cell).scale);
     end
@@ -66,9 +70,10 @@ function  [mean_params, var_params,neurons]=pre_processing(neurons,params)
     Xstar=fixed_grid';
     
     
-    [pred_mean, post_mean] = get_GP_boundary(Xstar, params);
+    [pred_mean, post_mean,prior_var] = get_GP_boundary(Xstar, params);
     mean_params.grid=fixed_grid;
     mean_params.values=pred_mean;
+    mean_params.prior_var=prior_var;
     mean_params.data.Y = params.Y;
     mean_params.data.X = params.X;
     
@@ -80,9 +85,11 @@ function  [mean_params, var_params,neurons]=pre_processing(neurons,params)
     % change the response variable to squared deviation
     params.Y=sqdev;
     
-    [pred_var, post_var] = get_GP_boundary(Xstar, params);
+    [pred_var, post_var,prior_var] = get_GP_boundary(Xstar, params);
     var_params.grid=fixed_grid;
     var_params.values=pred_var;
+    var_params.prior_var=prior_var;
+    
     var_params.data.Y = params.Y;
     var_params.data.X = params.X;
     

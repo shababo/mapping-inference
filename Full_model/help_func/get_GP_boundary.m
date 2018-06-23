@@ -1,4 +1,4 @@
-function [pred_mean, post_mean] = get_GP_boundary(Xstar, params)
+function [pred_mean, post_mean,prior_var] = get_GP_boundary(Xstar, params)
 X=params.X;
 Y=params.Y;
 boundary=params.boundary;
@@ -35,4 +35,4 @@ post_mean=max(epsilon, K*inv(K_exp)*(Y));
 pred_mean= max(epsilon,K_pred*inv(K_exp)*(Y));
 
 
-
+prior_var = sigma_varstar;
