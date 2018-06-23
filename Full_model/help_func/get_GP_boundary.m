@@ -7,8 +7,7 @@ mag=params.mag;
 tau=params.tau;
 epsilon=1e-5;
 sigma_noise=0.05;
-noninfo_var_func = ...
-    @(x) (mag.*((abs(x)<(boundary-buffer) ))  + mag.*exp( -sqrt(abs(x)-boundary+buffer)).*(abs(x)>(boundary-buffer-epsilon) ));
+noninfo_var_func = @(x) mag*( (1./(1+exp(-boundary-x ))).*(1./(1+exp(x-boundary))));
 %% Get the posterior mean:
 sigma_var= noninfo_var_func(X);
 
