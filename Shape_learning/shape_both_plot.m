@@ -1,4 +1,4 @@
-function [figure_handle]=shape_both_plot(shifts, neurons,fixed_grid, n_curves,...
+function [figure_handle]=shape_both_plot(neurons,fixed_grid, n_curves,...
     figure_handle, tau,  sigma,...
     mean_params,var_params,ax)
 
@@ -8,7 +8,7 @@ n_cell=length(neurons);
 colors=lines(n_cell);
 corrected_grid=cell([n_cell 1]);
 for i_cell = 1:n_cell
-    corrected_grid{i_cell}=[neurons(i_cell).stim_grid - shifts(i_cell)];
+    corrected_grid{i_cell}=neurons(i_cell).adjusted_grid;
     X=[corrected_grid{i_cell}]';
     Y=[neurons(i_cell).scaled_current]';
     
@@ -44,7 +44,7 @@ for i_cell = 1:n_cell
     
     plot(fixed_grid,pred_mean,'Color',colors(i_cell,:))
     hold on;
-    scatter(neurons(i_cell).stim_grid- shifts(i_cell),neurons(i_cell).scaled_current,...
+    scatter(neurons(i_cell).adjusted_grid,neurons(i_cell).scaled_current,...
         'MarkerFaceColor',colors(i_cell,:),'MarkerEdgeColor',colors(i_cell,:));
     hold on;
     
@@ -55,7 +55,7 @@ xlim([min(fixed_grid) max(fixed_grid)])
 xlabel('Stimulation location (adjusted)')
 ylabel('Scaled current')
 title([ax ' ' 'GP: Tau ' num2str(round(sqrt(tau),1)) '; Mean Noise sigma: ' ...
-    num2str(round(mean(sigma),3))])
+    num2str(round(mean(sigma),3)) ';' ' Mean Shift: ' num2str(round(mean([neurons(:).initial_shift] ),1) ) ])
 
 subplot(1,2,2) 
 colors=lines(n_curves);
