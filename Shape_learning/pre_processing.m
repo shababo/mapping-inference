@@ -1,5 +1,6 @@
 function  [mean_params, var_params,neurons]=pre_processing(neurons,params)
-    n_cell = length(neurons);
+%%    
+n_cell = length(neurons);
     for i_cell = 1:n_cell
         [ugrid,~,ua]=unique(neurons(i_cell).stim_grid);
         neurons(i_cell).unique_grid = ugrid;
@@ -11,12 +12,12 @@ function  [mean_params, var_params,neurons]=pre_processing(neurons,params)
         
         for i_grid = 1:length(ugrid)
             indices = find(ua==i_grid);
-            neurons(i_cell).avg_current(i_grid) =mean(neurons(i_cell).raw_current(indices));
+            neurons(i_cell).avg_current(i_grid) =mean(neurons(i_cell).current(indices));
             neurons(i_cell).raw_sq_deviation(i_grid) =var(neurons(i_cell).raw_current(indices));
             neurons(i_cell).sq_deviation(i_grid) =var(neurons(i_cell).current(indices));
         end
         max_current = max(neurons(i_cell).avg_current);
-        neurons(i_cell).scaled_current = neurons(i_cell).raw_current/max_current;
+        neurons(i_cell).scaled_current = neurons(i_cell).current/max_current;
         neurons(i_cell).scale=max_current;
         neurons(i_cell).noise_sigma =  sqrt(mean(neurons(i_cell).sq_deviation))/(neurons(i_cell).scale);
     end
@@ -77,6 +78,12 @@ function  [mean_params, var_params,neurons]=pre_processing(neurons,params)
     mean_params.data.Y = params.Y;
     mean_params.data.X = params.X;
     
+%     figure(1)
+%     scatter(mean_params.data.X,post_mean)
+%     hold on;
+%     plot(mean_params.grid,mean_params.values)
+%     hold on;
+%     scatter(mean_params.data.X,mean_params.data.Y)
     %% Now estimate the variance over the full shape space: 
     observed_values =  params.Y;
     fitted_values = post_mean;

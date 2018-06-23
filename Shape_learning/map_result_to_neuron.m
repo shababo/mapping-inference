@@ -60,7 +60,7 @@ else
     for i_cell = 1:n_cell
         neurons(i_cell).stim_grid=result_z(i_cell).current_z_pos;
         neurons(i_cell).raw_current=result_z(i_cell).max_curr';
-        neurons(i_cell).power=ones(length(neurons(i_cell).stim_grid),1);
+        neurons(i_cell).power=ones(1,length(neurons(i_cell).stim_grid));
         % power is the same across trials
     end
     
