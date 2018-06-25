@@ -33,8 +33,12 @@ n_cell = length(neurons);
     
     % Sigma ~ current model
     if params.sigma_current_model
-        noise_var = [neurons(:).raw_sq_deviation];
-        mean_current = [neurons(:).avg_current];
+        noise_var=[];mean_current =[];
+        
+        for i_cell =1:n_cell
+        noise_var = [noise_var neurons(i_cell).raw_sq_deviation'];
+        mean_current = [mean_current neurons(i_cell).avg_current'];
+        end
         Y=reshape(sqrt(noise_var), [size(noise_var,1)*size(noise_var,2) 1]);
         X=reshape(mean_current, [size(noise_var,1)*size(noise_var,2) 1]);
         

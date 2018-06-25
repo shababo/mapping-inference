@@ -9,7 +9,7 @@ axis_list={'x' 'y' 'z'};
 
 for i_ax = 1:3 % choose the axis
 % arg1=1; % random seed, set it to others for random initialization
-i_ax=1;
+i_ax=3;
 %% Scale the current (devide by power and then by the max curr)
 
 %% Reformat data into neurons
@@ -50,12 +50,12 @@ rng(arg1)
     neurons,mean_params,var_params);
 % Use VI to learn the tau for GP kernel
 
-[parameter_hist,lklh_hist,elbo_hist]=fit_shape_VI(neurons,variational_params,prior_params,...
-    inference_params);
+% [parameter_hist,lklh_hist,elbo_hist]=fit_shape_VI(neurons,variational_params,prior_params,...
+%     inference_params);
 % 
-file_path = ['./Data/New_Real_Data_' target_axis 'ini' num2str(arg1) '.mat'];
-save(file_path,'neurons', 'parameter_hist','lklh_hist','elbo_hist',...
-    'var_params','mean_params')
+% file_path = ['./Data/New_Real_Data_' target_axis 'ini' num2str(arg1) '.mat'];
+% save(file_path,'neurons', 'parameter_hist','lklh_hist','elbo_hist',...
+%     'var_params','mean_params')
 
 
 % output_plot=false;
@@ -105,15 +105,19 @@ save(file_path,'neurons', 'parameter_hist','lklh_hist','elbo_hist',...
 % subplot(1,2,1)
 % n_cell = length(neurons);
 % colors=lines(n_cell);
-% noise_var = [neurons(:).raw_sq_deviation];
-% mean_current = [neurons(:).avg_current];
+% noise_var=[];mean_current =[];
+%        
+% for i_cell =1:n_cell
+%     noise_var = [noise_var neurons(i_cell).raw_sq_deviation'];
+%     mean_current = [mean_current neurons(i_cell).avg_current'];
+%     
+% end
+% fitted_Y  = neurons(i_cell).slope* mean_current;
 % 
-% fitted_Y = neurons(1).slope*[neurons(:).avg_current];
-% 
-% fitted_sigma=[neurons(:).noise_sigma];
-% mean_raw_current = [neurons(:).mean_raw_current];
+% % fitted_sigma=[neurons(:).noise_sigma];
+% % mean_raw_current = [neurons(:).mean_raw_current];
 % for i_cell = 1:n_cell
-%     scatter(mean_current(i_cell,:),sqrt(noise_var(i_cell,:)),'MarkerFaceColor',colors(i_cell,:))
+%     scatter(neurons(i_cell).avg_current,sqrt(neurons(i_cell).raw_sq_deviation),'MarkerFaceColor',colors(i_cell,:))
 %     hold on;
 % end
 % plot(reshape(mean_current,[size(mean_current,1)*size(mean_current,2) 1]),...
