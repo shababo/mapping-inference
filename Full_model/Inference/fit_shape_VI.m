@@ -12,7 +12,7 @@ n_cell = length(neurons);
 
 prior_opt =inference_params.prior_opt;
 %     noise_sigma =[neurons(:).noise_sigma];
-    
+
 % initialize storages
 eig_epsilon=inference_params.eig_epsilon;
 logvariational=zeros(S,1);
@@ -45,12 +45,12 @@ while (change_history(iteration) > epsilon && iteration<maxit)
         for i_cell = 1:n_cell
             corrected_grid{s,i_cell}=[neurons(i_cell).adjusted_grid - variational_samples(i_cell).shift];
         end
-       
+        
         % Calculate the log pdf of prior  dist.
         if prior_opt
-        logprior(s)=get_logdistribution(variational_samples,prior_params);
+            logprior(s)=get_logdistribution(variational_samples,prior_params);
         else
-        logprior(s)=0;
+            logprior(s)=0;
         end
         % Calculate the log pdf of variational dist.
         logvariational(s)=get_logdistribution(variational_samples,parameter_current);
@@ -58,7 +58,7 @@ while (change_history(iteration) > epsilon && iteration<maxit)
         loglklh(s)=0;
         for i_cell = 1:n_cell
             
-             X=corrected_grid{s,i_cell}';
+            X=corrected_grid{s,i_cell}';
             mean_func=inference_params.mean_func;
             
             % What is our variance estimator if we were to use the unscaled
@@ -90,29 +90,29 @@ while (change_history(iteration) > epsilon && iteration<maxit)
         
         
         if isinf(loglklh(s))
-           loglklh(s)= -1e5; 
+            loglklh(s)= -1e5;
         end
         
         lklhweight = logprior(s)+loglklh(s)-logvariational(s);
-        % 
+        %
         this_gradient=get_variational_gradient(variational_samples,parameter_current);
         
-        %obtain the f and h functions: 
+        %obtain the f and h functions:
         this_gradient=get_variate_control(lklhweight,this_gradient);
         
         if exist('gradients')
-           gradients(s,:) = this_gradient;
+            gradients(s,:) = this_gradient;
         else
-           gradients(s,:)=this_gradient;
+            gradients(s,:)=this_gradient;
         end
-    end    
+    end
     new_gradient=sum_gradient(gradients,eta,eta_max,iteration);
-
+    
     [parameter_current, change_history(iteration)]=incorporate_gradient(parameter_current, new_gradient);
     
     loglklh_rec(iteration)=mean(mean(loglklh));
     elbo_rec(iteration)=mean(logprior+loglklh-logvariational);
-   
+    
     fprintf('Iteration %d; change %d; ELBO %d \n',iteration,change_history(iteration),elbo_rec(iteration))
 end
 fprintf('VI fitted after %d iteration;\n',iteration)

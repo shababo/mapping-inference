@@ -32,15 +32,17 @@ for i_cell = 1:n_cell
          a= quick_cov( this_field_mean_f, this_field_mean_h)+quick_cov( this_field_sigma_f, this_field_sigma_h);
          a=a/(quick_cov( this_field_mean_h, this_field_mean_h)+quick_cov( this_field_sigma_h, this_field_sigma_h));
          new_gradient(i_cell).(fldnames{i_field}).mean= ...
-             step_size*(mean(this_field_mean_f)-a*mean(this_field_mean_h));
+             step_size*(mean(this_field_mean_f));%-a*mean(this_field_mean_h));
          new_gradient(i_cell).(fldnames{i_field}).sigma= ...
-             step_size*(mean(this_field_sigma_f)-a*mean(this_field_sigma_h));
+             step_size*(mean(this_field_sigma_f)); %-a*mean(this_field_sigma_h));
          
         else % if it is a common parameter: 
+            a= quick_cov( this_field_mean_f, this_field_mean_h)+quick_cov( this_field_sigma_f, this_field_sigma_h);
+            a=a/(quick_cov( this_field_mean_h, this_field_mean_h)+quick_cov( this_field_sigma_h, this_field_sigma_h));
             new_gradient(i_cell).(fldnames{i_field}).mean= ...
-             step_size*mean(this_field_mean_f);
+              step_size*(mean(this_field_mean_f));%-a*mean(this_field_mean_h));
          new_gradient(i_cell).(fldnames{i_field}).sigma= ...
-             step_size*mean(this_field_sigma_f);
+             step_size*(mean(this_field_sigma_f));%-a*mean(this_field_sigma_h));
          
         end
         grad_max=max([grad_max abs( new_gradient(i_cell).(fldnames{i_field}).mean) abs( new_gradient(i_cell).(fldnames{i_field}).sigma)] );
@@ -49,16 +51,16 @@ end
 
 if grad_max < eta_max
     grad_scale=1;
-else 
+else
     grad_scale =  grad_max/eta_max;
     
-for i_cell = 1:n_cell
-    for i_field = 1:length(fldnames)
-         new_gradient(i_cell).(fldnames{i_field}).mean= ...
-             new_gradient(i_cell).(fldnames{i_field}).mean/grad_scale;
-         new_gradient(i_cell).(fldnames{i_field}).sigma= ...
-             new_gradient(i_cell).(fldnames{i_field}).sigma/grad_scale;
+    for i_cell = 1:n_cell
+        for i_field = 1:length(fldnames)
+            new_gradient(i_cell).(fldnames{i_field}).mean= ...
+                new_gradient(i_cell).(fldnames{i_field}).mean/grad_scale;
+            new_gradient(i_cell).(fldnames{i_field}).sigma= ...
+                new_gradient(i_cell).(fldnames{i_field}).sigma/grad_scale;
+        end
     end
-end
 end
 
