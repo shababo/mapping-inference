@@ -47,6 +47,10 @@ for i_cell = 1:n_cell
     scatter(neurons(i_cell).adjusted_grid,neurons(i_cell).scaled_current,...
         'MarkerFaceColor',colors(i_cell,:),'MarkerEdgeColor',colors(i_cell,:));
     hold on;
+    scatter(neurons(i_cell).adjusted_grid,neurons(i_cell).noise_sigma,...
+        'MarkerFaceColor','k','MarkerEdgeColor','k');
+    
+    hold on;
     
 end
       xlim([min(fixed_grid) max(fixed_grid)])
@@ -54,8 +58,7 @@ end
 
 xlabel('Stimulation location (adjusted)')
 ylabel('Scaled current')
-title([ax ' ' 'GP: Tau ' num2str(round(sqrt(tau),1)) '; Mean Noise sigma: ' ...
-    num2str(round(mean(sigma),3)) ' Shift: ' num2str(round([neurons(i_cell).initial_shift],1) ) ])
+title([ax ' ' 'GP: Tau ' num2str(round(sqrt(tau),1)) '; Shift: ' num2str(round([neurons(i_cell).initial_shift],1) ) ])
 
 
 

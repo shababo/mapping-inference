@@ -5,6 +5,8 @@
     end
     shift_sigma=2;
     tau_sigma=2;
+    gain_sigma=2;
+    ini_gain = log(unifrnd(1,20));
     n_cell=length(neurons);
     clear('variational_params')
     variational_params(n_cell)=struct;
@@ -18,6 +20,13 @@
         variational_params(i_cell).GP_tau.type='common';
         variational_params(i_cell).GP_tau.mean=ini_GP_tau;
         variational_params(i_cell).GP_tau.log_sigma=log(tau_sigma);
+        
+        if neurons(1).fit_gain
+            variational_params(i_cell).gain.dist='log-normal';
+            variational_params(i_cell).gain.type='individual';
+            variational_params(i_cell).gain.mean=ini_gain;
+            variational_params(i_cell).gain.log_sigma=log(gain_sigma);
+        end
     end
     prior_params=variational_params;
    
@@ -35,5 +44,6 @@
         inference_params.var_func.func=@quick_match;
         inference_params.var_func.params=var_params;
     inference_params.prior_opt=false;
+    inference_params.fit_gain=neurons(1).fit_gain;
     
         

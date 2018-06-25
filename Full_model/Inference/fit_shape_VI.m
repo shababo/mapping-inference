@@ -57,14 +57,22 @@ while (change_history(iteration) > epsilon && iteration<maxit)
         
         loglklh(s)=0;
         for i_cell = 1:n_cell
-            X=corrected_grid{s,i_cell}';
+            
+             X=corrected_grid{s,i_cell}';
             mean_func=inference_params.mean_func;
-
-
+            
+            % What is our variance estimator if we were to use the unscaled
+            % version?
             sigma_grid = sqrt(max(eig_epsilon,var_func.func(X,var_func.params)));
             
-            
             Y=neurons(i_cell).scaled_current';
+            white_sigma = neurons(i_cell).noise_sigma;
+            if inference_params.fit_gain
+                
+                Y=neurons(i_cell).raw_current';
+                sigma_grid = variational_samples(i_cell).gain*sigma_grid;
+                white_sigma =  variational_samples(i_cell).gain*white_sigma;
+            end
             nsq=sum(X.^2,2);
             K=bsxfun(@plus,nsq,nsq');
             K=bsxfun(@minus,K,(2*X)*X.');
@@ -72,8 +80,9 @@ while (change_history(iteration) > epsilon && iteration<maxit)
             sigma_mat = sigma_grid*ones(1,length(X));
             Kcov=sigma_mat.*K.*sigma_mat';
             Kcov=(Kcov+Kcov')/2;
-           
-            Kmarcov=Kcov+ diag(neurons(i_cell).noise_sigma.^2);
+            
+            Kmarcov=Kcov+ diag(white_sigma.^2);
+            
             loglklh(s)=loglklh(s)+log(mvnpdf(Y,mean_func.func(X,mean_func.params),Kmarcov));
         end
         

@@ -15,6 +15,8 @@ for i_cell = 1:n_cell
                 this_sample=normrnd(this_params.mean,exp(this_params.log_sigma));
             case 'log-normal'
                 this_sample=exp(normrnd(this_params.mean,exp(this_params.log_sigma)));
+            case 'logit-normal'
+                
         end
         
         variational_sample(i_cell).(fldnames{i_field}) = this_sample;

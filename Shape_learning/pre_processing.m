@@ -135,7 +135,10 @@ n_cell = length(neurons);
     var_params.data.Y = params.Y;
     var_params.data.X = params.X;
     
-    % 
+    %%
+    for i_cell = 1:n_cell
+       neurons(i_cell).fit_gain=params.fit_gain; 
+    end
 
    
     
