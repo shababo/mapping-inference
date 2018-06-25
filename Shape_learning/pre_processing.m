@@ -8,6 +8,8 @@ n_cell = length(neurons);
         neurons(i_cell).raw_sq_deviation=zeros(length(ugrid),1);
         neurons(i_cell).mean_current=zeros(length(neurons(i_cell).raw_current),1);
         neurons(i_cell).sq_deviation=zeros(length(ugrid),1);
+        neurons(i_cell).mean_power=zeros(length(ugrid),1);
+        
         if params.power_scaling 
          neurons(i_cell).current=...
              neurons(i_cell).raw_current./(neurons(i_cell).power);
@@ -19,6 +21,7 @@ n_cell = length(neurons);
             indices = find(ua==i_grid);
             % these are defined on the unique grid point
             neurons(i_cell).avg_current(i_grid) =mean(neurons(i_cell).current(indices));
+            neurons(i_cell).mean_power(i_grid) =mean(neurons(i_cell).power(indices));
             neurons(i_cell).raw_sq_deviation(i_grid) =var(neurons(i_cell).raw_current(indices));
             % the following is defined for each data point:
             neurons(i_cell).mean_raw_current(indices)=mean(neurons(i_cell).raw_current(indices));

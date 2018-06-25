@@ -67,11 +67,13 @@ while (change_history(iteration) > epsilon && iteration<maxit)
             
             Y=neurons(i_cell).scaled_current';
             white_sigma = neurons(i_cell).noise_sigma;
+            Ymean = mean_func.func(X,mean_func.params);
             if inference_params.fit_gain
                 
                 Y=neurons(i_cell).raw_current';
                 sigma_grid = variational_samples(i_cell).gain*sigma_grid;
                 white_sigma =  variational_samples(i_cell).gain*white_sigma;
+                Ymean=Ymean*variational_samples(i_cell).gain;
             end
             nsq=sum(X.^2,2);
             K=bsxfun(@plus,nsq,nsq');
@@ -83,7 +85,7 @@ while (change_history(iteration) > epsilon && iteration<maxit)
             
             Kmarcov=Kcov+ diag(white_sigma.^2);
             
-            loglklh(s)=loglklh(s)+log(mvnpdf(Y,mean_func.func(X,mean_func.params),Kmarcov));
+            loglklh(s)=loglklh(s)+log(mvnpdf(Y,Ymean,Kmarcov));
         end
         
         
@@ -103,12 +105,10 @@ while (change_history(iteration) > epsilon && iteration<maxit)
         else
            gradients(s,:)=this_gradient;
         end
-    end
-    
+    end    
     new_gradient=sum_gradient(gradients,eta,eta_max,iteration);
-    
+
     [parameter_current, change_history(iteration)]=incorporate_gradient(parameter_current, new_gradient);
-    
     
     loglklh_rec(iteration)=mean(mean(loglklh));
     elbo_rec(iteration)=mean(logprior+loglklh-logvariational);
