@@ -35,4 +35,5 @@
         inference_params.var_func.func=@quick_match;
         inference_params.var_func.params=var_params;
     inference_params.prior_opt=false;
+    
         

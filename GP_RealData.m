@@ -8,8 +8,8 @@ xy_path='../Environments/new_xy_data.mat';
 axis_list={'x' 'y' 'z'};
 
 for i_ax = 1:3 % choose the axis
-arg1=1; % random seed, set it to others for random initialization
-% i_ax=2;
+% arg1=1; % random seed, set it to others for random initialization
+i_ax=1;
 %% Scale the current (devide by power and then by the max curr)
 
 %% Reformat data into neurons
@@ -23,22 +23,25 @@ target_axis=axis_list{i_ax};
 
 params=struct;
 if i_ax==1
-    params.boundary= 35; % two-side
+    params.boundary= 45; % two-side
     params.buffer=10;
     params.mag=1;
     params.tau=49;
 elseif i_ax==2
-    params.boundary= 25; % two-side
+    params.boundary= 40; % two-side
     params.buffer=10;
     params.mag=1;
     params.tau=49;
 else
-    params.boundary= 60; % two-side
+    params.boundary= 100; % two-side
     params.buffer=10;
     params.mag=1;
     params.tau=400;
 end
+params.power_scaling=false;
 params.symmetric=false;
+params.sigma_current_model=true;
+
 [mean_params, var_params,neurons]=pre_processing(neurons,params);
 
 % Set initial values:
@@ -49,14 +52,15 @@ rng(arg1)
 
 [parameter_hist,lklh_hist,elbo_hist]=fit_shape_VI(neurons,variational_params,prior_params,...
     inference_params);
-%
+% 
 file_path = ['./Data/New_Real_Data_' target_axis 'ini' num2str(arg1) '.mat'];
 save(file_path,'neurons', 'parameter_hist','lklh_hist','elbo_hist',...
     'var_params','mean_params')
 
 
-
-%% Plotting:
+% output_plot=false;
+% 
+% % Plotting:
 % fig_name=['./Figures/OLplot_' target_axis];
 % 
 % i_cell = 5;
@@ -87,42 +91,65 @@ save(file_path,'neurons', 'parameter_hist','lklh_hist','elbo_hist',...
 %  ylabel('Scaled current')
 %  title([target_axis '-axis, cell ' num2str(i_cell)])
 % 
+%  if output_plot
 % fig = gcf;
 % fig.PaperUnits = 'inches';
 % fig.PaperPosition = [0 0 10 4];
 % saveas(fig,[fig_name  'scale.png'])
 % close(fig)
+%  end
 % %% Visualize the scaled variance:
 % 
 % fig=figure(2);
+% 
 % subplot(1,2,1)
+% n_cell = length(neurons);
+% colors=lines(n_cell);
+% noise_var = [neurons(:).raw_sq_deviation];
+% mean_current = [neurons(:).avg_current];
 % 
-% scatter(neurons(i_cell).unique_grid,neurons(i_cell).raw_sq_deviation,...
-%     'MarkerFaceColor','r')
+% fitted_Y = neurons(1).slope*[neurons(:).avg_current];
+% 
+% fitted_sigma=[neurons(:).noise_sigma];
+% mean_raw_current = [neurons(:).mean_raw_current];
+% for i_cell = 1:n_cell
+%     scatter(mean_current(i_cell,:),sqrt(noise_var(i_cell,:)),'MarkerFaceColor',colors(i_cell,:))
+%     hold on;
+% end
+% plot(reshape(mean_current,[size(mean_current,1)*size(mean_current,2) 1]),...
+%     reshape(fitted_Y,[size(fitted_Y,1)*size(fitted_Y,2) 1]),...
+%     'Color','k','LineWidth',3)
 % hold on;
+% title(['Current ' target_axis '-axis'])
+% ylabel('Standard deviation')
+% xlabel('Mean')
 % 
-% title([target_axis '-axis, cell ' num2str(i_cell)])
-% xlabel('Stim location')
-% ylabel('Squared deviation')
+% 
+% 
+% 
 % 
 % 
 % subplot(1,2,2)
-% scatter(neurons(i_cell).unique_grid,(neurons(i_cell).sq_deviation)/(neurons(i_cell).scale),...
-%     'MarkerFaceColor','k')
+% scatter(neurons(i_cell).stim_grid,neurons(i_cell).scaled_current,...
+%     'MarkerFaceColor','r')
 % hold on;
 % 
+% scatter(neurons(i_cell).stim_grid,neurons(i_cell).noise_sigma,...
+%     'MarkerFaceColor','k')
 % 
-% xlabel('Stim location')
-% ylabel('Scaled sq. dev')
 % title([target_axis '-axis, cell ' num2str(i_cell)])
+% xlabel('Stim location')
+% ylabel('Normalized current and s.d.')
 % 
+% 
+%  if output_plot
 % fig = gcf;
 % fig.PaperUnits = 'inches';
 % fig.PaperPosition = [0 0 10 4];
 % saveas(fig,[fig_name  'scale_variance.png'])
 % close(fig)
 % 
-% 
+%  end
 % %% Visualize the mode finding performance:
 % 
 % n_cell = length(neurons);
@@ -153,63 +180,62 @@ save(file_path,'neurons', 'parameter_hist','lklh_hist','elbo_hist',...
 % ylabel('Normalized current')
 % title([target_axis '-axis; mean shift: ' num2str(round(mean([neurons(:).initial_shift] ),1) )])
 % 
+% 
+%  if output_plot
 % fig = gcf;
 % fig.PaperUnits = 'inches';
 % fig.PaperPosition = [0 0 10 4];
 % saveas(fig,[fig_name  'mode.png'])
 % close(fig)
-% 
+%  end
 % %% Draw the predictive mean function:
 % 
 % fig=figure(4);
 % 
-% subplot(1,2,1)
 % scatter(mean_params.data.X,mean_params.data.Y,...
 %     'MarkerFaceColor','r')
+% hold on;
+% plot(mean_params.grid,mean_params.prior_var,'linewidth',2,'Color','b')
 % hold on;
 % plot(mean_params.grid,mean_params.values,'linewidth',2,'Color','k')
 % title([target_axis '-axis ' 'mean function'])
 % xlabel('Stim location')
 % 
 % 
-% subplot(1,2,2)
-% plot(mean_params.grid,mean_params.prior_var,'linewidth',2)
+% % subplot(1,2,2)
 % 
-% title([target_axis '-axis prior variance'])
-% ylim([min(mean_params.prior_var) max(mean_params.prior_var)+0.2 ])
-% xlabel('Stim location')
-% % ylabel('Normalized current')
+%  if output_plot
 % fig = gcf;
 % fig.PaperUnits = 'inches';
-% fig.PaperPosition = [0 0 10 4];
+% fig.PaperPosition = [0 0 4 4];
 % saveas(fig,[fig_name  'mean.png'])
 % close(fig)
-% 
+%  end
 % 
 % 
 % %% Draw the predictive variance function:
 % 
 % fig=figure(5);
 % 
-% subplot(1,2,1)
 % scatter(var_params.data.X,var_params.data.Y,...
 %     'MarkerFaceColor','r')
 % hold on;
 % plot(var_params.grid,var_params.values,'linewidth',2,'Color','k')
+% hold on;
+% plot(var_params.grid, max(var_params.values)*(var_params.prior_var)/max(var_params.prior_var),'linewidth',2,'Color','b')
+% 
 % title([target_axis '-axis ' 'variance function'])
 % xlabel('Stim location')
 % % ylabel('Normalized current')
 % 
 % 
-% subplot(1,2,2)
-% plot(var_params.grid,var_params.prior_var,'linewidth',2)
-% title([target_axis '-axis prior variance'])
-% ylim([min(mean_params.prior_var) max(mean_params.prior_var)+0.2 ])
-% xlabel('Stim location')
-% % ylabel('Normalized current')
+%  if output_plot
 % fig = gcf;
 % fig.PaperUnits = 'inches';
-% fig.PaperPosition = [0 0 10 4];
+% fig.PaperPosition = [0 0 4 4];
 % saveas(fig,[fig_name  'var.png'])
 % close(fig)
+%  end
+
 end
+

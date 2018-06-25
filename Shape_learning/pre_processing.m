@@ -5,22 +5,53 @@ n_cell = length(neurons);
         [ugrid,~,ua]=unique(neurons(i_cell).stim_grid);
         neurons(i_cell).unique_grid = ugrid;
         neurons(i_cell).avg_current=zeros(length(ugrid),1);
+        neurons(i_cell).raw_sq_deviation=zeros(length(ugrid),1);
+        neurons(i_cell).mean_current=zeros(length(neurons(i_cell).raw_current),1);
         neurons(i_cell).sq_deviation=zeros(length(ugrid),1);
-        
+        if params.power_scaling 
          neurons(i_cell).current=...
              neurons(i_cell).raw_current./(neurons(i_cell).power);
-        
+        else
+        neurons(i_cell).current=...
+             neurons(i_cell).raw_current;    
+        end
         for i_grid = 1:length(ugrid)
             indices = find(ua==i_grid);
+            % these are defined on the unique grid point
             neurons(i_cell).avg_current(i_grid) =mean(neurons(i_cell).current(indices));
             neurons(i_cell).raw_sq_deviation(i_grid) =var(neurons(i_cell).raw_current(indices));
-            neurons(i_cell).sq_deviation(i_grid) =var(neurons(i_cell).current(indices));
+            % the following is defined for each data point:
+            neurons(i_cell).mean_raw_current(indices)=mean(neurons(i_cell).raw_current(indices));
         end
         max_current = max(neurons(i_cell).avg_current);
         neurons(i_cell).scaled_current = neurons(i_cell).current/max_current;
         neurons(i_cell).scale=max_current;
-        neurons(i_cell).noise_sigma =  sqrt(mean(neurons(i_cell).sq_deviation))/(neurons(i_cell).scale);
+        
+        % Assign a sigma for each data point:
+        neurons(i_cell).noise_sigma =  ones(length(neurons(i_cell).current),1)*sqrt(mean(neurons(i_cell).sq_deviation))/(neurons(i_cell).scale);
     end
+    
+    % Sigma ~ current model
+    if params.sigma_current_model
+        noise_var = [neurons(:).raw_sq_deviation];
+        mean_current = [neurons(:).avg_current];
+        Y=reshape(sqrt(noise_var), [size(noise_var,1)*size(noise_var,2) 1]);
+        X=reshape(mean_current, [size(noise_var,1)*size(noise_var,2) 1]);
+        
+        slope=X'*Y/(X'*X);
+        
+        for i_cell = 1:n_cell
+        % NOTE: the current code doest not include scaling by power!
+        scaling_factor= ones(length(neurons(i_cell).current),1)*neurons(i_cell).scale;
+        if params.power_scaling 
+            scaling_factor= neurons(i_cell).power.*scaling_factor;
+        end
+        neurons(i_cell).noise_sigma =  slope*neurons(i_cell).mean_raw_current'./scaling_factor;
+        neurons(i_cell).slope=slope;
+        end
+        
+    end
+    
     
     %% Find centers using isometic regresson:
     % plot(neurons(1).stim_grid,neurons(1).scaled_current)

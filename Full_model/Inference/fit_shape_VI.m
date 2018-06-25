@@ -11,7 +11,7 @@ var_func=inference_params.var_func;
 n_cell = length(neurons);
 
 prior_opt =inference_params.prior_opt;
-    noise_sigma =[neurons(:).noise_sigma];
+%     noise_sigma =[neurons(:).noise_sigma];
     
 % initialize storages
 eig_epsilon=inference_params.eig_epsilon;
@@ -73,7 +73,7 @@ while (change_history(iteration) > epsilon && iteration<maxit)
             Kcov=sigma_mat.*K.*sigma_mat';
             Kcov=(Kcov+Kcov')/2;
            
-            Kmarcov=Kcov+ diag(ones(length(corrected_grid{s,i_cell}),1))*noise_sigma(i_cell);
+            Kmarcov=Kcov+ diag(neurons(i_cell).noise_sigma.^2);
             loglklh(s)=loglklh(s)+log(mvnpdf(Y,mean_func.func(X,mean_func.params),Kmarcov));
         end
         
