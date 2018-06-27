@@ -67,7 +67,7 @@ x0 = [0,0];
         if params.power_scaling
             scaling_factor= neurons(i_cell).power.*scaling_factor;
         end
-        neurons(i_cell).noise_sigma = est(1)+est(2)*neurons(i_cell).mean_raw_current./scaling_factor;
+        neurons(i_cell).noise_sigma = (est(1)+est(2)*neurons(i_cell).mean_raw_current)./scaling_factor;
         neurons(i_cell).slope=est(2);
         neurons(i_cell).intercept=est(1);
         

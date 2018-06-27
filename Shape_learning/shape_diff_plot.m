@@ -32,7 +32,7 @@ for i_cell = 1:n_cell
     K=bsxfun(@minus,K,(2*X)*X.');
     sigma_mat = sigma_var*ones(1,length(X));
     K=sigma_mat.*exp(-K/tau).*sigma_mat';
-    K_exp=K+ diag(ones(length(X),1))*sigma(i_cell);
+    K_exp=K+ diag(neurons(i_cell).noise_sigma.^2);
 
     K_pred= sigma_mat_star_left.*exp(-K_pred/tau).*sigma_mat_star_right;
     
