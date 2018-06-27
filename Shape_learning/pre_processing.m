@@ -5,6 +5,7 @@ for i_cell = 1:n_cell
     [ugrid,~,ua]=unique(neurons(i_cell).stim_grid);
     neurons(i_cell).unique_grid = ugrid;
     neurons(i_cell).avg_current=zeros(length(ugrid),1);
+    neurons(i_cell).avg_raw_current=zeros(length(ugrid),1);
     neurons(i_cell).raw_sq_deviation=zeros(length(ugrid),1);
     neurons(i_cell).mean_current=zeros(length(neurons(i_cell).raw_current),1);
     neurons(i_cell).sq_deviation=zeros(length(ugrid),1);
@@ -21,6 +22,8 @@ for i_cell = 1:n_cell
         indices = find(ua==i_grid);
         % these are defined on the unique grid point
         neurons(i_cell).avg_current(i_grid) =mean(neurons(i_cell).current(indices));
+        neurons(i_cell).avg_raw_current(i_grid) =mean(neurons(i_cell).raw_current(indices));
+        
         neurons(i_cell).mean_power(i_grid) =mean(neurons(i_cell).power(indices));
         neurons(i_cell).raw_sq_deviation(i_grid) =var(neurons(i_cell).raw_current(indices));
         % the following is defined for each data point:
@@ -40,7 +43,7 @@ if params.sigma_current_model
     
     for i_cell =1:n_cell
         noise_var = [noise_var neurons(i_cell).raw_sq_deviation'];
-        mean_current = [mean_current neurons(i_cell).avg_current'];
+        mean_current = [mean_current neurons(i_cell).avg_raw_current'];
     end
     dims=[size(noise_var,1)*size(noise_var,2) 1];
     Y=reshape(sqrt(noise_var), dims);
@@ -60,11 +63,11 @@ x0 = [0,0];
     
     for i_cell = 1:n_cell
         % NOTE: the current code doest not include scaling by power!
-        scaling_factor= ones(length(neurons(i_cell).current),1)*neurons(i_cell).scale;
+        scaling_factor= ones(1,length(neurons(i_cell).current))*neurons(i_cell).scale;
         if params.power_scaling
             scaling_factor= neurons(i_cell).power.*scaling_factor;
         end
-        neurons(i_cell).noise_sigma =  slope*neurons(i_cell).mean_raw_current'./scaling_factor;
+        neurons(i_cell).noise_sigma = est(1)+est(2)*neurons(i_cell).mean_raw_current./scaling_factor;
         neurons(i_cell).slope=est(2);
         neurons(i_cell).intercept=est(1);
         

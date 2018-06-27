@@ -3,7 +3,7 @@ function [neurons] = map_result_to_neuron(target_axis, z_path, xy_path)
 load(z_path);
 result_z(1)=result_z(2);
 load(xy_path);
-
+result_xy=result_xy_correct_power;
 
 axis_list={'x' 'y' 'z'};
 good_cell_list= [1:3 5:length(result_xy)];
