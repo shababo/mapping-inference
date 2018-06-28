@@ -5,7 +5,7 @@ threshold = plot_params.threshold;
 
 unique_z=unique(locations(:,3));
 n_grid = plot_params.n_grid;
-
+fig_name = plot_params.fig_name;
 %%
 switch plot_params.type
     case 'scatter'
@@ -57,12 +57,79 @@ switch plot_params.type
             Vq = griddata(xy_locations(:,1),xy_locations(:,2),this_sample,Xq,Yq);
             fig= figure(i_z)
             
-            heatmap(Vq,x_grid,y_grid)
+            heatmap(Vq',x_grid,y_grid)
             caxis(cscale)
-            xlabel('x');
-            ylabel('y');
+            ylabel('x');
+            xlabel('y');
             title(['z plane:' num2str(unique_z(i_z)) ])
+               %  if output_plot
+            fig = gcf;
+            fig.PaperUnits = 'inches';
+            fig.PaperPosition = [0 0 4 4];
+            saveas(fig,[fig_name 'z'  num2str(unique_z(i_z)) '.png'])
+            close(fig)
+           
+        end
+     case 'contrast'
+     
+         cscale_shape=   [0 1];
+        cscale_dev=   [-1 1];
+        
+        for i_z = 1:length(unique_z)
             
+            this_z_indices = find(locations(:,3)==unique_z(i_z));
+            this_sample=GP_samples.full.samples(this_z_indices ,1);
+            xy_locations=locations(this_z_indices,1:2);
+            x_grid = (1:n_grid)*(range(xy_locations(:,1))/n_grid) +min(xy_locations(:,1));
+        y_grid = (1:n_grid)*(range(xy_locations(:,2))/n_grid) +min(xy_locations(:,2));
+        
+            [Xq,Yq] = meshgrid(x_grid,y_grid);
+            Vq = griddata(xy_locations(:,1),xy_locations(:,2),this_sample,Xq,Yq);
+            Mq = griddata(xy_locations(:,1),xy_locations(:,2),GP_samples.full.mean(this_z_indices),Xq,Yq);
+            
+            
+            %%
+            fig= figure(i_z)
+            
+            subplot(1,3,1)
+            heatmap(Vq',x_grid,y_grid)
+            caxis(cscale_shape)
+            ylabel('x');
+            xlabel('y');
+            title(['z plane:' num2str(unique_z(i_z)) ' sample'])
+               %  if output_plot
+               
+               
+               
+subplot(1,3,2)
+  heatmap(Mq',x_grid,y_grid)
+            caxis(cscale_shape)
+%             ylabel('x');
+            xlabel('y');
+            title(['z plane:' num2str(unique_z(i_z)) ' mean'])
+hp3 = get(subplot(1,3,2),'Position');        
+colorbar('Position', [hp3(1)+hp3(3)+0.01  hp3(2)  0.015  hp3(2)+hp3(3)*3.3])   
+          
+
+
+subplot(1,3,3)
+
+  heatmap((Vq-Mq)',x_grid,y_grid)
+     caxis(cscale_dev)
+%             ylabel('x');
+            xlabel('y');
+            title(['z plane:' num2str(unique_z(i_z)) ' deviation'])
+hp4 = get(subplot(1,3,3),'Position');        
+colorbar('Position', [hp4(1)+hp4(3)+0.01  hp4(2)  0.015  hp4(2)+hp4(3)*3.3])   
+
+% colorbar('Position', [hp4(1)+hp4(3)+0.1  hp4(2)  0.1  hp4(2)+hp4(3)*2.1])
+  %%
+            fig = gcf;
+            fig.PaperUnits = 'inches';
+            fig.PaperPosition = [0 0 13 4];
+            saveas(fig,[fig_name 'z'  num2str(unique_z(i_z)) '.png'])
+            close(fig)
+           
         end
 end
 
