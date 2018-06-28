@@ -2,6 +2,11 @@ function [parameter_history, loglklh_rec] = fit_VI(...
     stim_size, mpp, background_rate, ...
     variational_params,prior_params,...
     inference_params,prior_info,varargin)
+%% Stimulatin locations:
+
+% should include the stimulation locations in the mpp() data structure
+% also 
+
 % Fit the delay for each cell:
 % %%
 % stim_size=designs_remained;
@@ -96,60 +101,67 @@ iteration = 1;loglklh_rec=[];
 while (change_history(iteration) > epsilon && iteration<maxit)
     %%
     parameter_history(iteration,:)=parameter_current;
-%     parameter_current=parameter_history(end,:);
-  
     iteration=iteration+1;
     
-    % precalculate some quantities 
-    [gamma_constants] = get_logitnormal_constants([parameter_current(:).alpha],[parameter_current(:).beta]);
-    [gain_constants] = get_logitnormal_constants([parameter_current(:).alpha_gain],[parameter_current(:).beta_gain]);
-    [delay_mu_constants]=get_logitnormal_constants([parameter_current(:).alpha_m],[parameter_current(:).beta_m]);
-    [delay_sigma_constants]=get_logitnormal_constants([parameter_current(:).alpha_s],[parameter_current(:).beta_s]);
-    
+     
     for s= 1:S
         % drawing samples 
 %         t1s=toc;
-        [logit_gamma, gamma_sample] = draw_spiked_logitnormal(...
-            [parameter_current(:).alpha],[parameter_current(:).beta],gamma_bound,[parameter_current(:).p_logit],spike_indicator);
-        [logit_gain, gain_sample] = draw_spiked_logitnormal(...
-            [parameter_current(:).alpha_gain],[parameter_current(:).beta_gain],gain_bound);
+
+[variational_samples,raw_samples] = draw_samples_from_var_dist(parameter_current);
         
-        [logit_delay_mu, delay_mu_sample] = draw_spiked_logitnormal(...
-            [parameter_current(:).alpha_m],[parameter_current(:).beta_m],delay_mu_bound);
-        [logit_delay_sigma, delay_sigma_sample] = draw_spiked_logitnormal(...
-            [parameter_current(:).alpha_s],[parameter_current(:).beta_s],delay_sigma_bound);
-%         t1e=toc;        time_rec(1)=time_rec(1)+t1e-t1s;
+stim_all = get_stim_size(group_ID,experiment_query_this_group.trials,this_neighbourhood);
+
+
+        for i_cell = 1:n_cell
+            corrected_grid{s,i_cell}=[neurons(i_cell).adjusted_grid - variational_samples(i_cell).shift];
+        end
+      
+        % Draw samples from the GP on this corrected grid
         
-        delay_mu_sample_mat(:,s)=delay_mu_sample;
-        delay_sigma_sample_mat(:,s)=delay_sigma_sample;
-        gamma_sample_mat(:,s)=gamma_sample;
-        gain_sample_mat(:,s)=gain_sample;
-        
+     logprior(s)=get_logdistribution(variational_samples,prior_params);
+      % NOTE: need to add the prior distribution of GP
+      
 %         ts=toc;
 %         % Calculate log pdf of prior and variational dist.
-        logprior(:,s)=calculate_logpdf_spiked_logitnormal(prior_params,...
-            logit_gamma,gamma_sample,logit_gain,gain_sample,...
-            logit_delay_mu,delay_mu_sample,logit_delay_sigma,delay_sigma_sample,...
-             delay_mu_bound,delay_sigma_bound,gamma_bound,gain_bound,spike_indicator);
+%         logprior(:,s)=calculate_logpdf_spiked_logitnormal(prior_params,...
+%             logit_gamma,gamma_sample,logit_gain,gain_sample,...
+%             logit_delay_mu,delay_mu_sample,logit_delay_sigma,delay_sigma_sample,...
+%              delay_mu_bound,delay_sigma_bound,gamma_bound,gain_bound,spike_indicator);
 
-        logvariational(:,s)=calculate_logpdf_spiked_logitnormal(parameter_current,...
-            logit_gamma,gamma_sample,logit_gain,gain_sample,...
-            logit_delay_mu,delay_mu_sample,logit_delay_sigma,delay_sigma_sample,...
-             delay_mu_bound,delay_sigma_bound,gamma_bound,gain_bound);  
+
+  logvariational(s)=get_logdistribution(variational_samples,parameter_current);
+      
+%         logvariational(:,s)=calculate_logpdf_spiked_logitnormal(parameter_current,...
+%             logit_gamma,gamma_sample,logit_gain,gain_sample,...
+%             logit_delay_mu,delay_mu_sample,logit_delay_sigma,delay_sigma_sample,...
+%              delay_mu_bound,delay_sigma_bound,gamma_bound,gain_bound);  
 %         te=toc;        time_rec(2)=time_rec(2)+te-ts;
         
 %         ts=toc;
-        [dqdp_logit(:,s),dqdalpha(:,s),dqdbeta(:,s)] = get_dvariational_dist(gamma_sample,logit_gamma,...
-            [parameter_current(:).alpha],[parameter_current(:).beta],gamma_constants,[parameter_current(:).p_logit],spike_indicator);
-        [~,dqdalpha_gain(:,s),dqdbeta_gain(:,s)] = get_dvariational_dist(gain_sample,logit_gain,...
-            [parameter_current(:).alpha_gain],[parameter_current(:).beta_gain],gain_constants);
-        [~,dqdalpha_m(:,s),dqdbeta_m(:,s)] = get_dvariational_dist(delay_mu_sample,logit_delay_mu,...
-            [parameter_current(:).alpha_m],[parameter_current(:).beta_m],delay_mu_constants);
-        [~,dqdalpha_s(:,s),dqdbeta_s(:,s)] = get_dvariational_dist(delay_sigma_sample,logit_delay_sigma,...
-            [parameter_current(:).alpha_s],[parameter_current(:).beta_s],delay_sigma_constants);
-%         te=toc;        time_rec(3)=time_rec(3)+te-ts;
-  
+
+% Calcualte likelihood:
+
+lklhweight=logprior(s)+loglklh(s)-logvariational(s);
+
+ this_gradient=get_variational_gradient(variational_samples,parameter_current);
+        this_gradient=get_variate_control(lklhweight,this_gradient);
+       
+  if exist('gradients')
+            gradients(s,:) = this_gradient;
+        else
+            gradients(s,:)=this_gradient;
+  end
+         
     end
+    
+      new_gradient=sum_gradient(gradients,eta,eta_max,iteration);
+    
+    [parameter_current, change_history(iteration)]=incorporate_gradient(parameter_current, new_gradient);
+    
+    loglklh_rec(iteration)=mean(mean(loglklh));
+    elbo_rec(iteration)=mean(logprior+loglklh-logvariational);
+  
     
         % Only thing that needs to change if we use the new way to get
         % intensity: 
