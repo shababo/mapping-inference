@@ -9,7 +9,7 @@ GP_samples=struct;
 for i_ax = 1:dims
     ax = axis_list{i_ax};
     GP_samples.(ax)=struct;
-    X=locations(:,1);
+    X=locations(:,i_ax);
     GP_samples.(ax).mean=quick_match(X,GP_params.(ax).mean_params);
     GP_samples.(ax).var=quick_match(X,GP_params.(ax).var_params);
     tau=GP_params.(ax).tau;
@@ -24,7 +24,9 @@ end
 GP_samples.full=struct;
 GP_samples.full.locations=locations;
 for i_ax = 1:dims
-   if i_ax == 1
+   ax=axis_list{i_ax};
+    if i_ax == 1
+       
        GP_samples.full.mean=GP_samples.(ax).mean;
        GP_samples.full.var=GP_samples.(ax).var;
        GP_samples.full.Kcov=GP_samples.(ax).Kcov;
