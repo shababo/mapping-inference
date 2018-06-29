@@ -1,6 +1,10 @@
 function experiment_setup = get_experiment_setup(varargin)
 
-
+% to-dos:
+% 1) load in the prior distributions from existing files via initialize
+% parameters
+% 2) plug in the gain ~ fluor + depth model
+% experiment_setup.prior_info.gain_model
 
 %experiment_setup.is_sim
 
@@ -18,6 +22,8 @@ end
 
 switch param_preset_ID
     case 'szchen-sim'
+        
+        experiment_setup.prior_root = 'C:/Users/Shizhe/Documents/Mapping_data/Data/';
         experiment_setup.exp_root = 'C:/Users/Shizhe/Documents/Mapping_data/Data/';
         experiment_setup.analysis_root = 'C:/Users/Shizhe/Documents/Mapping_data/tmp/';
         experiment_setup.experiment_type='simulation';
@@ -153,34 +159,18 @@ if strcmp(experiment_setup.experiment_type,'reproduction')
 else
     
     experiment_setup.prior_info=struct;
+    % Set up parameters for the prior distributions:
+    % Note: neuron-specific prior & initial values are specified in
+    % run_mapping_experiment
+    experiment_setup.prior_info.prior_parameters=initialize_parameters();
     
-    experiment_setup.prior_info.PR_prior = struct;
-    experiment_setup.prior_info.PR_prior.type='spiked_logit_normal'; % spike and logitnorm slab
-    experiment_setup.prior_info.PR_prior.pi_logit=-100;
-    experiment_setup.prior_info.PR_prior.alpha=-0.5;
-    experiment_setup.prior_info.PR_prior.beta=1;
+    % load the GP parameters: 
+    experiment_setup.prior_info.GP_params=initialize_GP(experiment_setup.prior_root);
     
-    experiment_setup.prior_info.gain_prior = struct;
-    experiment_setup.prior_info.gain_prior.type='spiked_logit_normal'; % spike and logitnorm slab
-    experiment_setup.prior_info.gain_prior.pi_logit=-100;
-    experiment_setup.prior_info.gain_prior.alpha=0;
-    experiment_setup.prior_info.gain_prior.beta=1;
-   
-    experiment_setup.prior_info.delay_mu_prior=struct;
-    experiment_setup.prior_info.delay_mu_prior.type='spiked_logit_normal'; 
-    experiment_setup.prior_info.delay_mu_prior.pi_logit=-100;
-    experiment_setup.prior_info.delay_mu_prior.alpha=0;
-    experiment_setup.prior_info.delay_mu_prior.beta=2;
-   
-    experiment_setup.prior_info.delay_sigma_prior=struct;
-    experiment_setup.prior_info.delay_sigma_prior.type='spiked_logit_normal'; 
-    experiment_setup.prior_info.delay_sigma_prior.pi_logit=-100;
-    experiment_setup.prior_info.delay_sigma_prior.alpha=0;
-    experiment_setup.prior_info.delay_sigma_prior.beta=2;
   
 
     %----------- Load the current template
-    load('chrome-template-3ms.mat');
+    load([ experiment_setup.prior_root 'chrome-template-3ms.mat']);
     
     
     experiment_setup.trials.downsamp = 1;
@@ -199,34 +189,12 @@ else
 %     experiment_setup.prior_info.delay.std=20;
 %     experiment_setup.prior_info.delay.n_grid=200;
     
-    load('l23_template_cell.mat');
+    load([ experiment_setup.prior_root 'l23_template_cell.mat']);
     temp = l23_average_shape; temp_max = max(max(max(temp)));
     l23_average_shape = temp/temp_max;
     shape_template=l23_average_shape;
     
     
-    experiment_setup.prior_info.template_cell=struct;
-    experiment_setup.prior_info.template_cell.cell_shape = shape_template;
-%     experiment_setup.prior_info.template_cell.V_reset=-1e5;
-%     experiment_setup.prior_info.template_cell.V_threshold=15;
-%     experiment_setup.prior_info.template_cell.membrane_resistance = 0.02;
-%     experiment_setup.prior_info.template_cell.linkfunc = {@link_sig, @derlink_sig, @invlink_sig,@derinvlink_sig};
-    
-%     experiment_setup.prior_info.induced_intensity=struct;
-%     experiment_setup.prior_info.induced_intensity.max_actual_stimulation=5;
-%     experiment_setup.prior_info.induced_intensity.num_stim_grid=1000;
-%     experiment_setup.prior_info.induced_intensity.linkfunc={@link_sig, @derlink_sig, @invlink_sig,@derinvlink_sig};
-%     experiment_setup.prior_info.induced_intensity.stim_scale = experiment_setup.prior_info.induced_intensity.num_stim_grid/experiment_setup.prior_info.induced_intensity.max_actual_stimulation;
-%     experiment_setup.prior_info.induced_intensity.stim_grid = (1:experiment_setup.prior_info.induced_intensity.num_stim_grid)/...
-%         experiment_setup.prior_info.induced_intensity.stim_scale;
-    % we should have a file with the values below precomputed... or an option
-    % to load from file if our priors haven't changed...
-%     experiment_setup.prior_info.induced_intensity=precalculate_intensity(experiment_setup.prior_info.induced_intensity,...
-%         experiment_setup.prior_info.template_cell,experiment_setup.prior_info.delay,experiment_setup.prior_info.current_template);
-    %         experiment_setup.prior_info.induced_intensity.intensity_grid
-    %         experiment_setup.prior_info.induced_intensity.probility_grid
-    %         experiment_setup.prior_info.induced_intensity.minimum_stim_threshold
-    %         experiment_setup.prior_info.induced_intensity.fire_stim_threshold
     experiment_setup.prior_info.induced_intensity=get_spike_curves(experiment_setup.single_patch_path); 
     experiment_setup.prior_info.induced_intensity.minimum_stim_threshold = ...
        experiment_setup.prior_info.induced_intensity.current(max(find(experiment_setup.prior_info.induced_intensity.prob<0.2))+1);
@@ -247,7 +215,7 @@ else
     % experiment_setup.exp.z_depths = '10 30 50 70 90';% this should be a space delimited string
     experiment_setup.exp.arbitrary_z = 1;
     
-    load('power-calibration.mat');
+    load([ experiment_setup.prior_root 'power-calibration.mat']);
     experiment_setup.exp.ratio_map = ratio_map;
     experiment_setup.exp.pockels_lut = pockels_lut;
     experiment_setup.exp.max_power_ref = max(experiment_setup.exp.pockels_lut(2,:));

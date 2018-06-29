@@ -43,11 +43,6 @@ undefined_profile.inference_params.step_size_max=1;
 undefined_profile.inference_params.MCsamples_for_posterior=50;
 undefined_profile.inference_params.recent_batches=2;
 undefined_profile.inference_params.bounds=struct;
-undefined_profile.inference_params.bounds.PR=[0.01 1];
-undefined_profile.inference_params.bounds.gain=[0.005 0.06];
-undefined_profile.inference_params.bounds.spike_indicator=false;
-undefined_profile.inference_params.bounds.delay_mu=[0 60];
-undefined_profile.inference_params.bounds.delay_sigma=[0.1 10];
 
 
 undefined_profile.regroup_function=struct;

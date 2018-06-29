@@ -1,12 +1,13 @@
 function [parameter_history, loglklh_rec] = fit_VI(...
-    stim_size, mpp, background_rate, ...
+    trials,neurons, background_rate, ...
     variational_params,prior_params,...
     inference_params,prior_info,varargin)
 %% Stimulatin locations:
 
 % should include the stimulation locations in the mpp() data structure
 % also 
-
+% trials = experiment_query_this_group.trials;
+% neurons=this_neighbourhood.neurons;
 % Fit the delay for each cell:
 % %%
 % stim_size=designs_remained;
@@ -109,17 +110,53 @@ while (change_history(iteration) > epsilon && iteration<maxit)
 %         t1s=toc;
 
 [variational_samples,raw_samples] = draw_samples_from_var_dist(parameter_current);
-        
-stim_all = get_stim_size(group_ID,experiment_query_this_group.trials,this_neighbourhood);
 
 
-        for i_cell = 1:n_cell
-            corrected_grid{s,i_cell}=[neurons(i_cell).adjusted_grid - variational_samples(i_cell).shift];
+%% Calculate the stim size using samples from GP and the shifts
+
+shifts=[variational_samples(i_cell).shift_x variational_samples(i_cell).shift_y variational_samples(i_cell).shift_z];
+adjusted_location(i_cell,:)=neurons(i_cell).location-shifts;
+
+relevant_trials=[];
+relevant_stim_locations=zeros(0,3);
+trial_and_stim=zeros(0,2);
+
+this_adjusted_loc=adjusted_location(i_cell,:);
+for i_trial = 1:length(trials)
+    
+    relevant_flag = false;
+    for i_loc = 1:size(trials(i_trial).stim_location,1)
+        rel_position=trials(i_trial).stim_location(i_loc,:)-this_adjusted_loc;
+        this_relevant_flag =check_in_boundary(rel_position,boundary_params);
+        if  this_relevant_flag
+            relevant_stim_locations=[relevant_stim_locations; rel_position];
+            trial_and_stim=[trial_and_stim;  [i_trial i_loc]];
+            relevant_flag =true;
         end
-      
+        
+    end
+end
+% Draw a GP on these positions:
+[this_cell_shape] = draw_3D_GP(relevant_stim_locations,n_shapes, GP_params);
+% 
+
+% Store the stim size in stim all
+for i_rel = 1:size(relavant_stim_locations,1)
+    i_trial = trial_and_stim(i_rel,1);
+    i_loc = trial_and_stim(i_rel,2);
+    stim_all(i_trial,i_cell)= trials(i_trial).power(i_loc)*this_cell_shape(i_rel);
+end
+log_prior_GP(i_cell)=this_cell_shape.loglklh;
+        
+        
+        
+        
+   %%     
+        
         % Draw samples from the GP on this corrected grid
         
-     logprior(s)=get_logdistribution(variational_samples,prior_params);
+     logprior(s)=get_logdistribution(variational_samples,prior_params)+...
+         sum(log_prior_GP);
       % NOTE: need to add the prior distribution of GP
       
 %         ts=toc;
@@ -142,6 +179,12 @@ stim_all = get_stim_size(group_ID,experiment_query_this_group.trials,this_neighb
 
 % Calcualte likelihood:
 
+ [loglklh(s)] = update_likelihood(stim_size,mpp,...
+        gamma_sample_mat,gain_sample_mat,delay_mu_sample_mat,delay_sigma_sample_mat,...
+            minimum_stim_threshold,background_rate,relevant_trials,lklh_func,...
+        spike_curves,Tmax);
+    
+    
 lklhweight=logprior(s)+loglklh(s)-logvariational(s);
 
  this_gradient=get_variational_gradient(variational_samples,parameter_current);

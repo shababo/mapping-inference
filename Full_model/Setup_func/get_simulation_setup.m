@@ -1,6 +1,7 @@
 function simulation_setup = get_simulation_setup(varargin)
-
-
+% to-dos:
+% 1) allow for generating siblings in xy-plain or z-axis
+% 2) revise the plot function plot_est_vs_truth
 simulation_setup=struct;
 
 
@@ -8,10 +9,10 @@ simulation_setup.dimension=[-160 -160 0;160 160 80]; % there will be only two ne
 simulation_setup.use_real_map=true;
 
 simulation_setup.real_map_name='6_3_s2c3_mpp_and_stim_data.mat'; % name of the cell map under 'experiment_setup.exp_root'
-simulation_setup.number_of_cells=450;
+simulation_setup.number_of_cells=20;
 simulation_setup.siblings=struct;
 simulation_setup.siblings.number=20;
-simulation_setup.siblings.distance=10;
+simulation_setup.siblings.distance=30; 
 simulation_setup.connection_params=struct;
 simulation_setup.connection_params.proportion=0.2;
 simulation_setup.cell_params=struct;
