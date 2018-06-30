@@ -1,5 +1,8 @@
 function [neurons] = generate_neurons(experiment_setup)
-%
+% To-dos:
+% 1) simulate shifts
+% 2) unify the names of fields
+
 simulation_params = experiment_setup.sim;
 % There should be options to read neuron locations
 %% Simulation some more neurons:
@@ -45,9 +48,6 @@ for i= 1:simulation_params.siblings.number
 end
 
 cell_locations=[cell_locations;extra_locations];
-
-
-
 
 funcs.invlink = @invlink_sig;%@(resp) log(1 + exp(resp));%@(x) exp(x);
 switch simulation_params.cell_params.type

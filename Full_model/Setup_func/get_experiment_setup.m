@@ -23,7 +23,7 @@ end
 switch param_preset_ID
     case 'szchen-sim'
         
-        experiment_setup.prior_root = 'C:/Users/Shizhe/Documents/Mapping_data/Data/';
+        experiment_setup.prior_root = ['C:/Users/Shizhe/Documents/Mapping_data/Data/'  'Summary180627.mat'];
         experiment_setup.exp_root = 'C:/Users/Shizhe/Documents/Mapping_data/Data/';
         experiment_setup.analysis_root = 'C:/Users/Shizhe/Documents/Mapping_data/tmp/';
         experiment_setup.experiment_type='simulation';
@@ -162,13 +162,8 @@ else
     % Set up parameters for the prior distributions:
     % Note: neuron-specific prior & initial values are specified in
     % run_mapping_experiment
-    experiment_setup.prior_info.prior_parameters=initialize_parameters();
+    experiment_setup.prior_info.prior_parameters=initialize_parameters(experiment_setup.prior_root);
     
-    % load the GP parameters: 
-    experiment_setup.prior_info.GP_params=initialize_GP(experiment_setup.prior_root);
-    
-  
-
     %----------- Load the current template
     load([ experiment_setup.prior_root 'chrome-template-3ms.mat']);
     
