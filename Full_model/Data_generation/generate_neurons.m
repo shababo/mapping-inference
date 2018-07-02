@@ -71,37 +71,43 @@ switch simulation_params.cell_params.type
         gamma_truth(weak_index)=(0.15+0.1*rand([length(weak_index) 1]));
         gain_truth=0.02+(rand([number_of_cells  1])-0.5)*0.01;
     otherwise
-    
+        
         % throw a warning
 end
 
-
+%%
+prior_params =experiment_setup.prior_info.prior_parameters;
+%% Store all simulated parameters in the truth field, including the shape mean & kernel
+%
 neurons=struct([]);
 for i_cell = 1:number_of_cells
-    neurons(i_cell).fluorescence= []; % need to generate some fluorescence level
-    neurons(i_cell).V_reset= -1e4;
-    neurons(i_cell).V_thresh=15;
-    neurons(i_cell).cell_ID=i_cell;
-    neurons(i_cell).membrane_resistance=0.02;
-    neurons(i_cell).location=cell_locations(i_cell,:);
-    neurons(i_cell).optical_gain=[];
-    neurons(i_cell).PR=[];
     
-  neurons(i_cell).delay_mean=(rand(1)-0.5)*40+40;
-    neurons(i_cell).delay_var=(rand(1)-0.5)*20+15;
-
-neurons(i_cell).truth=struct;
-%     neurons(i_cell).truth.V_reset= -1e4;
-%     neurons(i_cell).truth.V_thresh=15;
-%     neurons(i_cell).truth.membrane_resistance=0.02;
+    neurons(i_cell).truth=struct;
+    %     neurons(i_cell).truth.V_reset= -1e4;
+    %     neurons(i_cell).truth.V_thresh=15;
+    %     neurons(i_cell).truth.membrane_resistance=0.02;
     neurons(i_cell).truth.location=cell_locations(i_cell,:);
+    shift_tmp=[normrnd(prior_params.shift_x.mean,exp(prior_params.shift_x.log_sigma)),...
+        normrnd(prior_params.shift_y.mean,exp(prior_params.shift_y.log_sigma)),...
+        normrnd(prior_params.shift_z.mean,exp(prior_params.shift_z.log_sigma))];
+    neurons(i_cell).truth.shift=shift_tmp;
+    
     neurons(i_cell).truth.optical_gain=gain_truth(i_cell);
     neurons(i_cell).truth.PR=gamma_truth(i_cell);
-    neurons(i_cell).truth.delay_mean=neurons(i_cell).delay_mean;
-    neurons(i_cell).truth.delay_var=neurons(i_cell).delay_var;
+    neurons(i_cell).truth.delay_mean=(rand(1)-0.5)*40+40;
+    neurons(i_cell).truth.delay_var=(rand(1)-0.5)*20+15;
+    neurons(i_cell).truth.GP_params=prior_params.GP_params;
     
     
-neurons(i_cell).cell_ID = i_cell;
-  
+    neurons(i_cell).fluorescence= []; % need to generate some fluorescence level
+    %     neurons(i_cell).V_reset= -1e4;
+    %     neurons(i_cell).V_thresh=15;
+    %     neurons(i_cell).membrane_resistance=0.02;
+    
+    neurons(i_cell).cell_ID=i_cell;
+    
+    neurons(i_cell).location=neurons(i_cell).truth.location+neurons(i_cell).truth.shift;
+    neurons(i_cell).cell_ID = i_cell;
+    
 end
 

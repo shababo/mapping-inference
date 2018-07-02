@@ -1,42 +1,50 @@
-function [current_params] = calculate_posterior(current_params,bounds,quantile_prob)
-              
-% switch current_params.type
-%     case 'spiked_logit_normal'
-        
+function [post_stat] = calculate_posterior(params,quantile_prob)
+       
+%%
+fldnames = fieldnames(params(1));
 
-n_cell=length(current_params);
-% Initialize storage for the fitted parameters in the experiment
-[mean_temp, variance_temp] = calculate_posterior_mean(...
-    current_params.alpha,exp(current_params.beta),bounds(1),bounds(2));
+post_stat=struct;
+for i_field = 1:length(fldnames)
+    this_params=params.(fldnames{i_field});
+    %         this_sample=struct;
+    
+   normal_qt =norminv(quantile_prob);% 
+   normal_samples =normrnd(0,1, [100 1]);% for evaluating mean & variance gamma 
+
+    switch this_params.dist
+        case 'normal'
+            this_qt=normal_qt;
+            this_sample=normal_samples;
+        case 'log-normal'
+            this_qt=exp(normal_qt);
+            this_sample=exp(normal_samples);
+        case 'logit-normal'
+            this_qt=exp(normal_qt)./(1+exp(normal_qt))*...
+                (this_params.bounds.up-this_params.bounds.low)+this_params.bounds.low;
+            this_sample=exp(normal_samples)./(1+exp(normal_samples))*...
+                (this_params.bounds.up-this_params.bounds.low)+this_params.bounds.low;
+        case 'spiked-logit-normal'
+             zero_prob = exp(this_params.prob_logit)./(exp(this_params.prob_logit)+1);
+            this_qt=exp(normal_qt)./(1+exp(normal_qt))*...
+                (this_params.bounds.up-this_params.bounds.low)+this_params.bounds.low;
+            this_sample=exp(normal_samples)./(1+exp(normal_samples))*...
+                (this_params.bounds.up-this_params.bounds.low)+this_params.bounds.low;
+    end
+    post_stat.(fldnames{i_field}).mean=mean(this_sample);
+    post_stat.(fldnames{i_field}).variance=var(this_sample);
+    post_stat.(fldnames{i_field}).upper_quantile=this_qt(2);
+    post_stat.(fldnames{i_field}).lower_quantile=this_qt(1);
+    
+
+    
+end
 
 
-nonzero_prob_temp=1-exp( current_params.pi_logit)./(1+exp(current_params.pi_logit));
-mean_temp=mean_temp.*nonzero_prob_temp;
-[low_temp, up_temp]=calculate_posterior_quatiles(quantile_prob,...
-    current_params.alpha,exp(current_params.beta),bounds(1),bounds(2));
-
-current_params.mean=mean_temp;
-current_params.variance=variance_temp;
-current_params.upper_quantile=up_temp;
-current_params.lower_quantile=low_temp;
-current_params.nonzero_prob=nonzero_prob_temp;
 
 
-% posterior_params=struct([]);
-% temp=num2cell(mean_gamma_temp);[posterior_params(1:n_cell).gamma_mean]=temp{:};
-% temp=num2cell(low_gamma_temp);[posterior_params(1:n_cell).gamma_lower_quantile]=temp{:};
-% temp=num2cell(up_gamma_temp);[posterior_params(1:n_cell).gamma_upper_quantile]=temp{:};
-% temp=num2cell(1-v_pi);[posterior_params(1:n_cell).nonzero_prob]=temp{:};
-% temp=num2cell(mean_gain_temp);[posterior_params(1:n_cell).gain_mean]=temp{:};
-% temp=num2cell(var_gain_temp);[posterior_params(1:n_cell).gain_var]=temp{:};
 
 
-%     otherwise
-        
-% end
 
-      
-     
 
 
 
