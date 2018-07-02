@@ -9,6 +9,10 @@ epsilon=1e-3;
 
 GP_samples=struct;
 
+%% Find unique locations to reduce computing ost 
+
+[locations_unique,~,ic] = unique(locations,'rows');
+
 %%
 switch interpolation
     case 'linear'
@@ -37,7 +41,8 @@ switch interpolation
             extended_var=[zeros(length(left_ext),1);  GP_params.(ax).var_params.values; zeros(length(right_ext),1)];
             var_vec = [var_vec;  extended_var];
             
-            X=locations(:,i_ax);
+            X=locations_unique(:,i_ax);
+            
             tau=GP_params.(ax).tau;
             GP_samples.(ax).Kcor=get_kernel_cor(X,X,tau);
             GP_samples.(ax).Kcor= (GP_samples.(ax).Kcor+GP_samples.(ax).Kcor')/2;
@@ -46,23 +51,23 @@ switch interpolation
         %
         
         mean_3d = griddata(loc_vec(:,1),loc_vec(:,2),loc_vec(:,3), mean_vec,...
-            locations(:,1),locations(:,2),locations(:,3));
+            locations_unique(:,1),locations_unique(:,2),locations_unique(:,3));
         
         var_3d = griddata(loc_vec(:,1),loc_vec(:,2),loc_vec(:,3), var_vec,...
-            locations(:,1),locations(:,2),locations(:,3));
+           locations_unique(:,1),locations_unique(:,2),locations_unique(:,3));
         
     case 'square'
         % Interpolation as weighted averages
         
-        mean_val=locations;
-        var_val=locations;
-        sqloc=locations.^2;
+        mean_val=locations_unique;
+        var_val=locations_unique;
+        sqloc=locations_unique.^2;
         radius_to_center = sqrt(sum(sqloc'))';
         
         for i_ax = 1:dims
             ax = axis_list{i_ax};
             
-            X=locations(:,i_ax);
+            X=locations_unique(:,i_ax);
             tau=GP_params.(ax).tau;
             GP_samples.(ax).Kcor=get_kernel_cor(X,X,tau);
             GP_samples.(ax).Kcor= (GP_samples.(ax).Kcor+GP_samples.(ax).Kcor')/2;
@@ -72,7 +77,6 @@ switch interpolation
             var_val(:,i_ax)=quick_match(X_r,GP_params.(ax).var_params);
             
         end
-        sqloc=locations.^2;
         sqloc(sqloc==0)=epsilon;
         ssq = sum(sqloc');
         ssq_mat = ssq' *ones(1,3);
@@ -88,6 +92,9 @@ end
 %%
 GP_samples.full=struct;
 GP_samples.full.locations=locations;
+GP_samples.full.locations_unique=locations_unique;
+GP_samples.full.mapping_unique=ic;
+
 for i_ax = 1:dims
     ax=axis_list{i_ax};
     if i_ax == 1
@@ -101,11 +108,13 @@ GP_samples.full.mean=mean_3d;
 sigma_mat=(sqrt(var_3d)*ones(1,length(var_3d)));
 GP_samples.full.Kcov= sigma_mat.*GP_samples.full.Kcor.*sigma_mat';
 % GP_samples.full.Kcov=(GP_samples.full.Kcov+GP_samples.full.Kcov')/2;
-GP_samples.full.samples = zeros(size(locations,1),n_shapes );
+GP_samples.full.samples_unique = zeros(size(locations_unique,1),n_shapes );
+GP_samples.full.loglklh=zeros(n_shapes,1 );
 for i_shape = 1:n_shapes
-    GP_samples.full.samples(:,i_shape)=max(0,mvnrnd(GP_samples.full.mean,GP_samples.full.Kcov))';
+    GP_samples.full.samples_unique(:,i_shape)=max(0,mvnrnd(GP_samples.full.mean,GP_samples.full.Kcov))';
+    GP_samples.full.loglklh(i_shape)= log(mvnpdf(GP_samples.full.samples_unique(:,i_shape),GP_samples.full.mean,GP_samples.full.Kcov));
 end
-
+GP_samples.full.samples=GP_samples.full.samples_unique(ic,:);
 %% Drawing shifts:
 GP_samples.full.shifts=zeros(dims,n_shapes);
 

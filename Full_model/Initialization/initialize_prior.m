@@ -1,4 +1,4 @@
-function [prior_params]=initialize_parameters(prior_path)
+function [prior_params]=initialize_prior(prior_path)
 % specify one set of parameters
 
 sum_path = [prior_path];
@@ -19,7 +19,7 @@ ini_sigma=2;
 prior_params=struct;
 
 prior_params.GP_params=summary_results;
-
+prior_params.boundary_params= [30 30 70];
 
 prior_params.shift_x.dist='normal';
 prior_params.shift_x.type='individual';
