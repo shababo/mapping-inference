@@ -207,7 +207,8 @@ for i_trial = 1:num_trials
 
             this_trial_location_IDs(i_spot) = temp_loc;
             this_trial_cell_IDs(i_spot) = this_neighbourhood.neurons(this_cell).cell_ID;           
-            this_trial_locations(i_spot,:) = this_neighbourhood.neurons(this_cell).stim_locations.(group_ID).grid(temp_loc,:);
+            this_trial_locations(i_spot,:) = this_neighbourhood.neurons(this_cell).location+...
+                this_neighbourhood.neurons(this_cell).stim_locations.(group_ID).grid(temp_loc,:);
 %             this_cell = temp_index;
 
             neurons = this_neighbourhood.neurons(i_cells_this_group);

@@ -96,9 +96,9 @@ for i_cell = 1:number_of_cells
     neurons(i_cell).truth.PR=gamma_truth(i_cell);
     neurons(i_cell).truth.delay_mean=(rand(1)-0.5)*40+40;
     neurons(i_cell).truth.delay_var=(rand(1)-0.5)*20+15;
-    neurons(i_cell).truth.GP_params=prior_params.GP_params;
-    
-    
+    tmp= draw_3D_GP(simulation_params.mesh_grid,1,prior_params.GP_params);
+    neurons(i_cell).truth.shape= tmp.samples; % n_loc by 1 vector
+           
     neurons(i_cell).fluorescence= []; % need to generate some fluorescence level
     %     neurons(i_cell).V_reset= -1e4;
     %     neurons(i_cell).V_thresh=15;

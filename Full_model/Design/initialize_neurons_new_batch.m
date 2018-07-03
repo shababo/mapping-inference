@@ -11,7 +11,6 @@ if i_batch > 1
         this_neighbourhood.neurons(i_cell).params(i_batch-1);
     this_neighbourhood(i_neighbourhood).neurons(i_cell).posterior_stat(i_batch)=...
         this_neighbourhood.neurons(i_cell).posterior_stat(i_batch-1);
-    
     end
     
     

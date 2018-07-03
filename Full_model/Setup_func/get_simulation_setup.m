@@ -32,4 +32,11 @@ simulation_setup.compute_phase_masks = 0;
  
 simulation_setup.visualize = 1;
 simulation_setup.plotting_funcs = @plot_est_vs_truth;
+simulation_setup.grid.z = -80:5:80;
+simulation_setup.grid.x = -26:2:26;
+simulation_setup.grid.y = -26:2:26;
+[tmp_x, tmp_y, tmp_z]= meshgrid(simulation_setup.grid.x,simulation_setup.grid.y,simulation_setup.grid.z);
+all_dim = length(simulation_setup.grid.z)*length(simulation_setup.grid.y)*length(simulation_setup.grid.x);
+simulation_setup.mesh_grid = [reshape(tmp_x, [all_dim 1]) reshape(tmp_y, [all_dim 1]) reshape(tmp_z, [all_dim 1])];
+
 

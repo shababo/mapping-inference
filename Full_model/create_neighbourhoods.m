@@ -131,6 +131,7 @@ for i_neighbourhood = 1:number_of_neighbourhoods
 end
 
 
+
 tmp_params=experiment_setup.prior_info.prior_parameters;
 tmp_params=rmfield(tmp_params,{'GP_params' 'boundary_params'});
    
@@ -144,9 +145,10 @@ for i_neighbourhood = 1:number_of_neighbourhoods
         neighbourhoods(i_neighbourhood).neurons(i_cell).posterior_stat(1)=...
             calculate_posterior(neighbourhoods(i_neighbourhood).neurons(i_cell).params(1),...
             quantile_prob);
-            
+        
     end
 end
+
 %                 neighbourhoods(i_neighbourhood).neurons(i_cell).PR_params(1).mean=0;
 %                 neighbourhoods(i_neighbourhood).neurons(i_cell).PR_params(1).variance=0;
 %                 neighbourhoods(i_neighbourhood).neurons(i_cell).PR_params(1).upper_quantile=0;

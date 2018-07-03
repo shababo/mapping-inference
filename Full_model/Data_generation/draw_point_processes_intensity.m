@@ -1,4 +1,4 @@
-function [experiment_query_this_group, this_neighbourhood] = draw_point_processes_intensity(experiment_query_this_group, ...
+function [experiment_query_this_group] = draw_point_processes_intensity(experiment_query_this_group, ...
         this_neighbourhood,experiment_setup)
     
     
@@ -59,7 +59,7 @@ number_of_trials=length(experiment_query_this_group.trials);
 % stimuli_size=zeros(number_of_trials,number_of_cells);
 group_ID=experiment_query_this_group.trials(1).group_ID;
 
-[stimuli_size, this_neighbourhood] = get_stim_size(group_ID,experiment_query_this_group.trials,...
+[stimuli_size] = get_stim_size(experiment_query_this_group.trials,...
     this_neighbourhood);
 % for l = 1:number_of_trials
 %     for m = 1:number_of_spots
