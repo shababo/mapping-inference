@@ -8,7 +8,7 @@ switch group_profile.regroup_func_params.regroup_type
         
         i_batch=this_neighbourhood.batch_ID;
         neurons=this_neighbourhood.neurons(i_cell_group_to_nhood);
-        properties={'PR_params'};summary_stat={'upper_quantile'};
+        properties={'PR'};summary_stat={'upper_quantile'};
         temp_output=grab_values_from_neurons(i_batch,neurons,properties,summary_stat);
 
         gamma_upper_quantile=temp_output.PR_params.upper_quantile;

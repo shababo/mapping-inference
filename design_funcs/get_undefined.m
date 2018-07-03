@@ -18,7 +18,7 @@ undefined_profile.design_func_params.trials_params.replicates=1;
 undefined_profile.design_func_params.trials_params.spots_per_trial=3;
 undefined_profile.design_func_params.trials_per_cell=10;
 undefined_profile.design_func_params.trials_params.power_levels=50:10:100;
-undefined_profile.design_func_params.trials_params.stim_design='Optimal';
+undefined_profile.design_func_params.trials_params.stim_design='Nuclei';
 undefined_profile.design_func_params.trials_params.MCsamples_for_posterior=50;
 undefined_profile.design_func_params.trials_params.trials_per_batch=300;   
 

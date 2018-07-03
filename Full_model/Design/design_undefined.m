@@ -211,8 +211,9 @@ for i_trial = 1:num_trials
 %             this_cell = temp_index;
 
             neurons = this_neighbourhood.neurons(i_cells_this_group);
-            prob_initial = subtract_stim_effects(group_ID,temp_index,prob_initial,loc_selected, neurons);
-            prob_initial = max(0,prob_initial);
+            prob_initial(this_cell)=0;
+%             prob_initial = subtract_stim_effects(group_ID,temp_index,prob_initial,loc_selected, neurons);
+%             prob_initial = max(0,prob_initial);
 
         end
         

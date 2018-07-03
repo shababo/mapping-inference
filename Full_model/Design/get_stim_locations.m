@@ -1,5 +1,5 @@
 function stim_location_this_group = ...
-    get_stim_locations(this_cell,group_ID,cell_params,design_params,template_cell,varargin)
+    get_stim_locations(this_cell,group_ID,cell_params,design_params,varargin)
 
 % this_cell=i_cell;
 % group_ID=group_names{i_group};
@@ -35,7 +35,7 @@ for i_circle=1:length(design_params.candidate_grid_params.radius)
             [sin(2*pi*i_grid/this_grid_number) cos(2*pi*i_grid/this_grid_number) 0];
     end
 end
-grid_this_cell = grid_coord+ones(size(grid_coord,1),1)*cell_params(this_cell).location;
+grid_this_cell = grid_coord+ones(size(grid_coord,1),1);
 
 
 switch group_ID
@@ -58,9 +58,9 @@ if ~isempty(foe_bounds)
 end
 
 
-[effect_this_cell] = get_weights(cell_params, template_cell,grid_this_cell);
+% [effect_this_cell] = get_weights(cell_params, template_cell,grid_this_cell);
 stim_location_this_group.grid=grid_this_cell;
-stim_location_this_group.effect=effect_this_cell;
+% stim_location_this_group.effect=effect_this_cell;
 
 %--------------------------------------------------%
 % Construct stim sets for the connected cells

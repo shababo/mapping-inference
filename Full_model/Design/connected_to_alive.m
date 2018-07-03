@@ -7,16 +7,16 @@ switch group_profile.regroup_func_params.regroup_type
     case 'Quantiles'
         i_batch=this_neighbourhood.batch_ID;
         neurons=this_neighbourhood.neurons(i_cell_group_to_nhood);
-        properties={'PR_params'};summary_stat={'lower_quantile','mean'};
+        properties={'PR'};summary_stat={'lower_quantile','mean'};
         temp_output=grab_values_from_neurons(i_batch,neurons,properties,summary_stat);
-        gamma_lower_quantile=temp_output.PR_params.lower_quantile;
-        gamma_mean=temp_output.PR_params.mean;
+        gamma_lower_quantile=temp_output.PR.lower_quantile;
+        gamma_mean=temp_output.PR.mean;
         
         i_batch_prev=max(1,this_neighbourhood.batch_ID-1);
         %         neurons=this_neighbourhood.neurons(i_cell_group_to_nhood);
-        properties={'PR_params'};summary_stat={'mean'};
+        properties={'PR'};summary_stat={'mean'};
         temp_output=grab_values_from_neurons(i_batch_prev,neurons,properties,summary_stat);
-        gamma_mean_previous=temp_output.PR_params.mean;
+        gamma_mean_previous=temp_output.PR.mean;
         
         flags=   (abs(gamma_mean-gamma_mean_previous)<group_profile.regroup_func_params.change_threshold) & ...
             gamma_lower_quantile > group_profile.regroup_func_params.disconnected_threshold;

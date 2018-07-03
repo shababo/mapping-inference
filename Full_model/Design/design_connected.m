@@ -21,12 +21,12 @@ loc_counts=zeros(number_cells_this_group,1);
 % Write a function that grabs the last element in a specific field
 batch_ID=this_neighbourhood.batch_ID;
 neurons_this_group=this_neighbourhood.neurons(i_cell_group_to_nhood);
-properties={'PR_params'};summary_stat={'mean'};
-temp_output=grab_values_from_neurons(batch_ID,neurons_this_group,properties,summary_stat);
-mean_gamma=temp_output.PR_params.mean;
+properties={'PR'};summary_stat={'mean'};
+temp_output=grab_values_from_neurons(batch_ID,neurons,properties,summary_stat);
+mean_PR=temp_output.PR.mean;
 
 if  group_profile.design_func_params.trials_params.weighted_indicator
-    probability_weights = 1-mean_gamma;
+    probability_weights = 1-mean_PR;
 else
     probability_weights = ones(number_cells_this_group,1);
 end
