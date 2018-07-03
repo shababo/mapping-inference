@@ -1,4 +1,4 @@
-function [parameter_history, loglklh_rec] = fit_VI(...
+function [parameter_history, elbo_rec,loglklh_rec] = fit_VI(...
     trials,neurons, background_rate, ...
     variational_params,prior_params,...
     inference_params,prior_info)
@@ -97,10 +97,10 @@ while (change_history(iteration) > epsilon && iteration<maxit)
             for i_rel = 1:size(relevant_stim_locations,1)
                 i_trial = trial_and_stim(i_rel,1);
                 i_loc = trial_and_stim(i_rel,2);
-                if length(trials(i_trial).power)==1
-                    power_tmp =  trials(i_trial).power;
+                if length(trials(i_trial).power_levels)==1
+                    power_tmp =  trials(i_trial).power_levels;
                 else
-                    power_tmp = trials(i_trial).power(i_loc);
+                    power_tmp = trials(i_trial).power_levels(i_loc);
                 end
                 stim_size(i_trial,i_cell)= power_tmp*this_cell_shape(i_rel);
             end
