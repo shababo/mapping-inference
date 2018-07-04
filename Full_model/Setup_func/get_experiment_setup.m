@@ -23,11 +23,12 @@ end
 switch param_preset_ID
     case 'szchen-sim'
         
-        experiment_setup.prior_root = ['C:/Users/Shizhe/Documents/Mapping_data/Data/'  'Summary180627.mat'];
+        experiment_setup.prior_root = ['C:/Users/Shizhe/Documents/Mapping_data/Data/'];
         experiment_setup.exp_root = 'C:/Users/Shizhe/Documents/Mapping_data/Data/';
         experiment_setup.analysis_root = 'C:/Users/Shizhe/Documents/Mapping_data/tmp/';
         experiment_setup.experiment_type='simulation';
         experiment_setup.single_patch_path='C:/Users/Shizhe/Documents/Mapping_data/Data/more_cells.mat';
+        experiment_setup.result_root = 'C:/Users/Shizhe/Documents/Mapping_data/Data/Results/';
     case 'szchen-rep'
         experiment_setup.exp_root = 'C:/Users/Shizhe/Documents/Mapping_data/Data/';
         experiment_setup.analysis_root = 'C:/Users/Shizhe/Documents/Mapping_data/Data/NewData/';
@@ -35,10 +36,13 @@ switch param_preset_ID
         experiment_setup.single_patch_path='C:/Users/Shizhe/Documents/Mapping_data/Data/more_cells.mat';
         experiment_setup.rep.file_name=[experiment_setup.exp_root '/12_14_16_49/12_14_16_49_data.mat'];
     case 'szchen-sim-hab'
+        experiment_setup.prior_root = ['../Data/Prior/'];
         experiment_setup.exp_root = '../Data/';
         experiment_setup.analysis_root = '../Data/AnalysisRoot/';
         experiment_setup.experiment_type='simulation';
         experiment_setup.single_patch_path='../Data/Environments/more_cells.mat';
+        experiment_setup.result_root = '../Data/Results/';
+        
     case 'szchen-rep-hab1'
         experiment_setup.exp_root = '../Data/';
         experiment_setup.analysis_root = '../Data/tmp';
@@ -162,10 +166,10 @@ else
     % Set up parameters for the prior distributions:
     % Note: neuron-specific prior & initial values are specified in
     % run_mapping_experiment
-    experiment_setup.prior_info.prior_parameters=initialize_prior(experiment_setup.prior_root);
-    
+    experiment_setup.prior_info.prior_parameters=initialize_prior([experiment_setup.prior_root   'Summary180627.mat']);
+   
     %----------- Load the current template
-    load([experiment_setup.exp_root  'chrome-template-3ms.mat']);
+    load([experiment_setup.prior_root  'chrome-template-3ms.mat']);
     
     
     experiment_setup.trials.downsamp = 1;
@@ -184,7 +188,7 @@ else
 %     experiment_setup.prior_info.delay.std=20;
 %     experiment_setup.prior_info.delay.n_grid=200;
     
-    load([experiment_setup.exp_root  'l23_template_cell.mat']);
+    load([experiment_setup.prior_root  'l23_template_cell.mat']);
     temp = l23_average_shape; temp_max = max(max(max(temp)));
     l23_average_shape = temp/temp_max;
     shape_template=l23_average_shape;
@@ -212,7 +216,7 @@ else
     % experiment_setup.exp.z_depths = '10 30 50 70 90';% this should be a space delimited string
     experiment_setup.exp.arbitrary_z = 1;
     
-    load([experiment_setup.exp_root  'power-calibration.mat']);
+    load([experiment_setup.prior_root  'power-calibration.mat']);
     experiment_setup.exp.ratio_map = ratio_map;
     experiment_setup.exp.pockels_lut = pockels_lut;
     experiment_setup.exp.max_power_ref = max(experiment_setup.exp.pockels_lut(2,:));
