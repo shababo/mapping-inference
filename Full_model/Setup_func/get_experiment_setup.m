@@ -29,6 +29,10 @@ switch param_preset_ID
         experiment_setup.experiment_type='simulation';
         experiment_setup.single_patch_path='C:/Users/Shizhe/Documents/Mapping_data/Data/more_cells.mat';
         experiment_setup.result_root = 'C:/Users/Shizhe/Documents/Mapping_data/Data/Results/';
+    
+            
+     experiment_setup.plotting.plot_flag=true;
+     experiment_setup.plotting.dim=[0 0 8 5];
     case 'szchen-rep'
         experiment_setup.exp_root = 'C:/Users/Shizhe/Documents/Mapping_data/Data/';
         experiment_setup.analysis_root = 'C:/Users/Shizhe/Documents/Mapping_data/Data/NewData/';
@@ -43,6 +47,9 @@ switch param_preset_ID
         experiment_setup.single_patch_path='../Data/Environments/more_cells.mat';
         experiment_setup.result_root = '../Data/Results/';
         
+        
+     experiment_setup.plotting.plot_flag=true;
+     experiment_setup.plotting.dim=[0 0 8 5];
     case 'szchen-rep-hab1'
         experiment_setup.exp_root = '../Data/';
         experiment_setup.analysis_root = '../Data/tmp';
@@ -201,9 +208,9 @@ else
 
     experiment_setup.neighbourhood_params=struct;
     
-    experiment_setup.neighbourhood_params.z_bounds=[10 70]; % leave empty for no bounds
-    experiment_setup.neighbourhood_params.x_bounds=[-150 150]; % leave empty for no bounds
-    experiment_setup.neighbourhood_params.y_bounds=[-150 150]; % leave empty for no bounds
+    experiment_setup.neighbourhood_params.z_bounds=[ ]; % leave empty for no bounds
+    experiment_setup.neighbourhood_params.x_bounds=[ ]; % leave empty for no bounds
+    experiment_setup.neighbourhood_params.y_bounds=[ ]; % leave empty for no bounds
     experiment_setup.neighbourhood_params.number=10;
     experiment_setup.neighbourhood_params.span_x=60;
     experiment_setup.neighbourhood_params.span_y=60;

@@ -1,12 +1,12 @@
-function neighbourhoods = create_neighbourhoods(experiment_setup)
+function [neighbourhoods]= create_neighbourhoods(experiment_setup)
 % initialize the neighbourhoods 
  
 cell_locations=reshape([experiment_setup.neurons.location],length(experiment_setup.neurons(1).location),[])';
 % assignin('base','cell_locations',cell_locations)
 % assignin('base','experiment_setup',experiment_setup)
 
-    y_min = min(cell_locations(:,3));
-    y_max = max(cell_locations(:,3));
+    y_min = min(cell_locations(:,2));
+    y_max = max(cell_locations(:,2));
 if ~isempty(experiment_setup.neighbourhood_params.y_bounds)
    y_min = max(y_min,experiment_setup.neighbourhood_params.y_bounds(1));
    y_max = min(y_max,experiment_setup.neighbourhood_params.y_bounds(2));
@@ -14,6 +14,10 @@ end
 
 y_slide_width = experiment_setup.neighbourhood_params.span_y;
 y_borders=[y_min:y_slide_width:y_max];% z_max];
+y_borders(1)=y_borders(1)-0.01;
+if max(y_borders) < y_max
+   y_borders =  [y_borders y_max+0.01];
+end
 % z_borders = 10:20:70;
 % assignin('base','z_borders',z_borders)
 number_of_neighbourhoods = length(y_borders)-1;
@@ -21,7 +25,7 @@ number_of_neighbourhoods = length(y_borders)-1;
 number_of_cells=size(cell_locations,1);
 cell_group_idx = zeros(number_of_cells,1);
 for i_cell = 1:size(cell_locations,1)
-    cell_group_idx(i_cell)= sum(cell_locations(i_cell,3)>y_borders);
+    cell_group_idx(i_cell)= sum(cell_locations(i_cell,2)>y_borders);
 end
 
 % Initialize the neighbourhoods
@@ -57,6 +61,7 @@ for i_neighbourhood = 1:number_of_neighbourhoods
        if accept_flag
            neighbourhoods(i_neighbourhood).neurons(i_count)=experiment_setup.neurons(cell_ID);
            i_count=i_count+1;
+           
        end
    end
         
@@ -70,24 +75,34 @@ for i_neighbourhood = 1:number_of_neighbourhoods
    end
 end
 
+% Find out boundary of each neighbourhood
+for i_neighbourhood = 1:number_of_neighbourhoods
+    bound_tmp = zeros(2,3); % min & max
+   all_loc=reshape([neighbourhoods(i_neighbourhood).neurons(:).location ], [3 length(neighbourhoods(i_neighbourhood).neurons(:))])';
+    for i =1:3
+       bound_tmp(1,i)=min(all_loc(:,i));bound_tmp(2,i)=max(all_loc(:,i));
+    end
+   neighbourhoods(i_neighbourhood).boundary = bound_tmp;
+end
 
 % % Include nearby cells 
 % 
 for i_neighbourhood = 1:number_of_neighbourhoods
    %neighbourhoods(i_neighbourhood)=struct;
    % Find nearby cells: z range, x range, y range 
-   nearby_cell_list = find(cell_locations(:,3) <  neighbourhoods(i_neighbourhood).center(3) + experiment_setup.neighbourhood_params.buffer_z/2 & ...
-       cell_locations(:,3) >  neighbourhoods(i_neighbourhood).center(3) - experiment_setup.neighbourhood_params.buffer_z/2 & ...
-       cell_locations(:,1) <  experiment_setup.neighbourhood_params.x_bounds(2)+experiment_setup.neighbourhood_params.buffer_x/2 &...
-       cell_locations(:,1) >  experiment_setup.neighbourhood_params.x_bounds(1)-experiment_setup.neighbourhood_params.buffer_x/2 &...
-cell_locations(:,2) <  experiment_setup.neighbourhood_params.y_bounds(2)+experiment_setup.neighbourhood_params.buffer_y/2 &...
-       cell_locations(:,2) >  experiment_setup.neighbourhood_params.y_bounds(1)-experiment_setup.neighbourhood_params.buffer_y/2);
+   nearby_cell_list = find(cell_locations(:,3) < neighbourhoods(i_neighbourhood).boundary(2,3) + experiment_setup.neighbourhood_params.buffer_z/2 & ...
+       cell_locations(:,3) > neighbourhoods(i_neighbourhood).boundary(1,3)  - experiment_setup.neighbourhood_params.buffer_z/2 & ...
+       cell_locations(:,1) <neighbourhoods(i_neighbourhood).boundary(2,1) +experiment_setup.neighbourhood_params.buffer_x/2 &...
+       cell_locations(:,1) > neighbourhoods(i_neighbourhood).boundary(1,1) -experiment_setup.neighbourhood_params.buffer_x/2 &...
+cell_locations(:,2) < neighbourhoods(i_neighbourhood).boundary(2,2) +experiment_setup.neighbourhood_params.buffer_y/2 &...
+       cell_locations(:,2) > neighbourhoods(i_neighbourhood).boundary(1,2) -experiment_setup.neighbourhood_params.buffer_y/2);
    
    secondary_cell_list= setdiff(nearby_cell_list, [neighbourhoods(i_neighbourhood).neurons(:).cell_ID]);
    number_of_prim_cells =length(neighbourhoods(i_neighbourhood).neurons);
    for i_cell = 1:length(secondary_cell_list)
        cell_ID=secondary_cell_list(i_cell);
        neighbourhoods(i_neighbourhood).neurons(i_cell+number_of_prim_cells)=experiment_setup.neurons(cell_ID);
+      
    end
    for i_cell = 1:length(neighbourhoods(i_neighbourhood).neurons)
         neighbourhoods(i_neighbourhood).neurons(i_cell).group_ID=cell(1);
@@ -100,9 +115,6 @@ cell_locations(:,2) <  experiment_setup.neighbourhood_params.y_bounds(2)+experim
        end
    end
 end
-
-
-
 % Calculate the candidate grid for each cell in each neigbourhood
 group_names = experiment_setup.group_names;
 for i_neighbourhood = 1:number_of_neighbourhoods
