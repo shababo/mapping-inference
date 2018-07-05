@@ -11,7 +11,7 @@ switch group_profile.regroup_func_params.regroup_type
         properties={'PR'};summary_stat={'upper_quantile'};
         temp_output=grab_values_from_neurons(i_batch,neurons,properties,summary_stat);
 
-        gamma_upper_quantile=temp_output.PR_params.upper_quantile;
+        gamma_upper_quantile=temp_output.PR.upper_quantile;
         cell_list_connected_to_disconnected  = ...
                 i_cell_group_to_nhood(gamma_upper_quantile < group_profile.regroup_func_params.disconnected_threshold);
             

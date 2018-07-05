@@ -46,8 +46,8 @@ neurons=this_neighbourhood.neurons;
 
 %% Update the parameters in neighbourhood 
    
-
-quantile_prob=group_profile.group_ID.regroup_func_params.quantile_prob;
+batch_ID=neighbourhood.batch_ID;
+quantile_prob=group_profile.regroup_func_params.quantile_prob;
        
 for i_cell = 1:number_cells_all
     

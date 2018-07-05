@@ -117,6 +117,8 @@ for i = 1:length(group_names)
 end
 experiment_setup.max_spots_per_trial = max_spots_per_trial;
 
+experiment_setup.max_batch=20;
+
 % Get sim paramters
 % sim params
 switch  experiment_setup.experiment_type
