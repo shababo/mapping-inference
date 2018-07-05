@@ -35,19 +35,19 @@ for i_circle=1:length(design_params.candidate_grid_params.radius)
             [sin(2*pi*i_grid/this_grid_number) cos(2*pi*i_grid/this_grid_number) 0];
     end
 end
-grid_this_cell = grid_coord+ones(size(grid_coord,1),1);
+grid_this_cell = grid_coord;%+ones(size(grid_coord,1),1);
 
 
-switch group_ID
-    case 'undefined'
-        
-        grid_this_cell(:,3)= z_depth;
-        
-    case 'connected'
-        
-    case 'alive'
-        
-end
+% switch group_ID
+%     case 'undefined'
+%         
+%         grid_this_cell(:,3)=0;
+%         
+%     case 'connected'
+%         
+%     case 'alive'
+%         
+% end
 
 % cut based on slm range
 if ~isempty(foe_bounds)
