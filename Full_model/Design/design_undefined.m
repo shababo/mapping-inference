@@ -1,4 +1,4 @@
-function [experiment_query_this_group] = design_undefined(this_neighbourhood,group_profile,experiment_setup)
+function [experiment_query_this_group] = design_undefined(neighbourhood,group_profile,experiment_setup)
 % NOTE: we use random design for now, given the adjusted locations 
 
 % Output:
@@ -12,23 +12,25 @@ function [experiment_query_this_group] = design_undefined(this_neighbourhood,gro
 
 disp('designs undef')
 group_ID=group_profile.group_ID;
+boundary_params=experiment_setup.prior_info.prior_parameters.boundary_params;
 
 power_levels=group_profile.design_func_params.trials_params.power_levels;
 %i_cells_this_group=find((arrayfun(@(x) strcmp(this_neighbourhood.neurons(:).group_ID,group_ID),this_neighbourhood.neurons(:))));
-i_cells_this_group= find(get_group_inds(this_neighbourhood,group_ID));
+i_cells_this_group= find(get_group_inds(neighbourhood,group_ID));
 number_cells_this_group=length(i_cells_this_group);
-number_cells_all= length(this_neighbourhood.neurons);
+number_cells_all= length(neighbourhood.neurons);
 loc_counts=zeros(number_cells_this_group,1);
 
 % obtain posterior mean of gamma
-batch_ID=this_neighbourhood.batch_ID;
-neurons=this_neighbourhood.neurons(i_cells_this_group);
-properties={'PR'};summary_stat={'mean'};
+batch_ID=neighbourhood.batch_ID;
+neurons=neighbourhood.neurons(i_cells_this_group);
+properties={'PR'};summary_stat={'mean', 'lower_quantile', 'upper_quantile'};
 temp_output=grab_values_from_neurons(batch_ID,neurons,properties,summary_stat);
 mean_PR=temp_output.PR.mean;
+range_PR=temp_output.PR.upper_quantile-temp_output.PR.lower_quantile;
 
 if group_profile.design_func_params.trials_params.weighted_indicator
-    probability_weights = 1-mean_PR;
+    probability_weights = (1-mean_PR)+range_PR;
 else
     probability_weights = ones(number_cells_this_group,1);
 end
@@ -100,20 +102,33 @@ switch group_profile.design_func_params.trials_params.stim_design
         loc_selected=ones(number_cells_this_group,1);
         power_selected=zeros(number_cells_this_group,1);
     case 'Random'
+        
         loc_selected=zeros(number_cells_this_group,1); 
+        loc_mat=zeros(number_cells_this_group,3); 
         for i_cell = 1:number_cells_this_group
             this_cell=i_cells_this_group(i_cell);
-            grid_points_this_cell =size(this_neighbourhood.neurons(this_cell).stim_locations.(group_ID).grid,1);
+            grid_points_this_cell =size(neighbourhood.neurons(this_cell).stim_locations.(group_ID).grid,1);
             loc_selected(i_cell)=randsample(1:grid_points_this_cell,1,true);
+            loc_mat(i_cell,:)= neighbourhood.neurons(this_cell).stim_locations.(group_ID).grid(loc_selected(i_cell));
+        end
+        % get the adj matrix on loc_mat:
+        adj_mat=zeros(number_cells_this_group,number_cells_this_group);
+        for i = 1:number_cells_this_group
+            for j=1:number_cells_this_group
+                rel_loc = loc_mat(i,:)-loc_mat(j,:);
+                adj_mat(i,j)=check_in_boundary(rel_loc,boundary_params);
+            end
         end
         power_selected=zeros(number_cells_this_group,1);
+        
+        
     otherwise
         % throw a warning?
 end
 
 experiment_query_this_group=struct;
 experiment_query_this_group.group_ID=group_ID;
-experiment_query_this_group.neighbourhood_ID=this_neighbourhood.neighbourhood_ID;
+experiment_query_this_group.neighbourhood_ID=neighbourhood.neighbourhood_ID;
 experiment_query_this_group.instruction='Compute hologram';
 experiment_query_this_group.trials=struct([]);
 
@@ -179,7 +194,7 @@ for i_trial = 1:num_trials
                 end
 
                 if strcmp(experiment_setup.experiment_type,'experiment') || experiment_setup.sim.use_power_calib
-                    this_loc = this_neighbourhood.neurons(this_cell).stim_locations.(group_ID).grid(temp_loc,:);
+                    this_loc = neighbourhood.neurons(this_cell).stim_locations.(group_ID).grid(temp_loc,:);
                     adj_pow_this_loc = round(experiment_setup.exp.ratio_map(round(this_loc(1))+ceil(size(experiment_setup.exp.ratio_map,1)/2),...
                         round(this_loc(2))+ceil(size(experiment_setup.exp.ratio_map,2)/2))*this_trial_power_levels(i_spot));
                     this_trial_total_adj_power_tmp = sum(this_trial_adj_power_per_spot) + adj_pow_this_loc;
@@ -206,15 +221,19 @@ for i_trial = 1:num_trials
             loc_counts(temp_index)=loc_counts(temp_index)+1;
 
             this_trial_location_IDs(i_spot) = temp_loc;
-            this_trial_cell_IDs(i_spot) = this_neighbourhood.neurons(this_cell).cell_ID;           
-            this_trial_locations(i_spot,:) = this_neighbourhood.neurons(this_cell).location+...
-                this_neighbourhood.neurons(this_cell).stim_locations.(group_ID).grid(temp_loc,:);
-%             this_cell = temp_index;
+            this_trial_cell_IDs(i_spot) = neighbourhood.neurons(this_cell).cell_ID;   
+            this_loc= neighbourhood.neurons(this_cell).location+...
+                neighbourhood.neurons(this_cell).stim_locations.(group_ID).grid(temp_loc,:);
+            this_loc(3)=neighbourhood.center(3);
+            this_trial_locations(i_spot,:) = this_loc;
+            %this_cell = temp_index;
 
-            neurons = this_neighbourhood.neurons(i_cells_this_group);
-            prob_initial(this_cell)=0;
-%             prob_initial = subtract_stim_effects(group_ID,temp_index,prob_initial,loc_selected, neurons);
-%             prob_initial = max(0,prob_initial);
+            neurons = neighbourhood.neurons(i_cells_this_group);
+            % 
+            
+            %prob_initial = subtract_stim_effects(group_ID,temp_index,prob_initial,loc_selected, neurons);
+            prob_initial(find(adj_mat(this_cell,:)))=0;
+            prob_initial = max(0,prob_initial);
 
         end
         

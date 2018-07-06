@@ -86,7 +86,6 @@ for i_neighbourhood = 1:number_of_neighbourhoods
 end
 
 % % Include nearby cells 
-% 
 for i_neighbourhood = 1:number_of_neighbourhoods
    %neighbourhoods(i_neighbourhood)=struct;
    % Find nearby cells: z range, x range, y range 
@@ -115,6 +114,7 @@ cell_locations(:,2) < neighbourhoods(i_neighbourhood).boundary(2,2) +experiment_
        end
    end
 end
+
 % Calculate the candidate grid for each cell in each neigbourhood
 group_names = experiment_setup.group_names;
 for i_neighbourhood = 1:number_of_neighbourhoods
