@@ -1,6 +1,6 @@
 function [post_stat] = calculate_posterior(params,quantile_prob)
        
-%%
+%% it outputs the median instead of mean! 
 fldnames = fieldnames(params(1));
 
 post_stat=struct;
@@ -30,9 +30,9 @@ for i_field = 1:length(fldnames)
             this_sample=exp(normal_samples)./(1+exp(normal_samples))*...
                 (this_params.bounds.up-this_params.bounds.low)+this_params.bounds.low;
     end
-    post_stat.(fldnames{i_field}).mean=mean(this_sample);
+    post_stat.(fldnames{i_field}).mean=this_qt(2);
     post_stat.(fldnames{i_field}).variance=var(this_sample);
-    post_stat.(fldnames{i_field}).upper_quantile=this_qt(2);
+    post_stat.(fldnames{i_field}).upper_quantile=this_qt(3);
     post_stat.(fldnames{i_field}).lower_quantile=this_qt(1);
     
 

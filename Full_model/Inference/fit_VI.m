@@ -26,8 +26,10 @@ iteration = 1;loglklh_rec=[];
 %%
 % tic;
 % time_rec=zeros(10,1);
+tic;
 while (change_history(iteration) > epsilon && iteration<maxit)
     %%
+    tstart=toc;
     parameter_history(iteration,:)=parameter_current;
     iteration=iteration+1;
     adjusted_location=zeros(n_cell,3);
@@ -172,8 +174,8 @@ while (change_history(iteration) > epsilon && iteration<maxit)
     
     loglklh_rec(iteration)=mean(mean(loglklh));
     elbo_rec(iteration)=mean(logprior+loglklh-logvariational);
-    
-      fprintf('Iteration %d; change %d; ELBO %d \n',iteration,change_history(iteration),elbo_rec(iteration))
+    tdiff=toc-tstart;
+      fprintf('Iteration %d; change %d; ELBO %d; time %d; \n',iteration,change_history(iteration),elbo_rec(iteration),tdiff)
 end
 fprintf('VI fitted after %d iteration;\n',iteration)
 

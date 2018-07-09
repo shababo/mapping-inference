@@ -1,5 +1,5 @@
 function [loss] = lif_glm_firstspike_loglikelihood_for_VI(...
-    mpp_this_trial, prob_this_trial)
+    mpp_this_trial, prob_this_trial_all)
             
 %             mpp_this_trial=mpp(i_trial);
             
@@ -7,10 +7,15 @@ function [loss] = lif_glm_firstspike_loglikelihood_for_VI(...
 % n_stimulated = prob_this_trial(:,end)>1e-2;
 % stimmed_cells=find(sum(prob_this_trial,2)>1e-2);
 % prob_this_trial=prob_this_trial(stimmed_cells,:);
-n_stimulated= size(prob_this_trial,1);
+
 n_events=length(mpp_this_trial.event_times);
+event_prob_all = prob_this_trial_all(:,end);
+% remove the rows that have zero probabilities 
+related_rows=find(event_prob_all>0);
+prob_this_trial=prob_this_trial_all(related_rows,:);
 event_prob = prob_this_trial(:,end);
 not_fire_prob = 1-event_prob;
+n_stimulated= size(prob_this_trial,1);
 %n_grid=size(prob_this_trial,2);
       
 if n_events == 0

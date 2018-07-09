@@ -9,12 +9,12 @@ simulation_setup.dimension=[-50 -50 0;50 50 80]; % there will be only two neighb
 simulation_setup.use_real_map=true;
 
 simulation_setup.real_map_name='6_3_s2c3_mpp_and_stim_data.mat'; % name of the cell map under 'experiment_setup.exp_root'
-simulation_setup.number_of_cells=40;
+simulation_setup.number_of_cells=5;
 simulation_setup.siblings=struct;
-simulation_setup.siblings.number=20;
+simulation_setup.siblings.number=1;
 simulation_setup.siblings.distance=30; 
 simulation_setup.connection_params=struct;
-simulation_setup.connection_params.proportion=0.2;
+simulation_setup.connection_params.proportion=0.5;
 simulation_setup.cell_params=struct;
 simulation_setup.cell_params.type='Normal';
 % Normal, Extreme gain, or Weak gamma.
