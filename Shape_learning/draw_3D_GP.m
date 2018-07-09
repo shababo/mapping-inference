@@ -112,17 +112,17 @@ GP_samples.full.samples_unique = zeros(size(locations_unique,1),n_shapes );
 GP_samples.full.loglklh=zeros(n_shapes,1 );
 for i_shape = 1:n_shapes
     GP_samples.full.samples_unique(:,i_shape)=max(0,mvnrnd(GP_samples.full.mean,GP_samples.full.Kcov))';
-    GP_samples.full.loglklh(i_shape)= log(mvnpdf(GP_samples.full.samples_unique(:,i_shape),GP_samples.full.mean,GP_samples.full.Kcov));
+%     GP_samples.full.loglklh(i_shape)= log(mvnpdf(GP_samples.full.samples_unique(:,i_shape),GP_samples.full.mean,GP_samples.full.Kcov));
 end
 GP_samples.full.samples=GP_samples.full.samples_unique(ic,:);
-%% Drawing shifts:
-GP_samples.full.shifts=zeros(dims,n_shapes);
-
-for i_ax = 1:dims
-    ax = axis_list{i_ax};
-    switch GP_params.(ax).shift_params.type
-        case 'normal'
-            GP_samples.full.shifts(i_ax, :)=normrnd(GP_params.(ax).shift_params.mean,...
-                GP_params.(ax).shift_params.var,[1 n_shapes]);
-    end
-end
+%  Drawing shifts:
+% GP_samples.full.shifts=zeros(dims,n_shapes);
+% 
+% for i_ax = 1:dims
+%     ax = axis_list{i_ax};
+%     switch GP_params.(ax).shift_params.type
+%         case 'normal'
+%             GP_samples.full.shifts(i_ax, :)=normrnd(GP_params.(ax).shift_params.mean,...
+%                 GP_params.(ax).shift_params.var,[1 n_shapes]);
+%     end
+% end

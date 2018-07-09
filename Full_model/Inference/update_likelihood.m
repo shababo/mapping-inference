@@ -1,28 +1,36 @@
 function [loglklh] = update_likelihood(trials,variational_samples, ...
-    GP_samples, background_rate,lklh_func,spike_curves,neurons,boundary)
-%% 
-
-% tic;
-% tstart=toc;
-
-n_shape = size(GP_samples.full.samples,2);
+    background_rate,lklh_func,spike_curves,neurons,prior_info,inference_params)
+%%
+tic;
+tstart=toc;
+n_shape=inference_params.MCsamples_for_gradient;
+GP_params=prior_info.prior_parameters.GP_params;
 n_cell=length(variational_samples);
 n_trial=length(trials);
-
 stim_size=zeros(n_trial,n_cell,n_shape);
+boundary_params = prior_info.prior_parameters.boundary_params;
+
 for i_cell = 1:n_cell
-    shifts=[variational_samples(i_cell).shift_x];
-    adjusted_location(i_cell)=neurons(i_cell).location-shifts;
+    if length(neurons(i_cell).location)==1
+        shifts=[variational_samples(i_cell).shift_x];
+    else
+        shifts=[variational_samples(i_cell).shift_x variational_samples(i_cell).shift_y variational_samples(i_cell).shift_z];
+    end
+    adjusted_location(i_cell,:)=neurons(i_cell).location-shifts;
     relevant_trials=[];
-    relevant_stim_locations=zeros(0,1);
+    relevant_stim_locations=zeros(0,length(neurons(i_cell).location));
     trial_and_stim=zeros(0,2);
     
-    this_adjusted_loc=adjusted_location(i_cell);
+    this_adjusted_loc=adjusted_location(i_cell,:);
     for i_trial = 1:length(trials)
         relevant_flag = false;
         for i_loc = 1:length(trials(i_trial).locations)
             rel_position=trials(i_trial).locations(i_loc)-this_adjusted_loc;
-            this_relevant_flag = (abs(rel_position)<boundary);
+            if length(rel_position)==1
+                this_relevant_flag = (abs(rel_position)<boundary_params);
+            else
+                this_relevant_flag =check_in_boundary(rel_position,boundary_params);
+            end
             if  this_relevant_flag
                 relevant_stim_locations=[relevant_stim_locations; rel_position];
                 trial_and_stim=[trial_and_stim;  [i_trial i_loc]];
@@ -33,20 +41,14 @@ for i_cell = 1:n_cell
             relevant_trials = [relevant_trials i_trial];
         end
     end
-    
+    if ~isempty(relevant_trials)
+    if size(relevant_stim_locations,2)==1
+        [GP_samples] = draw_1D_GP(relevant_stim_locations,n_shape,GP_params);
+    else
+        [GP_samples] = draw_3D_GP(relevant_stim_locations,n_shape,GP_params);
+    end
     for i_shape = 1:n_shape
-        this_shape = GP_samples.full.samples(:,i_shape);
-        switch size(relevant_stim_locations,2)
-            case 1
-                shape_val = interp1(GP_samples.full.locations,this_shape,relevant_stim_locations);
-            case 2
-                shape_val = griddata(GP_samples.full.locations(:,1),GP_samples.full.locations(:,2),...
-                    this_shape,relevant_stim_locations(:,1),relevant_stim_locations(:,2));
-            case 3
-                shape_val = griddata(GP_samples.full.locations(:,1),GP_samples.full.locations(:,2),GP_samples.full.locations(:,3),...
-                    this_shape,relevant_stim_locations(:,1),relevant_stim_locations(:,2),relevant_stim_locations(:,3));
-        end
-         
+        shape_val=GP_samples.full.samples(:,i_shape);
         for i_rel = 1:length(shape_val)
             i_trial = trial_and_stim(i_rel,1);
             i_loc = trial_and_stim(i_rel,2);
@@ -59,10 +61,12 @@ for i_cell = 1:n_cell
                 power_tmp*shape_val(i_rel);
         end
     end
+    end
 end
 %
 % t2=toc;
-
+% t2-tstart
+%
 Tmax=spike_curves.time_max;
 minimum_stim_threshold=spike_curves.minimum_stim_threshold;
 % Calculate a grid for standard normal r.v. for quick CDF calculation:
@@ -86,19 +90,23 @@ delay_sigma_sample=reshape([variational_samples(:).delay_sigma], [n_cell 1]);
 loglklh_vec = zeros(n_trial,1);
 for  i_trial = 1:n_trial
     event_times=trials(i_trial).event_times;
-prob_this_trial(1,:)=background_rate*ones(1,length(event_times)+1);
-        prob_this_trial(1,end)=background_rate*Tmax;
+    if isempty(event_times) | isnan(event_times)
+         prob_this_trial(1,:)=background_rate*Tmax;
+    else
+        clear('prob_this_trial');
+    prob_this_trial(1,:)=background_rate*ones(1,length(event_times)+1);
+    prob_this_trial(1,end)=background_rate*Tmax;
     
-    for i_cell = 1:n_cell % can reduce to cell with sufficiently large stimuliaton 
+    for i_cell = 1:n_cell % can reduce to cell with sufficiently large stimuliaton
         delay_mu_temp=delay_mu_sample(i_cell);
         delay_sigma_temp=delay_sigma_sample(i_cell);
         stim_index = ones(n_shape,1);
-        for i_shape = 1:n_shape 
+        for i_shape = 1:n_shape
             stim_temp =stim_size(i_trial,i_cell,i_shape);
             effective_stim=stim_temp*gain_sample(i_cell);
             if effective_stim>minimum_stim_threshold
                 stim_index(i_shape)= min(current_max_grid,...
-                        max(1,round((effective_stim-current_lb)/current_gap)));
+                    max(1,round((effective_stim-current_lb)/current_gap)));
             end
         end
         spike_times_cond_shape=spike_curves.mean(stim_index);
@@ -110,7 +118,7 @@ prob_this_trial(1,:)=background_rate*ones(1,length(event_times)+1);
         prob_this_trial(i_cell,:)=...
             PR_sample(i_cell)*[pdf_grid(pdf_index) cdf_grid(cdf_index)];
     end
-   
+    end
     loglklh_vec(i_trial)=  lklh_func(trials(i_trial),prob_this_trial);
     %         te=toc;time_rec(4)=time_rec(4)+te-ts;
 end

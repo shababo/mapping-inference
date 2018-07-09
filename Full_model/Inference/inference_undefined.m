@@ -4,6 +4,7 @@ function [neighbourhood]=inference_undefined(...
 % (experiment_query.(this_group),neighbourhood,group_profile, experiment_setup);
 % experiment_query_this_group=experiment_query.(this_group);
 % this_neighbourhood = neighbourhood;
+% inference_undefined(experiment_query.(this_group),neighbourhood,group_profile, experiment_setup);
 %%
 group_ID=group_profile.group_ID;
 [cells_this_group, group_cell_IDs] = get_group_inds(neighbourhood,group_ID);
@@ -12,7 +13,7 @@ number_cells_this_group=length(cells_this_group);
 number_cells_all= length(neighbourhood.neurons);
 prior_info=experiment_setup.prior_info;
 inference_params=group_profile.inference_params;
-
+background_rate= experiment_setup.patched_neuron.background_rate;
 %indicators_remained = find(ismember([mpp_undefined(:).batch],iter-(0:num_trace_back) ));
 number_of_trials = length(experiment_query_this_group.trials);
 
@@ -26,7 +27,7 @@ neurons=neighbourhood.neurons;
 % prior_info.prior_parameters.boundary_params= [30 30 70];
 
 [parameter_history,elbo_rec,loglklh_rec] = fit_VI(...
-      trials,neurons, experiment_setup.patched_neuron.background_rate, ...
+      trials,neurons, background_rate, ...
     variational_params,prior_params,...
     inference_params,prior_info);
 

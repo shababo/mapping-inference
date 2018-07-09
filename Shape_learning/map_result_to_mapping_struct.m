@@ -36,7 +36,7 @@ for i_cell = good_cell_list
     
 end
 % replace two bad cells with cell 2;
-% result_xy(4)=result_xy(2); 
+result_xy(4)=result_xy(2); 
 % result_xy(7) = result_xy(2); 
 
 i_ax=find(strcmp(target_axis,axis_list));
@@ -44,7 +44,7 @@ i_ax=find(strcmp(target_axis,axis_list));
 if ~strcmp(target_axis,'z')
     n_cell = length(result_xy);
     clear('neurons_tmp')
-    neurons(n_cell)=struct;
+    neurons_tmp(n_cell)=struct;
     for i_cell = 1:n_cell
         neurons_tmp(i_cell).stim_grid= result_xy(i_cell).(target_axis).stim_grid';
         %       neurons(i_cell).max_current=result_xy(i_cell).(ax).current';
