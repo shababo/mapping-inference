@@ -1,6 +1,7 @@
 function [loglklh] = update_likelihood(trials,variational_samples, ...
     background_rate,lklh_func,spike_curves,neurons,prior_info,inference_params)
 %%
+figure_flag =false;
 tic;
 tstart=toc;
 n_shape=inference_params.MCsamples_for_gradient;
@@ -42,27 +43,40 @@ for i_cell = 1:n_cell
         end
     end
     if ~isempty(relevant_trials)
-    if size(relevant_stim_locations,2)==1
-        [GP_samples] = draw_1D_GP(relevant_stim_locations,n_shape,GP_params);
-    else
-        [GP_samples] = draw_3D_GP(relevant_stim_locations,n_shape,GP_params);
-    end
-    for i_shape = 1:n_shape
-        shape_val=GP_samples.full.samples(:,i_shape);
-        for i_rel = 1:length(shape_val)
-            i_trial = trial_and_stim(i_rel,1);
-            i_loc = trial_and_stim(i_rel,2);
-            if length(trials(i_trial).power_levels)==1
-                power_tmp =  trials(i_trial).power_levels;
-            else
-                power_tmp = trials(i_trial).power_levels(i_loc);
-            end
-            stim_size(i_trial,i_cell,i_shape)=stim_size(i_trial,i_cell,i_shape)+...
-                power_tmp*shape_val(i_rel);
+        if size(relevant_stim_locations,2)==1
+            [GP_samples] = draw_1D_GP(relevant_stim_locations,n_shape,GP_params);
+        else
+            [GP_samples] = draw_3D_GP(relevant_stim_locations,n_shape,GP_params);
         end
-    end
+        for i_shape = 1:n_shape
+            shape_val=GP_samples.full.samples(:,i_shape);
+            for i_rel = 1:length(shape_val)
+                i_trial = trial_and_stim(i_rel,1);
+                i_loc = trial_and_stim(i_rel,2);
+                if length(trials(i_trial).power_levels)==1
+                    power_tmp =  trials(i_trial).power_levels;
+                else
+                    power_tmp = trials(i_trial).power_levels(i_loc);
+                end
+                stim_size(i_trial,i_cell,i_shape)=stim_size(i_trial,i_cell,i_shape)+...
+                    power_tmp*shape_val(i_rel);
+            end
+        end
+        
+        % debugging:
+        %%
+        if figure_flag & (i_trial < 20)
+            figure(i_cell)
+            for i_shape = 1:n_shape
+                shape_val=GP_samples.full.samples(:,i_shape);
+                scatter(relevant_stim_locations,shape_val)
+                hold on;
+            end
+        end
+        %%
     end
 end
+%%
 %
 % t2=toc;
 % t2-tstart
@@ -91,36 +105,67 @@ loglklh_vec = zeros(n_trial,1);
 for  i_trial = 1:n_trial
     event_times=trials(i_trial).event_times;
     if isempty(event_times) | isnan(event_times)
-         prob_this_trial(1,:)=background_rate*Tmax;
+        prob_this_trial(1,:)=background_rate*Tmax;
     else
         clear('prob_this_trial');
-    prob_this_trial(1,:)=background_rate*ones(1,length(event_times)+1);
-    prob_this_trial(1,end)=background_rate*Tmax;
-    
-    for i_cell = 1:n_cell % can reduce to cell with sufficiently large stimuliaton
-        delay_mu_temp=delay_mu_sample(i_cell);
-        delay_sigma_temp=delay_sigma_sample(i_cell);
-        stim_index = ones(n_shape,1);
-        for i_shape = 1:n_shape
-            stim_temp =stim_size(i_trial,i_cell,i_shape);
-            effective_stim=stim_temp*gain_sample(i_cell);
-            if effective_stim>minimum_stim_threshold
-                stim_index(i_shape)= min(current_max_grid,...
-                    max(1,round((effective_stim-current_lb)/current_gap)));
+        prob_this_trial(1,:)=background_rate*ones(1,length(event_times)+1);
+        prob_this_trial(1,end)=background_rate*Tmax;
+        
+        for i_cell = 1:n_cell % can reduce to cell with sufficiently large stimuliaton
+            delay_mu_temp=delay_mu_sample(i_cell);
+            delay_sigma_temp=delay_sigma_sample(i_cell);
+            stim_index = ones(n_shape,1);
+            for i_shape = 1:n_shape
+                stim_temp =stim_size(i_trial,i_cell,i_shape);
+                effective_stim=stim_temp*gain_sample(i_cell);
+                if effective_stim>minimum_stim_threshold
+                    stim_index(i_shape)= min(current_max_grid,...
+                        max(1,round((effective_stim-current_lb)/current_gap)));
+                end
             end
+            spike_times_cond_shape=spike_curves.mean(stim_index);
+            expectation=delay_mu_temp+mean(spike_times_cond_shape); % mean expectation
+            standard_dev=sqrt(delay_sigma_temp^2+...
+                mean(spike_curves.sd(stim_index).^2)+ var(spike_times_cond_shape));
+            cdf_index = max(1,min(length(cdf_grid),round( ((Tmax-expectation)/standard_dev +grid.bound)/grid.gap)));
+            pdf_index = max(1,min(length(pdf_grid),round( ((event_times-expectation)/standard_dev +grid.bound)/grid.gap)));
+            prob_this_trial(i_cell,:)=...
+                PR_sample(i_cell)*[pdf_grid(pdf_index) cdf_grid(cdf_index)];
         end
-        spike_times_cond_shape=spike_curves.mean(stim_index);
-        expectation=delay_mu_temp+mean(spike_times_cond_shape); % mean expectation
-        standard_dev=sqrt(delay_sigma_temp^2+...
-            mean(spike_curves.sd(stim_index).^2)+ var(spike_times_cond_shape));
-        cdf_index = max(1,min(length(cdf_grid),round( ((Tmax-expectation)/standard_dev +grid.bound)/grid.gap)));
-        pdf_index = max(1,min(length(pdf_grid),round( ((event_times-expectation)/standard_dev +grid.bound)/grid.gap)));
-        prob_this_trial(i_cell,:)=...
-            PR_sample(i_cell)*[pdf_grid(pdf_index) cdf_grid(cdf_index)];
-    end
     end
     loglklh_vec(i_trial)=  lklh_func(trials(i_trial),prob_this_trial);
-    %         te=toc;time_rec(4)=time_rec(4)+te-ts;
+    
+    %%
+    if figure_flag
+        prob_this_trial=zeros(1,Tmax);
+        prob_this_trial(1,:)=background_rate*ones(1,Tmax);
+        for i_cell = 1:n_cell
+            delay_mu_temp=delay_mu_sample(i_cell);
+            delay_sigma_temp=delay_sigma_sample(i_cell);
+            stim_index = ones(n_shape,1);
+            for i_shape = 1:n_shape
+                stim_temp =stim_size(i_trial,i_cell,i_shape);
+                effective_stim=stim_temp*gain_sample(i_cell);
+                if effective_stim>minimum_stim_threshold
+                    stim_index(i_shape)= min(current_max_grid,...
+                        max(1,round((effective_stim-current_lb)/current_gap)));
+                end
+            end
+            spike_times_cond_shape=spike_curves.mean(stim_index);
+            expectation=delay_mu_temp+mean(spike_times_cond_shape); % mean expectation
+            standard_dev=sqrt(delay_sigma_temp^2+...
+                mean(spike_curves.sd(stim_index).^2)+ var(spike_times_cond_shape));
+            pdf_index = normpdf(1:Tmax,expectation, standard_dev);
+            prob_this_trial(i_cell,:)=pdf_index;
+        end
+        figure(i_trial)
+        total_prob=sum(prob_this_trial);
+        plot(total_prob)
+        hold on;
+        scatter(event_times, max(total_prob) )
+    end
+    
+    %%
 end
 loglklh=sum(loglklh_vec);
 % tend=toc;

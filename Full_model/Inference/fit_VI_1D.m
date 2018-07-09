@@ -38,6 +38,7 @@ while (change_history(iteration) > epsilon && iteration<maxit)
         vsam{s}=variational_samples;rsam{s}=raw_samples;
         logprior(s)=get_logdistribution(variational_samples,raw_samples,prior_params);
         logvariational(s)=get_logdistribution(variational_samples,raw_samples,parameter_current);
+        
         [loglklh(s)] = update_likelihood(trials, variational_samples,...
              background_rate,lklh_func,spike_curves,neurons,prior_info,inference_params);
         lklhweight=logprior(s)+loglklh(s)-logvariational(s);

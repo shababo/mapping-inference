@@ -14,7 +14,7 @@ simulation_setup.siblings=struct;
 simulation_setup.siblings.number=1;
 simulation_setup.siblings.distance=30; 
 simulation_setup.connection_params=struct;
-simulation_setup.connection_params.proportion=0.5;
+simulation_setup.connection_params.proportion=0.3;
 simulation_setup.cell_params=struct;
 simulation_setup.cell_params.type='Normal';
 % Normal, Extreme gain, or Weak gamma.

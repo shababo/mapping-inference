@@ -21,8 +21,8 @@ for i_cell = 1:n_cell
                     log(1/this_sample);
             case 'logit-normal'
                 this_logdist=   log(normpdf(this_raw_sample,this_params.mean,exp(this_params.log_sigma))/...
-                        ((this_sample-this_params.bounds.low)*(this_params.bounds.up-this_sample)) *(this_params.bounds.up-this_params.bounds.low));
-                    
+                        ((this_sample-this_params.bounds.low+epsilon)*(this_params.bounds.up-this_sample+epsilon)) *(this_params.bounds.up-this_params.bounds.low));
+                  
             case 'spiked-logit-normal'
                 zero_prob =exp(this_params.prob_logit)/(1+exp(this_params.prob_logit));
                 
@@ -35,8 +35,10 @@ for i_cell = 1:n_cell
                     
                 
                 end
-                             
         end
+          if isnan(this_logdist) | isinf(this_logdist)
+                   this_logdist=log(epsilon);
+          end
         logdist_mat(i_cell,i_field)=this_logdist;
         
         if (strcmp(this_params.type, 'common') & (i_cell >1)) %only count the common parameter once

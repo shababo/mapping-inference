@@ -85,7 +85,17 @@ i_trial = 0;
 for i_cell = 1:total_cell
     neurons(i_cell).params(1) =tmp_params;
     neurons(i_cell).location=i_cell*max_gap;
-     neurons(i_cell).posterior_stat(1)=...
+    % initialize gain:
+    gain_rough = max(neurons_tmp(i_cell).raw_current)/max(neurons_tmp(i_cell).power)/1000;
+    gain_ini_mean = log((gain_rough - tmp_params.gain.bounds.low)/(tmp_params.gain.bounds.up-gain_rough));
+    neurons(i_cell).params(1).gain.mean= gain_ini_mean;
+ neurons(i_cell).params(1).delay_mu.mean=-100;
+ neurons(i_cell).params(1).delay_mu.log_sigma=-10;
+ neurons(i_cell).params(1).delay_sigma.mean=-100;
+ neurons(i_cell).params(1).delay_sigma.log_sigma=-10;
+ 
+       
+    neurons(i_cell).posterior_stat(1)=...
             calculate_posterior(neurons(i_cell).params(1),...
             quantile_prob);
     for i = 1:length(neurons_tmp(i_cell).power)
