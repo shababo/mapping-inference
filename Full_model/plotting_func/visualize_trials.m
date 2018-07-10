@@ -184,7 +184,7 @@ for i_group =1:length(group_names)
                 if trials_by_group.(group_names{i_group}).event_flag(i_loc)>0
                     marker='s';lwd=1;
                 else
-                    marker='x';lwd=3;
+                    marker='x';lwd=1;
                 end
                 scatter(these_locations(i_loc,1),these_locations(i_loc,2),marker,...
                     'MarkerFaceColor',this_color,'MarkerEdgeColor',this_color,...

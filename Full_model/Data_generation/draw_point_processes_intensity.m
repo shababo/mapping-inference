@@ -80,6 +80,7 @@ for i_trial = 1:number_of_trials
 
     experiment_query_this_group.trials(i_trial).truth.event_times=[];
     experiment_query_this_group.trials(i_trial).truth.assignments=[];
+experiment_query_this_group.trials(i_trial).truth.spike_times=[];
 
     for i_cell = 1:number_of_cells
         k=stimuli_size(i_trial,i_cell);
@@ -110,7 +111,7 @@ for i_trial = 1:number_of_trials
                             experiment_query_this_group.trials(i_trial).truth.event_times=...
                [experiment_query_this_group.trials(i_trial).truth.event_times events(i)];
                             experiment_query_this_group.trials(i_trial).truth.spike_times=...
-               [experiment_query_this_group.trials(i_trial).truth.event_times spikes(i)];
+               [experiment_query_this_group.trials(i_trial).truth.spike_times spikes(i)];
                             experiment_query_this_group.trials(i_trial).truth.assignments=...
 [experiment_query_this_group.trials(i_trial).truth.assignments neighbourhood.neurons(i_cell).cell_ID];
 
