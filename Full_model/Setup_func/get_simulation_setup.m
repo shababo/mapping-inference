@@ -5,7 +5,7 @@ function simulation_setup = get_simulation_setup(varargin)
 simulation_setup=struct;
 
 
-simulation_setup.dimension=[-50 -50 0;50 50 80]; % there will be only two neighbourhoods 
+simulation_setup.dimension=[-50 -50 0;50 50 30]; % there will be only two neighbourhoods 
 simulation_setup.use_real_map=true;
 simulation_setup.background_rate= 1e-5;
 simulation_setup.real_map_name='6_3_s2c3_mpp_and_stim_data.mat'; % name of the cell map under 'experiment_setup.exp_root'
