@@ -72,7 +72,7 @@ end
 
 %%
 tmp_params=initialize_prior(['C:/Users/Shizhe/Documents/Mapping_data/Data/' 'Summary180627.mat']);
-tmp_params=rmfield(tmp_params,{'GP_params' 'boundary_params','shift_y','shift_z'});
+tmp_params=rmfield(tmp_params,{'GP_params', 'delay_mu', 'delay_sigma', 'boundary_params','shift_y','shift_z'});
    
 
 %% Generate the neurons & trials structures
@@ -89,11 +89,6 @@ for i_cell = 1:total_cell
     gain_rough = max(neurons_tmp(i_cell).raw_current)/max(neurons_tmp(i_cell).power)/1000;
     gain_ini_mean = log((gain_rough - tmp_params.gain.bounds.low)/(tmp_params.gain.bounds.up-gain_rough));
     neurons(i_cell).params(1).gain.mean= gain_ini_mean;
- neurons(i_cell).params(1).delay_mu.mean=-100;
- neurons(i_cell).params(1).delay_mu.log_sigma=-10;
- neurons(i_cell).params(1).delay_sigma.mean=-100;
- neurons(i_cell).params(1).delay_sigma.log_sigma=-10;
- 
        
     neurons(i_cell).posterior_stat(1)=...
             calculate_posterior(neurons(i_cell).params(1),...

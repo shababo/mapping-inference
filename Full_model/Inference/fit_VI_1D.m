@@ -55,8 +55,29 @@ while (change_history(iteration) > epsilon && iteration<maxit)
     [parameter_current, change_history(iteration)]=incorporate_gradient(parameter_current, new_gradient);
     loglklh_rec(iteration)=mean(mean(loglklh));
     elbo_rec(iteration)=mean(logprior+loglklh-logvariational);
-    tdiff=toc-tstart;
+    tend=toc;
+    tdiff=tend-tstart;
     fprintf('Iteration %d; change %d; ELBO %d; time %d; \n',iteration,change_history(iteration),elbo_rec(iteration),tdiff)
 end
 fprintf('VI fitted after %d iteration;\n',iteration)
+
+% %%
+% i_cell =1;
+% gain_rec=zeros(iteration-1,1);
+% shift_rec=zeros(iteration-1,1);
+% 
+% for i=1:(iteration-1)
+%     gain_rec(i)=parameter_history(i,i_cell).gain.mean;
+%     PR_rec(i)=parameter_history(i,i_cell).PR.mean;
+%     shift_rec(i)=parameter_history(i,i_cell).shift_x.mean;
+%     
+% end
+% figure(1)
+% plot(gain_rec)
+% figure(2)
+% plot(elbo_rec(2:end))
+% figure(3)
+% plot(PR_rec)
+% figure(4)
+% plot(shift_rec)
 

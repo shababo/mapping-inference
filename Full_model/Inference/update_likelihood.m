@@ -98,8 +98,14 @@ current_max_grid = length(spike_curves.current);
 
 gain_sample=reshape([variational_samples(:).gain], [n_cell 1]);
 PR_sample=reshape([variational_samples(:).PR], [n_cell 1]);
+if isfield(variational_samples(1),'delay_mu')
 delay_mu_sample=reshape([variational_samples(:).delay_mu], [n_cell 1]);
 delay_sigma_sample=reshape([variational_samples(:).delay_sigma], [n_cell 1]);
+else
+delay_mu_sample=zeros([n_cell 1]);
+delay_sigma_sample=0.001*ones([n_cell 1]);
+    
+end
 %
 loglklh_vec = zeros(n_trial,1);
 for  i_trial = 1:n_trial
@@ -112,6 +118,7 @@ for  i_trial = 1:n_trial
         prob_this_trial(1,end)=background_rate*Tmax;
         
         for i_cell = 1:n_cell % can reduce to cell with sufficiently large stimuliaton
+            
             delay_mu_temp=delay_mu_sample(i_cell);
             delay_sigma_temp=delay_sigma_sample(i_cell);
             stim_index = ones(n_shape,1);
