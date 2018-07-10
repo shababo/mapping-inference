@@ -12,7 +12,7 @@ color_set= {'k' 'g' 'w' 'r' 'y' 'b'};
 alpha_threshold=0.1;
 cell_IDs= [neurons(:).cell_ID];
 size_scale =200;
-
+bound_buffer=20;
 subplot_dim= [0.1 0.1 0.55 0.83 ; 0.7 0.1 0.28 0.83];%l b w h
 
 
@@ -199,7 +199,8 @@ xlabel('x (um)');
 ylabel('y (um)');
 title('Cell map');
 
-
+xlim([min(neuron_coord(:,1))-bound_buffer, max(neuron_coord(:,1))+bound_buffer] )
+ylim([min(neuron_coord(:,2))-bound_buffer, max(neuron_coord(:,2))+bound_buffer] )
 %%
 
 

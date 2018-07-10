@@ -94,6 +94,9 @@ for i_cell = 1:number_of_cells
     
     neurons(i_cell).truth.optical_gain=gain_truth(i_cell);
     neurons(i_cell).truth.PR=gamma_truth(i_cell);
+    if neurons(i_cell).truth.PR>0
+        neurons(i_cell).truth.PR=1;
+    end
     neurons(i_cell).truth.delay_mean=(rand(1)-0.5)*40+40;
     neurons(i_cell).truth.delay_var=(rand(1)-0.5)*20+15;
     neurons(i_cell).truth.shape=[];

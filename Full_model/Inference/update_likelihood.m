@@ -2,8 +2,8 @@ function [loglklh] = update_likelihood(trials,variational_samples, ...
     background_rate,lklh_func,spike_curves,neurons,prior_info,inference_params)
 %%
 figure_flag =false;
-tic;
-tstart=toc;
+% tic;
+% tstart=toc;
 n_shape=inference_params.MCsamples_for_gradient;
 GP_params=prior_info.prior_parameters.GP_params;
 n_cell=length(variational_samples);

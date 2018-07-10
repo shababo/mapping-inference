@@ -64,7 +64,8 @@ while (change_history(iteration) > epsilon && iteration<maxit)
     
     loglklh_rec(iteration)=mean(mean(loglklh));
     elbo_rec(iteration)=mean(logprior+loglklh-logvariational);
-    tdiff=toc-tstart;
+    tend=toc;
+    tdiff=tend-tstart;
     fprintf('Iteration %d; change %d; ELBO %d; time %d; \n',iteration,change_history(iteration),elbo_rec(iteration),tdiff)
 end
 fprintf('VI fitted after %d iteration;\n',iteration)
