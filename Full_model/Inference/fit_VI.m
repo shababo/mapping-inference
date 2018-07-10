@@ -17,6 +17,13 @@ boundary_params = prior_info.prior_parameters.boundary_params;
 GP_params=prior_info.prior_parameters.GP_params;
 spike_curves=prior_info.induced_intensity;
 parameter_current=variational_params;
+
+if isfield(inference_params, 'event_range')
+   for i_trial = 1:length(trials)
+      trials(i_trial).event_times=trials(i_trial).event_times( trials(i_trial).event_times < inference_params.event_range(2) &...
+          trials(i_trial).event_times> inference_params.event_range(1));
+   end
+end
 iteration = 1;loglklh_rec=[];
 %%
 tic;

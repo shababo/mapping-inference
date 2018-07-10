@@ -81,7 +81,12 @@ end
 % t2=toc;
 % t2-tstart
 %
-Tmax=spike_curves.time_max;
+Tmax=spike_curves.time_max;Tmin=0;
+if isfield(inference_params, 'event_range')
+    Tmax = inference_params.event_range(2);
+    Tmin = inference_params.event_range(1);
+end
+
 minimum_stim_threshold=spike_curves.minimum_stim_threshold;
 % Calculate a grid for standard normal r.v. for quick CDF calculation:
 grid.bound=4;grid.gap=0.1;
@@ -115,7 +120,7 @@ for  i_trial = 1:n_trial
     else
         clear('prob_this_trial');
         prob_this_trial(1,:)=background_rate*ones(1,length(event_times)+1);
-        prob_this_trial(1,end)=background_rate*Tmax;
+        prob_this_trial(1,end)=background_rate*(Tmax-Tmin);
         
         for i_cell = 1:n_cell % can reduce to cell with sufficiently large stimuliaton
             
@@ -134,10 +139,11 @@ for  i_trial = 1:n_trial
             expectation=delay_mu_temp+mean(spike_times_cond_shape); % mean expectation
             standard_dev=sqrt(delay_sigma_temp^2+...
                 mean(spike_curves.sd(stim_index).^2)+ var(spike_times_cond_shape));
-            cdf_index = max(1,min(length(cdf_grid),round( ((Tmax-expectation)/standard_dev +grid.bound)/grid.gap)));
+            cdf_index_max = max(1,min(length(cdf_grid),round( ((Tmax-expectation)/standard_dev +grid.bound)/grid.gap)));
+            cdf_index_min = max(1,min(length(cdf_grid),round( ((Tmin-expectation)/standard_dev +grid.bound)/grid.gap)));
             pdf_index = max(1,min(length(pdf_grid),round( ((event_times-expectation)/standard_dev +grid.bound)/grid.gap)));
             prob_this_trial(i_cell,:)=...
-                PR_sample(i_cell)*[pdf_grid(pdf_index) cdf_grid(cdf_index)];
+                PR_sample(i_cell)*[pdf_grid(pdf_index) cdf_grid(cdf_index_max)-cdf_grid(cdf_index_min)];
         end
     end
     loglklh_vec(i_trial)=  lklh_func(trials(i_trial),prob_this_trial);

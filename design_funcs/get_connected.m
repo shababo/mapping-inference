@@ -45,12 +45,8 @@ connected_profile.inference_params.step_size=1;
 connected_profile.inference_params.step_size_max=2;
 connected_profile.inference_params.MCsamples_for_posterior=50;
 connected_profile.inference_params.recent_batches=2;
+connected_profile.inference_params.event_range=[50 300];
 connected_profile.inference_params.bounds=struct;
-connected_profile.inference_params.bounds.PR=[0.05 1];
-connected_profile.inference_params.bounds.gain=[0.001 0.1];
-connected_profile.inference_params.bounds.spike_indicator=false;
-connected_profile.inference_params.bounds.delay_mu=[0 60];
-connected_profile.inference_params.bounds.delay_sigma=[0.1 10];
 
 
 

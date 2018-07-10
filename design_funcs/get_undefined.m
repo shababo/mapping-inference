@@ -42,8 +42,8 @@ undefined_profile.inference_params.step_size=1;
 undefined_profile.inference_params.step_size_max=1;
 undefined_profile.inference_params.MCsamples_for_posterior=50;
 undefined_profile.inference_params.recent_batches=2;
+undefined_profile.inference_params.event_range=[50 300];
 undefined_profile.inference_params.bounds=struct;
-
 
 undefined_profile.regroup_function=struct;
 undefined_profile.regroup_function.connected=@undefined_to_connected;
