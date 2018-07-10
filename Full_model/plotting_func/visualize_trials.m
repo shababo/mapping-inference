@@ -42,6 +42,10 @@ for i_cell = 1:length(neurons)
     mean_pr(i_cell)=neurons(i_cell).posterior_stat(end).PR.mean;
 end
 alpha_levels = (max(neuron_coord(:,3))-neuron_coord(:,3))/range(neuron_coord(:,3)) ;
+if isnan(alpha_levels)
+   alpha_levels(:)=1;
+end
+   
 alpha_levels(alpha_levels<alpha_threshold)=alpha_threshold;
 %% Use the values in neighbourhood for the current update:
 all_ID=[neurons(:).cell_ID];
@@ -118,6 +122,9 @@ for i_group =1:length(group_names)
             trials_by_group.(group_names{i_group})=struct;
             trials_by_group.(group_names{i_group}).locations = loc_unique;
             alpha_tmp=(max(neuron_coord(:,3))-loc_unique(:,3))/range(neuron_coord(:,3)) ;
+            if isnan(alpha_tmp)
+                alpha_tmp(:)=1;
+            end
             alpha_tmp(alpha_tmp<alpha_threshold)=alpha_threshold;
             alpha_tmp(alpha_tmp>1)=1;
             trials_by_group.(group_names{i_group}).alphas= alpha_tmp;

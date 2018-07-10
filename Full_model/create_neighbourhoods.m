@@ -67,7 +67,12 @@ for i_neighbourhood = 1:number_of_neighbourhoods
         
    location_vec = reshape([neighbourhoods(i_neighbourhood).neurons.location], [length(neighbourhoods(i_neighbourhood).neurons) 3]);
 %    y_locs = location_vec(2:3:(end-1));
-   neighbourhoods(i_neighbourhood).center = mean( location_vec);
+if length(location_vec   )==3
+neighbourhoods(i_neighbourhood).center = location_vec;
+
+else
+neighbourhoods(i_neighbourhood).center = mean( location_vec);
+end
    neighbourhoods(i_neighbourhood).computing_time=struct;
    neighbourhoods(i_neighbourhood).batch_ID=1;
    if isfield(experiment_setup,'stack')
