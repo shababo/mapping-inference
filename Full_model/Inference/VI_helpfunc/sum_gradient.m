@@ -11,7 +11,7 @@ fldnames = fieldnames(gradients(1,1));
 n_cell = size(gradients,2);
 S=size(gradients,1);
 new_gradient=struct;
-grad_max=0;
+grad_max=zeros(n_cell,1);
 for i_cell = 1:n_cell
     for i_field = 1:length(fldnames)
         this_field_sigma_f=zeros(S,1);
@@ -68,26 +68,26 @@ for i_cell = 1:n_cell
             
         end
         
-        grad_max=max([grad_max abs( new_gradient(i_cell).(fldnames{i_field}).mean) abs( new_gradient(i_cell).(fldnames{i_field}).sigma)] );
+        grad_max(i_cell)=max([grad_max(i_cell) abs( new_gradient(i_cell).(fldnames{i_field}).mean) abs( new_gradient(i_cell).(fldnames{i_field}).sigma)] );
         if strcmp(gradients(s,i_cell).(fldnames{i_field}).type, 'spiked-logit-normal')
-            grad_max=max([grad_max abs( new_gradient(i_cell).(fldnames{i_field}).prob_logit) ]);
+            grad_max(i_cell)=max([grad_max(i_cell) abs( new_gradient(i_cell).(fldnames{i_field}).prob_logit) ]);
         end
         
     end
-end
-
-if grad_max < eta_max
-    grad_scale=1;
-else
-    grad_scale =  grad_max/eta_max;
-    
-    for i_cell = 1:n_cell
+    if grad_max(i_cell) < eta_max
+        grad_scale=1;
+    else
+        grad_scale =  grad_max(i_cell) /eta_max;
+        
         for i_field = 1:length(fldnames)
             new_gradient(i_cell).(fldnames{i_field}).mean= ...
                 new_gradient(i_cell).(fldnames{i_field}).mean/grad_scale;
             new_gradient(i_cell).(fldnames{i_field}).sigma= ...
                 new_gradient(i_cell).(fldnames{i_field}).sigma/grad_scale;
         end
+        
     end
+
 end
+
 

@@ -9,7 +9,7 @@ function [experiment_query_this_group] = design_undefined(neighbourhood,group_pr
 %        experiment_query_this_group.trials(i_trial).locations=this_trial_locations;
 
 
-
+%%
 disp('designs undef')
 group_ID=group_profile.group_ID;
 boundary_params=experiment_setup.prior_info.prior_parameters.boundary_params;
@@ -232,7 +232,7 @@ for i_trial = 1:num_trials
             % 
             
             %prob_initial = subtract_stim_effects(group_ID,temp_index,prob_initial,loc_selected, neurons);
-            prob_initial(find(adj_mat(this_cell,:)))=0;
+            prob_initial(find(adj_mat(temp_index,:)))=0;
             prob_initial = max(0,prob_initial);
 
         end

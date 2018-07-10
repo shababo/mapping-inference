@@ -50,7 +50,7 @@ function [experiment_query_this_group] = draw_point_processes_intensity(experime
 % 
 % 
 % %% 
-    
+    %%
 time_max=length(experiment_setup.prior_info.current_template);
 number_of_cells=length(neighbourhood.neurons);
 cell_ID_list = [neighbourhood.neurons.cell_ID];
