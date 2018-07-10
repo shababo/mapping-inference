@@ -214,9 +214,9 @@ else
     experiment_setup.neighbourhood_params.x_bounds=[ ]; % leave empty for no bounds
     experiment_setup.neighbourhood_params.y_bounds=[ ]; % leave empty for no bounds
     experiment_setup.neighbourhood_params.number=10;
-    experiment_setup.neighbourhood_params.span_x=60;
-    experiment_setup.neighbourhood_params.span_y=60;
-    experiment_setup.neighbourhood_params.span_z=60;
+    experiment_setup.neighbourhood_params.span_x=100;
+    experiment_setup.neighbourhood_params.span_y=100;
+    experiment_setup.neighbourhood_params.span_z=100;
     experiment_setup.neighbourhood_params.buffer_z=40;  %NOTE: this count from the plane
     experiment_setup.neighbourhood_params.buffer_x=10;  % NOTE: These two from the boundariesedi
     experiment_setup.neighbourhood_params.buffer_y=10;
