@@ -37,6 +37,14 @@ else
 end
 
 
+% Update the center (locally)
+for i_cell = 1:number_cells_all
+    z_coord(i_cell) = neighbourhood.neurons(i_cell).location(3)+...
+        neighbourhood.neurons(i_cell).posterior_stat(end).shift_z.mean;
+           
+end
+neighbourhood.center(3)=mean(z_coord);
+
 switch group_profile.design_func_params.trials_params.stim_design
     case 'Optimal'
         
@@ -112,6 +120,7 @@ switch group_profile.design_func_params.trials_params.stim_design
             loc_mat(i_cell,:)= neighbourhood.neurons(this_cell).location +...
              [neighbourhood.neurons(this_cell).posterior_stat(end).shift_x.mean ...
                  neighbourhood.neurons(this_cell).posterior_stat(end).shift_y.mean 0];
+             loc_mat(i_cell,3)=neighbourhood.center(3);
              loc_list{i_cell} = zeros(n_unique_loc,3);
              for i_unique_loc = 1:n_unique_loc
                  this_radius = unifrnd(0,radius);
@@ -134,6 +143,7 @@ switch group_profile.design_func_params.trials_params.stim_design
     otherwise
         % throw a warning?
 end
+
 
 experiment_query_this_group=struct;
 experiment_query_this_group.group_ID=group_ID;
