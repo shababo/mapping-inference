@@ -8,12 +8,15 @@ undefined_profile.design_function=@design_undefined;
 
 undefined_profile.design_func_params=struct;
 undefined_profile.design_func_params.candidate_grid_params=struct;
-undefined_profile.design_func_params.candidate_grid_params.radius=[2.5 6.5];
-undefined_profile.design_func_params.candidate_grid_params.number=[8 12];
-undefined_profile.design_func_params.candidate_grid_params.grid_type='ring'; % 2d ring or 3d sphere
+undefined_profile.design_func_params.candidate_grid_params.max_radius=[6 5 10]; % for each dim
+
+
+% undefined_profile.design_func_params.candidate_grid_params.number=[];
+% undefined_profile.design_func_params.candidate_grid_params.grid_type='ring'; % 2d ring or 3d sphere
 
 
 undefined_profile.design_func_params.trials_params=struct;
+undefined_profile.design_func_params.trials_params.num_stim_sites=4; % for each dim
 undefined_profile.design_func_params.trials_params.replicates=1;
 undefined_profile.design_func_params.trials_params.spots_per_trial=1;
 undefined_profile.design_func_params.trials_per_cell=10;

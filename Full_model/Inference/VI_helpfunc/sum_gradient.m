@@ -15,9 +15,7 @@ grad_max=zeros(n_cell,1);
 for i_cell = 1:n_cell
     for i_field = 1:length(fldnames)
         this_field_sigma_f=zeros(S,1);
-        %         this_field_sigma_h=zeros(S,1);
         this_field_mean_f=zeros(S,1);
-        %         this_field_mean_h=zeros(S,1);
         
         for s = 1:S
             this_field_mean_f(s) = gradients(s,i_cell).(fldnames{i_field}).mean_f;
@@ -27,7 +25,15 @@ for i_cell = 1:n_cell
             %             this_field_sigma_h(s) = gradients(s,i_cell).(fldnames{i_field}).sigma_h;
             
         end
-        
+        if isfield(gradients(s,i_cell).(fldnames{i_field}), 'mean_h')
+            this_field_sigma_h=zeros(S,1);
+            this_field_mean_h=zeros(S,1);
+            for s = 1:S
+                this_field_mean_h(s) = gradients(s,i_cell).(fldnames{i_field}).mean_h;
+                this_field_sigma_h(s) = gradients(s,i_cell).(fldnames{i_field}).sigma_h;
+                
+            end
+        end
         
         if strcmp(gradients(s,i_cell).(fldnames{i_field}).type, 'spiked-logit-normal')
             this_field_prob_logit_f=zeros(S,1);
@@ -40,14 +46,19 @@ for i_cell = 1:n_cell
         
         new_gradient(i_cell).(fldnames{i_field})=struct;
         new_gradient(i_cell).(fldnames{i_field}).type=gradients(s,i_cell).(fldnames{i_field}).type;
-        
         if strcmp(gradients(1,i_cell).(fldnames{i_field}).type,'individual')
-            %          a= quick_cov( this_field_mean_f, this_field_mean_h)+quick_cov( this_field_sigma_f, this_field_sigma_h);
-            %          a=a/(quick_cov( this_field_mean_h, this_field_mean_h)+quick_cov( this_field_sigma_h, this_field_sigma_h));
+            if isfield(gradients(s,i_cell).(fldnames{i_field}), 'mean_h')
+                a= quick_cov( this_field_mean_f, this_field_mean_h)+quick_cov( this_field_sigma_f, this_field_sigma_h);
+                a=a/(quick_cov( this_field_mean_h, this_field_mean_h)+quick_cov( this_field_sigma_h, this_field_sigma_h));
+                mh=mean(this_field_mean_h);sh=mean(this_field_sigma_h);
+            else
+               a=0;
+               mh=0;sh=0;
+            end
             new_gradient(i_cell).(fldnames{i_field}).mean= ...
-                step_size*(mean(this_field_mean_f));%-a*mean(this_field_mean_h));
+                step_size*(mean(this_field_mean_f))-a*mh;
             new_gradient(i_cell).(fldnames{i_field}).sigma= ...
-                step_size*(mean(this_field_sigma_f)); %-a*mean(this_field_sigma_h));
+                step_size*(mean(this_field_sigma_f))-a*sh;
             if strcmp(gradients(s,i_cell).(fldnames{i_field}).type, 'spiked-logit-normal')
                 new_gradient(i_cell).(fldnames{i_field}).prob_logit= ...
                     step_size*(mean(this_field_prob_logit_f)); %-a*mean(this_field_sigma_h));

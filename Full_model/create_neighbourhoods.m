@@ -121,31 +121,31 @@ cell_locations(:,2) < neighbourhoods(i_neighbourhood).boundary(2,2) +experiment_
 end
 
 % Calculate the candidate grid for each cell in each neigbourhood
-group_names = experiment_setup.group_names;
-for i_neighbourhood = 1:number_of_neighbourhoods
-    for i_cell = 1:length(neighbourhoods(i_neighbourhood).neurons)
-%         neighbourhoods(i_neighbourhood).neurons(i_cell).group_ID=experiment_setup.default_group; % all are initialized as undefined
-        neighbourhoods(i_neighbourhood).neurons(i_cell).primary_indicator=true;
-        neighbourhoods(i_neighbourhood).neurons(i_cell).stim_locations=struct;
-        for i_group = 1:length(group_names) % if this is costly we could move to when a neuron is initialized into a group
-            if isfield(experiment_setup.groups.(group_names{i_group}),'design_func_params')
-                design_params=experiment_setup.groups.(group_names{i_group}).design_func_params;
-                cell_params=neighbourhoods(i_neighbourhood).neurons;
-                neighbourhoods(i_neighbourhood).neurons(i_cell).stim_locations.(group_names{i_group})=...
-                    get_stim_locations(i_cell,group_names{i_group},cell_params,design_params,...
-                                        neighbourhoods(i_neighbourhood).center(3),experiment_setup.exp.foe_bounds);
-%                 if experiment_setup.is_exp
-%                     these_locs = neighbourhoods(i_neighbourhood).neurons(i_cell).stim_locations.(group_names{i_group}).grid;
-%                     for i_dim = 1:size(experiment_setup.exp.foe_bounds,1)
-%                         these_locs(these_locs(:,i_dim) < experiment_setup.exp.foe_bounds(i_dim,1),i_dim) = experiment_setup.exp.foe_bounds(i_dim,1);
-%                         these_locs(these_locs(:,i_dim) > experiment_setup.exp.foe_bounds(i_dim,2),i_dim) = experiment_setup.exp.foe_bounds(i_dim,2);
-%                     end
-%                     neighbourhoods(i_neighbourhood).neurons(i_cell).stim_locations.(group_names{i_group}).grid = these_locs;    
-%                 end
-            end
-        end
-    end
-end
+% group_names = experiment_setup.group_names;
+% for i_neighbourhood = 1:number_of_neighbourhoods
+%     for i_cell = 1:length(neighbourhoods(i_neighbourhood).neurons)
+% %         neighbourhoods(i_neighbourhood).neurons(i_cell).group_ID=experiment_setup.default_group; % all are initialized as undefined
+%         neighbourhoods(i_neighbourhood).neurons(i_cell).primary_indicator=true;
+%         neighbourhoods(i_neighbourhood).neurons(i_cell).stim_locations=struct;
+%         for i_group = 1:length(group_names) % if this is costly we could move to when a neuron is initialized into a group
+%             if isfield(experiment_setup.groups.(group_names{i_group}),'design_func_params')
+%                 design_params=experiment_setup.groups.(group_names{i_group}).design_func_params;
+%                 cell_params=neighbourhoods(i_neighbourhood).neurons;
+%                 neighbourhoods(i_neighbourhood).neurons(i_cell).stim_locations.(group_names{i_group})=...
+%                     get_stim_locations(i_cell,group_names{i_group},cell_params,design_params,...
+%                                         neighbourhoods(i_neighbourhood).center(3),experiment_setup.exp.foe_bounds);
+% %                 if experiment_setup.is_exp
+% %                     these_locs = neighbourhoods(i_neighbourhood).neurons(i_cell).stim_locations.(group_names{i_group}).grid;
+% %                     for i_dim = 1:size(experiment_setup.exp.foe_bounds,1)
+% %                         these_locs(these_locs(:,i_dim) < experiment_setup.exp.foe_bounds(i_dim,1),i_dim) = experiment_setup.exp.foe_bounds(i_dim,1);
+% %                         these_locs(these_locs(:,i_dim) > experiment_setup.exp.foe_bounds(i_dim,2),i_dim) = experiment_setup.exp.foe_bounds(i_dim,2);
+% %                     end
+% %                     neighbourhoods(i_neighbourhood).neurons(i_cell).stim_locations.(group_names{i_group}).grid = these_locs;    
+% %                 end
+%             end
+%         end
+%     end
+% end
 
 
 

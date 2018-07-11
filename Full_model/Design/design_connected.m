@@ -1,4 +1,4 @@
-function [experiment_query_this_group] = design_connected(this_neighbourhood,group_profile,experiment_setup)
+function [experiment_query_this_group] = design_connected(neighbourhood,group_profile,experiment_setup)
 % Output:
 % The experiment_query_this_group struct with fields:
 %    experiment_query_this_group.trials(i_trial).location_IDs=this_trial_location_IDs;
@@ -9,18 +9,20 @@ function [experiment_query_this_group] = design_connected(this_neighbourhood,gro
 
 disp('designs connected')
 group_ID=group_profile.group_ID;
-
+n_unique_loc=group_profile.design_func_params.trials_params.num_stim_sites;
 power_levels=group_profile.design_func_params.trials_params.power_levels;
 %i_cell_group_to_nhood=find((arrayfun(@(x) strcmp(this_neighbourhood.neurons(:).group_ID,group_ID),this_neighbourhood.neurons(:))));
-i_cell_group_to_nhood= find(get_group_inds(this_neighbourhood,group_ID));
+radii=group_profile.design_func_params.candidate_grid_params.max_radius;
+
+i_cell_group_to_nhood= find(get_group_inds(neighbourhood,group_ID));
 number_cells_this_group=length(i_cell_group_to_nhood);
-number_cells_nhood= length(this_neighbourhood.neurons);
+number_cells_nhood= length(neighbourhood.neurons);
 loc_counts=zeros(number_cells_this_group,1);
 
 % obtain posterior mean of gamma
 % Write a function that grabs the last element in a specific field
-batch_ID=this_neighbourhood.batch_ID;
-neurons_this_group=this_neighbourhood.neurons(i_cell_group_to_nhood);
+batch_ID=neighbourhood.batch_ID;
+neurons_this_group=neighbourhood.neurons(i_cell_group_to_nhood);
 properties={'PR'};summary_stat={'mean', 'lower_quantile', 'upper_quantile'};
 temp_output=grab_values_from_neurons(batch_ID,neurons_this_group,properties,summary_stat);
 mean_PR=temp_output.PR.mean;
@@ -131,12 +133,7 @@ switch group_profile.design_func_params.trials_params.stim_design
         
     case 'Random'
         
-        loc_selected=zeros(number_cells_this_group,1);
-        for i_cell_group = 1:number_cells_this_group
-            i_cell_nhood=i_cell_group_to_nhood(i_cell_group);
-            grid_points_this_cell = size(this_neighbourhood.neurons(i_cell_nhood).stim_locations.(group_ID).grid,1);
-            loc_selected(i_cell_group)=randsample(1:grid_points_this_cell,1,true);
-        end
+        loc_selected=[]; 
         
         power_selected=zeros(number_cells_this_group,1);
         
@@ -146,7 +143,7 @@ end
 
 experiment_query_this_group=struct;
 experiment_query_this_group.group_ID=group_ID;
-experiment_query_this_group.neighbourhood_ID=this_neighbourhood.neighbourhood_ID;
+experiment_query_this_group.neighbourhood_ID=neighbourhood.neighbourhood_ID;
 experiment_query_this_group.instruction='Compute hologram';
 experiment_query_this_group.trials=struct([]);
 % pockels_ratios = zeros(num_trials,n_spots_per_trial);
@@ -162,25 +159,44 @@ end
 trial_counts=cumsum(num_trials_per_cell);
 trial_counts=[0; trial_counts];
 
-this_trial_location_IDs=zeros(1,group_profile.design_func_params.trials_params.spots_per_trial);
+% this_trial_location_IDs=zeros(1,group_profile.design_func_params.trials_params.spots_per_trial);
 this_trial_cell_IDs=zeros(1,group_profile.design_func_params.trials_params.spots_per_trial);
 this_trial_power_levels=zeros(1,group_profile.design_func_params.trials_params.spots_per_trial);
 this_trial_locations=zeros(group_profile.design_func_params.trials_params.spots_per_trial,3);
 
 
+loc_list= cell([number_cells_this_group 1]);
+loc_mat=zeros(number_cells_this_group,3);
+
 for i_cell_group = 1:number_cells_this_group
     i_cell_nhood=i_cell_group_to_nhood(i_cell_group);
-    for i_trial = (trial_counts(i_cell_group)+1):trial_counts(i_cell_group+1)
-        if length(loc_selected(i_cell_group,:)) > 1
-            this_trial_location_IDs=randsample(loc_selected(i_cell_group,:),1);
-        else
-            this_trial_location_IDs=loc_selected(i_cell_group,:);
+    
+    if strcmp(group_profile.design_func_params.trials_params.stim_design, 'Random')
+        
+        loc_mat(i_cell_group,:)= neighbourhood.neurons(i_cell_nhood).location +...
+            [neighbourhood.neurons(i_cell_nhood).posterior_stat(end).shift_x.mean ...
+            neighbourhood.neurons(i_cell_nhood).posterior_stat(end).shift_y.mean ...
+            neighbourhood.neurons(i_cell_nhood).posterior_stat(end).shift_z.mean];
+        
+        loc_list{i_cell_group} = zeros(n_unique_loc,3);
+        for i_unique_loc = 1:n_unique_loc
+            loc_list{i_cell_group}(i_unique_loc,:)=  loc_mat(i_cell_group,:)+...
+                [unifrnd(-radii(1), radii(1)) unifrnd(-radii(2), radii(2)) ...
+                 unifrnd(-radii(3), radii(3))];
         end
+    end
+    for i_trial = (trial_counts(i_cell_group)+1):trial_counts(i_cell_group+1)
+%         
+%         if length(loc_selected(i_cell_group,:)) > 1
+%             this_trial_location_IDs=randsample(loc_selected(i_cell_group,:),1);
+%         else
+%             this_trial_location_IDs=loc_selected(i_cell_group,:);
+%         end
         i_cell_nhood=i_cell_group_to_nhood(i_cell_group);
-        this_trial_cell_IDs= this_neighbourhood.neurons(i_cell_nhood).cell_ID;
+        this_trial_cell_IDs= neighbourhood.neurons(i_cell_nhood).cell_ID;
         this_trial_power_levels=power_selected(i_cell_group);
-        this_trial_locations= this_neighbourhood.neurons(i_cell_nhood).location+...
-        this_neighbourhood.neurons(i_cell_nhood).stim_locations.(group_ID).grid(this_trial_location_IDs,:);
+        temp_loc = randsample(1:n_unique_loc,1);
+        this_trial_locations=  loc_list{i_cell_group}(temp_loc,:);
         
         
         switch  group_profile.design_func_params.trials_params.stim_design
@@ -215,7 +231,7 @@ for i_cell_group = 1:number_cells_this_group
         end
         
         
-        experiment_query_this_group.trials(i_trial).location_IDs=this_trial_location_IDs;
+%         experiment_query_this_group.trials(i_trial).location_IDs=this_trial_location_IDs;
         experiment_query_this_group.trials(i_trial).cell_IDs=this_trial_cell_IDs;
         experiment_query_this_group.trials(i_trial).power_levels=this_trial_power_levels;
         experiment_query_this_group.trials(i_trial).locations=this_trial_locations;
