@@ -8,7 +8,7 @@ connected_profile.design_function=@design_connected;
 
 connected_profile.design_func_params=struct;
 connected_profile.design_func_params.candidate_grid_params=struct;
-connected_profile.design_func_params.candidate_grid_params.max_radius=[6 5 10]; % for each dim
+connected_profile.design_func_params.candidate_grid_params.max_radius=8; 
 % connected_profile.design_func_params.candidate_grid_params.number=[];
 % connected_profile.design_func_params.candidate_grid_params.grid_type='ring'; % 2d ring or 3d sphere
 

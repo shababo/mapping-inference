@@ -13,7 +13,7 @@ function [experiment_query_this_group] = design_undefined(neighbourhood,group_pr
 disp('designs undef')
 group_ID=group_profile.group_ID;
 boundary_params=experiment_setup.prior_info.prior_parameters.boundary_params;
-radii=group_profile.design_func_params.candidate_grid_params.max_radius;
+radius=group_profile.design_func_params.candidate_grid_params.max_radius;
 n_unique_loc=group_profile.design_func_params.trials_params.num_stim_sites;
 power_levels=group_profile.design_func_params.trials_params.power_levels;
 %i_cells_this_group=find((arrayfun(@(x) strcmp(this_neighbourhood.neurons(:).group_ID,group_ID),this_neighbourhood.neurons(:))));
@@ -114,8 +114,10 @@ switch group_profile.design_func_params.trials_params.stim_design
                  neighbourhood.neurons(this_cell).posterior_stat(end).shift_y.mean 0];
              loc_list{i_cell} = zeros(n_unique_loc,3);
              for i_unique_loc = 1:n_unique_loc
+                 this_radius = unifrnd(0,radius);
+                 this_angle = unifrnd(0,1);
                 loc_list{i_cell}(i_unique_loc,:)=  loc_mat(i_cell,:)+...
-                    [unifrnd(-radii(1), radii(1)) unifrnd(-radii(2), radii(2)) 0];
+                    this_radius*[sin(2*pi*this_angle) cos(2*pi*this_angle) 0];
              end
         end
         % get the adj matrix on loc_mat:

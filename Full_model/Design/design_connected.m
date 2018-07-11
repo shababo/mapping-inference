@@ -12,7 +12,7 @@ group_ID=group_profile.group_ID;
 n_unique_loc=group_profile.design_func_params.trials_params.num_stim_sites;
 power_levels=group_profile.design_func_params.trials_params.power_levels;
 %i_cell_group_to_nhood=find((arrayfun(@(x) strcmp(this_neighbourhood.neurons(:).group_ID,group_ID),this_neighbourhood.neurons(:))));
-radii=group_profile.design_func_params.candidate_grid_params.max_radius;
+radius=group_profile.design_func_params.candidate_grid_params.max_radius;
 
 i_cell_group_to_nhood= find(get_group_inds(neighbourhood,group_ID));
 number_cells_this_group=length(i_cell_group_to_nhood);
@@ -180,9 +180,10 @@ for i_cell_group = 1:number_cells_this_group
         
         loc_list{i_cell_group} = zeros(n_unique_loc,3);
         for i_unique_loc = 1:n_unique_loc
+            this_radius = unifrnd(0,radius);
+            this_angle = unifrnd(0,1);
             loc_list{i_cell_group}(i_unique_loc,:)=  loc_mat(i_cell_group,:)+...
-                [unifrnd(-radii(1), radii(1)) unifrnd(-radii(2), radii(2)) ...
-                 unifrnd(-radii(3), radii(3))];
+               this_radius*[sin(2*pi*this_angle) cos(2*pi*this_angle) 0];
         end
     end
     for i_trial = (trial_counts(i_cell_group)+1):trial_counts(i_cell_group+1)
