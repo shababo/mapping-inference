@@ -29,6 +29,6 @@ for i_cell = 1:n_cell
     if ~isempty(relevant_trials)
         PR_initial=responsive_counts/length(relevant_trials);
         PR_initial = max(0.1,PR_initial);
-    variational_params(i_cell).PR.mean=variational_params(i_cell).PR.mean+ log(PR_initial/(1-PR_initial));
+    variational_params(i_cell).PR.mean=log(PR_initial/(1-PR_initial));
     end
 end
