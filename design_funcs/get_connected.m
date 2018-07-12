@@ -38,14 +38,14 @@ connected_profile.inference_params=struct;
 % undefined_profile.inference_params.likelihood=@calculate_loglikelihood_bernoulli;
 connected_profile.inference_params.likelihood=@lif_glm_firstspike_loglikelihood_for_VI;
 % undefined_profile.inference_params.likelihood=@lif_glm_firstevent_loglikelihood_for_VI;
-connected_profile.inference_params.maxit=1000;
-connected_profile.inference_params.MCsamples_for_gradient=50;
+connected_profile.inference_params.maxit=400;
+connected_profile.inference_params.MCsamples_for_gradient=40;
 connected_profile.inference_params.convergence_threshold=1e-3;
 connected_profile.inference_params.step_size=1;
 connected_profile.inference_params.step_size_max=2;
 connected_profile.inference_params.MCsamples_for_posterior=50;
 connected_profile.inference_params.recent_batches=2;
-connected_profile.inference_params.event_range=[50 300];
+connected_profile.inference_params.event_range=[1 300];
 connected_profile.inference_params.bounds=struct;
 
 
