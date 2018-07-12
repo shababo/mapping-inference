@@ -109,12 +109,12 @@ for i_group =1:length(group_names)
         these_trials=experiment_query.(group_names{i_group});
         if ~isempty(these_trials)
             loc_tmp=zeros(0,3);
-            event_counts=[];
+            event_counts=zeros(length( these_trials.trials),1);
             for i_trial = 1:length( these_trials.trials)
                 
                 loc_tmp =[loc_tmp;these_trials.trials(i_trial).locations];
                 if isfield(these_trials.trials(i_trial),'event_times')
-                    event_counts =[event_counts; length( these_trials.trials(i_trial).event_times)];
+                    event_counts(i_trial) =length( these_trials.trials(i_trial).event_times);
                 end
             end
             [loc_unique,ia,ic] = unique(loc_tmp,'rows');
@@ -128,11 +128,15 @@ for i_group =1:length(group_names)
             alpha_tmp(alpha_tmp<alpha_threshold)=alpha_threshold;
             alpha_tmp(alpha_tmp>1)=1;
             trials_by_group.(group_names{i_group}).alphas= alpha_tmp;
+            if size(loc_unique,1)==0
+                event_flag=0;
+            else
             event_flag= zeros(size(loc_unique,1),1);
             if isfield(these_trials.trials(i_trial),'event_times')
                 for i_unique = 1:size(loc_unique,1)
                     event_flag(i_unique)=sum(event_counts(ic==i_unique));
                 end
+            end
             end
             trials_by_group.(group_names{i_group}).event_flag=event_flag;
         end
@@ -187,6 +191,8 @@ for i_group =1:length(group_names)
             these_locations=trials_by_group.(group_names{i_group}).locations;
             these_alphas=trials_by_group.(group_names{i_group}).alphas;
             this_color=color_set{i_group};
+            if size(these_locations,1)==0
+            else
             for i_loc = 1:size(these_locations,1)
                 if trials_by_group.(group_names{i_group}).event_flag(i_loc)>0
                     marker='s';lwd=1;
@@ -198,6 +204,7 @@ for i_group =1:length(group_names)
                     'MarkerFaceAlpha',these_alphas(i_loc),'MarkerEdgeAlpha',these_alphas(i_loc),...
                     'LineWidth',lwd)
                 hold on;
+            end
             end
         end
     end
