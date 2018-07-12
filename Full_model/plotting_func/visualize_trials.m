@@ -113,7 +113,7 @@ for i_group =1:length(group_names)
             i_count = 0;
             for i_trial = 1:length( these_trials.trials)
                 
-                for i_loc = 1:size(these_trials.trials(i_trial).locations,2)
+                for i_loc = 1:size(these_trials.trials(i_trial).locations,1)
                     if sum(isnan(these_trials.trials(i_trial).locations(i_loc,:)))==0
                         i_count = i_count+1;
                         loc_tmp =[loc_tmp; these_trials.trials(i_trial).locations(i_loc,:)];
