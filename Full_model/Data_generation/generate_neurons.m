@@ -48,6 +48,7 @@ for i= 1:simulation_params.siblings.number
 end
 
 cell_locations=[cell_locations;extra_locations];
+number_of_cells = size(cell_locations,1);
 
 funcs.invlink = @invlink_sig;%@(resp) log(1 + exp(resp));%@(x) exp(x);
 switch simulation_params.cell_params.type

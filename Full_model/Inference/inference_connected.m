@@ -4,19 +4,6 @@ function [neighbourhood]=inference_connected(...
 %  experiment_query_this_group=experiment_query.(this_group);
 %  this_neighbourhood= neighbourhood;
 %  experiment_query.(this_group),neighbourhood,group_profile, experiment_setup
-
-group_ID=group_profile.group_ID;
-i_cell_group_to_nhood= find(get_group_inds(neighbourhood,group_ID));
-number_cells_this_group=length(i_cell_group_to_nhood);
-num_cells_nhood= length(neighbourhood.neurons);
-prior_info=experiment_setup.prior_info;
-
-%indicators_remained = find(ismember([mpp_undefined(:).batch],iter-(0:num_trace_back) ));
-number_of_trials = length(experiment_query_this_group.trials);
-
-% Need a function that graph the mpp from the experiment_query
-% note: this_experiment_query contains the group information 
-
 %%
 
 group_ID=group_profile.group_ID;
