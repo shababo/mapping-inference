@@ -110,16 +110,22 @@ for i_group =1:length(group_names)
         if ~isempty(these_trials)
             loc_tmp=zeros(0,3);
             event_counts=zeros(length( these_trials.trials),1);
+            i_count = 0;
             for i_trial = 1:length( these_trials.trials)
                 
-                loc_tmp =[loc_tmp;these_trials.trials(i_trial).locations];
-                if isfield(these_trials.trials(i_trial),'event_times')
-                    event_counts(i_trial) =length( these_trials.trials(i_trial).event_times);
+                for i_loc = 1:size(these_trials.trials(i_trial).locations,2)
+                    if sum(isnan(these_trials.trials(i_trial).locations(i_loc,:)))==0
+                        i_count = i_count+1;
+                        loc_tmp =[loc_tmp; these_trials.trials(i_trial).locations(i_loc,:)];
+                        if isfield(these_trials.trials(i_trial),'event_times')
+                            event_counts(i_count) =length( these_trials.trials(i_trial).event_times);
+                        end        
+                    end
                 end
             end
             [loc_unique,ia,ic] = unique(loc_tmp,'rows');
-            
             trials_by_group.(group_names{i_group})=struct;
+            
             trials_by_group.(group_names{i_group}).locations = loc_unique;
             alpha_tmp=(max(neuron_coord(:,3))-loc_unique(:,3))/range(neuron_coord(:,3)) ;
             if isnan(alpha_tmp)
