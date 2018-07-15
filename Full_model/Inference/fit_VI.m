@@ -25,8 +25,20 @@ if isfield(inference_params, 'event_range')
    end
 end
 iteration = 1;loglklh_rec=[];
+
+% Calculate a grid for standard normal r.v. for quick CDF calculation:
+pre_density=struct;
+grid.bound=4;grid.gap=0.1;
+pre_density.grid=grid;
+pre_density.normal_grid = -grid.bound:grid.gap:grid.bound;
+for i = 1:length(pre_density.normal_grid)
+    pre_density.cdf_grid(i) = normcdf(pre_density.normal_grid(i),0,1);
+    pre_density.pdf_grid(i)=normpdf(pre_density.normal_grid(i),0,1);
+end
+
 %%
 tic;
+ts=zeros(10,1);
 while (change_history(iteration) > epsilon && iteration<maxit)
     %%
     tstart=toc;
@@ -37,29 +49,36 @@ while (change_history(iteration) > epsilon && iteration<maxit)
     %% Calculate the stim size using samples from GP and the shifts
     vsam=cell([S 1]);rsam=cell([S 1]);
     for s=1:S
+        t1=toc;
         [variational_samples,raw_samples] = draw_samples_from_var_dist(parameter_current);
         vsam{s}=variational_samples;rsam{s}=raw_samples;
         logprior(s)=get_logdistribution(variational_samples,raw_samples,prior_params);
         logvariational(s)=get_logdistribution(variational_samples,raw_samples,parameter_current);
-        [loglklh(s)] = update_likelihood(trials, variational_samples,parameter_current,...
-             background_rate,lklh_func,spike_curves,neurons,prior_info,inference_params);
-         lklhweight=logprior(s)+loglklh(s)-logvariational(s);
+        t2=toc;
         
+        [loglklh(s)] = update_likelihood(trials, variational_samples,parameter_current,...
+             background_rate,lklh_func,spike_curves,neurons,prior_info,inference_params,pre_density);
+         lklhweight=logprior(s)+loglklh(s)-logvariational(s);
+        t3=toc;
         %         tb=toc;
         this_gradient=get_variational_gradient(variational_samples,raw_samples, parameter_current);
         this_gradient=get_variate_control(lklhweight,this_gradient);
         %          te=toc;
         %     ts(4)=ts(4)+te-tb;
+        t4=toc;
         if exist('gradients')
             gradients(s,:) = this_gradient;
         else
             gradients(s,:)=this_gradient;
         end
-        
+        ts(1)=ts(1)+t2-t1;ts(2)=ts(2)+t3-t2;ts(3)=ts(3)+t4-t3;
     end
     %%
     new_gradient=sum_gradient(gradients,eta,eta_max,iteration);
     [parameter_current, change_history(iteration)]=incorporate_gradient(parameter_current, new_gradient);
+    
+    t5=toc;
+    ts(4)=t5-t4;
     loglklh_rec(iteration)=mean(mean(loglklh));
     elbo_rec(iteration)=mean(logprior+loglklh-logvariational);
     tend=toc;

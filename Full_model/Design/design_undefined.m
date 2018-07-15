@@ -39,8 +39,8 @@ end
 
 % Update the center (locally)
 for i_cell = 1:number_cells_all
-    z_coord(i_cell) = neighbourhood.neurons(i_cell).location(3)+...
-        neighbourhood.neurons(i_cell).posterior_stat(end).shift_z.mean;
+    z_coord(i_cell) = neighbourhood.neurons(i_cell).location(3);
+    %+neighbourhood.neurons(i_cell).posterior_stat(end).shift_z.mean;
            
 end
 neighbourhood.center(3)=mean(z_coord);
@@ -117,9 +117,9 @@ switch group_profile.design_func_params.trials_params.stim_design
         loc_list= cell([number_cells_this_group 1]);
         for i_cell = 1:number_cells_this_group
             this_cell=i_cells_this_group(i_cell);
-            loc_mat(i_cell,:)= neighbourhood.neurons(this_cell).location +...
-             [neighbourhood.neurons(this_cell).posterior_stat(end).shift_x.mean ...
-                 neighbourhood.neurons(this_cell).posterior_stat(end).shift_y.mean 0];
+            loc_mat(i_cell,:)= neighbourhood.neurons(this_cell).location; % +...
+             %[neighbourhood.neurons(this_cell).posterior_stat(end).shift_x.mean ...
+             %    neighbourhood.neurons(this_cell).posterior_stat(end).shift_y.mean 0];
              loc_mat(i_cell,3)=neighbourhood.center(3);
              loc_list{i_cell} = zeros(n_unique_loc,3);
              for i_unique_loc = 1:n_unique_loc

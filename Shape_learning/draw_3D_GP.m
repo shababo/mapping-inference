@@ -7,15 +7,19 @@ dims= size(locations,2);  % number of coordinates, 1 to 3
 % interpolation='linear';
 type='square';
 epsilon=1e-3;
-
 GP_samples=struct;
+
+
+% locations=simulation_params.mesh_grid;
+% n_shapes=length(connected_cell_IDs);
+% GP_params=prior_params.GP_params;
 
 %% Find unique locations to reduce computing ost 
 
 [locations_unique,~,ic] = unique(locations,'rows');
 
 %%
-[mean_3d, var_3d, GP_samples]=interpolate_3D(locations,GP_params,type);
+[mean_3d, var_3d, GP_samples]=interpolate_3D(locations_unique,GP_params,type);
 
 %%
 GP_samples.full=struct;
@@ -26,7 +30,6 @@ GP_samples.full.mapping_unique=ic;
 for i_ax = 1:dims
     ax=axis_list{i_ax};
     if i_ax == 1
-        
         GP_samples.full.Kcor=GP_samples.(ax).Kcor;
     else
         GP_samples.full.Kcor=GP_samples.full.Kcor.*GP_samples.(ax).Kcor;

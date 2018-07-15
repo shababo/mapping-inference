@@ -12,6 +12,7 @@ cells_this_group = find(cells_this_group);
 number_cells_this_group=length(cells_this_group);
 number_cells_all= length(neighbourhood.neurons);
 prior_info=experiment_setup.prior_info;
+background_rate= experiment_setup.patched_neuron.background_rate;
 
 inference_params=group_profile.inference_params;
 %indicators_remained = find(ismember([mpp_undefined(:).batch],iter-(0:num_trace_back) ));
@@ -21,8 +22,8 @@ number_of_trials = length(experiment_query_this_group.trials);
 % note: this_experiment_query contains the group information 
 trials = experiment_query_this_group.trials;
 neurons=neighbourhood.neurons;
-[variational_params, prior_params]=initialize_params_VI(neurons);
-[variational_params]=initialize_PR_VI(variational_params,neurons,trials,prior_info);
+[variational_params, prior_params,trials]=initialize_params_VI(neurons,trials,prior_info); 
+[variational_params]=initialize_PR_VI(variational_params,neurons,trials,prior_info,inference_params,background_rate);
 %%
 
 % prior_info.prior_parameters.boundary_params= [30 30 70];

@@ -23,10 +23,8 @@ for l = 1:number_of_trials
             this_loc_power =trials(l).power_levels(m);
             %             cell_ID=trials(l).cell_IDs(m);
             for i_cell = 1:number_of_cells
-                
                 rel_loc = this_loc - neighbourhood.neurons(i_cell).truth.location;
-                
-                if (neighbourhood.neurons(i_cell).truth.PR & check_in_boundary(rel_loc, boundary_params))>0
+                if (neighbourhood.neurons(i_cell).truth.PR>0 & check_in_boundary(rel_loc, boundary_params))
                     %             fprintf([num2str(l) '\n'])
                     this_size = griddata(simulation_params.mesh_grid(:,1),simulation_params.mesh_grid(:,2),simulation_params.mesh_grid(:,3),...
                         neighbourhood.neurons(i_cell).truth.shape,rel_loc(1),rel_loc(2),rel_loc(3));
