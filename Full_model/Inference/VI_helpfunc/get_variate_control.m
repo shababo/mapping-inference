@@ -4,6 +4,7 @@ fldnames = fieldnames(this_gradient(1));
 n_cell = length(this_gradient);
 for i_cell = 1:n_cell
     for i_field = 1:length(fldnames)
+        
         this_gradient(i_cell).(fldnames{i_field}).mean_f=...
             this_gradient(i_cell).(fldnames{i_field}).mean*lklhweights;
         this_gradient(i_cell).(fldnames{i_field}).mean_h=...

@@ -1,4 +1,4 @@
-function [loglklh] = update_likelihood(trials,variational_samples, ...
+function [loglklh] = update_likelihood(trials,variational_samples,parameter_current, ...
     background_rate,lklh_func,spike_curves,neurons,prior_info,inference_params)
 %%
 figure_flag =false;
@@ -8,74 +8,26 @@ n_shape=inference_params.MCsamples_for_gradient;
 GP_params=prior_info.prior_parameters.GP_params;
 n_cell=length(variational_samples);
 n_trial=length(trials);
-stim_size=zeros(n_trial,n_cell,n_shape);
+stim_size=zeros(n_trial,n_cell);
 boundary_params = prior_info.prior_parameters.boundary_params;
-
-for i_cell = 1:n_cell
-    if length(neurons(i_cell).location)==1
-        shifts=[variational_samples(i_cell).shift_x];
-    else
-        shifts=[variational_samples(i_cell).shift_x variational_samples(i_cell).shift_y variational_samples(i_cell).shift_z];
-    end
-    adjusted_location(i_cell,:)=neurons(i_cell).location-shifts;
-    relevant_trials=[];
-    relevant_stim_locations=zeros(0,length(neurons(i_cell).location));
-    trial_and_stim=zeros(0,2);
-    
-    this_adjusted_loc=adjusted_location(i_cell,:);
-    for i_trial = 1:length(trials)
-        relevant_flag = false;
-        for i_loc = 1:size(trials(i_trial).locations,1)
+%
+for  i_trial = 1:n_trial
+    for i_loc = 1:size(trials(i_trial).locations,1)
+        for i_cell = 1:n_cell
+            this_adjusted_loc=neurons(i_cell).location;
             rel_position=trials(i_trial).locations(i_loc,:)-this_adjusted_loc;
-            if length(rel_position)==1
-                this_relevant_flag = (abs(rel_position)<boundary_params);
-            else
-                this_relevant_flag =check_in_boundary(rel_position,boundary_params);
-            end
-            if  this_relevant_flag
-                relevant_stim_locations=[relevant_stim_locations; rel_position];
-                trial_and_stim=[trial_and_stim;  [i_trial i_loc]];
-                relevant_flag =true;
+            this_relevant_flag =check_in_boundary(rel_position,boundary_params);
+            if this_relevant_flag
+                power_tmp = trials(i_trial).power_levels(i_loc);
+                [~,i_rel,~] = intersect(parameter_current(i_cell).shapes.locations,rel_position,'rows');
+                stim_size(i_trial,i_cell)=stim_size(i_trial,i_cell)+...
+                    power_tmp*variational_samples(i_cell).shapes(i_rel);
             end
         end
-        if relevant_flag
-            relevant_trials = [relevant_trials i_trial];
-        end
-    end
-    if ~isempty(relevant_trials)
-        if size(relevant_stim_locations,2)==1
-            [GP_samples] = draw_1D_GP(relevant_stim_locations,n_shape,GP_params);
-        else
-            [GP_samples] = draw_3D_GP(relevant_stim_locations,n_shape,GP_params);
-        end
-        for i_shape = 1:n_shape
-            shape_val=GP_samples.full.samples(:,i_shape);
-            for i_rel = 1:length(shape_val)
-                i_trial = trial_and_stim(i_rel,1);
-                i_loc = trial_and_stim(i_rel,2);
-                if length(trials(i_trial).power_levels)==1
-                    power_tmp =  trials(i_trial).power_levels;
-                else
-                    power_tmp = trials(i_trial).power_levels(i_loc);
-                end
-                stim_size(i_trial,i_cell,i_shape)=stim_size(i_trial,i_cell,i_shape)+...
-                    power_tmp*shape_val(i_rel);
-            end
-        end
-        
-        % debugging:
-        %%
-        if figure_flag & (i_trial < 20)
-            figure(i_cell)
-            for i_shape = 1:n_shape
-                shape_val=GP_samples.full.samples(:,i_shape);
-                scatter(relevant_stim_locations,shape_val)
-                hold on;
-            end
-        end
-        %%
     end
 end
+
+
 %%
 %
 % t2=toc;
@@ -123,19 +75,20 @@ for  i_trial = 1:n_trial
     for i_cell = 1:n_cell % can reduce to cell with sufficiently large stimuliaton
         delay_mu_temp=delay_mu_sample(i_cell);
         delay_sigma_temp=delay_sigma_sample(i_cell);
-        stim_index = ones(n_shape,1);
-        for i_shape = 1:n_shape
-            stim_temp =stim_size(i_trial,i_cell,i_shape);
-            effective_stim=stim_temp*gain_sample(i_cell);
-            if effective_stim>minimum_stim_threshold
-                stim_index(i_shape)= min(current_max_grid,...
-                    max(1,round((effective_stim-current_lb)/current_gap)));
-            end
+        
+        stim_temp =stim_size(i_trial,i_cell);
+        effective_stim=stim_temp*gain_sample(i_cell);
+        if effective_stim>minimum_stim_threshold
+            stim_index= min(current_max_grid,...
+                max(1,round((effective_stim-current_lb)/current_gap)));
         end
+        
+        
+        
         spike_times_cond_shape=spike_curves.mean(stim_index);
-        expectation=delay_mu_temp+mean(spike_times_cond_shape); % mean expectation
+        expectation=delay_mu_temp+spike_times_cond_shape; 
         standard_dev=sqrt(delay_sigma_temp^2+...
-            mean(spike_curves.sd(stim_index).^2)+ var(spike_times_cond_shape));
+            mean(spike_curves.sd(stim_index).^2));
         cdf_index_max = max(1,min(length(cdf_grid),round( ((Tmax-expectation)/standard_dev +grid.bound)/grid.gap)));
         cdf_index_min = max(1,min(length(cdf_grid),round( ((Tmin-expectation)/standard_dev +grid.bound)/grid.gap)));
         pdf_index = max(1,min(length(pdf_grid),round( ((event_times-expectation)/standard_dev +grid.bound)/grid.gap)));
@@ -178,3 +131,95 @@ for  i_trial = 1:n_trial
 end
 loglklh=sum(loglklh_vec);
 % tend=toc;
+
+
+%% Code for integral
+% stim_size=zeros(n_trial,n_cell,n_shape);
+% for i_cell = 1:n_cell
+%     if length(neurons(i_cell).location)==1
+%         shifts=[variational_samples(i_cell).shift_x];
+%     else
+%         shifts=[variational_samples(i_cell).shift_x variational_samples(i_cell).shift_y variational_samples(i_cell).shift_z];
+%     end
+%     adjusted_location(i_cell,:)=neurons(i_cell).location-shifts;
+%     relevant_trials=[];
+%     relevant_stim_locations=zeros(0,length(neurons(i_cell).location));
+%     trial_and_stim=zeros(0,2);
+%     
+%     this_adjusted_loc=adjusted_location(i_cell,:);
+%     for i_trial = 1:length(trials)
+%         relevant_flag = false;
+%         for i_loc = 1:size(trials(i_trial).locations,1)
+%             rel_position=trials(i_trial).locations(i_loc,:)-this_adjusted_loc;
+%             if length(rel_position)==1
+%                 this_relevant_flag = (abs(rel_position)<boundary_params);
+%             else
+%                 this_relevant_flag =check_in_boundary(rel_position,boundary_params);
+%             end
+%             if  this_relevant_flag
+%                 relevant_stim_locations=[relevant_stim_locations; rel_position];
+%                 trial_and_stim=[trial_and_stim;  [i_trial i_loc]];
+%                 relevant_flag =true;
+%             end
+%         end
+%         if relevant_flag
+%             relevant_trials = [relevant_trials i_trial];
+%         end
+%     end
+%     if ~isempty(relevant_trials)
+%         if size(relevant_stim_locations,2)==1
+%             [GP_samples] = draw_1D_GP(relevant_stim_locations,n_shape,GP_params);
+%         else
+%             [GP_samples] = draw_3D_GP(relevant_stim_locations,n_shape,GP_params);
+%         end
+%         for i_shape = 1:n_shape
+%             shape_val=GP_samples.full.samples(:,i_shape);
+%             for i_rel = 1:length(shape_val)
+%                 i_trial = trial_and_stim(i_rel,1);
+%                 i_loc = trial_and_stim(i_rel,2);
+%                 if length(trials(i_trial).power_levels)==1
+%                     power_tmp =  trials(i_trial).power_levels;
+%                 else
+%                     power_tmp = trials(i_trial).power_levels(i_loc);
+%                 end
+%                 stim_size(i_trial,i_cell,i_shape)=stim_size(i_trial,i_cell,i_shape)+...
+%                     power_tmp*shape_val(i_rel);
+%             end
+%         end
+%         
+%         % debugging:
+%         %%
+%         if figure_flag & (i_trial < 20)
+%             figure(i_cell)
+%             for i_shape = 1:n_shape
+%                 shape_val=GP_samples.full.samples(:,i_shape);
+%                 scatter(relevant_stim_locations,shape_val)
+%                 hold on;
+%             end
+%         end
+%         %%
+%     end
+% end
+
+
+% stim_index = ones(n_shape,1);
+%         for i_shape = 1:n_shape
+%             stim_temp =stim_size(i_trial,i_cell,i_shape);
+%             effective_stim=stim_temp*gain_sample(i_cell);
+%             if effective_stim>minimum_stim_threshold
+%                 stim_index(i_shape)= min(current_max_grid,...
+%                     max(1,round((effective_stim-current_lb)/current_gap)));
+%             end
+%         end
+
+
+        
+%         spike_times_cond_shape=spike_curves.mean(stim_index);
+%         expectation=delay_mu_temp+mean(spike_times_cond_shape); % mean expectation
+%         standard_dev=sqrt(delay_sigma_temp^2+...
+%             mean(spike_curves.sd(stim_index).^2)+ var(spike_times_cond_shape));
+%         cdf_index_max = max(1,min(length(cdf_grid),round( ((Tmax-expectation)/standard_dev +grid.bound)/grid.gap)));
+%         cdf_index_min = max(1,min(length(cdf_grid),round( ((Tmin-expectation)/standard_dev +grid.bound)/grid.gap)));
+%         pdf_index = max(1,min(length(pdf_grid),round( ((event_times-expectation)/standard_dev +grid.bound)/grid.gap)));
+%         prob_this_trial(i_cell,:)=...
+%             PR_sample(i_cell)*[pdf_grid(pdf_index) cdf_grid(cdf_index_max)-cdf_grid(cdf_index_min)];
