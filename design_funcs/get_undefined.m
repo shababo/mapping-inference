@@ -8,7 +8,7 @@ undefined_profile.design_function=@design_undefined;
 
 undefined_profile.design_func_params=struct;
 undefined_profile.design_func_params.candidate_grid_params=struct;
-undefined_profile.design_func_params.candidate_grid_params.max_radius=9; % for each dim
+undefined_profile.design_func_params.candidate_grid_params.max_radius=8; % for each dim
 
 
 % undefined_profile.design_func_params.candidate_grid_params.number=[];

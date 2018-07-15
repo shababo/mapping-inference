@@ -151,7 +151,6 @@ end
 
 tmp_params=experiment_setup.prior_info.prior_parameters;
 tmp_params=rmfield(tmp_params,{'GP_params' 'boundary_params'});
-   
 % Initialize PR and gain parameters 
 for i_neighbourhood = 1:number_of_neighbourhoods
     for i_cell = 1:length(neighbourhoods(i_neighbourhood).neurons)

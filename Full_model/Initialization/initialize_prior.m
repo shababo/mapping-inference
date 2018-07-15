@@ -68,3 +68,10 @@ prior_params.delay_sigma.log_sigma=log(ini_sigma);
 prior_params.delay_sigma.bounds.up=bounds.delay_sigma(2);
 prior_params.delay_sigma.bounds.low=bounds.delay_sigma(1);
 
+
+prior_params.shapes=struct;
+prior_params.shapes.dist='normal';
+prior_params.shapes.type='individual';
+prior_params.shapes.locations=zeros(0,3);
+prior_params.shapes.mean=zeros(0,1);
+prior_params.shapes.log_sigma=zeros(0,1);
