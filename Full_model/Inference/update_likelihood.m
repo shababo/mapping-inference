@@ -72,6 +72,7 @@ for  i_trial = 1:n_trial
     clear('prob_this_trial');
     prob_this_trial(1,:)=background_rate*ones(1,length(event_times)+1);
     prob_this_trial(1,end)=background_rate*(Tmax-Tmin);
+    i_count = 1;
     for i_cell = 1:n_cell % can reduce to cell with sufficiently large stimuliaton
         delay_mu_temp=delay_mu_sample(i_cell);
         delay_sigma_temp=delay_sigma_sample(i_cell);
@@ -79,12 +80,9 @@ for  i_trial = 1:n_trial
         stim_temp =stim_size(i_trial,i_cell);
         effective_stim=stim_temp*gain_sample(i_cell);
         if effective_stim>minimum_stim_threshold
+            i_count = i_count + 1;
             stim_index= min(current_max_grid,...
                 max(1,round((effective_stim-current_lb)/current_gap)));
-        end
-        
-        
-        
         spike_times_cond_shape=spike_curves.mean(stim_index);
         expectation=delay_mu_temp+spike_times_cond_shape; 
         standard_dev=sqrt(delay_sigma_temp^2+...
@@ -92,8 +90,10 @@ for  i_trial = 1:n_trial
         cdf_index_max = max(1,min(length(cdf_grid),round( ((Tmax-expectation)/standard_dev +grid.bound)/grid.gap)));
         cdf_index_min = max(1,min(length(cdf_grid),round( ((Tmin-expectation)/standard_dev +grid.bound)/grid.gap)));
         pdf_index = max(1,min(length(pdf_grid),round( ((event_times-expectation)/standard_dev +grid.bound)/grid.gap)));
-        prob_this_trial(i_cell,:)=...
+        prob_this_trial(i_count,:)=...
             PR_sample(i_cell)*[pdf_grid(pdf_index) cdf_grid(cdf_index_max)-cdf_grid(cdf_index_min)];
+        end
+        
     end
     loglklh_vec(i_trial)=  lklh_func(trials(i_trial),prob_this_trial);
     

@@ -5,7 +5,7 @@ function [GP_samples] = draw_3D_GP(locations,n_shapes, GP_params)
 axis_list=fieldnames(GP_params);
 dims= size(locations,2);  % number of coordinates, 1 to 3
 % interpolation='linear';
-interpolation='square';
+type='square';
 epsilon=1e-3;
 
 GP_samples=struct;
@@ -15,7 +15,7 @@ GP_samples=struct;
 [locations_unique,~,ic] = unique(locations,'rows');
 
 %%
-[mean_3d, var_3d]=interpolate_3D(locations,GP_params,type);
+[mean_3d, var_3d, GP_samples]=interpolate_3D(locations,GP_params,type);
 
 %%
 GP_samples.full=struct;

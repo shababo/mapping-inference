@@ -85,8 +85,11 @@ for i_cell = 1:n_cell
                 this_field_sigma_h=zeros(S,n_locs);
                 this_field_mean_h=zeros(S,n_locs);
                 for s = 1:S
+                    
+                for i_loc = 1:n_locs
                     this_field_mean_h(s,i_loc) = gradients(s,i_cell).(fldnames{i_field}).mean_h(i_loc);
                     this_field_sigma_h(s,i_loc) = gradients(s,i_cell).(fldnames{i_field}).sigma_h(i_loc);
+                end
                 end
             end
             new_gradient(i_cell).(fldnames{i_field})=struct;

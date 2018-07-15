@@ -1,5 +1,5 @@
 function [variational_params]=initialize_PR_VI(variational_params,neurons,...
-    trials,prior_info,inference_params)
+    trials,prior_info,inference_params,background_rate)
 
 %  reg_type='univariate';
 reg_type='linear';
@@ -50,7 +50,7 @@ switch reg_type
                 this_loc=neurons(i_cell).location;
                 relevant_flag = false;
                 for i_loc = 1:size(trials(i_trial).locations,1)
-                    rel_position=trials(i_trial).locations(i_loc,:)-this_adjusted_loc;
+                    rel_position=trials(i_trial).locations(i_loc,:)-this_loc;
                     this_relevant_flag =check_in_boundary(rel_position,boundary_params);
                     if  this_relevant_flag
                         relevant_flag =true;

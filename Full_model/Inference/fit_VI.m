@@ -59,9 +59,7 @@ while (change_history(iteration) > epsilon && iteration<maxit)
     end
     %%
     new_gradient=sum_gradient(gradients,eta,eta_max,iteration);
-    
     [parameter_current, change_history(iteration)]=incorporate_gradient(parameter_current, new_gradient);
-    
     loglklh_rec(iteration)=mean(mean(loglklh));
     elbo_rec(iteration)=mean(logprior+loglklh-logvariational);
     tend=toc;

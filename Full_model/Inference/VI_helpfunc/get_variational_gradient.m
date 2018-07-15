@@ -1,5 +1,5 @@
 function [this_gradient]=get_variational_gradient(variational_samples,raw_samples,params)
-
+%%
 % calculate the gradients
 fldnames = fieldnames(params(1));
 n_cell = length(params);
