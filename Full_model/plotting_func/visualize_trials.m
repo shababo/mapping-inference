@@ -34,6 +34,8 @@ for i_cell = 1:length(neurons)
             col_id=4;
         case 'secondary'
             col_id = 5;
+        otherwise 
+            col_id = 3; % white
     end
     itpr(i_cell,1)=neurons(i_cell).posterior_stat(end).PR.lower_quantile;
     itpr(i_cell,2)=neurons(i_cell).posterior_stat(end).PR.upper_quantile;
@@ -63,6 +65,8 @@ for i = 1:length(neighbourhood.neurons)
             col_id=4;
         case 'secondary' % do not change groupd id for secondary
             col_id = current_groups(i_cell);
+        otherwise
+             col_id = 3; % white
     end
     itpr(i_cell,1)=neighbourhood.neurons(i).posterior_stat(end).PR.lower_quantile;
     itpr(i_cell,2)=neighbourhood.neurons(i).posterior_stat(end).PR.upper_quantile;
