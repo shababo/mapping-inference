@@ -34,6 +34,8 @@ for i_cell = 1:length(neurons)
             col_id=4;
         case 'secondary'
             col_id = 5;
+        case 'alive'
+            col_id=6;
         otherwise 
             col_id = 3; % white
     end
@@ -65,6 +67,8 @@ for i = 1:length(neighbourhood.neurons)
             col_id=4;
         case 'secondary' % do not change groupd id for secondary
             col_id = current_groups(i_cell);
+        case 'alive'
+            col_id=6;
         otherwise
              col_id = 3; % white
     end
