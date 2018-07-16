@@ -3,7 +3,7 @@ function [variational_params]=initialize_PR_VI(variational_params,neurons,...
 %%
 %  reg_type='univariate';
 reg_type='linear';
-
+app_threshold =3;
 
 n_cell=length(variational_params);
 n_trial=length(trials);
@@ -67,7 +67,10 @@ switch reg_type
         for i_cell = 1:n_cell
             if relevant_trials(i_cell)
                 PR_initial=min(0.99,max(0.01,betahat(i_cell)));
+                app_count= sum(design_matrix(i_cell,:));
+                if app_count>app_threshold 
                 variational_params(i_cell).PR.mean=log(PR_initial/(1-PR_initial));
+                end
             end
             
         end

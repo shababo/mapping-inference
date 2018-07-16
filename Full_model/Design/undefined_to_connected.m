@@ -24,6 +24,16 @@ switch group_profile.regroup_func_params.regroup_type
     case 'NonzeroProb'
 end
 
+% Move cell to connected groups if they are in the undefined group for too
+% long:
+
+for i_cell = 1:length(i_cell_group_to_nhood)
+    if length(neurons(i_cell).group_ID) > group_profile.regroup_func_params.undefined_threshold
+        cell_list_undefined_to_connected=[cell_list_undefined_to_connected i_cell];
+    end
+end
+cell_list_undefined_to_connected=unique(cell_list_undefined_to_connected);
+
 too_few_cells=(length(i_cell_group_to_nhood)-length(cell_list_undefined_to_connected)) < length(this_neighbourhood.neurons)*group_profile.regroup_func_params.singlespot_threshold;
 too_tiny_change=max_changes_undefined<group_profile.regroup_func_params.change_threshold;
 
