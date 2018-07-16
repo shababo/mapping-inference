@@ -47,9 +47,9 @@ for i_field = 1:length(fldnames)
                         this_sample=normal_samples;
                      case 'logit-normal'
                         this_qt=exp(normal_qt)./(1+exp(normal_qt))*...
-                            (this_params.bounds.up-this_params.bounds.low)+this_params.bounds.low;
+                            (this_params.bounds.up(i_loc)-this_params.bounds.low(i_loc))+this_params.bounds.low(i_loc);
                         this_sample=exp(normal_samples)./(1+exp(normal_samples))*...
-                            (this_params.bounds.up-this_params.bounds.low)+this_params.bounds.low;
+                            (this_params.bounds.up(i_loc)-this_params.bounds.low(i_loc))+this_params.bounds.low(i_loc);
                 end
                 post_stat.(fldnames{i_field}).mean(i_loc)=this_qt(2);
                 post_stat.(fldnames{i_field}).variance(i_loc)=var(this_sample);

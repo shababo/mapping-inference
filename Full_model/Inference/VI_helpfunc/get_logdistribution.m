@@ -45,7 +45,7 @@ for i_cell = 1:n_cell
                     logdist_tmp=log(normpdf(this_raw_sample(i_loc),this_params.mean(i_loc),exp(this_params.log_sigma(i_loc))));
                 case 'logit-normal'
                     logdist_tmp=   log(normpdf(this_raw_sample(i_loc),this_params.mean(i_loc),exp(this_params.log_sigma(i_loc)))/...
-                        ((this_sample-this_params.bounds.low+epsilon)*(this_params.bounds.up-this_sample+epsilon)) *(this_params.bounds.up-this_params.bounds.low));
+                        ((this_sample(i_loc)-this_params.bounds.low(i_loc)+epsilon)*(this_params.bounds.up(i_loc)-this_sample(i_loc)+epsilon)) *(this_params.bounds.up(i_loc)-this_params.bounds.low(i_loc)));
                 end
             end
             this_logdist=sum(logdist_tmp);

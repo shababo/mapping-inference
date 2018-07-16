@@ -48,7 +48,7 @@ for i_cell = 1:n_cell
                     case 'logit-normal'
                         this_raw_sample=normrnd(this_params.mean(i_loc),exp(this_params.log_sigma(i_loc)));
                         this_sample = exp(this_raw_sample)./(1+exp(this_raw_sample))*...
-                            (this_params.bounds.up-this_params.bounds.low)+this_params.bounds.low;
+                            (this_params.bounds.up(i_loc)-this_params.bounds.low(i_loc))+this_params.bounds.low(i_loc);
                     case 'spiked-logit-normal'
                 end
                 variational_samples(i_cell).(fldnames{i_field})(i_loc) = this_sample;
