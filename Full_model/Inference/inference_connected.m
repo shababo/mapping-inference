@@ -5,7 +5,6 @@ function [neighbourhood]=inference_connected(...
 %  this_neighbourhood= neighbourhood;
 %  experiment_query.(this_group),neighbourhood,group_profile, experiment_setup
 %%
-
 group_ID=group_profile.group_ID;
 [cells_this_group, group_cell_IDs] = get_group_inds(neighbourhood,group_ID);
 cells_this_group = find(cells_this_group);
@@ -39,11 +38,9 @@ batch_ID=neighbourhood.batch_ID;
 quantile_prob=group_profile.regroup_func_params.quantile_prob;
        
 for i_cell = 1:number_cells_all
-    
     neighbourhood.neurons(i_cell).params(batch_ID)=parameter_history(end,i_cell);
     neighbourhood.neurons(i_cell).posterior_stat(batch_ID)=...
         calculate_posterior(parameter_history(end,i_cell),quantile_prob);
-        
 end
 %%
 

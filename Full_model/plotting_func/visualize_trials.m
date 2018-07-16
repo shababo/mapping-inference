@@ -158,8 +158,8 @@ for i_group =1:length(group_names)
 end
 
 %%
-% figure(figure_handle);
-figure(1);
+figure(figure_handle);
+% figure(1);
 
 h(1)=subplot(1,2,1);
 for i_cell = 1:length(neurons)
