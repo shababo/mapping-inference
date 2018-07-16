@@ -161,6 +161,9 @@ for i_cell = 1:length(neurons)
         'MarkerFaceAlpha', alpha_levels(i_cell),'MarkerEdgeAlpha', alpha_levels(i_cell))
     hold on;
     
+    
+    text(neuron_coord(i_cell,1),neuron_coord(i_cell,2),num2str(i_cell))
+
     if strcmp(experiment_setup.experiment_type,'simulation')
         if (neurons(i_cell).truth.PR>0)
             scatter(neuron_coord(i_cell,1),neuron_coord(i_cell,2),'SizeData', size_scale*neurons(i_cell).truth.PR,...
@@ -238,6 +241,9 @@ for i_cell = 1:length(neurons)
         'MarkerFaceColor',this_color,'MarkerEdgeColor',this_color);
     hold on;
     
+    text(0,ranks(i_cell)+0.3,num2str(i_cell))
+
+      
     if strcmp(experiment_setup.experiment_type,'simulation')
         if (neurons(i_cell).truth.PR>0)
             scatter(neurons(i_cell).truth.PR,ranks(i_cell),'Marker','^',...
