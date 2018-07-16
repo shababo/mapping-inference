@@ -166,7 +166,7 @@ for i_cell = 1:length(neurons)
     hold on;
     
     
-    text(neuron_coord(i_cell,1),neuron_coord(i_cell,2),num2str(i_cell))
+    text(neuron_coord(i_cell,1)+1,neuron_coord(i_cell,2),num2str(i_cell))
 
     if strcmp(experiment_setup.experiment_type,'simulation')
         if (neurons(i_cell).truth.PR>0)
