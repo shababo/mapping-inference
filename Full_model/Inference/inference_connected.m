@@ -22,7 +22,7 @@ number_of_trials = length(experiment_query_this_group.trials);
 trials = experiment_query_this_group.trials;
 neurons=neighbourhood.neurons;
 [variational_params, prior_params,trials]=initialize_params_VI(neurons,trials,prior_info); 
-[variational_params]=initialize_PR_VI(variational_params,neurons,trials,prior_info,inference_params,background_rate);
+% [variational_params]=initialize_PR_VI(variational_params,neurons,trials,prior_info,inference_params,background_rate);
 %%
 
 % prior_info.prior_parameters.boundary_params= [30 30 70];
