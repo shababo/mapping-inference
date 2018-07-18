@@ -44,7 +44,7 @@ figure(figure_handle);
 % figure(1)
 connected_cells = contrast.PR(:,2)>0;
 color_set={'r' 'b'};
-color_for_shapes= lines(sum(connected_cells));
+color_for_shapes= copper(sum(connected_cells));
 i_count = 1;
 fig_index = [1 3 4 2];
 for i_field = 2:length(flds)

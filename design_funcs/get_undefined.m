@@ -9,10 +9,10 @@ undefined_profile.design_function=@design_undefined;
 undefined_profile.design_func_params=struct;
 undefined_profile.design_func_params.candidate_grid_params=struct;
 undefined_profile.design_func_params.candidate_grid_params.max_radius=10; % for each dim
-
+undefined_profile.design_func_params.candidate_grid_params.number=[1 5 10];
 
 % undefined_profile.design_func_params.candidate_grid_params.number=[];
-% undefined_profile.design_func_params.candidate_grid_params.grid_type='ring'; % 2d ring or 3d sphere
+undefined_profile.design_func_params.candidate_grid_params.grid_type='ring'; % ring, or random
 
 
 undefined_profile.design_func_params.trials_params=struct;

@@ -180,10 +180,22 @@ for i_cell_group = 1:number_cells_this_group
         
         loc_list{i_cell_group} = zeros(n_unique_loc,3);
         for i_unique_loc = 1:n_unique_loc
+            % randomly select a 
+            switch group_profile.design_func_params.candidate_grid_params.grid_type
+                case 'random'
             this_radius = unifrnd(0,radius);
             this_angle = unifrnd(0,1);
-            loc_list{i_cell_group}(i_unique_loc,:)=  loc_mat(i_cell_group,:)+...
+                case 'ring'
+                    n_ring=length(group_profile.design_func_params.candidate_grid_params.number);
+                i_ring = randsample(1:n_ring,1);    
+                    n_ring_grid=group_profile.design_func_params.candidate_grid_params.number(i_ring);
+                
+                this_radius= (i_ring-1)*(radius/(n_ring-1));
+                this_angle = randsample( 1:n_ring_grid,1)/n_ring_grid;
+            end
+              loc_list{i_cell_group}(i_unique_loc,:)=  loc_mat(i_cell_group,:)+...
                this_radius*[sin(2*pi*this_angle) cos(2*pi*this_angle) 0];
+          
         end
     end
     for i_trial = (trial_counts(i_cell_group)+1):trial_counts(i_cell_group+1)

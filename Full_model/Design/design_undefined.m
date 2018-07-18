@@ -123,10 +123,22 @@ switch group_profile.design_func_params.trials_params.stim_design
              loc_mat(i_cell,3)=neighbourhood.center(3);
              loc_list{i_cell} = zeros(n_unique_loc,3);
              for i_unique_loc = 1:n_unique_loc
-                 this_radius = unifrnd(0,radius);
-                 this_angle = unifrnd(0,1);
-                loc_list{i_cell}(i_unique_loc,:)=  loc_mat(i_cell,:)+...
-                    this_radius*[sin(2*pi*this_angle) cos(2*pi*this_angle) 0];
+                 
+                  switch group_profile.design_func_params.candidate_grid_params.grid_type
+                case 'random'
+            this_radius = unifrnd(0,radius);
+            this_angle = unifrnd(0,1);
+                case 'ring'
+                    n_ring=length(group_profile.design_func_params.candidate_grid_params.number);
+                i_ring = randsample(1:n_ring,1);    
+                    n_ring_grid=group_profile.design_func_params.candidate_grid_params.number(i_ring);
+                
+                this_radius= (i_ring-1)*(radius/(n_ring-1));
+                this_angle = randsample( 1:n_ring_grid,1)/n_ring_grid;
+            end
+              loc_list{i_cell}(i_unique_loc,:)=  loc_mat(i_cell,:)+...
+               this_radius*[sin(2*pi*this_angle) cos(2*pi*this_angle) 0];
+           
              end
         end
         % get the adj matrix on loc_mat:
