@@ -3,11 +3,11 @@ function [loglklh] = update_likelihood(trials,variational_samples,parameter_curr
 %%
 figure_flag =false;
 
-if ~isempty(varargin)
-    marginal_flag = varargin{1};
-else
+% if ~isempty(varargin)
+%     marginal_flag = varargin{1};
+% else
     marginal_flag = false;
-end
+% end
 % tic;
 % tstart=toc;
 % t1=toc;
@@ -15,6 +15,10 @@ end
 
 %%
 if ~marginal_flag
+    %%
+    if figure_flag
+        figure(1);
+    end
     n_shape=inference_params.MCsamples_for_gradient;
     GP_params=prior_info.prior_parameters.GP_params;
     n_cell=length(variational_samples);
@@ -111,34 +115,29 @@ if ~marginal_flag
         loglklh_vec(i_trial)=  lklh_func(trials(i_trial),prob_this_trial);
         %     t7=toc;
         %     ts(4)=t6-t5+ts(4);ts(5)=t7-t11+ts(5);
-        %     if figure_flag
-        %         prob_this_trial=zeros(1,Tmax);
-        %         prob_this_trial(1,:)=background_rate*ones(1,Tmax);
-        %         for i_cell = 1:n_cell
-        %             delay_mu_temp=delay_mu_sample(i_cell);
-        %             delay_sigma_temp=delay_sigma_sample(i_cell);
-        %             stim_index = ones(n_shape,1);
-        %             for i_shape = 1:n_shape
-        %                 stim_temp =stim_size(i_trial,i_cell,i_shape);
-        %                 effective_stim=stim_temp*gain_sample(i_cell);
-        %                 if effective_stim>minimum_stim_threshold
-        %                     stim_index(i_shape)= min(current_max_grid,...
-        %                         max(1,round((effective_stim-current_lb)/current_gap)));
-        %                 end
-        %             end
-        %             spike_times_cond_shape=spike_curves.mean(stim_index);
-        %             expectation=delay_mu_temp+mean(spike_times_cond_shape); % mean expectation
-        %             standard_dev=sqrt(delay_sigma_temp^2+...
-        %                 mean(spike_curves.sd(stim_index).^2)+ var(spike_times_cond_shape));
-        %             pdf_index = normpdf(1:Tmax,expectation, standard_dev);
-        %             prob_this_trial(i_cell,:)=pdf_index;
-        %         end
-        %         figure(i_trial)
-        %         total_prob=sum(prob_this_trial);
-        %         plot(total_prob)
-        %         hold on;
-        %         scatter(event_times, max(total_prob) )
-        %     end
+%             if figure_flag
+%                 prob_this_trial=zeros(1,Tmax);
+%                 prob_this_trial(1,:)=background_rate*ones(1,Tmax);
+%                 for i_cell = 1:n_cell
+%                     delay_mu_temp=delay_mu_sample(i_cell);
+%                     delay_var_temp=delay_var_sample(i_cell);
+%                     stim_index= min(current_max_grid,...
+%                     max(1,round((effective_stim-current_lb)/current_gap)));
+%                 spike_times_cond_shape=spike_curves_mean(stim_index);
+%                 expectation=delay_mu_temp+spike_times_cond_shape;
+%                 standard_dev=sqrt(delay_var_temp+  mean(spike_curves_var(stim_index)));
+%                 pdf_index = normpdf(1:Tmax,expectation, standard_dev);
+%                     prob_this_trial(i_cell,:)=pdf_index;
+%                 end
+% %                 figure(i_trial)
+%                 total_prob=prob_this_trial;
+%                 plot(total_prob)
+%                 hold on;
+%                 if ~isempty(event_times)
+%                 scatter(event_times, max(total_prob)*ones(1,length(event_times)) )
+%                 end
+%                 hold on;
+%             end
         
     end
     loglklh=sum(loglklh_vec);

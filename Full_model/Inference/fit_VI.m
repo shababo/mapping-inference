@@ -1,10 +1,8 @@
-function [parameter_history, elbo_rec,loglklh_rec] = fit_VI(...
+function [parameter_history, elbo_rec] = fit_VI(...
     trials,neurons, background_rate, ...
     variational_params,prior_params,...
     inference_params,prior_info)
 %%
-marginal_flag = true;
-
 n_cell=length(neurons);
 n_trial = length(trials);
 
@@ -37,12 +35,12 @@ for i = 1:length(pre_density.normal_grid)
     pre_density.cdf_grid(i) = normcdf(pre_density.normal_grid(i),0,1);
     pre_density.pdf_grid(i)=normpdf(pre_density.normal_grid(i),0,1);
 end
-S=50;
+% S=50;
 % clear('parameter_history')
 % clear('gradients')
 %%
 tic;
-ts=zeros(10,1);
+% ts=zeros(10,1);
 while (change_history(iteration) > epsilon && iteration<maxit)
     %%
     tstart=toc;
@@ -55,69 +53,72 @@ while (change_history(iteration) > epsilon && iteration<maxit)
     for s=1:S
 %         t1=toc;
         [variational_samples,raw_samples] = draw_samples_from_var_dist(parameter_current);
-%         variational_samples.PR=0.8;%raw_samples.PR=0;
+%         if only_PR
+%             variational_samples.gain=neurons.truth.optical_gain;
+%             variational_samples.delay_mu=neurons.truth.delay_mean;
+%             variational_samples.delay_sigma=sqrt(neurons.truth.delay_var);
+%             variational_samples.shapes=0.747;
+%         else
+% %             variational_samples.PR=0.5; % fixed PR
+%         end
         vsam{s}=variational_samples;rsam{s}=raw_samples;
-        
         logprior(s)=get_logdistribution(variational_samples,raw_samples,prior_params);
         logvariational(s)=get_logdistribution(variational_samples,raw_samples,parameter_current);
-%         t2=toc;
-%         variational_samples = rmfield(variational_samples,'delay_mu');
         [loglklh(s)] = update_likelihood(trials, variational_samples,parameter_current,...
-             background_rate,lklh_func,spike_curves,neurons,prior_info,inference_params,pre_density,marginal_flag);
-%          lklhweight=1;
+             background_rate,lklh_func,spike_curves,neurons,prior_info,inference_params,pre_density);
           lklhweight=logprior(s)+loglklh(s)-logvariational(s);
-%           lklhweight=logprior(s)-logvariational(s);
-          
-%         t3=toc;
-        %         tb=toc;
         this_gradient=get_variational_gradient(variational_samples,raw_samples, parameter_current);
         this_gradient=get_variate_control(lklhweight,this_gradient);
-        %          te=toc;
-        %     ts(4)=ts(4)+te-tb;
-%         t4=toc;
         if exist('gradients')
             gradients(s,:) = this_gradient;
         else
             gradients(s,:)=this_gradient;
         end
-%         ts(1)=ts(1)+t2-t1;ts(2)=ts(2)+t3-t2;ts(3)=ts(3)+t4-t3;
     end
     %%
 %     gains=[];PRs=[];sigmafs=[];meanfs=[];
 %     for i = 1:S
 %     gains(i) = vsam{i}.gain; 
 %     PRs(i) = vsam{i}.PR; 
-%     sigmafs(i)=gradients(i).gain.sigma;
-%     meanfs(i)=gradients(i).gain.mean;
-%     
+%     sigmafs(i)=gradients(i).PR.sigma_f;
+%     meanfs(i)=gradients(i).PR.mean_f;
+%     lklhweight(i)=logprior(i)+loglklh(i)-logvariational(i);
 %     end
 %     figure(1)
-%     scatter(gains,loglklh)
-%     figure(2)
-%     scatter(meanfs,loglklh) 
-%     figure(2)
+% %     scatter(gains,loglklh)
+% %     figure(2)
+% %     scatter(meanfs,loglklh) 
+% %     figure(2)
 %     scatter(PRs,loglklh)
+%     figure(3)
+%     
+%     scatter(PRs,lklhweight)
 %      figure(3)
-%     scatter(gains,meanfs)
+%     scatter(PRs,meanfs)
 %     figure(4)
-%     scatter(gains,sigmafs)
+%     scatter(PRs,sigmafs)
 %     mean(sigmafs)
 % mean(meanfs)
 
-    %%
-    
+% traces=[];traces2=[];
+% for i = 1:(iteration-1)
+% traces(i)=parameter_history(i).PR.mean;
+% traces2(i)=parameter_history(i).PR.log_sigma;
+% end
+% figure(1)
+% plot(traces)
+% 
+% figure(2)
+% plot(traces2)
+% figure(3)
+% plot(elbo_rec(3:iteration))
+%%
     new_gradient=sum_gradient(gradients,eta,eta_max,iteration);
-    [parameter_current, change_history(iteration)]=incorporate_gradient(parameter_current, new_gradient,marginal_flag);
-    
-%     t5=toc;
-%     ts(4)=t5-t4;
-    loglklh_rec(iteration)=mean(mean(loglklh));
+    [parameter_current, change_history(iteration)]=incorporate_gradient(parameter_current, new_gradient);
     elbo_rec(iteration)=mean(logprior+loglklh-logvariational);
     tend=toc;
     tdiff=tend-tstart;
     fprintf('Iteration %d; change %d; ELBO %d; time %d; \n',iteration,change_history(iteration),elbo_rec(iteration),tdiff)
-    fprintf('PR %d; gain %d;\n',new_gradient.PR.mean,new_gradient.gain.mean );
-
+%     fprintf('PR %d; \n',parameter_current.PR.mean)
 end
 fprintf('VI fitted after %d iteration;\n',iteration)
-

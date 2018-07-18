@@ -33,10 +33,10 @@ for i_trial = 1:length(trials)
                         
                         % logit transform:
                         mean_logit=log( (mean_3d-lower_bound)/(upper_bound -mean_3d)); % this is actually 0
-                        %                         variational_params(i_cell).shapes.mean=[variational_params(i_cell).shapes.mean; mean_logit];
-                        %                         variational_params(i_cell).shapes.log_sigma=[variational_params(i_cell).shapes.log_sigma; 0]; % variance is no longer the original one!
-                        variational_params(i_cell).shapes.mean=[variational_params(i_cell).shapes.mean; mean_3d];
-                        variational_params(i_cell).shapes.log_sigma=[variational_params(i_cell).shapes.log_sigma; log(sqrt(var_3d))]; % for marginalization
+                        variational_params(i_cell).shapes.mean=[variational_params(i_cell).shapes.mean; mean_logit];
+                        variational_params(i_cell).shapes.log_sigma=[variational_params(i_cell).shapes.log_sigma; 0]; % variance is no longer the original one!
+%                         variational_params(i_cell).shapes.mean=[variational_params(i_cell).shapes.mean; mean_3d];
+%                         variational_params(i_cell).shapes.log_sigma=[variational_params(i_cell).shapes.log_sigma; log(sqrt(var_3d))]; % for marginalization
                         
                         trials(i_trial).cell_and_pos{i_loc}=[trials(i_trial).cell_and_pos{i_loc};...
                             i_cell length(variational_params(i_cell).shapes.mean)];
