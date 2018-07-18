@@ -32,12 +32,15 @@ for i_trial = 1:length(trials)
                         variational_params(i_cell).shapes.bounds.up = [variational_params(i_cell).shapes.bounds.up; upper_bound];
                         
                         % logit transform:
+                        switch  variational_params(i_cell).shapes.dist
+                            case 'logit-normal'
                         mean_logit=log( (mean_3d-lower_bound)/(upper_bound -mean_3d)); % this is actually 0
                         variational_params(i_cell).shapes.mean=[variational_params(i_cell).shapes.mean; mean_logit];
-                        variational_params(i_cell).shapes.log_sigma=[variational_params(i_cell).shapes.log_sigma; 0]; % variance is no longer the original one!
-%                         variational_params(i_cell).shapes.mean=[variational_params(i_cell).shapes.mean; mean_3d];
-%                         variational_params(i_cell).shapes.log_sigma=[variational_params(i_cell).shapes.log_sigma; log(sqrt(var_3d))]; % for marginalization
-                        
+                        variational_params(i_cell).shapes.log_sigma=[variational_params(i_cell).shapes.log_sigma; 0];% variance is no longer the original one!
+                            case 'normal'
+                        variational_params(i_cell).shapes.mean=[variational_params(i_cell).shapes.mean; mean_3d];
+                        variational_params(i_cell).shapes.log_sigma=[variational_params(i_cell).shapes.log_sigma; log(sqrt(var_3d))]; % for marginalization
+                        end
                         trials(i_trial).cell_and_pos{i_loc}=[trials(i_trial).cell_and_pos{i_loc};...
                             i_cell length(variational_params(i_cell).shapes.mean)];
                     else
@@ -45,10 +48,39 @@ for i_trial = 1:length(trials)
                             i_cell ia];
                     end
                 end
+                
             end
         end
     end
 end
 
-
+% Calculate the joint distribution (correlation matrix for the shapes) 
+if strcmp(variational_params(1).shapes.dist,'normal')
+    for i_cell = 1:n_cell
+        locs=variational_params(i_cell).shapes.locations;
+        
+        axis_list= fieldnames(GP_params);
+        for i_ax = 1:length(axis_list)
+            X=locs(:,i_ax);
+            ax=axis_list{i_ax};
+            tau=GP_params.(ax).tau;
+            tmp_Kcor=get_kernel_cor(X,X,tau);
+            tmp_Kcor=(tmp_Kcor+tmp_Kcor')/2;
+            if i_ax == 1
+               Full_Kcor=tmp_Kcor;
+            else
+               Full_Kcor=Full_Kcor.*tmp_Kcor;
+            end
+        end
+        sigma_mat=(exp( variational_params(i_cell).shapes.log_sigma)*ones(1,length( variational_params(i_cell).shapes.log_sigma)));
+        Full_Kcov= sigma_mat.*Full_Kcor*sigma_mat';
+        variational_params(i_cell).Sigma_inv=inv(Full_Kcov);
+        Dmat= diag(exp(-2*variational_params(i_cell).shapes.log_sigma) );
+        variational_params(i_cell).Sigma_tilde=inve(variational_params(i_cell).Sigma_inv+Dmat);
+    end
+end
 prior_params=variational_params;
+
+%%
+
+% GP_params=experiment_setup.prior_info.prior_parameters.GP_params

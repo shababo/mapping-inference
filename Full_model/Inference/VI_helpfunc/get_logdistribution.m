@@ -46,16 +46,18 @@ for i_cell = 1:n_cell
             this_raw_sample=raw_samples(i_cell).(fldnames{i_field});
             this_params=params(i_cell).(fldnames{i_field});
             logdist_tmp=zeros(length(this_raw_sample),1);
-            for i_loc = 1:length(this_raw_sample)
-                switch this_params.dist
-                case 'normal'
-                    logdist_tmp=log(normpdf(this_raw_sample(i_loc),this_params.mean(i_loc),exp(this_params.log_sigma(i_loc))));
+            switch this_params.dist
                 case 'logit-normal'
-                    logdist_tmp=   log(normpdf(this_raw_sample(i_loc),this_params.mean(i_loc),exp(this_params.log_sigma(i_loc)))/...
-                        ((this_sample(i_loc)-this_params.bounds.low(i_loc)+epsilon)*(this_params.bounds.up(i_loc)-this_sample(i_loc)+epsilon)) *(this_params.bounds.up(i_loc)-this_params.bounds.low(i_loc)));
-                end
+                    
+                    for i_loc = 1:length(this_raw_sample)
+                        %                         logdist_tmp=log(normpdf(this_raw_sample(i_loc),this_params.mean(i_loc),exp(this_params.log_sigma(i_loc))));
+                        logdist_tmp=   log(normpdf(this_raw_sample(i_loc),this_params.mean(i_loc),exp(this_params.log_sigma(i_loc)))/...
+                            ((this_sample(i_loc)-this_params.bounds.low(i_loc)+epsilon)*(this_params.bounds.up(i_loc)-this_sample(i_loc)+epsilon)) *(this_params.bounds.up(i_loc)-this_params.bounds.low(i_loc)));
+                    end
+                    this_logdist=sum(logdist_tmp);
+                case 'normal'
+                    this_logdist=log(mvnrnd(this_raw_sample,this_params.mean,this_params.Sigma_tilde));
             end
-            this_logdist=sum(logdist_tmp);
         end
         if isnan(this_logdist) | isinf(this_logdist)
                    this_logdist=log(epsilon);

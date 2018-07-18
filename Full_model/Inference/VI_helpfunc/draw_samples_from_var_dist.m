@@ -40,23 +40,21 @@ for i_cell = 1:n_cell
                 raw_samples(i_cell).(fldnames{i_field})  =  raw_samples(1).(fldnames{i_field});
             end
         else % the shape parameters:
-            for i_loc = 1:length(this_params.mean)
-                switch this_params.dist
-                    case 'normal'
+            switch this_params.dist
+                case 'normal'
+                     raw_samples(i_cell).(fldnames{i_field})=mvnrnd(this_params.mean,this_params.Sigma_tilde);
+                      variational_samples(i_cell).(fldnames{i_field})=raw_samples(i_cell).(fldnames{i_field});
+                case 'logit-normal'
+                    for i_loc = 1:length(this_params.mean)
                         this_raw_sample=normrnd(this_params.mean(i_loc),exp(this_params.log_sigma(i_loc)/2));
                         this_sample=this_raw_sample;
-                    case 'logit-normal'
                         this_raw_sample=normrnd(this_params.mean(i_loc),exp(this_params.log_sigma(i_loc)/2));
                         this_sample = exp(this_raw_sample)./(1+exp(this_raw_sample))*...
                             (this_params.bounds.up(i_loc)-this_params.bounds.low(i_loc))+this_params.bounds.low(i_loc);
-                    case 'spiked-logit-normal'
-                end
-                variational_samples(i_cell).(fldnames{i_field})(i_loc) = this_sample;
-                raw_samples(i_cell).(fldnames{i_field})(i_loc) = this_raw_sample;
-                
+                    end
+                    variational_samples(i_cell).(fldnames{i_field})(i_loc) = this_sample;
+                    raw_samples(i_cell).(fldnames{i_field})(i_loc) = this_raw_sample;
             end
-            
-            
         end
     end
 end
