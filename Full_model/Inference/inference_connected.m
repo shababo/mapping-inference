@@ -23,14 +23,34 @@ trials = experiment_query_this_group.trials;
 neurons=neighbourhood.neurons;
 [variational_params, prior_params,trials]=initialize_params_VI(neurons,trials,prior_info); 
 % [variational_params]=initialize_PR_VI(variational_params,neurons,trials,prior_info,inference_params,background_rate);
+
+variational_params.delay_mu.mean=-6;variational_params.delay_mu.log_sigma=-4;
+variational_params.delay_sigma.mean=-6;variational_params.delay_sigma.log_sigma=-4;
+prior_params=variational_params;
+variational_params.gain.mean = log( (0.0159-0.005)/(0.06-0.0159));
 %%
 
 % prior_info.prior_parameters.boundary_params= [30 30 70];
+inference_params.maxit=500;
+inference_params.step_size_max=0.1;
 
 [parameter_history,elbo_rec,loglklh_rec] = fit_VI(...
       trials,neurons, experiment_setup.patched_neuron.background_rate, ...
     variational_params,prior_params,...
     inference_params,prior_info);
+%%
+traces=[];traces2=[];
+for i = 1:length(parameter_history)
+traces(i)=parameter_history(i).gain.mean;
+traces2(i)=parameter_history(i).gain.log_sigma;
+end
+figure(1)
+plot(traces)
+
+figure(2)
+plot(traces2)
+figure(3)
+plot(elbo_rec(3:end))
 
 %% Update the parameters in neighbourhood 
    
@@ -42,6 +62,11 @@ for i_cell = 1:number_cells_all
     neighbourhood.neurons(i_cell).posterior_stat(batch_ID)=...
         calculate_posterior(parameter_history(end,i_cell),quantile_prob);
 end
+%%
+neighbourhood.neurons(i_cell).posterior_stat(end).PR
+neighbourhood.neurons(i_cell).posterior_stat(end).gain
+neurons.truth
+
 %%
 
 % [clusters_of_cells] = find_clusters(stim_all, 1:num_cells_nhood, stim_threshold);

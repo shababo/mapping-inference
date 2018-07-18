@@ -1,9 +1,17 @@
-function [params,change]=incorporate_gradient(params, new_gradient)
+function [params,change]=incorporate_gradient(params, new_gradient,varargin)
 %%
+
+if ~isempty(varargin)
+    marginal_flag = varargin{1};
+else
+    marginal_flag = false;
+end
 fldnames = fieldnames(new_gradient(1,1));
 n_cell = length(params);
 for i_cell = 1:n_cell
     for i_field = 1:length(fldnames)
+        if marginal_flag & ( strcmp(fldnames{i_field},'shapes') | strcmp(fldnames{i_field},'delay_mu') | strcmp(fldnames{i_field},'delay_sigma'))
+        else
         dims=size(params(i_cell).(fldnames{i_field}).mean);
         params(i_cell).(fldnames{i_field}).mean=...
             params(i_cell).(fldnames{i_field}).mean+reshape(new_gradient(i_cell).(fldnames{i_field}).mean,dims);
@@ -12,6 +20,7 @@ for i_cell = 1:n_cell
         if strcmp(params(i_cell).(fldnames{i_field}).mean,  'spiked-logit-normal')
               params(i_cell).(fldnames{i_field}).prob_logit=...
             params(i_cell).(fldnames{i_field}).prob_logit+new_gradient(i_cell).(fldnames{i_field}).prob_logit;
+        end
         end
     end
 end

@@ -12,13 +12,13 @@ for i_cell = 1:n_cell
         if ~strcmp(fldnames{i_field},'shapes')
         switch this_params.dist
             case {'normal','log-normal', 'logit-normal'}
-                dmean =   -(this_params.mean-this_raw_sample)./exp(2*this_params.log_sigma);
-                dsigma = -1+ (this_params.mean-this_raw_sample).^2./exp(2*this_params.log_sigma);
+                dmean =   (this_params.mean-this_raw_sample)./exp(this_params.log_sigma);
+                dsigma = -1/2+((this_params.mean-this_raw_sample).^2)./(2*exp(this_params.log_sigma));
             case {'spiked-logit-normal'}
                 dlogit= (this_sample==0)/(1+exp(this_params.prob_logit))-...
                     (this_sample==0)*exp(this_params.prob_logit)/(1+exp(this_params.prob_logit));
-                dmean =   -(this_params.mean-this_raw_sample)./exp(2*this_params.log_sigma);
-                dsigma = -1+ (this_params.mean-this_raw_sample).^2./exp(2*this_params.log_sigma);
+                dmean =   (this_params.mean-this_raw_sample)./exp(2*this_params.log_sigma);
+                dsigma = -1/2+ (this_params.mean-this_raw_sample).^2./exp(2*this_params.log_sigma);
             this_gradient(i_cell).(fldnames{i_field}).prob_logit=dlogit;
         
         end
@@ -26,8 +26,8 @@ for i_cell = 1:n_cell
             for i_loc = 1:length(this_raw_sample)
                 switch this_params.dist
                     case {'normal','log-normal', 'logit-normal'}
-                        dmean(i_loc) =   -(this_params.mean(i_loc)-this_raw_sample(i_loc))./exp(2*this_params.log_sigma(i_loc));
-                        dsigma(i_loc) = -1+ (this_params.mean(i_loc)-this_raw_sample(i_loc)).^2./exp(2*this_params.log_sigma(i_loc));    
+                        dmean(i_loc) =   (this_params.mean(i_loc)-this_raw_sample(i_loc))./exp(this_params.log_sigma(i_loc));
+                        dsigma(i_loc) = -1/2+ (this_params.mean(i_loc)-this_raw_sample(i_loc)).^2./(2*exp(this_params.log_sigma(i_loc)));    
                 end
             end
         end

@@ -1,6 +1,9 @@
 function [post_stat] = calculate_posterior(params,quantile_prob)
-
-%% it outputs the median instead of mean!
+%%
+% quantile_prob=[0.05 0.5 0.95];
+% params=neighbourhood.neurons.params(end);
+%%
+%% it outputs the median instead of mean
 fldnames = fieldnames(params(1));
 
 post_stat=struct;
@@ -10,8 +13,8 @@ for i_field = 1:length(fldnames)
     normal_qt =norminv(quantile_prob);%
     normal_samples =normrnd(0,1, [100 1]);% for evaluating mean & variance gamma
     if ~strcmp(fldnames{i_field},'shapes')
-        normal_qt=this_params.mean+normal_qt*exp(this_params.log_sigma);
-        normal_samples=this_params.mean+normal_samples*exp(this_params.log_sigma);
+        normal_qt=this_params.mean+normal_qt*exp(this_params.log_sigma/2);
+        normal_samples=this_params.mean+normal_samples*exp(this_params.log_sigma/2);
         switch this_params.dist
             case 'normal'
                 this_qt=normal_qt;

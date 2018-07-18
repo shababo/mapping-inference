@@ -14,17 +14,17 @@ for i_cell = 1:n_cell
         if ~strcmp(fldnames{i_field},'shapes')
             switch this_params.dist
                 case 'normal'
-                    this_raw_sample=normrnd(this_params.mean,exp(this_params.log_sigma));
+                    this_raw_sample=normrnd(this_params.mean,exp(this_params.log_sigma/2));
                     this_sample=this_raw_sample;
                 case 'log-normal'
-                    this_raw_sample=normrnd(this_params.mean,exp(this_params.log_sigma));
+                    this_raw_sample=normrnd(this_params.mean,exp(this_params.log_sigma/2));
                     this_sample=exp(this_raw_sample);
                 case 'logit-normal'
-                    this_raw_sample=normrnd(this_params.mean,exp(this_params.log_sigma));
+                    this_raw_sample=normrnd(this_params.mean,exp(this_params.log_sigma/2));
                     this_sample = exp(this_raw_sample)./(1+exp(this_raw_sample))*...
                         (this_params.bounds.up-this_params.bounds.low)+this_params.bounds.low;
                 case 'spiked-logit-normal'
-                    this_raw_sample=normrnd(this_params.mean,exp(this_params.log_sigma));
+                    this_raw_sample=normrnd(this_params.mean,exp(this_params.log_sigma/2));
                     this_sample = exp(this_raw_sample)./(1+exp(this_raw_sample))*...
                         (this_params.bounds.up-this_params.bounds.low)+this_params.bounds.low;
                     zero_prob = exp(this_params.prob_logit)./(exp(this_params.prob_logit)+1);
@@ -43,10 +43,10 @@ for i_cell = 1:n_cell
             for i_loc = 1:length(this_params.mean)
                 switch this_params.dist
                     case 'normal'
-                        this_raw_sample=normrnd(this_params.mean(i_loc),exp(this_params.log_sigma(i_loc)));
+                        this_raw_sample=normrnd(this_params.mean(i_loc),exp(this_params.log_sigma(i_loc)/2));
                         this_sample=this_raw_sample;
                     case 'logit-normal'
-                        this_raw_sample=normrnd(this_params.mean(i_loc),exp(this_params.log_sigma(i_loc)));
+                        this_raw_sample=normrnd(this_params.mean(i_loc),exp(this_params.log_sigma(i_loc)/2));
                         this_sample = exp(this_raw_sample)./(1+exp(this_raw_sample))*...
                             (this_params.bounds.up(i_loc)-this_params.bounds.low(i_loc))+this_params.bounds.low(i_loc);
                     case 'spiked-logit-normal'

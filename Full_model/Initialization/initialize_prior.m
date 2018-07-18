@@ -72,7 +72,8 @@ prior_params.delay_sigma.bounds.low=bounds.delay_sigma(1);
 
 
 prior_params.shapes=struct;
-prior_params.shapes.dist='logit-normal';
+% prior_params.shapes.dist='logit-normal';
+prior_params.shapes.dist='normal'; % for marginalization
 prior_params.shapes.type='individual';
 prior_params.shapes.locations=zeros(0,3);
 prior_params.shapes.mean=zeros(0,1);
