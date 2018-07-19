@@ -85,10 +85,10 @@ while (change_history(iteration) > epsilon && iteration<maxit)
 %     lklhweight(i)=logprior(i)+loglklh(i)-logvariational(i);
 %     end
 %     figure(1)
-% %     scatter(gains,loglklh)
-% %     figure(2)
-% %     scatter(meanfs,loglklh) 
-% %     figure(2)
+%     scatter(gains,loglklh)
+%     figure(2)
+%     scatter(meanfs,loglklh) 
+%     figure(2)
 %     scatter(PRs,loglklh)
 %     figure(3)
 %     
