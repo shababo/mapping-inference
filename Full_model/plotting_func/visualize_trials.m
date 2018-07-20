@@ -98,6 +98,10 @@ if show_change
                 col_id=4;
             case 'secondary' % do not change groupd id for secondary
                 col_id = current_groups(i_cell);
+            case 'alive'
+                col_id=6;
+            otherwise
+                col_id = 3; % white
         end
         pre_itpr(i_cell,1)=neighbourhood.neurons(i).posterior_stat(end-1).PR.lower_quantile;
         pre_itpr(i_cell,2)=neighbourhood.neurons(i).posterior_stat(end-1).PR.upper_quantile;
