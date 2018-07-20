@@ -2,8 +2,8 @@ function [neighbourhood]=inference_undefined(...
     experiment_query_this_group,neighbourhood,group_profile,experiment_setup)
 %%
 % (experiment_query.(this_group),neighbourhood,group_profile, experiment_setup);
-% experiment_query_this_group=experiment_query.(this_group);
-% this_neighbourhood = neighbourhood;
+experiment_query_this_group=experiment_query.(this_group);
+this_neighbourhood = neighbourhood;
 % inference_undefined(experiment_query.(this_group),neighbourhood,group_profile, experiment_setup);
 %%
 group_ID=group_profile.group_ID;
@@ -29,16 +29,11 @@ neurons=neighbourhood.neurons;
       trials,neurons, background_rate, variational_params,prior_params,...
       inference_params,prior_info);
 %% Update the parameters in neighbourhood 
-   
 batch_ID=neighbourhood.batch_ID;
 quantile_prob=group_profile.regroup_func_params.quantile_prob;
-       
 for i_cell = 1:number_cells_all
-    
     neighbourhood.neurons(i_cell).params(batch_ID)=parameter_history(end,i_cell);
     neighbourhood.neurons(i_cell).posterior_stat(batch_ID)=...
-        calculate_posterior(parameter_history(end,i_cell),quantile_prob);
-        
+        calculate_posterior(parameter_history(end,i_cell),quantile_prob);     
 end
-
-   
+%%

@@ -26,14 +26,18 @@ for i_field = 1:length(flds)
         for i_cell = 1:n_cell
             if neurons(i_cell).truth.PR>0
                 est_shapes = neurons(i_cell).posterior_stat(i_batch).shapes;
-                true_shape=neurons(i_cell).truth.shape;
-                this_locs=est_shapes.locations;
-                contrast.(this_field).values{i_cell}=zeros(length(est_shapes.mean),2);
-                contrast.(this_field).values{i_cell}(:,1)=est_shapes.mean;
-                this_size = griddata(simulation_params.mesh_grid(:,1),simulation_params.mesh_grid(:,2),simulation_params.mesh_grid(:,3),...
-                    true_shape,this_locs(:,1),this_locs(:,2),this_locs(:,3));
-                this_size(isnan(this_size))=0;
-                contrast.(this_field).values{i_cell}(:,2)=this_size;
+                
+                if ~isempty(est_shapes.mean)
+                    
+                    true_shape=neurons(i_cell).truth.shape;
+                    this_locs=est_shapes.locations;
+                    contrast.(this_field).values{i_cell}=zeros(length(est_shapes.mean),2);
+                    contrast.(this_field).values{i_cell}(:,1)=est_shapes.mean;
+                    this_size = griddata(simulation_params.mesh_grid(:,1),simulation_params.mesh_grid(:,2),simulation_params.mesh_grid(:,3),...
+                        true_shape,this_locs(:,1),this_locs(:,2),this_locs(:,3));
+                    this_size(isnan(this_size))=0;
+                    contrast.(this_field).values{i_cell}(:,2)=this_size;
+                end
             end
         end
     end
@@ -103,7 +107,7 @@ for i_field = 2:length(flds)
     xlim([0 xmax])
     ylim([0 ymax])
     xlabel('Estimates')
-    xlabel('True values')
+    ylabel('True values')
 end
 
 

@@ -122,19 +122,19 @@ for i_cell = 1:n_cell
     
     
     for i_field = 1:length(fldnames)
-        if  strcmp(fldnames{i_field},'PR')
+%         if  strcmp(fldnames{i_field},'PR')
             max_tmp=max(abs([new_gradient(i_cell).(fldnames{i_field}).mean, new_gradient(i_cell).(fldnames{i_field}).sigma]));
             scale_tmp = max(1,max_tmp/eta_max);
             new_gradient(i_cell).(fldnames{i_field}).mean= ...
                 new_gradient(i_cell).(fldnames{i_field}).mean/scale_tmp;
             new_gradient(i_cell).(fldnames{i_field}).sigma= ...
                 new_gradient(i_cell).(fldnames{i_field}).sigma/scale_tmp;
-        else
-            new_gradient(i_cell).(fldnames{i_field}).mean= ...
-                new_gradient(i_cell).(fldnames{i_field}).mean/grad_scale;
-            new_gradient(i_cell).(fldnames{i_field}).sigma= ...
-                new_gradient(i_cell).(fldnames{i_field}).sigma/grad_scale;
-        end
+%         else
+%             new_gradient(i_cell).(fldnames{i_field}).mean= ...
+%                 new_gradient(i_cell).(fldnames{i_field}).mean/grad_scale;
+%             new_gradient(i_cell).(fldnames{i_field}).sigma= ...
+%                 new_gradient(i_cell).(fldnames{i_field}).sigma/grad_scale;
+%         end
     end
 end
 
