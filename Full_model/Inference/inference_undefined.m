@@ -24,13 +24,10 @@ neurons=neighbourhood.neurons;
 [variational_params, prior_params,trials]=initialize_params_VI(neurons,trials,prior_info); 
 [variational_params]=initialize_PR_VI(variational_params,neurons,trials,prior_info,inference_params,background_rate);
 %%
-
 % prior_info.prior_parameters.boundary_params= [30 30 70];
-
 [parameter_history,elbo_rec] = fit_VI(...
       trials,neurons, background_rate, variational_params,prior_params,...
       inference_params,prior_info);
-
 %% Update the parameters in neighbourhood 
    
 batch_ID=neighbourhood.batch_ID;

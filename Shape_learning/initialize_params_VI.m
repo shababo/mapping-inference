@@ -74,7 +74,8 @@ if strcmp(variational_params(1).shapes.dist,'mvn')
             end
         end
         sigma_mat=variational_params(i_cell).shapes.prior_sigma*ones(1,length(variational_params(i_cell).shapes.prior_sigma));
-        Full_Kcov= sigma_mat.*Full_Kcor*sigma_mat';
+        Full_Kcov= sigma_mat.*Full_Kcor.*sigma_mat';
+        
         variational_params(i_cell).shapes.Sigma_inv=inv(Full_Kcov);
         Dmat= diag(exp(-variational_params(i_cell).shapes.log_sigma) );
         variational_params(i_cell).shapes.Sigma_tilde_inv=variational_params(i_cell).shapes.Sigma_inv+Dmat;
