@@ -37,9 +37,10 @@ for i_trial = 1:length(trials)
                         mean_logit=log( (mean_3d-lower_bound)/(upper_bound -mean_3d)); % this is actually 0
                         variational_params(i_cell).shapes.mean=[variational_params(i_cell).shapes.mean; mean_logit];
                         variational_params(i_cell).shapes.log_sigma=[variational_params(i_cell).shapes.log_sigma; 0];% variance is no longer the original one!
-                            case 'normal'
-                        variational_params(i_cell).shapes.mean=[variational_params(i_cell).shapes.mean; mean_3d];
-                        variational_params(i_cell).shapes.log_sigma=[variational_params(i_cell).shapes.log_sigma; log(sqrt(var_3d))]; % for marginalization
+                            case 'mvn'
+                                variational_params(i_cell).shapes.prior_sigma=[variational_params(i_cell).shapes.prior_sigma; sqrt(var_3d)];
+                        variational_params(i_cell).shapes.mean=[variational_params(i_cell).shapes.mean; 0];
+                        variational_params(i_cell).shapes.log_sigma=[variational_params(i_cell).shapes.log_sigma; log(var_3d)];
                         end
                         trials(i_trial).cell_and_pos{i_loc}=[trials(i_trial).cell_and_pos{i_loc};...
                             i_cell length(variational_params(i_cell).shapes.mean)];
@@ -55,7 +56,7 @@ for i_trial = 1:length(trials)
 end
 
 % Calculate the joint distribution (correlation matrix for the shapes) 
-if strcmp(variational_params(1).shapes.dist,'normal')
+if strcmp(variational_params(1).shapes.dist,'mvn')
     for i_cell = 1:n_cell
         locs=variational_params(i_cell).shapes.locations;
         
@@ -72,11 +73,12 @@ if strcmp(variational_params(1).shapes.dist,'normal')
                Full_Kcor=Full_Kcor.*tmp_Kcor;
             end
         end
-        sigma_mat=(exp( variational_params(i_cell).shapes.log_sigma)*ones(1,length( variational_params(i_cell).shapes.log_sigma)));
+        sigma_mat=variational_params(i_cell).shapes.prior_sigma*ones(1,length(variational_params(i_cell).shapes.prior_sigma));
         Full_Kcov= sigma_mat.*Full_Kcor*sigma_mat';
-        variational_params(i_cell).Sigma_inv=inv(Full_Kcov);
-        Dmat= diag(exp(-2*variational_params(i_cell).shapes.log_sigma) );
-        variational_params(i_cell).Sigma_tilde=inve(variational_params(i_cell).Sigma_inv+Dmat);
+        variational_params(i_cell).shapes.Sigma_inv=inv(Full_Kcov);
+        Dmat= diag(exp(-variational_params(i_cell).shapes.log_sigma) );
+        variational_params(i_cell).shapes.Sigma_tilde_inv=variational_params(i_cell).shapes.Sigma_inv+Dmat;
+        variational_params(i_cell).shapes.Sigma_tilde=inv(variational_params(i_cell).shapes.Sigma_inv+Dmat);
     end
 end
 prior_params=variational_params;

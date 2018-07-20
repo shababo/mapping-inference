@@ -55,8 +55,10 @@ for i_cell = 1:n_cell
                             ((this_sample(i_loc)-this_params.bounds.low(i_loc)+epsilon)*(this_params.bounds.up(i_loc)-this_sample(i_loc)+epsilon)) *(this_params.bounds.up(i_loc)-this_params.bounds.low(i_loc)));
                     end
                     this_logdist=sum(logdist_tmp);
-                case 'normal'
-                    this_logdist=log(mvnrnd(this_raw_sample,this_params.mean,this_params.Sigma_tilde));
+                case 'mvn'
+                    % transfer the mean:
+                    this_mean=(this_params.bounds.up-this_params.bounds.low).*exp(this_params.mean)./(1+exp(this_params.mean)) +this_params.bounds.low;
+                    this_logdist=log(mvnpdf(this_raw_sample,this_mean,this_params.Sigma_tilde));
             end
         end
         if isnan(this_logdist) | isinf(this_logdist)

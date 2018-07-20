@@ -31,13 +31,19 @@ for i_cell = 1:n_cell
                         
                 end
             else % shapes
-                for i_loc = 1:length(this_raw_sample)
-                    switch this_params.dist
-                        case {'normal','log-normal', 'logit-normal'}
+                switch this_params.dist
+                    case {'normal','log-normal', 'logit-normal'}
+                        for i_loc = 1:length(this_raw_sample)
                             dmean(i_loc) =   (this_params.mean(i_loc)-this_raw_sample(i_loc))./exp(this_params.log_sigma(i_loc));
                             dsigma(i_loc) = -1/2+ (this_params.mean(i_loc)-this_raw_sample(i_loc)).^2./(2*exp(this_params.log_sigma(i_loc)));
-                    end
+                        end
+                    case 'mvn'
+                         mean_prod=(this_params.bounds.up-this_params.bounds.low).*exp(this_params.mean)./((1+exp(this_params.mean)).^2);
+                         this_mean=(this_params.bounds.up-this_params.bounds.low).*exp(this_params.mean)./(1+exp(this_params.mean))+this_params.bounds.low;
+                         dmean=mean_prod.*(this_params.Sigma_tilde_inv*(this_mean-this_raw_sample));
+                         dsigma= ((this_mean-this_raw_sample).^2).*exp(-this_params.log_sigma)/2 - diag(this_params.Sigma_tilde).*exp(-this_params.log_sigma)/2;
                 end
+                
             end
             
             this_gradient(i_cell).(fldnames{i_field}).type =  this_params.type;
