@@ -2,8 +2,8 @@ function [neighbourhood]=inference_undefined(...
     experiment_query_this_group,neighbourhood,group_profile,experiment_setup)
 %%
 % (experiment_query.(this_group),neighbourhood,group_profile, experiment_setup);
-experiment_query_this_group=experiment_query.(this_group);
-this_neighbourhood = neighbourhood;
+% experiment_query_this_group=experiment_query.(this_group);
+% this_neighbourhood = neighbourhood;
 % inference_undefined(experiment_query.(this_group),neighbourhood,group_profile, experiment_setup);
 %%
 group_ID=group_profile.group_ID;
