@@ -1,4 +1,5 @@
 function [pred_mean, post_mean,prior_var] = get_GP_boundary(Xstar, params)
+%%
 X=params.X;
 Y=params.Y;
 boundary=params.boundary;

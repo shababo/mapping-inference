@@ -39,7 +39,7 @@ while (change_history(iteration) > epsilon && iteration<maxit)
     iteration=iteration+1;
     clear('gradients')
     for s= 1:S
-        variational_samples = draw_samples_from_var_dist(parameter_current);
+         [variational_samples,raw_samples] = draw_samples_from_var_dist(parameter_current);
         % Calculate the new grid
         
         for i_cell = 1:n_cell
@@ -48,12 +48,12 @@ while (change_history(iteration) > epsilon && iteration<maxit)
         
         % Calculate the log pdf of prior  dist.
         if prior_opt
-            logprior(s)=get_logdistribution(variational_samples,prior_params);
+            logprior(s)=get_logdistribution(variational_samples,raw_samples,prior_params);
         else
             logprior(s)=0;
         end
         % Calculate the log pdf of variational dist.
-        logvariational(s)=get_logdistribution(variational_samples,parameter_current);
+        logvariational(s)=get_logdistribution(variational_samples,raw_samples,parameter_current);
         
         loglklh(s)=0;
         for i_cell = 1:n_cell
@@ -95,7 +95,7 @@ while (change_history(iteration) > epsilon && iteration<maxit)
         
         lklhweight = logprior(s)+loglklh(s)-logvariational(s);
         %
-        this_gradient=get_variational_gradient(variational_samples,parameter_current);
+        this_gradient=get_variational_gradient(variational_samples,raw_samples,parameter_current);
         
         %obtain the f and h functions:
         this_gradient=get_variate_control(lklhweight,this_gradient);

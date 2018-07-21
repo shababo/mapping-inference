@@ -36,7 +36,7 @@ for i_cell = 1:n_cell
     % Assign a sigma for each data point:
     neurons(i_cell).noise_sigma =  ones(length(neurons(i_cell).current),1)*sqrt(mean(neurons(i_cell).sq_deviation))/(neurons(i_cell).scale);
 end
-
+%%
 % Sigma ~ current model
 if params.sigma_current_model
     noise_var=[];mean_current =[];
