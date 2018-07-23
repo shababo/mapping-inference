@@ -5,7 +5,7 @@ threshold = plot_params.threshold;
 
 unique_z=unique(locations(:,3));
 n_grid = plot_params.n_grid;
-% fig_name = plot_params.fig_name;
+fig_name = plot_params.fig_name;
 %%
 switch plot_params.type
     case 'scatter'
@@ -33,11 +33,11 @@ switch plot_params.type
             ylabel('x')
             
             %  if output_plot
-            % fig = gcf;
-            % fig.PaperUnits = 'inches';
-            % fig.PaperPosition = [0 0 4 4];
-            % saveas(fig,[fig_name 'z'  num2str(unique_z(i_z)) '.png'])
-            % close(fig)
+            fig = gcf;
+            fig.PaperUnits = 'inches';
+            fig.PaperPosition = [0 0 4 4];
+            saveas(fig,[fig_name 'z'  num2str(unique_z(i_z)) '.png'])
+            close(fig)
             %  end
         end
         %% Alternatively: draw a heatmap with linear interpolation:
@@ -67,8 +67,8 @@ switch plot_params.type
             fig = gcf;
             fig.PaperUnits = 'inches';
             fig.PaperPosition = [0 0 4 4];
-%             saveas(fig,[fig_name 'z'  num2str(unique_z(i_z)) '.png'])
-%             close(fig)
+            saveas(fig,[fig_name 'z'  num2str(unique_z(i_z)) '.png'])
+            close(fig)
            
         end
      case 'contrast'
@@ -129,8 +129,8 @@ colorbar('Position', [hp4(1)+hp4(3)+0.01  hp4(2)  0.015  hp4(2)+hp4(3)*3.3])
             fig = gcf;
             fig.PaperUnits = 'inches';
             fig.PaperPosition = [0 0 13 4];
-%             saveas(fig,[fig_name 'z'  num2str(unique_z(i_z)) '.png'])
-%             close(fig)
+            saveas(fig,[fig_name 'z'  num2str(unique_z(i_z)) '.png'])
+            close(fig)
            
         end
 end

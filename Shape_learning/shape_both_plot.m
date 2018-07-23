@@ -69,7 +69,8 @@ for i_cell = 1:n_cell
     max_Y=max([max_Y; Y]);
     
 end
-xlim([min(fixed_grid) max(fixed_grid)])
+% xlim([min(fixed_grid) max(fixed_grid)])
+xlim([-150 150])
 ylim([0 max_Y])
 
 xlabel('Stimulation location (adjusted)')
@@ -107,10 +108,10 @@ end
 Y =quick_match(X,mean_params);
     plot(fixed_grid,Y,'Color','k','LineWidth',3)
     hold on;
-    xlim([min(fixed_grid) max(fixed_grid)])
+%     xlim([min(fixed_grid) max(fixed_grid)])
       ylim([0 1.5])
 % xlim([-30 30])
-
+xlim([-150 150])
 xlabel('Stimulation location')
 ylabel('Current')
 title(['Simulated (' ax ')'])
