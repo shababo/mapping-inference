@@ -1,20 +1,28 @@
- function [variational_params, prior_params,inference_params]=initialization_for_shape(i_ax,neurons,mean_params,var_params)
+ function [variational_params, prior_params,inference_params]=initialization_for_shape(i_ax,data_this_axis)
     ini_GP_tau=log(unifrnd(9,200));
     if i_ax == 3
         ini_GP_tau=log(unifrnd(25,500));
     end
+    
     shift_sigma=2;
     tau_sigma=2;
     gain_sigma=2;
     ini_gain = log(unifrnd(1,20));
+    
+    neurons=data_this_axis.neurons;
+    mean_params=data_this_axis.mean_params;
+    var_params=data_this_axis.var_params;
     n_cell=length(neurons);
+    
     clear('variational_params')
     variational_params(n_cell)=struct;
     for i_cell = 1:n_cell
+        if neurons(1).find_shift
         variational_params(i_cell).shift.dist='normal';
         variational_params(i_cell).shift.type='individual';
         variational_params(i_cell).shift.mean=0;
         variational_params(i_cell).shift.log_sigma=log(shift_sigma);
+        end
         
         variational_params(i_cell).GP_tau.dist='log-normal';
         variational_params(i_cell).GP_tau.type='common';

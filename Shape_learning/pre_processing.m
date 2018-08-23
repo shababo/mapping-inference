@@ -116,13 +116,13 @@ if params.sigma_current_model
 end
 
 %% Find centers using isometic regresson:
-if params.find_shifts
+if params.find_shifts % Fit isometric regression to find the mode. 
     % plot(neurons(1).stim_grid,neurons(1).scaled_current)
     % 1 to ngrid +1
     for i_ax = 1:length(axis_list)
         ax=axis_list{i_ax};
         neurons=pilot_data.(ax).neurons;
-        n_cell = length(neurons);
+         n_cell = length(neurons);
         
         for i_cell = 1:n_cell
             [unique_stim,unique_ia,unique_ic]=unique(neurons(i_cell).stim_grid);
@@ -145,10 +145,11 @@ if params.find_shifts
         end
         for i_cell = 1:n_cell
             neurons(i_cell).adjusted_grid = neurons(i_cell).stim_grid-neurons(i_cell).initial_shift;
+            neurons(i_cell).find_shift=params.find_shifts;
         end
         pilot_data.(ax).neurons=neurons;
     end
-else
+else % Take 0 as the mode
     for i_ax = 1:length(axis_list)
         ax=axis_list{i_ax};
         neurons=pilot_data.(ax).neurons;
@@ -157,7 +158,10 @@ else
         for i_cell = 1:n_cell
             neurons(i_cell).initial_shift=0;
             neurons(i_cell).adjusted_grid = neurons(i_cell).stim_grid;
+            neurons(i_cell).find_shift=params.find_shifts;
+        
         end
+        
         pilot_data.(ax).neurons=neurons;
     end
 end
