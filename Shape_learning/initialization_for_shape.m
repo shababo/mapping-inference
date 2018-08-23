@@ -1,9 +1,5 @@
- function [variational_params, prior_params,inference_params]=initialization_for_shape(i_ax,data_this_axis)
-    ini_GP_tau=log(unifrnd(9,200));
-    if i_ax == 3
-        ini_GP_tau=log(unifrnd(25,500));
-    end
-    
+ function [variational_params, prior_params,inference_params]=initialization_for_shape(ax,data_this_axis)
+    ini_GP_tau=unifrnd(-10,10);
     shift_sigma=2;
     tau_sigma=2;
     gain_sigma=2;
@@ -24,10 +20,21 @@
         variational_params(i_cell).shift.log_sigma=log(shift_sigma);
         end
         
-        variational_params(i_cell).GP_tau.dist='log-normal';
+        % Set lower and upper bound for tau... (this is the only parameter
+        % that we fit 
+        variational_params(i_cell).GP_tau.dist='logit-normal';
         variational_params(i_cell).GP_tau.type='common';
         variational_params(i_cell).GP_tau.mean=ini_GP_tau;
         variational_params(i_cell).GP_tau.log_sigma=log(tau_sigma);
+        if strcmp(ax,'z') 
+       variational_params(i_cell).GP_tau.bounds.low=15;
+       variational_params(i_cell).GP_tau.bounds.up=50;
+        else
+       variational_params(i_cell).GP_tau.bounds.low=7.5;
+       variational_params(i_cell).GP_tau.bounds.up=30;
+            
+    end
+    
         
         if neurons(1).fit_gain
             variational_params(i_cell).gain.dist='log-normal';
