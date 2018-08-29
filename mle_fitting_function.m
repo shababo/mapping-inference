@@ -35,6 +35,24 @@ for i_cell = 1:length(result_xy)
     count = count + 1;
     
 end
+
+%%
+% power_cells = 1:length(result_gain_depth);
+
+for i_cell = 1:length(result_gain_depth)
+%     results_current_all(count).these_powers = result_gain_depth(i_cell).spike_unique_powers;
+%     results_current_all(count).peak_current_means = result_current(i_cell).peak_current_means;
+%     results_spikes_all(count).these_powers = unique(result_spikes(i_cell).power{1});
+%     results_spikes_all(count).spike_time_means = result_gain_depth(i_cell).spike_time_means;
+%     results_spikes_all(count).spike_time_jitter = result_gain_depth(i_cell).spike_time_jitter;
+    
+    results_spikes_tofit(i_cell).power = {result_gain_depth(i_cell).spike_targ_power};
+    results_spikes_tofit(i_cell).spike_times = {result_gain_depth(i_cell).spike_times};
+    results_spikes_tofit(i_cell).spike_time_means = result_gain_depth(i_cell).spike_time_means;
+    
+%     count = count + 1;
+end
+
 %%
 % power_cells = 1:28
 % [spike_curves_power, x_current_power, y_spikes_power, spike_curve_cell_ids_power] = ...
@@ -50,13 +68,13 @@ end
 % results_spikes needs fields: power (a cell of length 1 annoyingly),
 % spike_times (same cell thing), [1
 
-for this_cell = 1:35%1:length(results_spikes_tofit)
+for this_cell = 1:length(result_gain_depth)
     this_cell
-    if any(this_cell == power_cells)
-        [gain_mle(this_cell), gain_MC, loglklh] = get_MLE_pilot(results_spikes_tofit(this_cell), spike_curves_power);
-    else
-        [gain_mle(this_cell), gain_MC, loglklh] = get_MLE_pilot(results_spikes_tofit(this_cell), spike_curves_power);
-    end
+%     if any(this_cell == power_cells)
+        [gain_mle_out(this_cell).gain, gain_mle_out(this_cell).gain_MC, gain_mle_out(this_cell).loglklh] = get_MLE_pilot(results_spikes_tofit(this_cell), spike_curves_power);
+%     else
+%         [gain_mle(this_cell), gain_MC, loglklh] = get_MLE_pilot(results_spikes_tofit(this_cell), spike_curves_power);
+%     end
 end
 
 
