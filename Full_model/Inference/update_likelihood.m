@@ -1,6 +1,7 @@
 function [loglklh] = update_likelihood(trials,variational_samples,parameter_current, ...
     background_rate,lklh_func,spike_curves,neurons,prior_info,inference_params,pre_density,varargin)
 %%
+
 figure_flag =false;
 
 % if ~isempty(varargin)
@@ -64,7 +65,12 @@ if ~marginal_flag
     grid_gap=pre_density.grid.gap;
     
     gain_sample=reshape([variational_samples(:).gain], [n_cell 1]);
+    if isfield(variational_samples(1),'delay_mu')
+     
     PR_sample=reshape([variational_samples(:).PR], [n_cell 1]);
+    else
+        PR_sample=ones(n_cell,1);
+    end
     if isfield(variational_samples(1),'delay_mu')
         delay_mu_sample=reshape([variational_samples(:).delay_mu], [n_cell 1]);
         delay_var_sample=reshape([variational_samples(:).delay_sigma], [n_cell 1]).^2;
