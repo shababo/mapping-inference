@@ -192,17 +192,9 @@ for i_ax = 1:length(axis_list)
     mean_params.data.fitted=post_mean;
     mean_params.data.X = params.(ax).X;
     pilot_data.(ax).mean_params=mean_params;
-end
-%     figure(1)
-%     scatter(mean_params.data.X,post_mean)
-%     hold on;
-%     plot(mean_params.grid,mean_params.values)
-%     hold on;
-%     scatter(mean_params.data.X,mean_params.data.Y)
-%% Now estimate the variance over the full shape space:
-for i_ax = 1:length(axis_list)
-    ax=axis_list{i_ax};
-    neurons=pilot_data.(ax).neurons;
+    
+    
+     neurons=pilot_data.(ax).neurons;
 
 observed_values =  params.(ax).Y;
 fitted_values = pilot_data.(ax).mean_params.data.fitted;
@@ -221,6 +213,13 @@ var_params.data.X = params.(ax).X;
 
     pilot_data.(ax).var_params=var_params;
 end
+%     figure(1)
+%     scatter(mean_params.data.X,post_mean)
+%     hold on;
+%     plot(mean_params.grid,mean_params.values)
+%     hold on;
+%     scatter(mean_params.data.X,mean_params.data.Y)
+
 
 %%
 for i_ax = 1:length(axis_list)

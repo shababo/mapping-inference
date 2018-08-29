@@ -3,6 +3,7 @@ function [parameter_history, elbo_rec] = fit_VI(...
     variational_params,prior_params,...
     inference_params,prior_info)
 %%
+
 n_cell=length(neurons);
 n_trial = length(trials);
 
@@ -66,6 +67,7 @@ while (change_history(iteration) > epsilon && iteration<maxit)
         logvariational(s)=get_logdistribution(variational_samples,raw_samples,parameter_current);
         [loglklh(s)] = update_likelihood(trials, variational_samples,parameter_current,...
              background_rate,lklh_func,spike_curves,neurons,prior_info,inference_params,pre_density);
+         
           lklhweight=logprior(s)+loglklh(s)-logvariational(s);
         this_gradient=get_variational_gradient(variational_samples,raw_samples, parameter_current);
         this_gradient=get_variate_control(lklhweight,this_gradient);
