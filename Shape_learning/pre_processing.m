@@ -7,7 +7,11 @@ for i_ax = 1:length(axis_list)
     neurons=pilot_data.(ax).neurons;
     n_cell = length(neurons);
     for i_cell = 1:n_cell
-        [ugrid,~,ua]=unique(neurons(i_cell).stim_grid);
+        if strcmp(ax,'xy')
+            [ugrid,~,ua]=unique(neurons(i_cell).stim_grid','rows');
+        else
+            [ugrid,~,ua]=unique(neurons(i_cell).stim_grid);
+        end
         neurons(i_cell).unique_grid = ugrid;
         neurons(i_cell).avg_current=zeros(length(ugrid),1);
         neurons(i_cell).avg_raw_current=zeros(length(ugrid),1);
@@ -116,13 +120,13 @@ if params.sigma_current_model
 end
 
 %% Find centers using isometic regresson:
-if params.find_shifts % Fit isometric regression to find the mode. 
+if params.find_shifts % Fit isometric regression to find the mode.
     % plot(neurons(1).stim_grid,neurons(1).scaled_current)
     % 1 to ngrid +1
     for i_ax = 1:length(axis_list)
         ax=axis_list{i_ax};
         neurons=pilot_data.(ax).neurons;
-         n_cell = length(neurons);
+        n_cell = length(neurons);
         
         for i_cell = 1:n_cell
             [unique_stim,unique_ia,unique_ic]=unique(neurons(i_cell).stim_grid);
@@ -159,7 +163,7 @@ else % Take 0 as the mode
             neurons(i_cell).initial_shift=0;
             neurons(i_cell).adjusted_grid = neurons(i_cell).stim_grid;
             neurons(i_cell).find_shift=params.find_shifts;
-        
+            
         end
         
         pilot_data.(ax).neurons=neurons;
@@ -171,47 +175,91 @@ for i_ax = 1:length(axis_list)
     ax=axis_list{i_ax};
     neurons=pilot_data.(ax).neurons;
     
-    X=[neurons(:).adjusted_grid]';
-    Y=[neurons(:).scaled_current]';
-    if params.symmetric
-        X=[X; -X];
-        Y=[Y; Y];
+    if ~strcmp(ax,'xy')
+        X=[neurons(:).adjusted_grid]';
+        Y=[neurons(:).scaled_current]';
+        if params.symmetric
+            X=[X; -X];
+            Y=[Y; Y];
+        end
+        params.(ax).X=X;
+        params.(ax).Y=Y;
+        
+        fixed_grid = -(params.(ax).boundary+params.(ax).buffer ):0.1:(params.(ax).boundary+params.(ax).buffer );
+        Xstar=fixed_grid';
+        
+        
+        [pred_mean, post_mean,prior_var] = get_GP_boundary(Xstar, params.(ax));
+        mean_params.grid=fixed_grid;
+        mean_params.values=pred_mean;
+        mean_params.prior_var=prior_var;
+        mean_params.data.Y = params.(ax).Y;
+        mean_params.data.fitted=post_mean;
+        mean_params.data.X = params.(ax).X;
+        pilot_data.(ax).mean_params=mean_params;
+        
+        
+        neurons=pilot_data.(ax).neurons;
+        
+        observed_values =  params.(ax).Y;
+        fitted_values = pilot_data.(ax).mean_params.data.fitted;
+        sqdev=(observed_values-fitted_values).^2;
+        
+        % change the response variable to squared deviation
+        params.(ax).Y=sqdev;
+        
+        [pred_var, post_var,prior_var] = get_GP_boundary(Xstar, params.(ax));
+        var_params.grid=fixed_grid;
+        var_params.values=pred_var;
+        var_params.prior_var=prior_var;
+        
+        var_params.data.Y = params.(ax).Y;
+        var_params.data.X = params.(ax).X;
+        
+        pilot_data.(ax).var_params=var_params;
+    else
+        
+        ax=axis_list{i_ax};
+        neurons=pilot_data.(ax).neurons;
+        
+        X=[neurons(:).adjusted_grid]';
+        Y=[neurons(:).scaled_current]';
+        
+        params.(ax).X=X;
+        params.(ax).Y=Y;
+        
+        fixed_grid_x = -(params.(ax).x.boundary+params.(ax).x.buffer ):5:(params.(ax).x.boundary+params.(ax).x.buffer );
+        fixed_grid_y = -(params.(ax).y.boundary+params.(ax).y.buffer ):5:(params.(ax).y.boundary+params.(ax).y.buffer );
+        [temp1, temp2]=meshgrid(fixed_grid_x,fixed_grid_y);
+        Xstar=[reshape(temp1,[],1)  reshape(temp2,[],1)];
+        %     Xstar=neurons(1).unique_grid;
+        [pred_mean, post_mean,prior_var] = get_2DGP_boundary(Xstar, params.(ax));
+        mean_params.grid=Xstar;
+        mean_params.values=pred_mean;
+        mean_params.prior_var=prior_var;
+        mean_params.data.Y = params.(ax).Y;
+        mean_params.data.fitted=post_mean;
+        mean_params.data.X = params.(ax).X;
+        pilot_data.(ax).mean_params=mean_params;
+        
+        
+        neurons=pilot_data.(ax).neurons;
+        
+        observed_values =  params.(ax).Y;
+        fitted_values = pilot_data.(ax).mean_params.data.fitted;
+        sqdev=(observed_values-fitted_values).^2;
+        % change the response variable to squared deviation
+        params.(ax).Y=sqdev;
+        [pred_var, post_var,prior_var] = get_2DGP_boundary(Xstar, params.(ax));
+        var_params.grid=Xstar;
+        var_params.values=pred_var;
+        var_params.prior_var=prior_var;
+        
+        var_params.data.Y = params.(ax).Y;
+        var_params.data.X = params.(ax).X;
+        
+        pilot_data.(ax).var_params=var_params;
     end
-    params.(ax).X=X;
-    params.(ax).Y=Y;
-    
-    fixed_grid = -(params.(ax).boundary+params.(ax).buffer ):0.1:(params.(ax).boundary+params.(ax).buffer );
-    Xstar=fixed_grid';
-    
-    
-    [pred_mean, post_mean,prior_var] = get_GP_boundary(Xstar, params.(ax));
-    mean_params.grid=fixed_grid;
-    mean_params.values=pred_mean;
-    mean_params.prior_var=prior_var;
-    mean_params.data.Y = params.(ax).Y;
-    mean_params.data.fitted=post_mean;
-    mean_params.data.X = params.(ax).X;
-    pilot_data.(ax).mean_params=mean_params;
-    
-    
-     neurons=pilot_data.(ax).neurons;
-
-observed_values =  params.(ax).Y;
-fitted_values = pilot_data.(ax).mean_params.data.fitted;
-sqdev=(observed_values-fitted_values).^2;
-
-% change the response variable to squared deviation
-params.(ax).Y=sqdev;
-
-[pred_var, post_var,prior_var] = get_GP_boundary(Xstar, params.(ax));
-var_params.grid=fixed_grid;
-var_params.values=pred_var;
-var_params.prior_var=prior_var;
-
-var_params.data.Y = params.(ax).Y;
-var_params.data.X = params.(ax).X;
-
-    pilot_data.(ax).var_params=var_params;
 end
 %     figure(1)
 %     scatter(mean_params.data.X,post_mean)
@@ -229,6 +277,6 @@ for i_ax = 1:length(axis_list)
     for i_cell = 1:n_cell
         neurons(i_cell).fit_gain=params.fit_gain;
     end
-     pilot_data.(ax).neurons=neurons;
+    pilot_data.(ax).neurons=neurons;
 end
 

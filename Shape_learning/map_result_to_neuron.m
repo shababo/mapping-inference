@@ -4,14 +4,16 @@ if ~isempty(varargin)
     oldpath =varargin{1};
 end
 %%
-axis_list= {'x' 'y' 'z'};
+axis_list= {'x' 'y' 'z' 'xy'};
 pilot_data = struct;
 
 
-for i_axis = 1:3
+for i_axis = 1:4
     target_axis=axis_list{i_axis};
-    pilot_data.(target_axis)=struct;
     ax=target_axis;
+     if isfield(path,ax)
+          pilot_data.(target_axis)=struct;
+     
     switch target_axis
         case 'z'
             load(path.(ax));
@@ -24,8 +26,9 @@ for i_axis = 1:3
                 neurons(i_cell).power=50*ones(1,length(neurons(i_cell).stim_grid));
                 neurons(i_cell).raw_current=result_z(i_cell).max_curr';
             end
+            
         case 'x'
-            ax=target_axis;
+            
             load(oldpath);
 %             result_xy=result_xy;
             n_cell = length(result_xy);
@@ -67,8 +70,8 @@ for i_axis = 1:3
                 neurons(i_cell+n_cell).power=50*ones(1,length(neurons(i_cell+n_cell).stim_grid));
                 neurons(i_cell+n_cell).raw_current=result_x(i_cell).max_curr';
             end
+            
         case 'y'
-            ax=target_axis;
             load(oldpath);
 %             result_xy=result_xy_nuc_detect;
             n_cell = length(result_xy);
@@ -102,6 +105,22 @@ for i_axis = 1:3
                 %             neurons(i_cell).spike_times=result_xy(i_cell).(target_axis).spike_times';
                 %         neurons(i_cell).scaled_current= neurons(i_cell).scaled_current/max( neurons(i_cell).scaled_current);
             end
+            
+        case 'xy'
+            load(path.(ax));
+            n_cell = length(result_shape);
+            clear('neurons')
+            neurons(n_cell)=struct;
+            for i_cell = 1:n_cell
+                % Only take the spots at 200 microns
+                center_indices=find(result_shape(i_cell).current_targ_pos(:,3)==200);
+                neurons(i_cell).stim_grid= result_shape(i_cell).current_targ_pos(center_indices,:)';
+                %       neurons(i_cell).max_current=result_xy(i_cell).(ax).current';
+                neurons(i_cell).power=50*ones(1,size(neurons(i_cell).stim_grid,2));
+                neurons(i_cell).raw_current=result_shape(i_cell).max_curr(center_indices)';
+            end
+           
     end
     pilot_data.(target_axis).neurons=neurons;
+    end
 end
