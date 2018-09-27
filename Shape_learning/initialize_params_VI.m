@@ -77,9 +77,12 @@ if strcmp(variational_params(1).shapes.dist,'mvn')
         Full_Kcov= sigma_mat.*Full_Kcor.*sigma_mat';
         
         variational_params(i_cell).shapes.Sigma_inv=inv(Full_Kcov);
+        variational_params(i_cell).shapes.Sigma_inv=( variational_params(i_cell).shapes.Sigma_inv+ variational_params(i_cell).shapes.Sigma_inv')/2;
+        
         Dmat= diag(exp(-variational_params(i_cell).shapes.log_sigma) );
         variational_params(i_cell).shapes.Sigma_tilde_inv=variational_params(i_cell).shapes.Sigma_inv+Dmat;
-        variational_params(i_cell).shapes.Sigma_tilde=inv(variational_params(i_cell).shapes.Sigma_inv+Dmat);
+        variational_params(i_cell).shapes.Sigma_tilde=inv(variational_params(i_cell).shapes.Sigma_inv);
+        variational_params(i_cell).shapes.Sigma_tilde=variational_params(i_cell).shapes.Sigma_tilde+variational_params(i_cell).shapes.Sigma_tilde';
     end
 end
 prior_params=variational_params;
