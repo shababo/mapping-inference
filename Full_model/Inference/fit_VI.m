@@ -118,6 +118,7 @@ while (change_history(iteration) > epsilon && iteration<maxit)
     new_gradient=sum_gradient(gradients,eta,eta_max,iteration);
     [parameter_current, change_history(iteration)]=incorporate_gradient(parameter_current, new_gradient);
     elbo_rec(iteration)=mean(logprior+loglklh-logvariational);
+    
     tend=toc;
     tdiff=tend-tstart;
     fprintf('Iteration %d; change %d; ELBO %d; time %d; \n',iteration,change_history(iteration),elbo_rec(iteration),tdiff)
