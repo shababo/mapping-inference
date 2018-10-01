@@ -37,6 +37,13 @@ for i= 1:length(neurons)
         end
         trials(i_trial).locations=this_location+...
             this_radius*[sin(2*pi*this_angle) cos(2*pi*this_angle) 0];
-        
+        if design_params.repeat_number > 1
+            for i=2:design_params.repeat_number
+                i_trial = i_trial +1;
+                trials(i_trial).locations=this_location+...
+            this_radius*[sin(2*pi*this_angle) cos(2*pi*this_angle) 0];
+                 trials(i_trial).power_levels=randsample(design_params.power_levels,1,true);
+            end
+        end 
     end
 end

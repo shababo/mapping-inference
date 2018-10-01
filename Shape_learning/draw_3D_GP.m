@@ -45,6 +45,8 @@ for i_shape = 1:n_shapes
     GP_samples.full.samples_unique(:,i_shape)=max(0,mvnrnd(GP_samples.full.mean,GP_samples.full.Kcov))';
 %     GP_samples.full.loglklh(i_shape)= log(mvnpdf(GP_samples.full.samples_unique(:,i_shape),GP_samples.full.mean,GP_samples.full.Kcov));
 end
+
+
 GP_samples.full.samples=GP_samples.full.samples_unique(ic,:);
 %  Drawing shifts:
 % GP_samples.full.shifts=zeros(dims,n_shapes);

@@ -10,7 +10,7 @@ if simulation_params.batch.random_shape % false: use mean shape;
 else % use the mean shape
      tmp= draw_3D_GP(simulation_params.mesh_grid,1,GP_params);
     for i=1:n
-        neurons(i).truth.shape= tmp.full.mean;
+        neurons(i).truth.shape= tmp.full.mean(tmp.full.mapping_unique);
     end
     
 end

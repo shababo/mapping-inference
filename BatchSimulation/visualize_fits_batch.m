@@ -4,7 +4,8 @@ function [figure_handle]=visualize_fits_batch(figure_handle,neurons,simulation_p
 
 % neurons=neighbourhood.neurons;
 n_cell = length(neurons);
-flds=fieldnames(neurons(1).posterior_stat(end));
+% flds=fieldnames(neurons(1).posterior_stat(end));
+flds={'gain' 'shapes'};
 i_batch = length(neurons(1).posterior_stat);
 contrast=struct;
 truth_names = {'optical_gain' 'shape'};
