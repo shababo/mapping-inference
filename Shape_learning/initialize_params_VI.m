@@ -39,8 +39,9 @@ for i_trial = 1:length(trials)
                         variational_params(i_cell).shapes.log_sigma=[variational_params(i_cell).shapes.log_sigma; 0];% variance is no longer the original one!
                             case 'mvn'
                                 variational_params(i_cell).shapes.prior_sigma=[variational_params(i_cell).shapes.prior_sigma; sqrt(var_3d)];
-                        variational_params(i_cell).shapes.mean=[variational_params(i_cell).shapes.mean; 0];
-                        variational_params(i_cell).shapes.log_sigma=[variational_params(i_cell).shapes.log_sigma; log(var_3d)];
+                                variational_params(i_cell).shapes.mean=[variational_params(i_cell).shapes.mean; 0];
+                                variational_params(i_cell).shapes.log_sigma=log(variational_params(i_cell).shapes.prior_sigma);
+                                variational_params(i_cell).shapes.log_sigma(:)=1;
                         end
                         trials(i_trial).cell_and_pos{i_loc}=[trials(i_trial).cell_and_pos{i_loc};...
                             i_cell length(variational_params(i_cell).shapes.mean)];
@@ -79,7 +80,7 @@ if strcmp(variational_params(1).shapes.dist,'mvn')
         variational_params(i_cell).shapes.Sigma_inv=inv(Full_Kcov);
         variational_params(i_cell).shapes.Sigma_inv=( variational_params(i_cell).shapes.Sigma_inv+ variational_params(i_cell).shapes.Sigma_inv')/2;
         
-        Dmat= diag(exp(-variational_params(i_cell).shapes.log_sigma) );
+        Dmat= diag(exp(-2*variational_params(i_cell).shapes.log_sigma) );
         variational_params(i_cell).shapes.Sigma_tilde_inv=variational_params(i_cell).shapes.Sigma_inv+Dmat;
         variational_params(i_cell).shapes.Sigma_tilde=inv(variational_params(i_cell).shapes.Sigma_inv);
         variational_params(i_cell).shapes.Sigma_tilde=(variational_params(i_cell).shapes.Sigma_tilde+variational_params(i_cell).shapes.Sigma_tilde')/2;

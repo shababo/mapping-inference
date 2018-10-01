@@ -45,7 +45,7 @@ for i_cell = 1:n_cell
                     % transfer the mean:
                     this_mean=(this_params.bounds.up-this_params.bounds.low).*exp(this_params.mean)./(1+exp(this_params.mean)) +this_params.bounds.low;
                     
-                     raw_samples(i_cell).(fldnames{i_field})=mvnrnd(this_mean,this_params.Sigma_tilde);
+                     raw_samples(i_cell).(fldnames{i_field})=mvnrnd(this_mean,this_params.Sigma_tilde)';
                       variational_samples(i_cell).(fldnames{i_field})=raw_samples(i_cell).(fldnames{i_field});
                 this_sample=this_raw_sample;
                 case 'logit-normal'

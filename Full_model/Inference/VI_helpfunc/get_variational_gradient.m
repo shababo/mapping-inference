@@ -41,7 +41,7 @@ for i_cell = 1:n_cell
                          mean_prod=(this_params.bounds.up-this_params.bounds.low).*exp(this_params.mean)./((1+exp(this_params.mean)).^2);
                          this_mean=(this_params.bounds.up-this_params.bounds.low).*exp(this_params.mean)./(1+exp(this_params.mean))+this_params.bounds.low;
                          dmean=mean_prod.*(this_params.Sigma_tilde_inv*(this_mean-this_raw_sample));
-                         dsigma= ((this_mean-this_raw_sample).^2).*exp(-this_params.log_sigma)/2 - diag(this_params.Sigma_tilde).*exp(-this_params.log_sigma)/2;
+                         dsigma= ((this_mean-this_raw_sample).^2).*exp(-2*this_params.log_sigma)/2 - diag(this_params.Sigma_tilde).*exp(-2*this_params.log_sigma)/2;
                 end
                 
             end

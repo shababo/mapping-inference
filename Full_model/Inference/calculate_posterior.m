@@ -45,11 +45,14 @@ for i_field = 1:length(fldnames)
             if strcmp(this_params.dist,'mvn')
                 this_mean=(this_params.bounds.up-this_params.bounds.low).*exp(this_params.mean)./(1+exp(this_params.mean))...
                     +this_params.bounds.low;
-                Dmat= diag(exp(-this_params.log_sigma) );
-                Sigma_tilde=inv(this_params.Sigma_inv+Dmat);
+                Dmat= diag(exp(-2*this_params.log_sigma) );
+                
+                Sigma_tilde=inv(this_params.Sigma_tilde+Dmat);
                 this_sigma = sqrt(diag(Sigma_tilde));
             end
             for i_loc = 1:length(this_params.mean)
+                  normal_qt =norminv(quantile_prob);%
+                  normal_samples =normrnd(0,1, [100 1]);% for evaluating mean & variance gamma
                 switch this_params.dist
                     case 'mvn'
                         normal_qt=this_mean(i_loc)+normal_qt*this_sigma(i_loc);
