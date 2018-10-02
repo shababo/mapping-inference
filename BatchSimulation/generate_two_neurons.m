@@ -5,12 +5,12 @@ shift_tmp=[0 0 0];
 for i= 1:n % since there are only two neurons
     neurons(i).truth=struct;
     neurons(i).truth.shift=shift_tmp;
-    neurons(i).truth.optical_gain=0.02+(rand([1 1])-0.5)*0.01;
+    neurons(i).truth.optical_gain=0.01+(rand([1 1]))*0.04;
     if simulation_params.batch.single_connection
         if i>1
             neurons(i).truth.PR=0;
         else
-            neurons(i).truth.PR=0.2+unifrnd(0,1)*0.8;
+            neurons(i).truth.PR=0.9;
         end
     else
         neurons(i).truth.PR=0.2+unifrnd(0,1)*0.8;

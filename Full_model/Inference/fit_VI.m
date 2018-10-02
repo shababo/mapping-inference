@@ -11,6 +11,7 @@ epsilon=inference_params.convergence_threshold;
 S=inference_params.MCsamples_for_gradient;
 eta=inference_params.step_size;
 eta_max=inference_params.step_size_max;
+eta_threshold=inference_params.eta_threshold;
 maxit=inference_params.maxit;
 lklh_func=inference_params.likelihood;
 change_history=epsilon+1;
@@ -36,7 +37,7 @@ for i = 1:length(pre_density.normal_grid)
     pre_density.cdf_grid(i) = normcdf(pre_density.normal_grid(i),0,1);
     pre_density.pdf_grid(i)=normpdf(pre_density.normal_grid(i),0,1);
 end
-% S=50;
+% S=100;
 % clear('parameter_history')
 % clear('gradients')
 %%
@@ -78,22 +79,23 @@ while (change_history(iteration) > epsilon && iteration<maxit)
         end
     end
     %%
+    
 %     gains=[];PRs=[];sigmafs=[];meanfs=[];
 %     for i = 1:S
-%     gains(i) = vsam{i}.gain; 
-%     PRs(i) = vsam{i}.PR; 
-%     sigmafs(i)=gradients(i).PR.sigma_f;
-%     meanfs(i)=gradients(i).PR.mean_f;
-%     lklhweight(i)=logprior(i)+loglklh(i)-logvariational(i);
+%     gains(i) = vsam{i}(1).gain; 
+% %     PRs(i) = vsam{i}.PR; 
+% %     sigmafs(i)=gradients(i).PR.sigma_f;
+% %     meanfs(i)=gradients(i).PR.mean_f;
+% %     lklhweight(i)=logprior(i)+loglklh(i)-logvariational(i);
 %     end
 %     figure(1)
 %     scatter(gains,loglklh)
-%     figure(2)
-%     scatter(meanfs,loglklh) 
+% %     figure(2)
+% %     scatter(meanfs,loglklh) 
 %     figure(2)
 %     scatter(PRs,loglklh)
 %     figure(3)
-%     
+    
 %     scatter(PRs,lklhweight)
 %      figure(3)
 %     scatter(PRs,meanfs)
@@ -115,13 +117,14 @@ while (change_history(iteration) > epsilon && iteration<maxit)
 % figure(3)
 % plot(elbo_rec(3:iteration))
 %%
-    new_gradient=sum_gradient(gradients,eta,eta_max,iteration);
+    new_gradient=sum_gradient(gradients,eta,eta_max,iteration,eta_threshold);
     [parameter_current, change_history(iteration)]=incorporate_gradient(parameter_current, new_gradient);
     elbo_rec(iteration)=mean(logprior+loglklh-logvariational);
     
     tend=toc;
     tdiff=tend-tstart;
-    fprintf('Iteration %d; change %d; ELBO %d; time %d; \n',iteration,change_history(iteration),elbo_rec(iteration),tdiff)
+    fprintf('Iteration %d; change %d; time %d; \n',iteration,change_history(iteration),tdiff)
+    % ELBO %d;PR %d; ,elbo_rec(iteration),parameter_current(1,1).PR.mean)
 %     fprintf('PR %d; \n',parameter_current.PR.mean)
 end
 fprintf('VI fitted after %d iteration;\n',iteration)
