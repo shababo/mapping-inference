@@ -6,6 +6,8 @@ for i= 1:n % since there are only two neurons
     neurons(i).truth=struct;
     neurons(i).truth.shift=shift_tmp;
     neurons(i).truth.optical_gain=0.01+(rand([1 1]))*0.04;
+    neurons(i).truth.gain=neurons(i).truth.optical_gain;
+    
     if simulation_params.batch.single_connection
         if i>1
             neurons(i).truth.PR=0;
