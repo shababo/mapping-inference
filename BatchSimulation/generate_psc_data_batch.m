@@ -1,4 +1,5 @@
 function [trials] = generate_psc_data_batch(neurons,trials,stimuli_size,prior_info,background_rate,time_max,delay_indicator)
+%%
 mu_bg =1/background_rate;
 number_of_trials = length(trials);
 number_of_cells =length(neurons);

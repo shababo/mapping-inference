@@ -2,12 +2,15 @@ function [new_gradient]=sum_gradient(gradients,eta,eta_max,iteration,eta_thresho
 %%
 if iteration>eta_threshold
     step_size =  eta*(iteration-eta_threshold)^(-1);
+    step_size_PR =  eta*(iteration-eta_threshold)^(-1.1/2);
+    
+        eta_max_PR=min(eta_max,step_size_PR);
     %     step_size =  eta*(iteration)^(-1);
-    if eta_max>step_size
-        eta_max=step_size;
-    end
+        eta_max=min(eta_max,step_size);
+    
 else
     step_size=eta_max;
+    eta_max_PR=eta_max;
 end
 %%
 fldnames = fieldnames(gradients(1,1));
@@ -137,7 +140,7 @@ for i_cell = 1:n_cell
                 new_gradient(i_cell).(fldnames{i_field}).sigma/scale_tmp;
         else
             grad_scale= max(abs([new_gradient(i_cell).(fldnames{i_field}).mean new_gradient(i_cell).(fldnames{i_field}).sigma]));
-            grad_scale=max(1,grad_scale/eta_max);
+            grad_scale=max(1,grad_scale/(eta_max_PR));
 % grad_scale=max(1,grad_scale/1);
             new_gradient(i_cell).(fldnames{i_field}).mean= ...
                 new_gradient(i_cell).(fldnames{i_field}).mean/grad_scale;

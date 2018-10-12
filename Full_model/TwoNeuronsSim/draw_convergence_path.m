@@ -96,7 +96,7 @@ if params.plot.do
                 hold on;
                 title_string= ['Neuron ' num2str(i_neuron)];
                 if draw_truth
-                    line(1:n_iterations, true_value,'color','r')
+                    line(1:n_iterations, true_value,'color','r','LineStyle','--')
                    title_string=['Neuron ' num2str(i_neuron) '; PR = ' num2str(params.truth.neurons(i_neuron).truth.PR ) ];
                 end
                 xlabel('Iteration')
@@ -149,16 +149,15 @@ if params.plot.do
                 
                       plot(1:n_iterations, means,'color',color_list(i_shape,:))
                     hold on;
-%                     line(1:n_iterations, mps)
-%                     hold on;
-%                     line(1:n_iterations, mms)
-%                     hold on;
+                    line(1:n_iterations, mps,'color',color_list(i_shape,:),'LineStyle',':')
+                    hold on;
+                    line(1:n_iterations, mms,'color',color_list(i_shape,:),'LineStyle',':')
+                    hold on;
                     title_string = ['Neuron ' num2str(i_neuron)];
                     if draw_truth
                         line(1:n_iterations, true_value,'LineStyle','--','color',color_list(i_shape,:))
                         hold on;
-                            title_string=['Neuron ' num2str(i_neuron) '; PR = ' num2str(params.truth.neurons(i_neuron).truth.PR ) ];
-               
+                        title_string=['Neuron ' num2str(i_neuron) '; PR = ' num2str(params.truth.neurons(i_neuron).truth.PR ) ];
                     end
                 end
                     xlabel('Iteration')
@@ -176,7 +175,7 @@ if params.plot.do
         i_field = fldnames{i};
         if ~strcmp(i_field,'shapes')
             for i_neuron =1 :n_neurons
-                i_plot = 2*i_neuron-1+(i-1)*n_neurons;
+                i_plot = 2*i_neuron-1+(i-1)*2*n_neurons;
                 subplot(length(fldnames)-1,2*n_neurons,i_plot);
                 sigmas=parameter_path.(i_field).sigma(:,i_neuron);
                 
@@ -210,7 +209,7 @@ if params.plot.do
                 xlabel([i_field ' (mean)'])
                 ylabel('ELBO')
                 title(title_string)
-                i_plot = 2*i_neuron+(i-1)*n_neurons;
+                i_plot = 2*i_neuron+(i-1)*2*n_neurons;
                 subplot(length(fldnames)-1,2*n_neurons,i_plot);
                 plot(sigmas,parameter_path.elbo_path(2:end))
                 title(title_string)

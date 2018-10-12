@@ -65,7 +65,7 @@ if ~marginal_flag
     grid_gap=pre_density.grid.gap;
     
     gain_sample=reshape([variational_samples(:).gain], [n_cell 1]);
-    if isfield(variational_samples(1),'delay_mu')
+    if isfield(variational_samples(1),'PR')
      
     PR_sample=reshape([variational_samples(:).PR], [n_cell 1]);
     else

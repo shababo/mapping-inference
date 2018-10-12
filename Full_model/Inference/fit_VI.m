@@ -55,14 +55,7 @@ while (change_history(iteration) > epsilon && iteration<maxit)
     for s=1:S
 %         t1=toc;
         [variational_samples,raw_samples] = draw_samples_from_var_dist(parameter_current);
-%         if only_PR
-%             variational_samples.gain=neurons.truth.optical_gain;
-%             variational_samples.delay_mu=neurons.truth.delay_mean;
-%             variational_samples.delay_sigma=sqrt(neurons.truth.delay_var);
-%             variational_samples.shapes=0.747;
-%         else
-% %             variational_samples.PR=0.5; % fixed PR
-%         end
+
         vsam{s}=variational_samples;rsam{s}=raw_samples;
         logprior(s)=get_logdistribution(variational_samples,raw_samples,prior_params);
         logvariational(s)=get_logdistribution(variational_samples,raw_samples,parameter_current);
@@ -78,7 +71,7 @@ while (change_history(iteration) > epsilon && iteration<maxit)
             gradients(s,:)=this_gradient;
         end
     end
-    %%
+    %% 
     
 %     gains=[];PRs=[];sigmafs=[];meanfs=[];
 %     for i = 1:S
