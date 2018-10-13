@@ -3,7 +3,14 @@ function [parameter_history, elbo_rec] = fit_VI(...
     variational_params,prior_params,...
     inference_params,prior_info)
 %%
-
+if isfield(variational_params(1),'PR')
+par_gradients=true;
+else 
+par_gradients=false;
+    
+end
+    
+    
 n_cell=length(neurons);
 n_trial = length(trials);
 
@@ -41,6 +48,28 @@ end
 % clear('parameter_history')
 % clear('gradients')
 %%
+if par_gradients
+loglklh_PR=zeros(S,1);logprior_PR=zeros(S,1);logvariational_PR=zeros(S,1);
+
+    [variational_samples,raw_samples] = draw_samples_from_var_dist(parameter_current);
+       
+variational_mean =variational_samples;
+fldnames= fieldnames(parameter_current);
+raw_mean = variational_samples;
+for i_neuron =1:n_cell
+    for j= 1:length(fldnames)
+        raw_mean(i_neuron).(fldnames{j})=variational_params(i_neuron).(fldnames{j}).mean;
+%         if ~strcmp(fldnames{j},'shapes')
+            this_raw = raw_mean(i_neuron).(fldnames{j});
+            lb= variational_params(i_neuron).(fldnames{j}).bounds.low;
+            ub= variational_params(i_neuron).(fldnames{j}).bounds.up;
+            variational_mean(i_neuron).(fldnames{j})= exp(this_raw)./(1+exp(this_raw)).*(ub-lb)+lb;
+            
+%         end
+    end
+end
+end 
+%%
 tic;
 % ts=zeros(10,1);
 while (change_history(iteration) > epsilon && iteration<maxit)
@@ -51,24 +80,72 @@ while (change_history(iteration) > epsilon && iteration<maxit)
     adjusted_location=zeros(n_cell,3);
     loglklh=zeros(S,1);logprior=zeros(S,1);logvariational=zeros(S,1);
     %% Calculate the stim size using samples from GP and the shifts
-    vsam=cell([S 1]);rsam=cell([S 1]);
-    for s=1:S
-%         t1=toc;
-        [variational_samples,raw_samples] = draw_samples_from_var_dist(parameter_current);
-
-        vsam{s}=variational_samples;rsam{s}=raw_samples;
-        logprior(s)=get_logdistribution(variational_samples,raw_samples,prior_params);
-        logvariational(s)=get_logdistribution(variational_samples,raw_samples,parameter_current);
-        [loglklh(s)] = update_likelihood(trials, variational_samples,parameter_current,...
-             background_rate,lklh_func,spike_curves,neurons,prior_info,inference_params,pre_density);
-         
-          lklhweight=logprior(s)+loglklh(s)-logvariational(s);
-        this_gradient=get_variational_gradient(variational_samples,raw_samples, parameter_current);
-        this_gradient=get_variate_control(lklhweight,this_gradient);
-        if exist('gradients')
-            gradients(s,:) = this_gradient;
-        else
-            gradients(s,:)=this_gradient;
+    if ~par_gradients
+        vsam=cell([S 1]);rsam=cell([S 1]);
+        for s=1:S
+            %         t1=toc;
+            [variational_samples,raw_samples] = draw_samples_from_var_dist(parameter_current);
+            
+            vsam{s}=variational_samples;rsam{s}=raw_samples;
+            logprior(s)=get_logdistribution(variational_samples,raw_samples,prior_params);
+            logvariational(s)=get_logdistribution(variational_samples,raw_samples,parameter_current);
+            [loglklh(s)] = update_likelihood(trials, variational_samples,parameter_current,...
+                background_rate,lklh_func,spike_curves,neurons,prior_info,inference_params,pre_density);
+            
+            lklhweight=logprior(s)+loglklh(s)-logvariational(s);
+            this_gradient=get_variational_gradient(variational_samples,raw_samples, parameter_current);
+            this_gradient=get_variate_control(lklhweight,this_gradient);
+            if exist('gradients')
+                gradients(s,:) = this_gradient;
+            else
+                gradients(s,:)=this_gradient;
+            end
+        end
+    else
+        vsam=cell([S 1]);rsam=cell([S 1]);
+        for s=1:S
+            %         t1=toc;
+            [variational_samples,raw_samples] = draw_samples_from_var_dist(parameter_current);
+            %% Calculate the gradients for PR and other parameters separately
+            vsam{s}=variational_samples;rsam{s}=raw_samples;
+            % for PR:
+            var_sample=  variational_mean;
+            r_sample = raw_mean;
+            for i_neuron =1:n_cell
+                var_sample(i_neuron).PR=variational_samples(i_neuron).PR;
+                r_sample(i_neuron).PR=raw_samples(i_neuron).PR;
+            end
+            logprior_PR(s)=get_logdistribution(var_sample,r_sample,prior_params);
+            logvariational_PR(s)=get_logdistribution(var_sample,r_sample,parameter_current);
+            [loglklh_PR(s)] = update_likelihood(trials, var_sample,parameter_current,...
+                background_rate,lklh_func,spike_curves,neurons,prior_info,inference_params,pre_density);
+            lklhweight=logprior_PR(s)+loglklh_PR(s)-logvariational_PR(s);
+            this_gradient_PR=get_variational_gradient(var_sample,r_sample, parameter_current);
+            this_gradient_PR=get_variate_control(lklhweight,this_gradient_PR);
+            % For the rest of parameters 
+            for i_neuron =1:n_cell
+                variational_samples(i_neuron).PR=variational_mean(i_neuron).PR;
+                raw_samples(i_neuron).PR=raw_mean(i_neuron).PR;
+            end
+          
+            logprior(s)=get_logdistribution(variational_samples,raw_samples,prior_params);
+            logvariational(s)=get_logdistribution(variational_samples,raw_samples,parameter_current);
+            [loglklh(s)] = update_likelihood(trials, variational_samples,parameter_current,...
+                background_rate,lklh_func,spike_curves,neurons,prior_info,inference_params,pre_density);
+            lklhweight=logprior(s)+loglklh(s)-logvariational(s);
+            this_gradient=get_variational_gradient(variational_samples,raw_samples, parameter_current);
+            this_gradient=get_variate_control(lklhweight,this_gradient);
+            
+            % merge gradients: 
+            for i_neuron = 1:n_cell
+            this_gradient(i_neuron).PR=this_gradient_PR(i_neuron).PR;
+            end
+            
+            if exist('gradients')
+                gradients(s,:) = this_gradient;
+            else
+                gradients(s,:)=this_gradient;
+            end
         end
     end
     %% 
