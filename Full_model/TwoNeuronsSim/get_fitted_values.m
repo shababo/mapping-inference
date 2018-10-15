@@ -1,4 +1,4 @@
-function [parameter_path]=get_fitted_values(neurons, trials, new_trials,prior_info,params)
+function [ ]=get_fitted_values(neurons, trials, new_trials,prior_info,params,simulation_params)
 %% Outline:
 % - Draw samples of all relevant parameters from their posterior
 % distributions
@@ -22,7 +22,7 @@ end
 S= params.MC_params.sample_size;
 posterior_samples = cell([S 1]);
 for s =1:S
-    [posterior_samples{s},~] = draw_samples_from_var_dist(variational_params);
+    [posterior_samples{s},~] = draw_samples_from_var_dist(posterior_params);
 end
 %% Draw additional parameters:
 if ~isempty(new_trials)
