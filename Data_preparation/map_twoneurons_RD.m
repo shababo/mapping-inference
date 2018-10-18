@@ -1,5 +1,5 @@
-function [neurons_both trials_both] = map_twoneurons_RD(simulation_params)
-
+function [neurons_both trials_both] = map_twoneurons_RD(rd_path,simulation_params)
+load(rd_path);
 i_exp=5;
 clear('trials_both', 'trials_c1', 'trials_c2');
 n_trial = length(result_full_nrp(i_exp).spike_times_c1);

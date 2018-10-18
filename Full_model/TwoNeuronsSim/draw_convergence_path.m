@@ -73,17 +73,20 @@ if params.plot.do
                         (parameter_path.(i_field).bounds.up-parameter_path.(i_field).bounds.low)+parameter_path.(i_field).bounds.low;
                     mms = exp(means_tmp-sigmas_tmp)./(1+exp(means_tmp-sigmas_tmp))*...
                         (parameter_path.(i_field).bounds.up-parameter_path.(i_field).bounds.low)+parameter_path.(i_field).bounds.low;
-                    
+                       if draw_truth
                     true_value = params.truth.neurons(i_neuron).truth.(i_field)*ones(n_iterations,1);
-                    
+                       end
                 else
                     means_tmp=parameter_path.(i_field).mean(:,i_neuron);
                     sigmas_tmp=parameter_path.(i_field).sigma(:,i_neuron);
                     means =mean_tmp;
                     mps = means_tmp+sigmas_tmp;
                     mms = means_tmp-sigmas_tmp;
+                     if draw_truth
+                    
                     true_tmp=params.truth.neurons(i_neuron).truth.(i_field);
                     true_value = log(true_tmp./(1-true_tmp))*ones(n_iterations,1);
+                     end
                 end
                 %------------------------------%
                 
@@ -191,14 +194,18 @@ if params.plot.do
                     ub =parameter_path.(i_field).bounds.up;
                     lb =parameter_path.(i_field).bounds.low;
                     means = exp(means_tmp)./(1+exp(means_tmp))*(ub-lb)+lb;
+                    if draw_truth
                     true_value = params.truth.neurons(i_neuron).truth.(i_field)*ones(2,1);
-                else
+                    end
+                    else
                            means_tmp=parameter_path.(i_field).mean(:,i_neuron);
                     ub =parameter_path.(i_field).bounds.up;
                     lb =parameter_path.(i_field).bounds.low;
               means =mean_tmp;
+              if draw_truth
                     true_value = log(true_tmp./(1-true_tmp))*ones(2,1);
-                end
+              end  
+              end
                 %------------------------------%
             
                 
