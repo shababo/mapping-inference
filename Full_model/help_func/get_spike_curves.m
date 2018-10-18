@@ -50,7 +50,7 @@ if ~isempty(varargin) && ~isempty(varargin{1})
 else
      
     specs=struct;
-specs.time_max=300;
+specs.time_max=200; % maximum spike time 
 %     specs.F_mean = @(x,xdata)x(1)*exp(-x(2)*xdata) + x(3);
 
     specs.F_mean = @(x,xdata) x(2)./(xdata) + x(3); %min(y_spike_mean) + 
@@ -72,8 +72,8 @@ end
 
 
 %% Call fmincon:
-
-ni_mean=isnan(y_spike_mean) | y_spike_mean > 200 | x_current > 3000 | isnan(x_current);
+% y_spike_mean > specs.time_max 
+ni_mean=isnan(y_spike_mean) |  x_current > specs.current_max | isnan(x_current);
 assignin('base','y_spike_mean',y_spike_mean);
 assignin('base','x_current',x_current);
 % find(ni_mean)

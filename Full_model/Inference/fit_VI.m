@@ -6,14 +6,10 @@ function [parameter_history, elbo_rec] = fit_VI(...
 if isfield(variational_params(1),'PR')
 par_gradients=true;
 else 
-par_gradients=false;
-    
+par_gradients=false; 
 end
-    
-    
 n_cell=length(neurons);
 n_trial = length(trials);
-
 epsilon=inference_params.convergence_threshold;
 S=inference_params.MCsamples_for_gradient;
 eta=inference_params.step_size;
@@ -26,7 +22,6 @@ boundary_params = prior_info.prior_parameters.boundary_params;
 GP_params=prior_info.prior_parameters.GP_params;
 spike_curves=prior_info.induced_intensity;
 parameter_current=variational_params;
-
 if isfield(inference_params, 'event_range')
    for i_trial = 1:length(trials)
       trials(i_trial).event_times=trials(i_trial).event_times( trials(i_trial).event_times < inference_params.event_range(2) &...
@@ -34,14 +29,13 @@ if isfield(inference_params, 'event_range')
    end
 end
 iteration = 1;loglklh_rec=[];
-
 % Calculate a grid for standard normal r.v. for quick CDF calculation:
 pre_density=struct;
 grid.bound=4;grid.gap=0.1;
 pre_density.grid=grid;
 pre_density.normal_grid = -grid.bound:grid.gap:grid.bound;
 for i = 1:length(pre_density.normal_grid)
-    pre_density.cdf_grid(i) = normcdf(pre_density.normal_grid(i),0,1);
+    pre_density.cdf_grid(i) =normcdf(pre_density.normal_grid(i),0,1);
     pre_density.pdf_grid(i)=normpdf(pre_density.normal_grid(i),0,1);
 end
 % S=100;
@@ -49,28 +43,27 @@ end
 % clear('gradients')
 %%
 if par_gradients
-loglklh_PR=zeros(S,1);logprior_PR=zeros(S,1);logvariational_PR=zeros(S,1);
-
+    loglklh_PR=zeros(S,1);logprior_PR=zeros(S,1);logvariational_PR=zeros(S,1);
     [variational_samples,raw_samples] = draw_samples_from_var_dist(parameter_current);
-       
-variational_mean =variational_samples;
-fldnames= fieldnames(parameter_current);
-raw_mean = variational_samples;
-for i_neuron =1:n_cell
-    for j= 1:length(fldnames)
-        raw_mean(i_neuron).(fldnames{j})=variational_params(i_neuron).(fldnames{j}).mean;
-%         if ~strcmp(fldnames{j},'shapes')
+    variational_mean =variational_samples;
+    fldnames= fieldnames(parameter_current);
+    raw_mean = variational_samples;
+    for i_neuron =1:n_cell
+        for j= 1:length(fldnames)
+            raw_mean(i_neuron).(fldnames{j})=variational_params(i_neuron).(fldnames{j}).mean;
+            %         if ~strcmp(fldnames{j},'shapes')
             this_raw = raw_mean(i_neuron).(fldnames{j});
             lb= variational_params(i_neuron).(fldnames{j}).bounds.low;
             ub= variational_params(i_neuron).(fldnames{j}).bounds.up;
             variational_mean(i_neuron).(fldnames{j})= exp(this_raw)./(1+exp(this_raw)).*(ub-lb)+lb;
             
-%         end
+            %         end
+        end
     end
 end
-end 
 %%
 tic;
+fprintf('Threshold %d; S %d\n',eta_threshold,S)
 % ts=zeros(10,1);
 while (change_history(iteration) > epsilon && iteration<maxit)
     %%
@@ -140,7 +133,6 @@ while (change_history(iteration) > epsilon && iteration<maxit)
             for i_neuron = 1:n_cell
             this_gradient(i_neuron).PR=this_gradient_PR(i_neuron).PR;
             end
-            
             if exist('gradients')
                 gradients(s,:) = this_gradient;
             else
@@ -153,10 +145,10 @@ while (change_history(iteration) > epsilon && iteration<maxit)
 %     gains=[];PRs=[];sigmafs=[];meanfs=[];
 %     for i = 1:S
 %     gains(i) = vsam{i}(1).gain; 
-% %     PRs(i) = vsam{i}.PR; 
-% %     sigmafs(i)=gradients(i).PR.sigma_f;
-% %     meanfs(i)=gradients(i).PR.mean_f;
-% %     lklhweight(i)=logprior(i)+loglklh(i)-logvariational(i);
+%     PRs(i) = vsam{i}.PR; 
+%     sigmafs(i)=gradients(i).PR.sigma_f;
+%     meanfs(i)=gradients(i).PR.mean_f;
+%     lklhweight(i)=logprior(i)+loglklh(i)-logvariational(i);
 %     end
 %     figure(1)
 %     scatter(gains,loglklh)

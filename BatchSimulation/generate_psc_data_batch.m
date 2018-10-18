@@ -34,8 +34,9 @@ for i_trial = 1:number_of_trials
     % add background event:
     R = exprnd(mu_bg);
     while R < time_max
+        trials(i_trial).truth.spike_times=[trials(i_trial).truth.spike_times max(1,round(R))];
         trials(i_trial).truth.event_times=[trials(i_trial).truth.event_times max(1,round(R))];
-        trials(i_trial).truth.spike_times=[trials(i_trial).truth.event_times max(1,round(R))];
+        
         trials(i_trial).truth.assignments=[trials(i_trial).truth.assignments 0];
         R = R+exprnd(mu_bg);
     end

@@ -13,13 +13,12 @@ function [trials] = design_batch_trials(neurons,design_params)
 % [neighbourhood.neurons(i_cell_nhood).posterior_stat(end).shift_x.mean ...
 % neighbourhood.neurons(i_cell_nhood).posterior_stat(end).shift_y.mean ...
 % neighbourhood.neurons(i_cell_nhood).posterior_stat(end).shift_z.mean];
-n_trial=design_params.ntrials_per_neuron*length(neurons);
-trials(n_trial) =struct;
+trials(1) =struct;
 radius=design_params.candidate_grid_params.max_radius;
 i_trial =0;
 for i= 1:length(neurons)
     this_location = neurons(i).location;
-    for j= 1:design_params.ntrials_per_neuron
+    for j= 1:design_params.nlocs_per_neuron
         i_trial = i_trial +1;
         trials(i_trial).power_levels=randsample(design_params.power_levels,1,true);
         
@@ -35,10 +34,18 @@ for i= 1:length(neurons)
                 this_radius= (i_ring-1)*(radius/(n_ring-1));
                 this_angle = randsample( 1:n_ring_grid,1)/n_ring_grid;
         end
+        if j==1 & design_params.always_nucleus
+            this_radius=0;
+        end
         trials(i_trial).locations=this_location+...
             this_radius*[sin(2*pi*this_angle) cos(2*pi*this_angle) 0];
         if design_params.repeat_number > 1
-            for i=2:design_params.repeat_number
+            if j==1 & design_params.always_nucleus
+            n_rep=design_params.repeat_number_nucleus;
+            else
+            n_rep=design_params.repeat_number;
+            end
+            for i=2:n_rep
                 i_trial = i_trial +1;
                 trials(i_trial).locations=this_location+...
             this_radius*[sin(2*pi*this_angle) cos(2*pi*this_angle) 0];

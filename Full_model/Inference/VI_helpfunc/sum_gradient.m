@@ -1,13 +1,12 @@
 function [new_gradient]=sum_gradient(gradients,eta,eta_max,iteration,eta_threshold)
 %%
+PR_factor = 10; % PR should converge slower than the gain
 if iteration>eta_threshold
     step_size =  eta*(iteration-eta_threshold)^(-1);
     step_size_PR =  eta*(iteration-eta_threshold)^(-1.1/2);
-    
-        eta_max_PR=min(eta_max,step_size_PR);
+    eta_max_PR=min(eta_max,max(step_size_PR,step_size*PR_factor));
     %     step_size =  eta*(iteration)^(-1);
-        eta_max=min(eta_max,step_size);
-    
+    eta_max=min(eta_max,step_size);
 else
     step_size=eta_max;
     eta_max_PR=eta_max;
@@ -76,10 +75,10 @@ for i_cell = 1:n_cell
                 end
             end
             if ~ strcmp(fldnames{i_field},'PR')
-            grad_max(i_cell)=max([grad_max(i_cell) abs( new_gradient(i_cell).(fldnames{i_field}).mean) abs( new_gradient(i_cell).(fldnames{i_field}).sigma)] );
-            if strcmp(gradients(s,i_cell).(fldnames{i_field}).type, 'spiked-logit-normal')
-                grad_max(i_cell)=max([grad_max(i_cell) abs( new_gradient(i_cell).(fldnames{i_field}).prob_logit) ]);
-            end
+                grad_max(i_cell)=max([grad_max(i_cell) abs( new_gradient(i_cell).(fldnames{i_field}).mean) abs( new_gradient(i_cell).(fldnames{i_field}).sigma)] );
+                if strcmp(gradients(s,i_cell).(fldnames{i_field}).type, 'spiked-logit-normal')
+                    grad_max(i_cell)=max([grad_max(i_cell) abs( new_gradient(i_cell).(fldnames{i_field}).prob_logit) ]);
+                end
             end
         else % for shapes:
             n_locs = length(gradients(s,i_cell).(fldnames{i_field}).mean_f);
@@ -132,8 +131,10 @@ for i_cell = 1:n_cell
     
     for i_field = 1:length(fldnames)
         if  ~strcmp(fldnames{i_field},'PR')
-            max_tmp=max(abs([new_gradient(i_cell).(fldnames{i_field}).mean, new_gradient(i_cell).(fldnames{i_field}).sigma]));
-            scale_tmp = max(1,max_tmp/eta_max);
+%             max_tmp=max(abs([new_gradient(i_cell).(fldnames{i_field}).mean, new_gradient(i_cell).(fldnames{i_field}).sigma]));
+%             scale_tmp = max(1,max_tmp/eta_max);
+            scale_tmp = max(1,grad_max(i_cell)/eta_max);
+            
             new_gradient(i_cell).(fldnames{i_field}).mean= ...
                 new_gradient(i_cell).(fldnames{i_field}).mean/scale_tmp;
             new_gradient(i_cell).(fldnames{i_field}).sigma= ...

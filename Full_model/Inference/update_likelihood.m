@@ -43,7 +43,7 @@ if ~marginal_flag
     end
     % t2=toc;
     
-    Tmax=spike_curves.time_max;Tmin=0;
+    Tmax=spike_curves.time_max;Tmin=0; % This is the range for spike times, not psc event times!
     if isfield(inference_params, 'event_range')
         Tmax = inference_params.event_range(2);
         Tmin = inference_params.event_range(1);

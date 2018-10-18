@@ -10,7 +10,7 @@ function [ ]=get_fitted_values(neurons, trials, new_trials,prior_info,params,sim
 % - Visualize the predicted/fitted spike times v.s. true times
 params.MC_params.sample_size=100;
 n_cell = length(neurons);
-Tmax=500;
+Tmax=250;
 %% Extract posterior information from neurons
 
 clear('posterior_params')
@@ -229,13 +229,13 @@ for i_unq = 1:n_unq
         line([true_event_time(idx) true_event_time(idx)],event_times_sum(idx,[1 3]),'LineStyle',':','LineWidth',0.2,'Color',color_list(pow_ind(i),:))
         hold on;
     end
-    xlim([0 Tmax]);ylim([0 Tmax]);
-    line([0 Tmax], [0 Tmax])
+   xlim([min(true_event_time(these_indices)) max(true_event_time(these_indices))+1]);ylim([min(event_times_sum(these_indices,1)) max(event_times_sum(these_indices, 3))+1]);
+     line([0 Tmax], [0 Tmax])
     xlabel('Observed (ms)');ylabel('Predicted (ms)')
-    title(['Event time at ' num2str(unique_loc(i_unq,1)) ' ' num2str(unique_loc(i_unq,2)) ' ' num2str(unique_loc(i_unq,3))]);
+    title(['Event time at ' num2str(round(unique_loc(i_unq,1),1) ) ' ' num2str(round(unique_loc(i_unq,2),1)) ' ' num2str(round(unique_loc(i_unq,3),1))]);
       for i_pow = 1:length(unique_pow)
         txt_string = ['Power ' num2str(unique_pow(i_pow))];
-        text(400,30*i_pow,txt_string,'Color', color_list(i_pow,:))
+        text(Tmax*0.8,30*i_pow,txt_string,'Color', color_list(i_pow,:))
     end
 end
 
@@ -295,13 +295,14 @@ for i_unq = 1:n_unq
         hold on;
         
     end
-    xlim([0 Tmax]);ylim([0 Tmax]);
+    xlim([min(true_event_time(these_indices)) max(true_event_time(these_indices))+1]);ylim([min(event_times_sum(these_indices,1)) max(event_times_sum(these_indices, 3))+1]);
     line([0 Tmax], [0 Tmax])
     xlabel('Observed (ms)');ylabel('Predicted (ms)')
-    title(['Event time at ' num2str(unique_loc(i_unq,1)) ' ' num2str(unique_loc(i_unq,2)) ' ' num2str(unique_loc(i_unq,3))]);
+    title(['Event time at ' num2str(round(unique_loc(i_unq,1),1)) ' '...
+        num2str(round(unique_loc(i_unq,2),1)) ' ' num2str(round(unique_loc(i_unq,3),1))]);
     for i_pow = 1:length(unique_pow)
         txt_string = ['Power ' num2str(unique_pow(i_pow))];
-        text(400,30*i_pow,txt_string,'Color', color_list(i_pow,:))
+        text(Tmax*0.8,30*i_pow,txt_string,'Color', color_list(i_pow,:))
     end
 end
 
@@ -356,7 +357,7 @@ ts_range = [min(true_shapes{i_cell}) max(true_shapes{i_cell})];
  xlim(ts_range);ylim(ts_range);
  line(ts_range, ts_range)
  xlabel('True values');ylabel('Posteriors')
- title('Shape values for fitted trials');
+ title(['Shape values for fitted trials; Neuron ' num2str(i_cell)]);
 end
 
 
@@ -376,7 +377,7 @@ ts_range = [min(true_shapes{i_cell}) max(true_shapes{i_cell})]*neurons(i_cell).t
 xlim(ts_range);ylim(ts_range);
  line(ts_range, ts_range)
  xlabel('True values');ylabel('Posteriors')
- title('Shape*gain values for fitted trials');
+ title(['Shape*gain values for fitted trials; Neuron ' num2str(i_cell)]);
 end
 %% Visualize predicted posteriors of shapes v.s. true shapes for new trials 
   
@@ -429,7 +430,7 @@ ts_range = [min(true_shapes{i_cell})-0.1 max(true_shapes{i_cell})+0.1];
  xlim(ts_range);ylim(ts_range);
  line(ts_range, ts_range)
  xlabel('True values');ylabel('Posteriors')
- title('Shape values for new trials');
+ title(['Shape values for new trials; Neuron ' num2str(i_cell)]);
 end
 
 
@@ -451,7 +452,7 @@ xlim(ts_range);ylim(ts_range);
  line(ts_range, ts_range)
  
  xlabel('True values');ylabel('Posteriors')
- title('Shape*gain values for new trials');
+ title(['Shape*gain values for new trials; Neuron ' num2str(i_cell)]);
 end
 
 

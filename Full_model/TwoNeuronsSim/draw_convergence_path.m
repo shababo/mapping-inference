@@ -61,7 +61,7 @@ if params.plot.do
         if ~strcmp(i_field,'shapes')
             for i_neuron =1 :n_neurons
                 i_plot = i_neuron+(i-1)*n_neurons;
-                subplot(length(fldnames),n_neurons,i_plot);
+                subplot(length(fldnames)-1,n_neurons,i_plot);
                 
                 % Should wrap this up as a function:
                 if params.plot.original_scale
@@ -106,66 +106,72 @@ if params.plot.do
             end
         else
             % Draw shapes:
-            for i_neuron =1 :n_neurons
-                i_plot = i_neuron+(i-1)*n_neurons;
-                subplot(length(fldnames),n_neurons,i_plot);
-                n_shapes = size(parameter_path.(i_field).neurons(i_neuron).mean,2);
-                color_list= lines(n_shapes);
-                for i_shape = 1:n_shapes
-                    
-                     % Should wrap this up as a function:
-                if params.plot.original_scale
-                    means_tmp=parameter_path.(i_field).neurons(i_neuron).mean(:,i_shape);
-                    sigmas_tmp=parameter_path.(i_field).neurons(i_neuron).sigma(:,i_shape);
-                    ub =parameter_path.(i_field).neurons(i_neuron).bounds.up(i_shape);
-                    lb =parameter_path.(i_field).neurons(i_neuron).bounds.low(i_shape);
-                    
-                    means = exp(means_tmp)./(1+exp(means_tmp))*(ub-lb)+lb;
-                    mps = exp(means_tmp+sigmas_tmp)./(1+exp(means_tmp+sigmas_tmp))*(ub-lb)+lb;
-                    mms = exp(means_tmp-sigmas_tmp)./(1+exp(means_tmp-sigmas_tmp))*(ub-lb)+lb;
- 
-                    rel_loc =  parameter_path.(i_field).neurons(i_neuron).location(i_shape,:);
-                    this_size = griddata(params.mesh_grid(:,1),params.mesh_grid(:,2),params.mesh_grid(:,3),...
-                        params.truth.neurons(i_neuron).truth.shape,rel_loc(1),rel_loc(2),rel_loc(3),'linear');
-                    true_value = this_size*ones(n_iterations,1);
-                else
-                    means_tmp=parameter_path.(i_field).mean(:,i_neuron);
-                    sigmas_tmp=parameter_path.(i_field).sigma(:,i_neuron);
-                    means =mean_tmp;
-                    mps = means_tmp+sigmas_tmp;
-                    mms = means_tmp-sigmas_tmp;
-                    
-                    ub =parameter_path.(i_field).neurons(i_neuron).bounds.up(i_shape);
-                    lb =parameter_path.(i_field).neurons(i_neuron).bounds.low(i_shape);
-                    rel_loc =  parameter_path.(i_field).neurons(i_neuron).location(i_shape,:);
-                    this_size = griddata(params.mesh_grid(:,1),params.mesh_grid(:,2),params.mesh_grid(:,3),...
-                        params.truth.neurons(i_neuron).truth.shape,rel_loc(1),rel_loc(2),rel_loc(3),'linear');
-                    
-                    
-                    true_value = log(this_size./(1-this_size))*ones(n_iterations,1);
-                end
-                %------------------------------%
-                
-                
-                      plot(1:n_iterations, means,'color',color_list(i_shape,:))
-                    hold on;
-                    line(1:n_iterations, mps,'color',color_list(i_shape,:),'LineStyle',':')
-                    hold on;
-                    line(1:n_iterations, mms,'color',color_list(i_shape,:),'LineStyle',':')
-                    hold on;
-                    title_string = ['Neuron ' num2str(i_neuron)];
-                    if draw_truth
-                        line(1:n_iterations, true_value,'LineStyle','--','color',color_list(i_shape,:))
-                        hold on;
-                        title_string=['Neuron ' num2str(i_neuron) '; PR = ' num2str(params.truth.neurons(i_neuron).truth.PR ) ];
-                    end
-                end
-                    xlabel('Iteration')
-                ylabel(i_field)
-           
-             title(title_string)
-             
-            end
+% %             Use dotted curves to represent paths of spikes
+%             for i_neuron =1 :n_neurons
+%                 i_plot = i_neuron+(i-1)*n_neurons;
+%                 subplot(length(fldnames),n_neurons,i_plot);
+%                 n_shapes = size(parameter_path.(i_field).neurons(i_neuron).mean,2);
+%                 color_list= lines(n_shapes);
+%                 for i_shape = 1:n_shapes
+%                     
+%                      % Should wrap this up as a function:
+%                 if params.plot.original_scale
+%                     means_tmp=parameter_path.(i_field).neurons(i_neuron).mean(:,i_shape);
+%                     sigmas_tmp=parameter_path.(i_field).neurons(i_neuron).sigma(:,i_shape);
+%                     ub =parameter_path.(i_field).neurons(i_neuron).bounds.up(i_shape);
+%                     lb =parameter_path.(i_field).neurons(i_neuron).bounds.low(i_shape);
+%                     
+%                     means = exp(means_tmp)./(1+exp(means_tmp))*(ub-lb)+lb;
+%                     mps = exp(means_tmp+sigmas_tmp)./(1+exp(means_tmp+sigmas_tmp))*(ub-lb)+lb;
+%                     mms = exp(means_tmp-sigmas_tmp)./(1+exp(means_tmp-sigmas_tmp))*(ub-lb)+lb;
+%  
+%                     rel_loc =  parameter_path.(i_field).neurons(i_neuron).location(i_shape,:);
+%                     this_size = griddata(params.mesh_grid(:,1),params.mesh_grid(:,2),params.mesh_grid(:,3),...
+%                         params.truth.neurons(i_neuron).truth.shape,rel_loc(1),rel_loc(2),rel_loc(3),'linear');
+%                     true_value = this_size*ones(n_iterations,1);
+%                 else
+%                     means_tmp=parameter_path.(i_field).mean(:,i_neuron);
+%                     sigmas_tmp=parameter_path.(i_field).sigma(:,i_neuron);
+%                     means =mean_tmp;
+%                     mps = means_tmp+sigmas_tmp;
+%                     mms = means_tmp-sigmas_tmp;
+%                     
+%                     ub =parameter_path.(i_field).neurons(i_neuron).bounds.up(i_shape);
+%                     lb =parameter_path.(i_field).neurons(i_neuron).bounds.low(i_shape);
+%                     rel_loc =  parameter_path.(i_field).neurons(i_neuron).location(i_shape,:);
+%                     this_size = griddata(params.mesh_grid(:,1),params.mesh_grid(:,2),params.mesh_grid(:,3),...
+%                         params.truth.neurons(i_neuron).truth.shape,rel_loc(1),rel_loc(2),rel_loc(3),'linear');
+%                     
+%                     
+%                     true_value = log(this_size./(1-this_size))*ones(n_iterations,1);
+%                 end
+%                 %------------------------------%
+%                 
+%                     if draw_truth
+%                         
+%                     plot([true_value(1) true_value(1)], means([1 end]),'color',color_list(i_shape,:),...
+%                         'LineStyle','--')
+%                     hold on;
+%                     scatter(true_value(1), means(end),'MarkerFaceColor',color_list(i_shape,:))
+%                     hold on;
+%                   
+% %                     line(1:n_iterations, mps,'color',color_list(i_shape,:),'LineStyle',':')
+% %                     hold on;
+% %                     line(1:n_iterations, mms,'color',color_list(i_shape,:),'LineStyle',':')
+% %                     hold on;
+%                     title_string = ['Neuron ' num2str(i_neuron)];
+%                     
+% %                     line(1:n_iterations, true_value,'LineStyle','--','color',color_list(i_shape,:))
+% %                         hold on;
+% %                         title_string=['Neuron ' num2str(i_neuron) '; PR = ' num2str(params.truth.neurons(i_neuron).truth.PR ) ];
+%                     end
+%                 end
+%                     xlabel('Iteration')
+%                 ylabel(i_field)
+%            
+%              title(title_string)
+%                line([0 1],[0, 1])
+%             end
         end
     end
     
