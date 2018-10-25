@@ -27,9 +27,20 @@ end
 %% Draw additional parameters:
 if ~isempty(new_trials)
     [new_shape_params]=get_new_shape_conditional(neurons,new_trials,prior_info);
-    new_shape_samples = cell([S 1]);
-    for s=1:S
-        [new_shape_samples{s}]=draw_samples_from_shape_conditional(new_shape_params,posterior_samples{s});
+    if size(new_shape_params,1)==0
+        new_shape_samples = cell([S 1]);
+        for s=1:S
+            [new_shape_samples{s}]=draw_samples_from_shape_conditional(new_shape_params,posterior_samples{s});
+        end
+    else
+        new_shape_samples=cell([S 1]);
+        emp_struct=struct;
+        for i_cell = 1:n_cell
+           emp_struct(i_cell).shapes=[]; 
+        end
+        for s=1:S
+            new_shape_samples{s}=emp_struct;%draw_samples_from_shape_conditional(new_shape_params,posterior_samples{s});
+        end
     end
 end
 %% Draw spike times on the fitted trials
@@ -229,7 +240,9 @@ for i_unq = 1:n_unq
         line([true_event_time(idx) true_event_time(idx)],event_times_sum(idx,[1 3]),'LineStyle',':','LineWidth',0.2,'Color',color_list(pow_ind(i),:))
         hold on;
     end
-   xlim([min(true_event_time(these_indices)) max(true_event_time(these_indices))+1]);ylim([min(event_times_sum(these_indices,1)) max(event_times_sum(these_indices, 3))+1]);
+    xlim([0 Tmax]); ylim([0 Tmax]);
+%     xlim([min(true_event_time(these_indices)) max(true_event_time(these_indices))+1]);
+%    ylim([min(event_times_sum(these_indices,1)) max(event_times_sum(these_indices, 3))+1]);
      line([0 Tmax], [0 Tmax])
     xlabel('Observed (ms)');ylabel('Predicted (ms)')
     title(['Event time at ' num2str(round(unique_loc(i_unq,1),1) ) ' ' num2str(round(unique_loc(i_unq,2),1)) ' ' num2str(round(unique_loc(i_unq,3),1))]);

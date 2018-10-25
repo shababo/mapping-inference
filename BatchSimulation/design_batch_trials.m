@@ -33,24 +33,32 @@ for i= 1:length(neurons)
                 
                 this_radius= (i_ring-1)*(radius/(n_ring-1));
                 this_angle = randsample( 1:n_ring_grid,1)/n_ring_grid;
+                  
         end
-        if j==1 & design_params.always_nucleus
-            this_radius=0;
-        end
-        trials(i_trial).locations=this_location+...
-            this_radius*[sin(2*pi*this_angle) cos(2*pi*this_angle) 0];
-        if design_params.repeat_number > 1
+        if strcmp(design_params.grid_type,'chosen')
+            this_trial_location= design_params.chosen_locations(j,:);
+        else
             if j==1 & design_params.always_nucleus
+                this_radius=0;
+            end
+            this_trial_location=this_location+...
+                this_radius*[sin(2*pi*this_angle) cos(2*pi*this_angle) 0];
+        end
+        
+        if j==1 & design_params.always_nucleus
             n_rep=design_params.repeat_number_nucleus;
-            else
+        else
             n_rep=design_params.repeat_number;
+        end
+        
+        for i_pow = 1:length(design_params.power_levels)
+            for i=1:n_rep
+                    i_trial = i_trial + (i_pow-1)*n_rep+i-1;
+        
+                   trials(i_trial).locations=this_trial_location;
+                trials(i_trial).power_levels=design_params.power_levels(i_pow);
             end
-            for i=2:n_rep
-                i_trial = i_trial +1;
-                trials(i_trial).locations=this_location+...
-            this_radius*[sin(2*pi*this_angle) cos(2*pi*this_angle) 0];
-                 trials(i_trial).power_levels=randsample(design_params.power_levels,1,true);
-            end
-        end 
+        end
+        
     end
 end

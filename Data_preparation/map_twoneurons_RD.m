@@ -1,9 +1,10 @@
-function [neurons_both trials_both] = map_twoneurons_RD(rd_path,simulation_params)
+function [neurons_both, trials_sum] = map_twoneurons_RD(i_exp,rd_path)
 load(rd_path);
-i_exp=5;
 clear('trials_both', 'trials_c1', 'trials_c2');
 n_trial = length(result_full_nrp(i_exp).spike_times_c1);
 n_cell = 2;
+trials_sum=struct;
+
 trials_both(n_trial)=struct;
 % trials_c1(n_trial)=struct;trials_c2(n_trial)=struct;
 
@@ -40,3 +41,6 @@ neurons_both(1).location=result_full_nrp(i_exp).c1_pos;
 neurons_both(1).cell_ID=1;
 neurons_both(2).location=result_full_nrp(i_exp).c2_pos;
 neurons_both(2).cell_ID=2;
+trials_sum.trials_both=trials_both;
+trials_sum.trials_c1=trials_c1;
+trials_sum.trials_c2=trials_c2;

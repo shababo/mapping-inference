@@ -18,7 +18,7 @@ new_shape_sample(n_cell)=struct;
 for i_cell =1:n_cell
     this_param=new_shape_params(i_cell);
    old_shape_values = posterior_sample(i_cell).shapes; 
-   new_shape_mean = this_param.mean_new - this_param.Sigma_mean*(old_shape_values- this_param.mean_old);
+   new_shape_mean = this_param.mean_new + this_param.Sigma_mean*(old_shape_values- this_param.mean_old); %
    
    new_shape_sample(i_cell).shapes=mvnrnd(new_shape_mean,this_param.Sigma_cond)';
    
