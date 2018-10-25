@@ -135,7 +135,7 @@ for i_cell = 1:n_cell
 %             scale_tmp = max(1,max_tmp/eta_max);
 %             scale_tmp = max(1,grad_max(i_cell)/eta_max);
             
-            
+%             grad_scale=max(abs([new_gradient(i_cell).(fldnames{i_field}).mean, new_gradient(i_cell).(fldnames{i_field}).sigma]));
             grad_scale= max(abs([new_gradient(i_cell).(fldnames{i_field}).mean]));
             grad_scale=max(1,grad_scale/(eta_max));
             new_gradient(i_cell).(fldnames{i_field}).mean= ...

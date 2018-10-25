@@ -1,4 +1,4 @@
-function [neurons, stimuli_size] = get_stim_size_batch(neurons,trials,simulation_params)
+function [stimuli_size] = get_stim_size_batch(neurons,trials,simulation_params)
 number_of_trials = length(trials);
 number_of_cells =length(neurons);
 stimuli_size=zeros(number_of_trials,number_of_cells);
