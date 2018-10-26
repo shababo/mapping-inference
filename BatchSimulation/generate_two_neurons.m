@@ -35,7 +35,7 @@ for i= 1:n % since there are only two neurons
         neurons(i).truth.location=[0 0 0];
     end
     %     one_neuron.truth.PR=gamma_truth(i_cell);
-    if simulation_params.batch.delay
+    if simulation_params.batch.delay_indicator
         neurons(i).truth.delay_mean=(rand(1)-0.5)*40+20;
         neurons(i).truth.delay_var=(rand(1)-0.5)*20+15;
     else

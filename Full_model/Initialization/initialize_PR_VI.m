@@ -1,8 +1,8 @@
 function [variational_params]=initialize_PR_VI(variational_params,neurons,...
-    trials,prior_info,inference_params,background_rate)
+    trials,prior_info,inference_params,background_rate,reg_type)
 %%
-%  reg_type='univariate';
-reg_type='linear';
+ reg_type='univariate';
+% reg_type='linear';
 app_threshold =3;
 
 n_cell=length(variational_params);
@@ -21,7 +21,7 @@ switch reg_type
                 relevant_flag = false;
                 for i_loc = 1:size(trials(i_trial).locations,1)
                     rel_position=trials(i_trial).locations(i_loc,:)-this_adjusted_loc;
-                    this_relevant_flag =check_in_boundary(rel_position,boundary_params);
+                    this_relevant_flag =check_in_boundary(rel_position,initial_boundary_params);
                     if  this_relevant_flag
                         relevant_flag =true;
                     end
@@ -33,7 +33,7 @@ switch reg_type
             end
             if ~isempty(relevant_trials)
                 PR_initial=responsive_counts/length(relevant_trials);
-                PR_initial = max(0.01,PR_initial);
+                PR_initial = min(0.99,max(0.01,PR_initial));
                 variational_params(i_cell).PR.mean=log(PR_initial/(1-PR_initial));
             end
         end
@@ -62,6 +62,8 @@ switch reg_type
                 design_matrix(i_trial,i_cell)= relevant_flag;
             end
         end
+        
+        
         mdl = fitlm(design_matrix,event_counts-background_rate,'Intercept',false);
         betahat=mdl.Coefficients.Estimate;
         for i_cell = 1:n_cell

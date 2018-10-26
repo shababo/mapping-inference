@@ -1,4 +1,9 @@
-function [trials] = generate_psc_data_batch(neurons,trials,stimuli_size,prior_info,background_rate,time_max,delay_indicator)
+function [trials] = generate_psc_data_batch(neurons,trials,stimuli_size,prior_info,simulation_params)
+%% 
+background_rate=simulation_params.background_rate;
+spike_time_max=prior_info.induced_intensity.spike_time_max;
+event_time_max=prior_info.induced_intensity.event_time_max;
+delay_indicator=simulation_params.batch.delay_indicator;
 %%
 mu_bg =1/background_rate;
 number_of_trials = length(trials);
@@ -19,7 +24,7 @@ for i_trial = 1:number_of_trials
                 for i = 1:length(spikes)
                     if rand(1) < params_sim.PR
                         % censoring at time max:
-                        if events(i)<time_max
+                        if events(i)<event_time_max & spikes(i)<spike_time_max
                             trials(i_trial).truth.event_times=[trials(i_trial).truth.event_times events(i)];
                             trials(i_trial).truth.spike_times=[trials(i_trial).truth.spike_times spikes(i)];
                             trials(i_trial).truth.assignments=[trials(i_trial).truth.assignments neurons(i_cell).cell_ID];
@@ -33,7 +38,7 @@ for i_trial = 1:number_of_trials
     
     % add background event:
     R = exprnd(mu_bg);
-    while R < time_max
+    while R < event_time_max
         trials(i_trial).truth.spike_times=[trials(i_trial).truth.spike_times max(1,round(R))];
         trials(i_trial).truth.event_times=[trials(i_trial).truth.event_times max(1,round(R))];
         
