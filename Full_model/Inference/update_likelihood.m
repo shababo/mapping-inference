@@ -73,9 +73,12 @@ if ~marginal_flag
     end
     if isfield(variational_samples(1),'delay_mu')
         delay_mu_sample=reshape([variational_samples(:).delay_mu], [n_cell 1]);
-        delay_var_sample=reshape([variational_samples(:).delay_sigma], [n_cell 1]).^2;
     else
         delay_mu_sample=zeros([n_cell 1]);
+    end
+    if isfield(variational_samples(1),'delay_sigma')
+    delay_var_sample=reshape([variational_samples(:).delay_sigma], [n_cell 1]).^2;
+    else
         delay_var_sample=0.001*ones([n_cell 1]).^2;
     end
     %

@@ -11,8 +11,13 @@ function [ ]=get_fitted_values(neurons, trials, new_trials,prior_info,params,sim
 params.MC_params.sample_size=100;
 n_cell = length(neurons);
 Tmax=250;
+time_factor = 20;
 %% Extract posterior information from neurons
-
+if isempty(new_trials)
+    params.prediction=false;
+else
+    params.prediction=true;
+end
 clear('posterior_params')
 for i_cell = 1:n_cell
     posterior_params(i_cell)=neurons(i_cell).params(end);
@@ -25,8 +30,11 @@ for s =1:S
     [posterior_samples{s},~] = draw_samples_from_var_dist(posterior_params);
 end
 %% Draw additional parameters:
-if ~isempty(new_trials)
-    [new_shape_params]=get_new_shape_conditional(neurons,new_trials,prior_info);
+if params.prediction
+%     [new_shape_params]=get_new_shape_conditional(neurons,new_trials,prior_info);
+            [new_shape_params]=get_new_shape_conditional(current_params,new_locations,prior_info);
+
+            
     if size(new_shape_params,1)==0
         new_shape_samples = cell([S 1]);
         for s=1:S
@@ -65,7 +73,6 @@ for i_cell = 1:n_cell
                 delay_params=struct;
                 delay_params.delay_mean=0;
                 delay_params.delay_var=1e-3;
-                
             end
             [spikes,events] = spike_curves_sim(stim,delay_params,prior_info.induced_intensity);
             if isempty(spikes)
@@ -94,7 +101,7 @@ for i_cell = 1:n_cell
     end
 end
 %% Draw spike & event time on new trials 
-
+if params.prediction
 for i_cell = 1:n_cell
     merged_locations=[neurons(i_cell).params(end).shapes.locations; new_shape_params(i_cell).locations];
     for i_trial =1:length(new_trials)
@@ -145,7 +152,7 @@ for i_cell = 1:n_cell
         end
     end
 end
-
+end
 %% Visualization:
 %     - Fits
 %         Draw scatter plot that visualize the shape estimates v.s. the true values
@@ -186,7 +193,7 @@ prs=[0.1 0.5 0.9];
 for i_trial = 1:n_trials
     %  trials(i_trial).fitted.spike_times
     trials(i_trial).fitted_summary.spike_times=quantile(trials(i_trial).fitted.spike_times,prs);
-    trials(i_trial).fitted_summary.event_times=quantile(trials(i_trial).fitted.spike_times,prs);
+    trials(i_trial).fitted_summary.event_times=quantile(trials(i_trial).fitted.event_times,prs);
 end
 
 %% Scatter plot:
@@ -203,14 +210,14 @@ for i_trial = 1:n_trials
 end
 
 figure(1)
-scatter(true_event_time,event_times_sum(:,2),25,'MarkerEdgeColor','b','MarkerFaceColor','b')
+scatter(true_event_time/time_factor,event_times_sum(:,2)/time_factor,25,'MarkerEdgeColor','b','MarkerFaceColor','b')
 hold on;
 for i_trial = 1:n_trials
-line([true_event_time(i_trial) true_event_time(i_trial)],event_times_sum(i_trial,[1 3]),'LineStyle',':','LineWidth',0.2,'Color','b')
+line([true_event_time(i_trial) true_event_time(i_trial)]/time_factor,event_times_sum(i_trial,[1 3])/time_factor,'LineStyle',':','LineWidth',0.2,'Color','b')
 hold on;
 end
- xlim([0 Tmax]);ylim([0 Tmax]);
- line([0 Tmax], [0 Tmax])
+ xlim([0 Tmax]/time_factor);ylim([0 Tmax]/time_factor);
+ line([0 Tmax]/time_factor, [0 Tmax]/time_factor)
  xlabel('Observed (ms)');ylabel('Predicted (ms)')
  title('Event time');
 
@@ -232,27 +239,28 @@ for i_unq = 1:n_unq
     % gather the power information:
     [unique_pow, ~, pow_ind]=unique([these_trials.power_levels]);
     color_list=lines(length(unique_pow));
-    for i=1:length(these_trials)
-        idx=these_indices(i);
-        scatter(true_event_time(idx),event_times_sum(idx,2),25,'MarkerEdgeColor',color_list(pow_ind(i),:),...
-            'MarkerFaceColor',color_list(pow_ind(i),:))
+    for i_trial=1:length(these_trials)
+        idx=these_indices(i_trial);
+        scatter(true_event_time(idx)/time_factor,event_times_sum(idx,2)/time_factor,25,'MarkerEdgeColor',color_list(pow_ind(i_trial),:),...
+            'MarkerFaceColor',color_list(pow_ind(i_trial),:))
         hold on;
-        line([true_event_time(idx) true_event_time(idx)],event_times_sum(idx,[1 3]),'LineStyle',':','LineWidth',0.2,'Color',color_list(pow_ind(i),:))
+        line([true_event_time(idx) true_event_time(idx)]/time_factor,event_times_sum(idx,[1 3])/time_factor,'LineStyle',':','LineWidth',0.2,'Color',color_list(pow_ind(i_trial),:))
         hold on;
     end
-    xlim([0 Tmax]); ylim([0 Tmax]);
+    xlim([0 Tmax]/time_factor); ylim([0 Tmax]/time_factor);
 %     xlim([min(true_event_time(these_indices)) max(true_event_time(these_indices))+1]);
 %    ylim([min(event_times_sum(these_indices,1)) max(event_times_sum(these_indices, 3))+1]);
-     line([0 Tmax], [0 Tmax])
+     line([0 Tmax]/time_factor, [0 Tmax]/time_factor)
     xlabel('Observed (ms)');ylabel('Predicted (ms)')
     title(['Event time at ' num2str(round(unique_loc(i_unq,1),1) ) ' ' num2str(round(unique_loc(i_unq,2),1)) ' ' num2str(round(unique_loc(i_unq,3),1))]);
       for i_pow = 1:length(unique_pow)
         txt_string = ['Power ' num2str(unique_pow(i_pow))];
-        text(Tmax*0.8,30*i_pow,txt_string,'Color', color_list(i_pow,:))
+        text(Tmax*0.8/time_factor,10*i_pow/time_factor,txt_string,'Color', color_list(i_pow,:))
     end
 end
 
  %% Visualize the predicted event times 
+ if params.prediction
  prs=[0.1 0.5 0.9];
 for i_trial = 1:length(new_trials)
     %  trials(i_trial).fitted.spike_times
@@ -299,10 +307,10 @@ for i_unq = 1:n_unq
     % gather the power information:
     [unique_pow, ~, pow_ind]=unique([these_trials.power_levels]);
     color_list=lines(length(unique_pow));
-    for i=1:length(these_trials)
-        idx=these_indices(i);
-        scatter(true_event_time(idx),event_times_sum(idx,2),25,'MarkerEdgeColor',color_list(pow_ind(i),:),...
-            'MarkerFaceColor',color_list(pow_ind(i),:))
+    for i_trial=1:length(these_trials)
+        idx=these_indices(i_trial);
+        scatter(true_event_time(idx),event_times_sum(idx,2),25,'MarkerEdgeColor',color_list(pow_ind(i_trial),:),...
+            'MarkerFaceColor',color_list(pow_ind(i_trial),:))
         hold on;
         line([true_event_time(idx) true_event_time(idx)],event_times_sum(idx,[1 3]),'LineStyle',':','LineWidth',0.2,'Color',color_list(pow_ind(i),:))
         hold on;
@@ -318,155 +326,155 @@ for i_unq = 1:n_unq
         text(Tmax*0.8,30*i_pow,txt_string,'Color', color_list(i_pow,:))
     end
 end
-
+ end
 %% Visualize the posteriors of shapes v.s. true shapes, and gain*shapes versus the truth
-true_shapes=cell([n_cell 1]);
-for i_cell = 1:n_cell
-    rel_loc=neurons(i_cell).params(end).shapes.locations;
-    true_shapes{i_cell} = griddata(simulation_params.mesh_grid(:,1),simulation_params.mesh_grid(:,2),simulation_params.mesh_grid(:,3),...
-    neurons(i_cell).truth.shape,rel_loc(:,1),rel_loc(:,2),rel_loc(:,3),'linear');
-end   
-
-% Reformat the samples for shapes, and gains
-shape_samples=cell([n_cell 1]);
-shape_gain_samples=cell([n_cell 1]);
-for i_cell = 1:n_cell
-    shape_samples{i_cell}= zeros(S,length(true_shapes{i_cell}));
-    shape_gain_samples{i_cell}= zeros(S,length(true_shapes{i_cell}));
-    for s = 1:S
-        shape_samples{i_cell}(s,:)=posterior_samples{s}(i_cell).shapes;
-        shape_gain_samples{i_cell}(s,:)=posterior_samples{s}(i_cell).shapes*posterior_samples{s}(i_cell).gain;
-    end
-    
-end
-
-% Obtain the posterior quantiles 
-shape_summary=cell([n_cell 1]);
-shape_gain_summary=cell([n_cell 1]);
-prs=[0.1 0.5 0.9];
-for i_cell = 1:n_cell
-    shape_summary{i_cell}= zeros(length(true_shapes{i_cell}),3);
-    shape_gain_summary{i_cell}= zeros(length(true_shapes{i_cell}),3);
-    for i_shape = 1:length(true_shapes{i_cell})
-    
-    shape_summary{i_cell}(i_shape,:)=quantile(shape_samples{i_cell}(:,i_shape),prs);
-    shape_gain_summary{i_cell}(i_shape,:)=quantile(shape_gain_samples{i_cell}(:,i_shape),prs);
-    end
-end
-
-
-figure(3)
-for i_cell =1:n_cell
-subplot(1,n_cell,i_cell)
-scatter(true_shapes{i_cell},shape_summary{i_cell}(:,2),25,'MarkerEdgeColor','b','MarkerFaceColor','b')
-hold on;
-
-for i_shape = 1:length(true_shapes{i_cell})
-line([true_shapes{i_cell}(i_shape) true_shapes{i_cell}(i_shape)],...
-    shape_summary{i_cell}(i_shape,[1 3]),'LineStyle',':','LineWidth',0.2,'Color',color_list(pow_ind(i),:))
-hold on;
-end
-ts_range = [min(true_shapes{i_cell}) max(true_shapes{i_cell})];
- xlim(ts_range);ylim(ts_range);
- line(ts_range, ts_range)
- xlabel('True values');ylabel('Posteriors')
- title(['Shape values for fitted trials; Neuron ' num2str(i_cell)]);
-end
-
-
-
-
-figure(4)
-for i_cell =1:n_cell
-subplot(1,n_cell,i_cell)
-scatter(true_shapes{i_cell}*neurons(i_cell).truth.gain,shape_gain_summary{i_cell}(:,2),25,'MarkerEdgeColor','b','MarkerFaceColor','b')
-hold on;
-for i_shape = 1:length(true_shapes{i_cell})
-line([true_shapes{i_cell}(i_shape)*neurons(i_cell).truth.gain true_shapes{i_cell}(i_shape)*neurons(i_cell).truth.gain],...
-    shape_gain_summary{i_cell}(i_shape,[1 3]),'LineStyle',':','LineWidth',0.2,'Color',color_list(pow_ind(i),:))
-hold on;
-end
-ts_range = [min(true_shapes{i_cell}) max(true_shapes{i_cell})]*neurons(i_cell).truth.gain;
-xlim(ts_range);ylim(ts_range);
- line(ts_range, ts_range)
- xlabel('True values');ylabel('Posteriors')
- title(['Shape*gain values for fitted trials; Neuron ' num2str(i_cell)]);
-end
-%% Visualize predicted posteriors of shapes v.s. true shapes for new trials 
-  
-true_shapes=cell([n_cell 1]);
-for i_cell = 1:n_cell
-    rel_loc=new_shape_params(i_cell).locations;
-    true_shapes{i_cell} = griddata(simulation_params.mesh_grid(:,1),simulation_params.mesh_grid(:,2),simulation_params.mesh_grid(:,3),...
-    neurons(i_cell).truth.shape,rel_loc(:,1),rel_loc(:,2),rel_loc(:,3),'linear');
-end   
-
-% Reformat the samples for shapes, and gains
-shape_samples=cell([n_cell 1]);
-shape_gain_samples=cell([n_cell 1]);
-for i_cell = 1:n_cell
-    shape_samples{i_cell}= zeros(S,length(true_shapes{i_cell}));
-    shape_gain_samples{i_cell}= zeros(S,length(true_shapes{i_cell}));
-    for s = 1:S
-        shape_samples{i_cell}(s,:)=new_shape_samples{s}(i_cell).shapes;
-        shape_gain_samples{i_cell}(s,:)=new_shape_samples{s}(i_cell).shapes*posterior_samples{s}(i_cell).gain;
-    end
-    
-end
-
-% Obtain the posterior quantiles 
-shape_summary=cell([n_cell 1]);
-shape_gain_summary=cell([n_cell 1]);
-prs=[0.1 0.5 0.9];
-for i_cell = 1:n_cell
-    shape_summary{i_cell}= zeros(length(true_shapes{i_cell}),3);
-    shape_gain_summary{i_cell}= zeros(length(true_shapes{i_cell}),3);
-    for i_shape = 1:length(true_shapes{i_cell})
-    
-    shape_summary{i_cell}(i_shape,:)=quantile(shape_samples{i_cell}(:,i_shape),prs);
-    shape_gain_summary{i_cell}(i_shape,:)=quantile(shape_gain_samples{i_cell}(:,i_shape),prs);
-    end
-end
-
-
-figure(5)
-for i_cell =1:n_cell
-subplot(1,n_cell,i_cell)
-scatter(true_shapes{i_cell},shape_summary{i_cell}(:,2),25,'MarkerEdgeColor','b','MarkerFaceColor','b')
-hold on;
-for i_shape = 1:length(true_shapes{i_cell})
-line([true_shapes{i_cell}(i_shape) true_shapes{i_cell}(i_shape)],...
-    shape_summary{i_cell}(i_shape,[1 3]),'LineStyle',':','LineWidth',0.2,'Color',color_list(pow_ind(i),:))
-hold on;
-end
-ts_range = [min(true_shapes{i_cell})-0.1 max(true_shapes{i_cell})+0.1];
- xlim(ts_range);ylim(ts_range);
- line(ts_range, ts_range)
- xlabel('True values');ylabel('Posteriors')
- title(['Shape values for new trials; Neuron ' num2str(i_cell)]);
-end
-
-
-
-
-figure(6)
-for i_cell =1:n_cell
-subplot(1,n_cell,i_cell)
-scatter(true_shapes{i_cell}*neurons(i_cell).truth.gain,shape_gain_summary{i_cell}(:,2),25,'MarkerEdgeColor','b','MarkerFaceColor','b')
-hold on;
-for i_shape = 1:length(true_shapes{i_cell})
-line([true_shapes{i_cell}(i_shape)*neurons(i_cell).truth.gain true_shapes{i_cell}(i_shape)*neurons(i_cell).truth.gain],...
-    shape_gain_summary{i_cell}(i_shape,[1 3]),'LineStyle',':','LineWidth',0.2,'Color',color_list(pow_ind(i),:))
-hold on;
-end
-
-ts_range = [min(true_shapes{i_cell})-0.1 max(true_shapes{i_cell})+0.1]*neurons(i_cell).truth.gain;
-xlim(ts_range);ylim(ts_range);
- line(ts_range, ts_range)
- 
- xlabel('True values');ylabel('Posteriors')
- title(['Shape*gain values for new trials; Neuron ' num2str(i_cell)]);
-end
+% true_shapes=cell([n_cell 1]);
+% for i_cell = 1:n_cell
+%     rel_loc=neurons(i_cell).params(end).shapes.locations;
+%     true_shapes{i_cell} = griddata(simulation_params.mesh_grid(:,1),simulation_params.mesh_grid(:,2),simulation_params.mesh_grid(:,3),...
+%     neurons(i_cell).truth.shape,rel_loc(:,1),rel_loc(:,2),rel_loc(:,3),'linear');
+% end   
+% 
+% % Reformat the samples for shapes, and gains
+% shape_samples=cell([n_cell 1]);
+% shape_gain_samples=cell([n_cell 1]);
+% for i_cell = 1:n_cell
+%     shape_samples{i_cell}= zeros(S,length(true_shapes{i_cell}));
+%     shape_gain_samples{i_cell}= zeros(S,length(true_shapes{i_cell}));
+%     for s = 1:S
+%         shape_samples{i_cell}(s,:)=posterior_samples{s}(i_cell).shapes;
+%         shape_gain_samples{i_cell}(s,:)=posterior_samples{s}(i_cell).shapes*posterior_samples{s}(i_cell).gain;
+%     end
+%     
+% end
+% 
+% % Obtain the posterior quantiles 
+% shape_summary=cell([n_cell 1]);
+% shape_gain_summary=cell([n_cell 1]);
+% prs=[0.1 0.5 0.9];
+% for i_cell = 1:n_cell
+%     shape_summary{i_cell}= zeros(length(true_shapes{i_cell}),3);
+%     shape_gain_summary{i_cell}= zeros(length(true_shapes{i_cell}),3);
+%     for i_shape = 1:length(true_shapes{i_cell})
+%     
+%     shape_summary{i_cell}(i_shape,:)=quantile(shape_samples{i_cell}(:,i_shape),prs);
+%     shape_gain_summary{i_cell}(i_shape,:)=quantile(shape_gain_samples{i_cell}(:,i_shape),prs);
+%     end
+% end
+% 
+% 
+% figure(3)
+% for i_cell =1:n_cell
+% subplot(1,n_cell,i_cell)
+% scatter(true_shapes{i_cell},shape_summary{i_cell}(:,2),25,'MarkerEdgeColor','b','MarkerFaceColor','b')
+% hold on;
+% 
+% for i_shape = 1:length(true_shapes{i_cell})
+% line([true_shapes{i_cell}(i_shape) true_shapes{i_cell}(i_shape)],...
+%     shape_summary{i_cell}(i_shape,[1 3]),'LineStyle',':','LineWidth',0.2,'Color',color_list(pow_ind(i),:))
+% hold on;
+% end
+% ts_range = [min(true_shapes{i_cell}) max(true_shapes{i_cell})];
+%  xlim(ts_range);ylim(ts_range);
+%  line(ts_range, ts_range)
+%  xlabel('True values');ylabel('Posteriors')
+%  title(['Shape values for fitted trials; Neuron ' num2str(i_cell)]);
+% end
+% 
+% 
+% 
+% 
+% figure(4)
+% for i_cell =1:n_cell
+% subplot(1,n_cell,i_cell)
+% scatter(true_shapes{i_cell}*neurons(i_cell).truth.gain,shape_gain_summary{i_cell}(:,2),25,'MarkerEdgeColor','b','MarkerFaceColor','b')
+% hold on;
+% for i_shape = 1:length(true_shapes{i_cell})
+% line([true_shapes{i_cell}(i_shape)*neurons(i_cell).truth.gain true_shapes{i_cell}(i_shape)*neurons(i_cell).truth.gain],...
+%     shape_gain_summary{i_cell}(i_shape,[1 3]),'LineStyle',':','LineWidth',0.2,'Color',color_list(pow_ind(i),:))
+% hold on;
+% end
+% ts_range = [min(true_shapes{i_cell}) max(true_shapes{i_cell})]*neurons(i_cell).truth.gain;
+% xlim(ts_range);ylim(ts_range);
+%  line(ts_range, ts_range)
+%  xlabel('True values');ylabel('Posteriors')
+%  title(['Shape*gain values for fitted trials; Neuron ' num2str(i_cell)]);
+% end
+% %% Visualize predicted posteriors of shapes v.s. true shapes for new trials 
+%   
+% true_shapes=cell([n_cell 1]);
+% for i_cell = 1:n_cell
+%     rel_loc=new_shape_params(i_cell).locations;
+%     true_shapes{i_cell} = griddata(simulation_params.mesh_grid(:,1),simulation_params.mesh_grid(:,2),simulation_params.mesh_grid(:,3),...
+%     neurons(i_cell).truth.shape,rel_loc(:,1),rel_loc(:,2),rel_loc(:,3),'linear');
+% end   
+% 
+% % Reformat the samples for shapes, and gains
+% shape_samples=cell([n_cell 1]);
+% shape_gain_samples=cell([n_cell 1]);
+% for i_cell = 1:n_cell
+%     shape_samples{i_cell}= zeros(S,length(true_shapes{i_cell}));
+%     shape_gain_samples{i_cell}= zeros(S,length(true_shapes{i_cell}));
+%     for s = 1:S
+%         shape_samples{i_cell}(s,:)=new_shape_samples{s}(i_cell).shapes;
+%         shape_gain_samples{i_cell}(s,:)=new_shape_samples{s}(i_cell).shapes*posterior_samples{s}(i_cell).gain;
+%     end
+%     
+% end
+% 
+% % Obtain the posterior quantiles 
+% shape_summary=cell([n_cell 1]);
+% shape_gain_summary=cell([n_cell 1]);
+% prs=[0.1 0.5 0.9];
+% for i_cell = 1:n_cell
+%     shape_summary{i_cell}= zeros(length(true_shapes{i_cell}),3);
+%     shape_gain_summary{i_cell}= zeros(length(true_shapes{i_cell}),3);
+%     for i_shape = 1:length(true_shapes{i_cell})
+%     
+%     shape_summary{i_cell}(i_shape,:)=quantile(shape_samples{i_cell}(:,i_shape),prs);
+%     shape_gain_summary{i_cell}(i_shape,:)=quantile(shape_gain_samples{i_cell}(:,i_shape),prs);
+%     end
+% end
+% 
+% 
+% figure(5)
+% for i_cell =1:n_cell
+% subplot(1,n_cell,i_cell)
+% scatter(true_shapes{i_cell},shape_summary{i_cell}(:,2),25,'MarkerEdgeColor','b','MarkerFaceColor','b')
+% hold on;
+% for i_shape = 1:length(true_shapes{i_cell})
+% line([true_shapes{i_cell}(i_shape) true_shapes{i_cell}(i_shape)],...
+%     shape_summary{i_cell}(i_shape,[1 3]),'LineStyle',':','LineWidth',0.2,'Color',color_list(pow_ind(i),:))
+% hold on;
+% end
+% ts_range = [min(true_shapes{i_cell})-0.1 max(true_shapes{i_cell})+0.1];
+%  xlim(ts_range);ylim(ts_range);
+%  line(ts_range, ts_range)
+%  xlabel('True values');ylabel('Posteriors')
+%  title(['Shape values for new trials; Neuron ' num2str(i_cell)]);
+% end
+% 
+% 
+% 
+% 
+% figure(6)
+% for i_cell =1:n_cell
+% subplot(1,n_cell,i_cell)
+% scatter(true_shapes{i_cell}*neurons(i_cell).truth.gain,shape_gain_summary{i_cell}(:,2),25,'MarkerEdgeColor','b','MarkerFaceColor','b')
+% hold on;
+% for i_shape = 1:length(true_shapes{i_cell})
+% line([true_shapes{i_cell}(i_shape)*neurons(i_cell).truth.gain true_shapes{i_cell}(i_shape)*neurons(i_cell).truth.gain],...
+%     shape_gain_summary{i_cell}(i_shape,[1 3]),'LineStyle',':','LineWidth',0.2,'Color',color_list(pow_ind(i),:))
+% hold on;
+% end
+% 
+% ts_range = [min(true_shapes{i_cell})-0.1 max(true_shapes{i_cell})+0.1]*neurons(i_cell).truth.gain;
+% xlim(ts_range);ylim(ts_range);
+%  line(ts_range, ts_range)
+%  
+%  xlabel('True values');ylabel('Posteriors')
+%  title(['Shape*gain values for new trials; Neuron ' num2str(i_cell)]);
+% end
 
 
 

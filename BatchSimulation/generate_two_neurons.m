@@ -15,7 +15,7 @@ for i= 1:n % since there are only two neurons
             neurons(i).truth.PR=0.9;
         end
     else
-        neurons(i).truth.PR=0.2+unifrnd(0,1)*0.8;
+        neurons(i).truth.PR=0.6;
     end
     if i>1
         switch simulation_params.batch.location

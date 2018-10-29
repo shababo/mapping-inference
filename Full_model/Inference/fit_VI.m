@@ -4,7 +4,7 @@ function [parameter_history, elbo_rec] = fit_VI(...
     inference_params,prior_info)
 %%
 if isfield(variational_params(1),'PR')
-par_gradients=true;
+par_gradients=false;
 else 
 par_gradients=false; 
 end
@@ -144,14 +144,14 @@ while (change_history(iteration) > epsilon && iteration<maxit)
     
 %     gains=[];PRs=[];sigmafs=[];meanfs=[];
 %     for i = 1:S
-%     gains(i) = vsam{i}(1).gain; 
+% %     gains(i) = vsam{i}(1).gain; 
 %     PRs(i) = vsam{i}.PR; 
-%     sigmafs(i)=gradients(i).PR.sigma_f;
-%     meanfs(i)=gradients(i).PR.mean_f;
-%     lklhweight(i)=logprior(i)+loglklh(i)-logvariational(i);
+% %     sigmafs(i)=gradients(i).PR.sigma_f;
+% %     meanfs(i)=gradients(i).PR.mean_f;
+% %     lklhweight(i)=logprior(i)+loglklh(i)-logvariational(i);
 %     end
 %     figure(1)
-%     scatter(gains,loglklh)
+%     scatter(PRs,loglklh)
 % %     figure(2)
 % %     scatter(meanfs,loglklh) 
 %     figure(2)

@@ -253,7 +253,7 @@ for i_neuron= 1:n_neurons
                 % show the direction of gradients:
                 quiver(this_param,mean(loglklh_PR),norm_diff,0,'AutoScale','off', 'Color','g','LineWidth',2,'Marker','o','MarkerFaceColor','g'); 
                
-        elseif strcmp(fldnames{j},'gain')
+        else %if strcmp(fldnames{j},'gain')
             
             this_sample=neuron_samples(i_neuron).(fldnames{j});
             i_plot = (i_neuron-1)*(length(fldnames)-1)+j;
