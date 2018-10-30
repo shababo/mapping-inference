@@ -1,4 +1,4 @@
-function [ ]=get_fitted_values(neurons, trials, new_trials,prior_info,params,simulation_params)
+function [ ]=get_fitted_values(neurons, trials, new_trials,prior_info,params)
 %% Outline:
 % - Draw samples of all relevant parameters from their posterior
 % distributions
@@ -8,9 +8,9 @@ function [ ]=get_fitted_values(neurons, trials, new_trials,prior_info,params,sim
 % - Summarize the posterior samples (parameters and event times)
 % - Visualize the posterior samples v.s. true values
 % - Visualize the predicted/fitted spike times v.s. true times
-params.MC_params.sample_size=100;
+
 n_cell = length(neurons);
-Tmax=250;
+Tmax=prior_info.induced_intensity.event_time_max;
 time_factor = 20;
 %% Extract posterior information from neurons
 if isempty(new_trials)
@@ -209,7 +209,7 @@ for i_trial = 1:n_trials
     end
 end
 
-figure(1)
+figure(3)
 scatter(true_event_time/time_factor,event_times_sum(:,2)/time_factor,25,'MarkerEdgeColor','b','MarkerFaceColor','b')
 hold on;
 for i_trial = 1:n_trials
@@ -230,7 +230,7 @@ for i_trial = 1:length(trials)
 end
 [unique_loc, ia,unique_indices]=unique(all_locations, 'rows');
 %
-figure(7)
+figure(4)
 n_unq=size(unique_loc,1);
 for i_unq = 1:n_unq
     subplot(1,n_unq,i_unq)

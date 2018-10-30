@@ -36,20 +36,23 @@ for i = 1:length(pre_density.normal_grid)
     pre_density.pdf_grid(i)=normpdf(pre_density.normal_grid(i),0,1);
 end
 %% Generate samples based on given information 
+rng(1)
 variational_samples=cell([S 1]);raw_samples=cell([S 1]);
 for s=1:S
     [variational_samples{s},raw_samples{s}] = draw_samples_from_var_dist(variational_params);
+    
 end
-%% Calculate loglikelihoods using these samples 
+%Calculate loglikelihoods using these samples 
 loglklh=zeros(S,1);logprior=zeros(S,1);logvariational=zeros(S,1);
+lklhweight=zeros(S,1);
 for s=1:S
     logprior(s)=0;
     logvariational(s)=get_logdistribution(variational_samples{s},raw_samples{s},variational_params);
     [loglklh(s)] = update_likelihood(trials, variational_samples{s},variational_params,...
         background_rate,lklh_func,spike_curves,neurons,prior_info,inference_params,pre_density);
-    lklhweight=logprior(s)+loglklh(s)-logvariational(s);
+    lklhweight(s)=logprior(s)+loglklh(s)-logvariational(s);
     this_gradient=get_variational_gradient(variational_samples{s},raw_samples{s}, variational_params);
-    this_gradient=get_variate_control(lklhweight,this_gradient);
+    this_gradient=get_variate_control(lklhweight(s),this_gradient);
     if exist('gradients')
         gradients(s,:) = this_gradient;
     else
@@ -58,13 +61,13 @@ for s=1:S
 end
   new_gradient=sum_gradient(gradients,eta,eta_max,iteration,eta_threshold);
   
-%% Visualize the log-likelihood as functions of samples 
+% Visualize the log-likelihood as functions of samples 
 
 % first, turn the cell array into vectors for each field and each neuron
 n_neurons = length(variational_samples{1});
-clear('neuron_samples');
+clear('neuron_samples');clear('neuron_grad');
 neuron_samples(n_neurons)=struct;
-
+neuron_grad(n_neurons)=struct;
 fldnames=fieldnames(variational_params);
 for i_neuron= 1:n_neurons
     for j= 1:length(fldnames)
@@ -72,8 +75,11 @@ for i_neuron= 1:n_neurons
             this_sample=zeros(S,1);
             for s=1:S
                 this_sample(s)=variational_samples{s}(i_neuron).(fldnames{j});
+            this_raw_grad(s)=gradients(s,i_neuron).(fldnames{j}).mean_h;
             end
             neuron_samples(i_neuron).(fldnames{j})=this_sample;
+            neuron_grad(i_neuron).(fldnames{j})=this_raw_grad;
+            
         else
             n_shape = length(variational_samples{s}(i_neuron).(fldnames{j}));
             for i=1:n_shape
@@ -89,17 +95,23 @@ for i_neuron= 1:n_neurons
         end
     end
 end
-%% Now draw scatter plots between loglklh and parameters 
+%Now draw scatter plots between loglklh and parameters 
 if params.plot.do
  figure(1)            
 for i_neuron= 1:n_neurons
     for j= 1:length(fldnames)
         if ~strcmp(fldnames{j},'shapes')
             this_sample=neuron_samples(i_neuron).(fldnames{j});
+            this_grad=neuron_grad(i_neuron).(fldnames{j});
             i_plot = (i_neuron-1)*(length(fldnames)-1)+j;
             subplot(n_neurons,length(fldnames)-1,i_plot);
-            scatter(this_sample,loglklh,'MarkerFaceColor','b')
+            scatter(this_sample,loglklh,'MarkerFaceColor','b','MarkerFaceAlpha',0.4)
             hold on;
+            
+%             scatter(this_sample,this_grad,'MarkerFaceColor','r','MarkerFaceAlpha',0.4)
+%             hold on;
+%             scatter(this_sample,lklhweight,'MarkerFaceColor','r','MarkerFaceAlpha',0.4)
+%             hold on;
                  title_string=['Neuron ' num2str(i_neuron) ';'];
            
             if draw_truth
