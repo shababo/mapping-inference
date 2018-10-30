@@ -7,7 +7,7 @@ figure_flag =false;
 % if ~isempty(varargin)
 %     marginal_flag = varargin{1};
 % else
-    marginal_flag = false;
+marginal_flag = false;
 % end
 % tic;
 % tstart=toc;
@@ -32,7 +32,6 @@ if ~marginal_flag
             cell_and_pos=trials(i_trial).cell_and_pos{i_loc};
             if ~isempty(cell_and_pos)
                 power_tmp = trials(i_trial).power_levels(i_loc);
-                
                 for i=1:size(cell_and_pos,1)
                     i_cell = cell_and_pos(i,1);i_pos= cell_and_pos(i,2);
                     stim_size(i_trial,i_cell)=stim_size(i_trial,i_cell)+...
@@ -42,8 +41,7 @@ if ~marginal_flag
         end
     end
     % t2=toc;
-    
-    Tmax=spike_curves.time_max;Tmin=0; % This is the range for spike times, not psc event times!
+    Tmax=spike_curves.event_time_max;Tmin=0; 
     if isfield(inference_params, 'event_range')
         Tmax = inference_params.event_range(2);
         Tmin = inference_params.event_range(1);
@@ -66,8 +64,8 @@ if ~marginal_flag
     
     gain_sample=reshape([variational_samples(:).gain], [n_cell 1]);
     if isfield(variational_samples(1),'PR')
-     
-    PR_sample=reshape([variational_samples(:).PR], [n_cell 1]);
+        
+        PR_sample=reshape([variational_samples(:).PR], [n_cell 1]);
     else
         PR_sample=ones(n_cell,1);
     end
@@ -77,7 +75,7 @@ if ~marginal_flag
         delay_mu_sample=zeros([n_cell 1]);
     end
     if isfield(variational_samples(1),'delay_sigma')
-    delay_var_sample=reshape([variational_samples(:).delay_sigma], [n_cell 1]).^2;
+        delay_var_sample=reshape([variational_samples(:).delay_sigma], [n_cell 1]).^2;
     else
         delay_var_sample=0.001*ones([n_cell 1]).^2;
     end
@@ -95,7 +93,6 @@ if ~marginal_flag
         prob_this_trial(1,end)=background_rate*(Tmax-Tmin);
         
         %     t6=toc;
-        
         i_count = 1;
         for i_cell = 1:n_cell % can reduce to cell with sufficiently large stimuliaton
             effective_stim=stim_size(i_trial,i_cell)*gain_sample(i_cell);
@@ -114,39 +111,38 @@ if ~marginal_flag
                 cdf_index_min = max(1,min(max_grid,round( ((Tmin-expectation)/standard_dev +grid_bound)/grid_gap)));
                 pdf_index = max(1,min(max_grid,round( ((event_times-expectation)/standard_dev +grid_bound)/grid_gap)));
                 prob_this_trial(i_count,:)=...
-                    PR_sample(i_cell)*[pdf_grid(pdf_index) cdf_grid(cdf_index_max)-cdf_grid(cdf_index_min)];
+                    PR_sample(i_cell)*[pdf_grid(pdf_index)/standard_dev cdf_grid(cdf_index_max)-cdf_grid(cdf_index_min)];
                 %         t10=toc;
                 %         ts(6)=t9-t8+ts(6);ts(7)=t10-t9+ts(7);
             end
-            
         end
         %     t11=toc;
         loglklh_vec(i_trial)=  lklh_func(trials(i_trial),prob_this_trial);
         %     t7=toc;
         %     ts(4)=t6-t5+ts(4);ts(5)=t7-t11+ts(5);
-%             if figure_flag
-%                 prob_this_trial=zeros(1,Tmax);
-%                 prob_this_trial(1,:)=background_rate*ones(1,Tmax);
-%                 for i_cell = 1:n_cell
-%                     delay_mu_temp=delay_mu_sample(i_cell);
-%                     delay_var_temp=delay_var_sample(i_cell);
-%                     stim_index= min(current_max_grid,...
-%                     max(1,round((effective_stim-current_lb)/current_gap)));
-%                 spike_times_cond_shape=spike_curves_mean(stim_index);
-%                 expectation=delay_mu_temp+spike_times_cond_shape;
-%                 standard_dev=sqrt(delay_var_temp+  mean(spike_curves_var(stim_index)));
-%                 pdf_index = normpdf(1:Tmax,expectation, standard_dev);
-%                     prob_this_trial(i_cell,:)=pdf_index;
-%                 end
-% %                 figure(i_trial)
-%                 total_prob=prob_this_trial;
-%                 plot(total_prob)
-%                 hold on;
-%                 if ~isempty(event_times)
-%                 scatter(event_times, max(total_prob)*ones(1,length(event_times)) )
-%                 end
-%                 hold on;
-%             end
+        %             if figure_flag
+        %                 prob_this_trial=zeros(1,Tmax);
+        %                 prob_this_trial(1,:)=background_rate*ones(1,Tmax);
+        %                 for i_cell = 1:n_cell
+        %                     delay_mu_temp=delay_mu_sample(i_cell);
+        %                     delay_var_temp=delay_var_sample(i_cell);
+        %                     stim_index= min(current_max_grid,...
+        %                     max(1,round((effective_stim-current_lb)/current_gap)));
+        %                 spike_times_cond_shape=spike_curves_mean(stim_index);
+        %                 expectation=delay_mu_temp+spike_times_cond_shape;
+        %                 standard_dev=sqrt(delay_var_temp+  mean(spike_curves_var(stim_index)));
+        %                 pdf_index = normpdf(1:Tmax,expectation, standard_dev);
+        %                     prob_this_trial(i_cell,:)=pdf_index;
+        %                 end
+        % %                 figure(i_trial)
+        %                 total_prob=prob_this_trial;
+        %                 plot(total_prob)
+        %                 hold on;
+        %                 if ~isempty(event_times)
+        %                 scatter(event_times, max(total_prob)*ones(1,length(event_times)) )
+        %                 end
+        %                 hold on;
+        %             end
         
     end
     loglklh=sum(loglklh_vec);
@@ -184,7 +180,7 @@ else
         end
     end
     % t2=toc;
-    Tmax=spike_curves.time_max;Tmin=0;
+    Tmax=spike_curves.event_time_max;Tmin=0;
     if isfield(inference_params, 'event_range')
         Tmax = inference_params.event_range(2);
         Tmin = inference_params.event_range(1);

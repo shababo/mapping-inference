@@ -1,4 +1,5 @@
 function [trials] = design_batch_trials(neurons,design_params)
+%%
 trials(1) =struct;
 i_trial =0;
 for i= 1:length(neurons)
@@ -25,10 +26,12 @@ for i= 1:length(neurons)
         else
             if j==1 & design_params.always_nucleus
                 this_radius=0; n_rep=design_params.repeat_number_nucleus;
+            else
+                n_rep=design_params.repeat_number;
             end
             this_trial_location=this_location+...
                 this_radius*[sin(2*pi*this_angle) cos(2*pi*this_angle) 0];
-             n_rep=design_params.repeat_number;
+             
         end
         
         for i_pow = 1:length(design_params.power_levels)
