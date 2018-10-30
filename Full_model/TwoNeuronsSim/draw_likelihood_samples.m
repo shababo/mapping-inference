@@ -53,6 +53,7 @@ for s=1:S
     lklhweight(s)=logprior(s)+loglklh(s)-logvariational(s);
     this_gradient=get_variational_gradient(variational_samples{s},raw_samples{s}, variational_params);
     this_gradient=get_variate_control(lklhweight(s),this_gradient);
+    
     if exist('gradients')
         gradients(s,:) = this_gradient;
     else
@@ -79,16 +80,13 @@ for i_neuron= 1:n_neurons
             end
             neuron_samples(i_neuron).(fldnames{j})=this_sample;
             neuron_grad(i_neuron).(fldnames{j})=this_raw_grad;
-            
-        else
+         else
             n_shape = length(variational_samples{s}(i_neuron).(fldnames{j}));
             for i=1:n_shape
-                
                 this_sample=zeros(S,n_shape);
             for s=1:S
                 this_sample(s,:)=variational_samples{s}(i_neuron).(fldnames{j});
             end
-            
             end
             neuron_samples(i_neuron).(fldnames{j})=this_sample;
         
@@ -154,13 +152,11 @@ output.variational_samples=variational_samples;
 output.raw_samples=raw_samples;
 output.loglklh=loglklh;
 
-%% New strategies for estimationg the loglikelihood & gradients:
+%% New strategies for estimating the loglikelihood & gradients:
 loglklh_PR=zeros(S,1);logprior_PR=zeros(S,1);logvariational_PR=zeros(S,1);
 loglklh_others=zeros(S,1);logprior_others=zeros(S,1);logvariational_others=zeros(S,1);
 variational_mean =variational_samples{1};
-
 raw_mean = variational_samples{1};
-
 for i_neuron =1:n_neurons
     for j= 1:length(fldnames)
         raw_mean(i_neuron).(fldnames{j})=variational_params(i_neuron).(fldnames{j}).mean;
@@ -197,6 +193,27 @@ end
                 gradients_PR(s,:)=this_gradient_PR;
             end
             end
+        elseif strcmp(fldnames{j},'delay_sigma')
+            for s=1:S
+            var_sample=  variational_mean;
+            r_sample = raw_mean;
+            for i_neuron =1:n_neurons
+                var_sample(i_neuron).delay_sigma=variational_samples{s}(i_neuron).delay_sigma;
+                r_sample(i_neuron).delay_sigma=raw_samples{s}(i_neuron).delay_sigma;
+            end
+            logprior_sigma(s)=0;
+            logvariational_sigma(s)=get_logdistribution(var_sample,r_sample,variational_params);
+            [loglklh_sigma(s)] = update_likelihood(trials, var_sample,variational_params,...
+                background_rate,lklh_func,spike_curves,neurons,prior_info,inference_params,pre_density);
+            lklhweight=logprior_sigma(s)+loglklh_sigma(s)-logvariational_PR(s);
+            this_gradient_sigma=get_variational_gradient(var_sample,r_sample, variational_params);
+            this_gradient_sigma=get_variate_control(lklhweight,this_gradient_sigma);
+            if exist('gradients_sigma')
+                gradients_sigma(s,:) = this_gradient_sigma;
+            else
+                gradients_sigma(s,:)=this_gradient_sigma;
+            end
+            end
         else
              for s=1:S
             var_sample=  variational_samples{s};
@@ -204,6 +221,9 @@ end
             for i_neuron =1:n_neurons
                 var_sample(i_neuron).PR=variational_mean(i_neuron).PR;
                 r_sample(i_neuron).PR=raw_mean(i_neuron).PR;
+                
+                var_sample(i_neuron).delay_sigma=variational_mean(i_neuron).delay_sigma;
+                r_sample(i_neuron).delay_sigma=raw_mean(i_neuron).delay_sigma;
             end
             logprior_others(s)=0;
             logvariational_others(s)=get_logdistribution(var_sample,r_sample,variational_params);
@@ -217,12 +237,13 @@ end
             else
                 gradients_others(s,:)=this_gradient_others;
             end
-            end
-            
+             end
         end
  end
  
   new_gradient_PR=sum_gradient(gradients_PR,eta,eta_max,iteration,eta_threshold);
+  
+  new_gradient_sigma=sum_gradient(gradients_sigma,eta,eta_max,iteration,eta_threshold);
   new_gradient_others=sum_gradient(gradients_others,eta,eta_max,iteration,eta_threshold);
   
 
@@ -230,7 +251,7 @@ end
 if params.plot.do
 figure(2)         
 for i_neuron= 1:n_neurons
-    for j= 1:length(fldnames)
+    for j= 1:(length(fldnames)-1)
         if strcmp(fldnames{j},'PR')
             this_sample=neuron_samples(i_neuron).(fldnames{j});
             i_plot = (i_neuron-1)*(length(fldnames)-1)+j;
@@ -256,6 +277,39 @@ for i_neuron= 1:n_neurons
             this_param= exp(this_param_raw)/(1+exp(this_param_raw))*(ub-lb)+lb;
             
             this_grad = new_gradient_PR(i_neuron).(fldnames{j}).mean;
+            new_param_raw=this_param_raw+ this_grad;
+            new_param =  exp(new_param_raw)/(1+exp(new_param_raw))*(ub-lb)+lb;
+               
+            norm_diff = 0.15*range(this_sample)*(new_param-this_param)/abs((new_param-this_param));
+                line(this_param*ones(2,1), [min(loglklh_PR) max(loglklh_PR)],'color','g','LineStyle','-')
+                hold on;
+                % show the direction of gradients:
+                quiver(this_param,mean(loglklh_PR),norm_diff,0,'AutoScale','off', 'Color','g','LineWidth',2,'Marker','o','MarkerFaceColor','g'); 
+        elseif strcmp(fldnames{j},'delay_sigma')
+            this_sample=neuron_samples(i_neuron).(fldnames{j});
+            i_plot = (i_neuron-1)*(length(fldnames)-1)+j;
+            subplot(n_neurons,length(fldnames)-1,i_plot);
+            scatter(this_sample,loglklh_sigma,'MarkerFaceColor','b')
+            hold on;
+            
+                 title_string=['Neuron ' num2str(i_neuron) ';'];
+            if draw_truth
+                true_value = params.truth.neurons(i_neuron).truth.(fldnames{j})*ones(2,1);
+                line(true_value, [min(loglklh_sigma) max(loglklh_sigma)],'color','r','LineStyle','--')
+                hold on;
+                title_string=['Neuron ' num2str(i_neuron) '; PR = ' num2str(params.truth.neurons(i_neuron).truth.PR ) ];
+            end
+            xlabel(fldnames{j})
+            ylabel('Log-Likelihood')
+            title(title_string)
+            % Draw the current mean and the direction of gradients:
+            this_param_raw=variational_params(i_neuron).(fldnames{j}).mean;
+            lb= variational_params(i_neuron).(fldnames{j}).bounds.low;
+            ub= variational_params(i_neuron).(fldnames{j}).bounds.up;
+            
+            this_param= exp(this_param_raw)/(1+exp(this_param_raw))*(ub-lb)+lb;
+            
+            this_grad = new_gradient_sigma(i_neuron).(fldnames{j}).mean;
             new_param_raw=this_param_raw+ this_grad;
             new_param =  exp(new_param_raw)/(1+exp(new_param_raw))*(ub-lb)+lb;
                
