@@ -1,5 +1,5 @@
  function [variational_params, prior_params,inference_params]=initialization_for_shape(ax,data_this_axis)
-    ini_GP_tau=unifrnd(-10,10);
+    ini_GP_tau=unifrnd(-1.5,1.5);
     shift_sigma=2;
     tau_sigma=2;
     gain_sigma=2;
@@ -27,11 +27,11 @@
         variational_params(i_cell).GP_tau.mean=ini_GP_tau;
         variational_params(i_cell).GP_tau.log_sigma=log(tau_sigma);
         if strcmp(ax,'z') 
-       variational_params(i_cell).GP_tau.bounds.low=15;
-       variational_params(i_cell).GP_tau.bounds.up=50;
+       variational_params(i_cell).GP_tau.bounds.low=10^2;
+       variational_params(i_cell).GP_tau.bounds.up=50^2;
         else
-       variational_params(i_cell).GP_tau.bounds.low=7.5;
-       variational_params(i_cell).GP_tau.bounds.up=30;
+       variational_params(i_cell).GP_tau.bounds.low=5^2;
+       variational_params(i_cell).GP_tau.bounds.up=30^2;
             
     end
     
@@ -50,7 +50,8 @@
     inference_params.MCsamples_for_gradient=50;
     inference_params.step_size=1;
     inference_params.step_size_max=1;
-    inference_params.maxit=2500;
+    inference_params.maxit=200;
+    inference_params.eta_threshold=50;
     inference_params.eig_epsilon=1e-6;
     inference_params.mean_func=struct;
         inference_params.mean_func.func=@quick_match;

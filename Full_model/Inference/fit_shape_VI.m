@@ -8,6 +8,8 @@ eta_max=inference_params.step_size_max;
 maxit=inference_params.maxit;
 mean_func=inference_params.mean_func;
 var_func=inference_params.var_func;
+eta_threshold=inference_params.eta_threshold;
+
 n_cell = length(neurons);
 
 prior_opt =inference_params.prior_opt;
@@ -31,15 +33,19 @@ change_history(iteration) = epsilon+1;
 % lklh_func=inference_params.likelihood;
 
 %%
-% tic;
+tic;
 % time_rec=zeros(10,1);
 while (change_history(iteration) > epsilon && iteration<maxit)
     %%
+       tstart=toc;
     parameter_history(iteration,:)=parameter_current;
+    if mod(iteration, 10)==0
+    save('./vi_path_tmp.mat', 'parameter_history');
+    end
     iteration=iteration+1;
     clear('gradients')
     for s= 1:S
-         [variational_samples,raw_samples] = draw_samples_from_var_dist(parameter_current);
+        [variational_samples,raw_samples] = draw_samples_from_var_dist(parameter_current);
         % Calculate the new grid
         if isfield(variational_samples(1),'shift')
             for i_cell = 1:n_cell
@@ -48,7 +54,7 @@ while (change_history(iteration) > epsilon && iteration<maxit)
         else
             for i_cell = 1:n_cell
                 corrected_grid{s,i_cell}=neurons(i_cell).adjusted_grid;
-            end    
+            end
         end
         % Calculate the log pdf of prior  dist.
         if prior_opt
@@ -88,7 +94,7 @@ while (change_history(iteration) > epsilon && iteration<maxit)
             Kcov=(Kcov+Kcov')/2;
             
             Kmarcov=Kcov+ diag(white_sigma.^2);
-            
+            Kmarcov=(Kmarcov+Kmarcov')/2;
             loglklh(s)=loglklh(s)+log(mvnpdf(Y,Ymean,Kmarcov));
         end
         
@@ -110,13 +116,15 @@ while (change_history(iteration) > epsilon && iteration<maxit)
             gradients(s,:)=this_gradient;
         end
     end
-    new_gradient=sum_gradient(gradients,eta,eta_max,iteration);
-    
+    new_gradient=sum_gradient(gradients,eta,eta_max,iteration,eta_threshold);
     [parameter_current, change_history(iteration)]=incorporate_gradient(parameter_current, new_gradient);
     
     loglklh_rec(iteration)=mean(mean(loglklh));
     elbo_rec(iteration)=mean(logprior+loglklh-logvariational);
     
-    fprintf('Iteration %d; change %d; ELBO %d \n',iteration,change_history(iteration),elbo_rec(iteration))
+    tend=toc;
+    tdiff=tend-tstart;
+     fprintf('Iteration %d; change %d; time %d; \n',iteration,change_history(iteration),tdiff)
+  
 end
 fprintf('VI fitted after %d iteration;\n',iteration)
