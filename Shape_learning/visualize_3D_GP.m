@@ -57,9 +57,7 @@ switch plot_params.type
             Vq = griddata(xy_locations(:,1),xy_locations(:,2),this_sample,Xq,Yq);
             fig= figure(i_z);
             
-            heatmap(Vq',x_grid,y_grid)
-            
-            caxis(cscale)
+            imagesc(x_grid,y_grid,Vq',cscale)
             ylabel('x');
             xlabel('y');
             title(['z plane:' num2str(unique_z(i_z)) ])
@@ -94,8 +92,7 @@ switch plot_params.type
             fig= figure(i_z)
             
             subplot(1,3,1)
-            heatmap(Vq',x_grid,y_grid)
-            caxis(cscale_shape)
+              imagesc(x_grid,y_grid,Vq',cscale_shape)
             ylabel('x');
             xlabel('y');
             title(['z plane:' num2str(unique_z(i_z)) ' sample'])
@@ -104,9 +101,9 @@ switch plot_params.type
                
                
 subplot(1,3,2)
-  heatmap(Mq',x_grid,y_grid)
-            caxis(cscale_shape)
-%             ylabel('x');
+
+              imagesc(x_grid,y_grid,Mq',cscale_shape)
+ %             ylabel('x');
             xlabel('y');
             title(['z plane:' num2str(unique_z(i_z)) ' mean'])
 hp3 = get(subplot(1,3,2),'Position');        
@@ -116,9 +113,8 @@ colorbar('Position', [hp3(1)+hp3(3)+0.01  hp3(2)  0.015  hp3(2)+hp3(3)*3.3])
 
 subplot(1,3,3)
 
-  heatmap((Vq-Mq)',x_grid,y_grid)
-     caxis(cscale_dev)
-%             ylabel('x');
+              imagesc(x_grid,y_grid,(Vq-Mq)',cscale_shape)
+ %             ylabel('x');
             xlabel('y');
             title(['z plane:' num2str(unique_z(i_z)) ' deviation'])
 hp4 = get(subplot(1,3,3),'Position');        

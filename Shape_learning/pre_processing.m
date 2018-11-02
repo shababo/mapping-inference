@@ -84,6 +84,11 @@ if params.sigma_current_model
             end
             pilot_data.(ax).neurons=neurons;
         end
+        pilot_data.sd_current =struct;
+        pilot_data.sd_current.X=X;
+        pilot_data.sd_current.Y=Y;
+        pilot_data.sd_current.beta=est;
+        
     else % fit the sigma-current model separately
         % Sigma ~ current model (use all data)
         for i_ax = 1:length(axis_list)

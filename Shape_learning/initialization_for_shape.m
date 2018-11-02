@@ -1,5 +1,5 @@
  function [variational_params, prior_params,inference_params]=initialization_for_shape(ax,data_this_axis)
-    ini_GP_tau=unifrnd(-1.5,1.5);
+    ini_GP_tau=unifrnd(-2,2);
     shift_sigma=2;
     tau_sigma=2;
     gain_sigma=2;
