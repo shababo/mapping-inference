@@ -30,7 +30,7 @@
        variational_params(i_cell).GP_tau.bounds.low=10^2;
        variational_params(i_cell).GP_tau.bounds.up=50^2;
         else
-       variational_params(i_cell).GP_tau.bounds.low=5^2;
+       variational_params(i_cell).GP_tau.bounds.low=8^2;
        variational_params(i_cell).GP_tau.bounds.up=30^2;
             
     end
