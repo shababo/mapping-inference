@@ -9,14 +9,11 @@ spike_param = struct;
 spike_param.mean=spike_curves.mean(Ia);
 spike_param.sd=spike_curves.sd(Ia);
 spike_one = time_max +1;
-
 % Spikes are generated from a truncated normal distribution, truncated at
 % time_max
-    spike_one = normrnd(spike_param.mean,spike_param.sd);
-
+spike_one = normrnd(spike_param.mean,spike_param.sd);
 % spike_one = normrnd(spike_param.mean,spike_param.sd);
 delay_one = normrnd(params.delay_mean,sqrt(params.delay_var));
-
 if spike_one < time_max
  spike_times=[];
    event_times=[];

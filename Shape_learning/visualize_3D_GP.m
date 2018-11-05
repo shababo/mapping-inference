@@ -95,7 +95,7 @@ switch plot_params.type
               imagesc(x_grid,y_grid,Vq',cscale_shape)
             ylabel('x');
             xlabel('y');
-            title(['z plane:' num2str(unique_z(i_z)) ' sample'])
+            title(['z plane:' num2str(unique_z(i_z)) '; One Sample'])
                %  if output_plot
                
                
@@ -105,7 +105,7 @@ subplot(1,3,2)
               imagesc(x_grid,y_grid,Mq',cscale_shape)
  %             ylabel('x');
             xlabel('y');
-            title(['z plane:' num2str(unique_z(i_z)) ' mean'])
+            title(['z plane:' num2str(unique_z(i_z)) '; Mean'])
 hp3 = get(subplot(1,3,2),'Position');        
 colorbar('Position', [hp3(1)+hp3(3)+0.01  hp3(2)  0.015  hp3(2)+hp3(3)*3.3])   
           
@@ -113,10 +113,14 @@ colorbar('Position', [hp3(1)+hp3(3)+0.01  hp3(2)  0.015  hp3(2)+hp3(3)*3.3])
 
 subplot(1,3,3)
 
-              imagesc(x_grid,y_grid,(Vq-Mq)',cscale_shape)
- %             ylabel('x');
+std_diag=sqrt(diag(GP_samples.full.Kcov));
+Sq = griddata(xy_locations(:,1),xy_locations(:,2),std_diag(this_z_indices),Xq,Yq);
+          cscale_std = [min(std_diag) max(std_diag)];
+%               imagesc(x_grid,y_grid,(Vq-Mq)',cscale_shape)
+              imagesc(x_grid,y_grid,Sq',cscale_std)
+%             ylabel('x');
             xlabel('y');
-            title(['z plane:' num2str(unique_z(i_z)) ' deviation'])
+            title(['z plane:' num2str(unique_z(i_z)) '; Standard Deviation'])
 hp4 = get(subplot(1,3,3),'Position');        
 colorbar('Position', [hp4(1)+hp4(3)+0.01  hp4(2)  0.015  hp4(2)+hp4(3)*3.3])   
 
