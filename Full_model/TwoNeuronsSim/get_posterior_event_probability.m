@@ -44,7 +44,7 @@ for i_cell = 1:n_cell
         this_trial=trials(i_trial);
         rel_pos=neurons(i_cell).params(end).shapes.locations - ...
             ones(size(neurons(i_cell).params(end).shapes.locations,1),1)*(this_trial.locations-neurons(i_cell).location);
-        i_shape=find(sum( (rel_pos.^2)')==0);
+        [~,i_shape]=min(sum( (rel_pos.^2)'));
         if isempty(trials(i_trial).event_times)
             trials(i_trial).post_density=[];
         else
