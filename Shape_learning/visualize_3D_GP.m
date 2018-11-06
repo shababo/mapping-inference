@@ -126,7 +126,9 @@ switch plot_params.type
             fig = gcf;
             fig.PaperUnits = 'inches';
             fig.PaperPosition = [0 0 13 4];
-            saveas(fig,[fig_name 'z'  num2str(unique_z(i_z)) '.png'])
+%             saveas(fig,[fig_name 'z'  num2str(unique_z(i_z)) '.png'])
+
+print('-dpng','-r1500', [fig_name 'z'  num2str(unique_z(i_z))])
             close(fig)
             
         end
