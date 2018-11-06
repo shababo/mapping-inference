@@ -52,8 +52,6 @@ for i_cell = 1:n_cell
                 ones(size(neurons(i_cell).params(end).shapes.locations,1),1)*(this_trial.locations-neurons(i_cell).location);
             i_shape=find(sum( (rel_pos.^2)')==0 );
             if isempty(i_shape)
-                
-                
             else
                 
                 for s=1:S

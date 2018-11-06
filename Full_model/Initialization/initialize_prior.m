@@ -21,7 +21,7 @@ prior_params=struct;
 prior_params.GP_params=summary_results;
 
 %%
-prior_params.boundary_params= [30 30 70];
+prior_params.boundary_params= [80 30 120];
 prior_params.initial_boundary_params= [10 10 30];
 % prior_params.shift_x.dist='normal';
 % prior_params.shift_x.type='individual';
