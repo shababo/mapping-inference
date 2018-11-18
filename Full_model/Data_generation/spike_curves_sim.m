@@ -1,7 +1,8 @@
 function [spike_times,event_times] = spike_curves_sim(stim,params,spike_curves)
+% ,spike_dist,event_times_dist <---- WE CAN RETURN THE WHOLE DISTRIBUTION
+% HERE
 
-
-time_max=spike_curves.time_max;
+time_max=140;%spike_curves.time_max;
 
 spike_times = [];event_times=[];
 [~, Ia]=min(abs(stim - spike_curves.current));

@@ -36,9 +36,9 @@ for i_trial = 1:length(trials)
                         % logit transform:
                         switch  variational_params(i_cell).shapes.dist
                             case 'logit-normal'
-                        mean_logit=log( (mean_3d-lower_bound)/(upper_bound -mean_3d)); % this is actually 0
-                        variational_params(i_cell).shapes.mean=[variational_params(i_cell).shapes.mean; mean_logit];
-                        variational_params(i_cell).shapes.log_sigma=[variational_params(i_cell).shapes.log_sigma; 0];% variance is no longer the original one!
+                                mean_logit=log( (mean_3d-lower_bound)/(upper_bound -mean_3d)); % this is actually 0
+                                variational_params(i_cell).shapes.mean=[variational_params(i_cell).shapes.mean; mean_logit];
+                                variational_params(i_cell).shapes.log_sigma=[variational_params(i_cell).shapes.log_sigma; 0];% variance is no longer the original one!
                             case 'mvn'
                                 variational_params(i_cell).shapes.prior_sigma=[variational_params(i_cell).shapes.prior_sigma; sqrt(var_3d)];
 %                                 variational_params(i_cell).shapes.mean=[variational_params(i_cell).shapes.mean; 0];

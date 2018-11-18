@@ -5,7 +5,7 @@ function [parameter_history, elbo_rec] = fit_VI(...
 %%
 par_fields = {'PR' 'delay_sigma'};
 if ~isfield(variational_params(1),'PR')
-par_fields(ismember(par_fields,'PR')) = [];
+    par_fields(ismember(par_fields,'PR')) = [];
 end
 if ~isfield(variational_params(1),'delay_sigma')
     par_fields(ismember(par_fields,'delay_sigma')) = [];

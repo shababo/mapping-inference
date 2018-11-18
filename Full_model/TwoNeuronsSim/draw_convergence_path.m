@@ -55,7 +55,7 @@ end
 %% Draw plots
 if params.plot.do
     % Figure 1: Convergence path for all neurons for all pathes except for the shapes
-    figure(1)
+    figure(3)
     for i=1:length(fldnames)
         i_field = fldnames{i};
         if ~strcmp(i_field,'shapes')
@@ -179,7 +179,7 @@ if params.plot.do
     end
     
     % Figure 2: a scatter plot between ELBO and some parameters
-    figure(2)
+    figure(8)
     for i=1:length(fldnames)
         i_field = fldnames{i};
         if ~strcmp(i_field,'shapes')
@@ -201,10 +201,10 @@ if params.plot.do
                            means_tmp=parameter_path.(i_field).mean(:,i_neuron);
                     ub =parameter_path.(i_field).bounds.up;
                     lb =parameter_path.(i_field).bounds.low;
-              means =mean_tmp;
-              if draw_truth
-                    true_value = log(true_tmp./(1-true_tmp))*ones(2,1);
-              end  
+                  means =mean_tmp;
+                  if draw_truth
+                        true_value = log(true_tmp./(1-true_tmp))*ones(2,1);
+                  end  
               end
                 %------------------------------%
             
