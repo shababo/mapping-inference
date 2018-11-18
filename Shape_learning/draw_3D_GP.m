@@ -42,7 +42,7 @@ GP_samples.full.Kcov= sigma_mat.*GP_samples.full.Kcor.*sigma_mat';
 GP_samples.full.samples_unique = zeros(size(locations_unique,1),n_shapes );
 GP_samples.full.loglklh=zeros(n_shapes,1 );
 for i_shape = 1:n_shapes
-    GP_samples.full.samples_unique(:,i_shape)=max(0,mvnrnd(GP_samples.full.mean,GP_samples.full.Kcov))';
+    GP_samples.full.samples_unique(:,i_shape)=min(1,max(0,mvnrnd(GP_samples.full.mean,GP_samples.full.Kcov)))';
 %     GP_samples.full.loglklh(i_shape)= log(mvnpdf(GP_samples.full.samples_unique(:,i_shape),GP_samples.full.mean,GP_samples.full.Kcov));
 end
 

@@ -84,6 +84,11 @@ if params.sigma_current_model
             end
             pilot_data.(ax).neurons=neurons;
         end
+        pilot_data.sd_current =struct;
+        pilot_data.sd_current.X=X;
+        pilot_data.sd_current.Y=Y;
+        pilot_data.sd_current.beta=est;
+        
     else % fit the sigma-current model separately
         % Sigma ~ current model (use all data)
         for i_ax = 1:length(axis_list)
@@ -190,6 +195,7 @@ for i_ax = 1:length(axis_list)
         
         
         [pred_mean, post_mean,prior_var] = get_GP_boundary(Xstar, params.(ax));
+%         post_mean = smooth(x,y,0.1,'loess');
         mean_params.grid=fixed_grid;
         mean_params.values=pred_mean;
         mean_params.prior_var=prior_var;
@@ -202,12 +208,17 @@ for i_ax = 1:length(axis_list)
         neurons=pilot_data.(ax).neurons;
         
         observed_values =  params.(ax).Y;
-        fitted_values = pilot_data.(ax).mean_params.data.fitted;
+        fitted_values =mean_params.data.fitted;
         sqdev=(observed_values-fitted_values).^2;
-        
+
         % change the response variable to squared deviation
         params.(ax).Y=sqdev;
-        
+        if isfield(params.(ax),'distance_factor_var')
+            params.(ax).distance_factor=params.(ax).distance_factor_var;
+        end
+        if isfield(params.(ax),'tau_var')
+            params.(ax).tau=params.(ax).tau_var;
+        end
         [pred_var, post_var,prior_var] = get_GP_boundary(Xstar, params.(ax));
         var_params.grid=fixed_grid;
         var_params.values=pred_var;

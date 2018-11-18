@@ -52,6 +52,10 @@ while (change_history(iteration) > epsilon && iteration<maxit)
     %%
     tstart=toc;
     parameter_history(iteration,:)=parameter_current;
+    % Save the output (parameter_history) to a temp file  
+    if mod(iteration, 10)==0
+    save('./vi_path_tmp.mat', 'parameter_history');
+    end
     iteration=iteration+1;
     adjusted_location=zeros(n_cell,3);
     loglklh=zeros(S,1);logprior=zeros(S,1);logvariational=zeros(S,1);
@@ -201,5 +205,6 @@ while (change_history(iteration) > epsilon && iteration<maxit)
     fprintf('Iteration %d; change %d; time %d; \n',iteration,change_history(iteration),tdiff)
     % ELBO %d;PR %d; ,elbo_rec(iteration),parameter_current(1,1).PR.mean)
 %     fprintf('PR %d; \n',parameter_current.PR.mean)
+
 end
 fprintf('VI fitted after %d iteration;\n',iteration)

@@ -11,14 +11,12 @@ pilot_data = struct;
 for i_axis = 1:4
     target_axis=axis_list{i_axis};
     ax=target_axis;
-     if isfield(path,ax)
-          pilot_data.(target_axis)=struct;
-     
+      clear('neurons')
+          
     switch target_axis
         case 'z'
             load(path.(ax));
             n_cell = length(result_z);
-            clear('neurons')
             neurons(n_cell)=struct;
             for i_cell = 1:n_cell
                 neurons(i_cell).stim_grid= reshape(result_z(i_cell).current_z_pos, 1,[]); % row vector
@@ -30,7 +28,7 @@ for i_axis = 1:4
         case 'x'
             
             load(oldpath);
-%             result_xy=result_xy;
+            %             result_xy=result_xy;
             n_cell = length(result_xy);
             % Say we are interested in x-shape
             % Count the number of trials with the same y-coordinate
@@ -48,15 +46,15 @@ for i_axis = 1:4
                 result_xy(i_cell).(ax).stim_grid = result_xy(i_cell).current_targ_pos(this_axis_trials,i_axis);
                 result_xy(i_cell).(ax).current = result_xy(i_cell).max_curr(this_axis_trials);
                 result_xy(i_cell).(ax).power = result_xy(i_cell).curr_targ_power(this_axis_trials);
-%                 result_xy(i_cell).(ax).spike_times = result_xy(i_cell).spike_times(this_axis_trials);
+                %                 result_xy(i_cell).(ax).spike_times = result_xy(i_cell).spike_times(this_axis_trials);
             end
-            load(path.(ax));
-            new_cell = length(result_x);
-            clear('neurons')
-            neurons(n_cell+new_cell)=struct;
-            
-            %         result_xy(4)=result_xy(2);
-            %         result_xy(7) = result_xy(2);
+            if isfield(path,ax)
+                load(path.(ax));
+                new_cell = length(result_x);
+                neurons(n_cell+new_cell)=struct;
+            else
+                neurons(n_cell)=struct;
+            end
             for i_cell = 1:n_cell
                 neurons(i_cell).stim_grid= result_xy(i_cell).(target_axis).stim_grid';
                 %       neurons(i_cell).max_current=result_xy(i_cell).(ax).current';
@@ -65,15 +63,17 @@ for i_axis = 1:4
                 %             neurons(i_cell).spike_times=result_xy(i_cell).(target_axis).spike_times';
                 %         neurons(i_cell).scaled_current= neurons(i_cell).scaled_current/max( neurons(i_cell).scaled_current);
             end
-            for i_cell = 1:new_cell
-                neurons(i_cell+n_cell).stim_grid= reshape(result_x(i_cell).current_x_pos, 1,[]); % column vector
-                neurons(i_cell+n_cell).power=50*ones(1,length(neurons(i_cell+n_cell).stim_grid));
-                neurons(i_cell+n_cell).raw_current=result_x(i_cell).max_curr';
+            if isfield(path,ax)
+                
+                for i_cell = 1:new_cell
+                    neurons(i_cell+n_cell).stim_grid= reshape(result_x(i_cell).current_x_pos, 1,[]); % column vector
+                    neurons(i_cell+n_cell).power=50*ones(1,length(neurons(i_cell+n_cell).stim_grid));
+                    neurons(i_cell+n_cell).raw_current=result_x(i_cell).max_curr';
+                end
             end
-            
         case 'y'
             load(oldpath);
-%             result_xy=result_xy_nuc_detect;
+            %             result_xy=result_xy_nuc_detect;
             n_cell = length(result_xy);
             % Say we are interested in x-shape
             % Count the number of trials with the same y-coordinate
@@ -91,12 +91,18 @@ for i_axis = 1:4
                 result_xy(i_cell).(ax).stim_grid = result_xy(i_cell).current_targ_pos(this_axis_trials,i_axis);
                 result_xy(i_cell).(ax).current = result_xy(i_cell).max_curr(this_axis_trials);
                 result_xy(i_cell).(ax).power = result_xy(i_cell).curr_targ_power(this_axis_trials);
-%                 result_xy(i_cell).(ax).spike_times = result_xy(i_cell).spike_times(this_axis_trials);
+                %                 result_xy(i_cell).(ax).spike_times = result_xy(i_cell).spike_times(this_axis_trials);
             end
-                    result_xy(4)=result_xy(2);
-                    result_xy(7) = result_xy(2);
-            clear('neurons')
-            neurons(n_cell)=struct;
+            result_xy(4)=result_xy(2);
+            result_xy(7) = result_xy(2);
+            
+            if isfield(path,ax)
+                load(path.(ax));
+                new_cell = length(result_x);
+                neurons(n_cell+new_cell)=struct;
+            else
+                neurons(n_cell)=struct;
+            end
             for i_cell = 1:n_cell
                 neurons(i_cell).stim_grid= result_xy(i_cell).(target_axis).stim_grid';
                 %       neurons(i_cell).max_current=result_xy(i_cell).(ax).current';
@@ -105,22 +111,32 @@ for i_axis = 1:4
                 %             neurons(i_cell).spike_times=result_xy(i_cell).(target_axis).spike_times';
                 %         neurons(i_cell).scaled_current= neurons(i_cell).scaled_current/max( neurons(i_cell).scaled_current);
             end
-            
-        case 'xy'
-            load(path.(ax));
-            n_cell = length(result_shape);
-            clear('neurons')
-            neurons(n_cell)=struct;
-            for i_cell = 1:n_cell
-                % Only take the spots at 200 microns
-                center_indices=find(result_shape(i_cell).current_targ_pos(:,3)==200);
-                neurons(i_cell).stim_grid= result_shape(i_cell).current_targ_pos(center_indices,:)';
-                %       neurons(i_cell).max_current=result_xy(i_cell).(ax).current';
-                neurons(i_cell).power=50*ones(1,size(neurons(i_cell).stim_grid,2));
-                neurons(i_cell).raw_current=result_shape(i_cell).max_curr(center_indices)';
+            if isfield(path,ax)
+                
+                for i_cell = 1:new_cell
+                    neurons(i_cell+n_cell).stim_grid= reshape(result_x(i_cell).current_x_pos, 1,[]); % column vector
+                    neurons(i_cell+n_cell).power=50*ones(1,length(neurons(i_cell+n_cell).stim_grid));
+                    neurons(i_cell+n_cell).raw_current=result_x(i_cell).max_curr';
+                end
             end
-           
+        case 'xy'
+            if isfield(path,ax)
+                load(path.(ax));
+                n_cell = length(result_shape);
+                neurons(n_cell)=struct;
+                for i_cell = 1:n_cell
+                    % Only take the spots at 200 microns
+                    center_indices=find(result_shape(i_cell).current_targ_pos(:,3)==200);
+                    neurons(i_cell).stim_grid= result_shape(i_cell).current_targ_pos(center_indices,:)';
+                    %       neurons(i_cell).max_current=result_xy(i_cell).(ax).current';
+                    neurons(i_cell).power=50*ones(1,size(neurons(i_cell).stim_grid,2));
+                    neurons(i_cell).raw_current=result_shape(i_cell).max_curr(center_indices)';
+                end
+            end
     end
+    if exist('neurons')
+    pilot_data.(target_axis)=struct;
     pilot_data.(target_axis).neurons=neurons;
     end
+end
 end
