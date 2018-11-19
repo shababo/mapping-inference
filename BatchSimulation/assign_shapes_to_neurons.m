@@ -1,5 +1,5 @@
 function [neurons] = assign_shapes_to_neurons(neurons,simulation_params,prior_info)
-
+%%
 n=length(neurons);
 GP_params=prior_info.prior_parameters.GP_params;
 if simulation_params.batch.random_shape % false: use mean shape;

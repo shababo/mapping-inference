@@ -110,7 +110,7 @@ switch plot_params.type
             
             subplot(1,3,3)
             
-            std_diag=sqrt(diag(GP_samples.full.Kcov));
+            std_diag=sqrt(GP_samples.full.var);
             Sq = griddata(xy_locations(:,1),xy_locations(:,2),std_diag(this_z_indices),Xq,Yq);
             cscale_std = [min(std_diag) max(std_diag)];
             %               imagesc(x_grid,y_grid,(Vq-Mq)',cscale_shape)

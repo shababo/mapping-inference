@@ -26,8 +26,11 @@ for i_trial = 1:length(trials)
                     if isempty(C) % this is a new location:
                         variational_params(i_cell).shapes.locations=...
                             [variational_params(i_cell).shapes.locations; rel_pos];
-                        [mean_3d, var_3d]=interpolate_3D(rel_pos,GP_params,type);
-%                         lower_bound =max(0, mean_3d-4*sqrt(var_3d));upper_bound =min(1, mean_3d+4*sqrt(var_3d));
+                        
+                        [interpolated_shape]=interpolate_3D(rel_pos,GP_params,type);
+                        mean_3d=interpolated_shape.mean_3d;
+                        var_3d=interpolated_shape.var_3d;
+                        %                         lower_bound =max(0, mean_3d-4*sqrt(var_3d));upper_bound =min(1, mean_3d+4*sqrt(var_3d));
                         lower_bound =0;upper_bound =1;
                         variational_params(i_cell).shapes.bounds.low = [variational_params(i_cell).shapes.bounds.low; lower_bound];
                         
@@ -36,16 +39,16 @@ for i_trial = 1:length(trials)
                         % logit transform:
                         switch  variational_params(i_cell).shapes.dist
                             case 'logit-normal'
-                        mean_logit=log( (mean_3d-lower_bound)/(upper_bound -mean_3d)); % this is actually 0
-                        variational_params(i_cell).shapes.mean=[variational_params(i_cell).shapes.mean; mean_logit];
-                        variational_params(i_cell).shapes.log_sigma=[variational_params(i_cell).shapes.log_sigma; 0];% variance is no longer the original one!
+                                mean_logit=log( (mean_3d-lower_bound)/(upper_bound -mean_3d)); % this is actually 0
+                                variational_params(i_cell).shapes.mean=[variational_params(i_cell).shapes.mean; mean_logit];
+                                variational_params(i_cell).shapes.log_sigma=[variational_params(i_cell).shapes.log_sigma; 0];% variance is no longer the original one!
                             case 'mvn'
                                 variational_params(i_cell).shapes.prior_sigma=[variational_params(i_cell).shapes.prior_sigma; sqrt(var_3d)];
-%                                 variational_params(i_cell).shapes.mean=[variational_params(i_cell).shapes.mean; 0];
+                                %                                 variational_params(i_cell).shapes.mean=[variational_params(i_cell).shapes.mean; 0];
                                 variational_params(i_cell).shapes.mean=[variational_params(i_cell).shapes.mean; log(mean_3d/(1-mean_3d))];
                                 
                                 variational_params(i_cell).shapes.log_sigma=log(variational_params(i_cell).shapes.prior_sigma);
-                                variational_params(i_cell).shapes.log_sigma(:)=2; 
+                                variational_params(i_cell).shapes.log_sigma(:)=2;
                         end
                         trials(i_trial).cell_and_pos{i_loc}=[trials(i_trial).cell_and_pos{i_loc};...
                             i_cell length(variational_params(i_cell).shapes.mean)];
@@ -60,12 +63,15 @@ for i_trial = 1:length(trials)
     end
 end
 
-% Calculate the joint distribution (correlation matrix for the shapes) 
+% Calculate the joint distribution (correlation matrix for the shapes)
 if strcmp(variational_params(1).shapes.dist,'mvn')
     for i_cell = 1:n_cell
         locs=variational_params(i_cell).shapes.locations;
         
         axis_list= fieldnames(GP_params);
+        
+        tmp_i=strcmp(axis_list,'type');
+        axis_list=axis_list(find(~tmp_i));
         for i_ax = 1:length(axis_list)
             X=locs(:,i_ax);
             ax=axis_list{i_ax};
@@ -73,9 +79,9 @@ if strcmp(variational_params(1).shapes.dist,'mvn')
             tmp_Kcor=get_kernel_cor(X,X,tau);
             tmp_Kcor=(tmp_Kcor+tmp_Kcor')/2;
             if i_ax == 1
-               Full_Kcor=tmp_Kcor;
+                Full_Kcor=tmp_Kcor;
             else
-               Full_Kcor=Full_Kcor.*tmp_Kcor;
+                Full_Kcor=Full_Kcor.*tmp_Kcor;
             end
         end
         sigma_mat=variational_params(i_cell).shapes.prior_sigma*ones(1,length(variational_params(i_cell).shapes.prior_sigma));

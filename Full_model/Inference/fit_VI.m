@@ -119,6 +119,9 @@ while (change_history(iteration) > epsilon && iteration<maxit)
             end
             logprior(s)=get_logdistribution(variational_samples,raw_samples,prior_params);
             logvariational(s)=get_logdistribution(variational_samples,raw_samples,parameter_current);
+            if isfield(variational_samples(1),'background')
+                background_rate =  variational_samples(1).background;
+            end
             [loglklh(s)] = update_likelihood(trials, variational_samples,parameter_current,...
                 background_rate,lklh_func,spike_curves,neurons,prior_info,inference_params,pre_density);
             lklhweight=logprior(s)+loglklh(s)-logvariational(s);

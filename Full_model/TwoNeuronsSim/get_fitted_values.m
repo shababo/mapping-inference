@@ -76,8 +76,8 @@ for i_cell = 1:n_cell
             end
             [spikes,events] = spike_curves_sim(stim,delay_params,prior_info.induced_intensity);
             if isempty(spikes)
-                spike_records(s)=NaN;
-                event_records(s)=NaN;
+                spike_records(s)=Inf;
+                event_records(s)=Inf;
             else
                 spike_records(s)=spikes;
                 event_records(s)=events;
@@ -128,8 +128,8 @@ for i_cell = 1:n_cell
             end
             [spikes,events] = spike_curves_sim(stim,delay_params,prior_info.induced_intensity);
             if isempty(spikes)
-                spike_records(s)=NaN;
-                event_records(s)=NaN;
+                spike_records(s)=Inf;
+                event_records(s)=Inf;
             else
                 spike_records(s)=spikes;
                 event_records(s)=events;

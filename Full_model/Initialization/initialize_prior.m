@@ -27,12 +27,12 @@ prior_params.initial_boundary_params= [10 10 30];
 % prior_params.shift_x.type='individual';
 % prior_params.shift_x.mean=summary_results.x.shift_params.mean;
 % prior_params.shift_x.log_sigma=log(summary_results.x.shift_params.var)/2;
-% 
+%
 % prior_params.shift_y.dist='normal';
 % prior_params.shift_y.type='individual';
 % prior_params.shift_y.mean=summary_results.y.shift_params.mean;
 % prior_params.shift_y.log_sigma=log(summary_results.y.shift_params.var)/2;
-% 
+%
 % prior_params.shift_z.dist='normal';
 % prior_params.shift_z.type='individual';
 % prior_params.shift_z.mean=summary_results.z.shift_params.mean;
@@ -70,6 +70,14 @@ prior_params.delay_sigma.log_sigma=log(ini_sigma);
 prior_params.delay_sigma.bounds.up=bounds.delay_sigma(2);
 prior_params.delay_sigma.bounds.low=bounds.delay_sigma(1);
 
+prior_params.background=struct;
+prior_params.background.dist='logit-normal';
+prior_params.background.mean=0;
+prior_params.background.log_sigma=1;
+prior_params.background.bounds=struct;
+prior_params.background.bounds.up=1e-2;
+prior_params.background.bounds.low=1e-5;
+prior_params.background.type='common';
 
 prior_params.shapes=struct;
 % prior_params.shapes.dist='logit-normal';
