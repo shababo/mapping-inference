@@ -10,16 +10,12 @@ bounds.gain=[0.005 0.06];
 bounds.delay_mu=[0 60];
 bounds.delay_sigma=[0.1 10];
 
-
-
-
-
 ini_mean=0;
 ini_sigma=2;
 prior_params=struct;
 
 prior_params.GP_params=summary_results;
-
+prior_params.GP_minimal_variance = 0.01;
 %%
 prior_params.boundary_params= [80 30 120];
 prior_params.initial_boundary_params= [10 10 30];

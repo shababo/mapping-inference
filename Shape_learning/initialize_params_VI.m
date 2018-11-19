@@ -8,7 +8,6 @@ GP_params=prior_info.prior_parameters.GP_params;
 for i_cell = 1:n_cell
     variational_params(i_cell)=neurons(i_cell).params(end);
     % Check if there are new locations in this batch
-    
 end
 
 boundary_params = prior_info.prior_parameters.boundary_params;
@@ -30,6 +29,12 @@ for i_trial = 1:length(trials)
                         [interpolated_shape]=interpolate_3D(rel_pos,GP_params,type);
                         mean_3d=interpolated_shape.mean_3d;
                         var_3d=interpolated_shape.var_3d;
+                        % Adding a small variance to allow the shape to
+                        % learn from the data set when the prior shape
+                        % variance is too small. 
+                        if (var_3d < prior_info.GP_minimal_variance)
+                            var_3d = prior_info.GP_minimal_variance;
+                        end
                         %                         lower_bound =max(0, mean_3d-4*sqrt(var_3d));upper_bound =min(1, mean_3d+4*sqrt(var_3d));
                         lower_bound =0;upper_bound =1;
                         variational_params(i_cell).shapes.bounds.low = [variational_params(i_cell).shapes.bounds.low; lower_bound];
