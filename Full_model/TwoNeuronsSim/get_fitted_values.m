@@ -231,8 +231,8 @@ for i_trial = 1:n_trials
             line([true_event_time(i_trial) true_event_time(i_trial)]/time_factor,event_times_sum(i_trial,[1 3])/time_factor,'LineStyle',':','LineWidth',.75,'color','b')
             hit_count = hit_count+1;
             subplot(2,4,5)
-            scatter3(trials(i_trial).locations(1)-neurons(1).location(1),trials(i_trial).locations(2)-neurons(1).location(2),...
-                -trials(i_trial).locations(3)+neurons(1).location(3),15,'MarkerEdgeColor','b','MarkerFaceColor','b')
+            scatter3(trials(i_trial).locations(1),trials(i_trial).locations(2),...
+                -trials(i_trial).locations(3),15,'MarkerEdgeColor','b','MarkerFaceColor','b')
         % observed spike outside of CI
         elseif (true_event_time(i_trial) < event_times_sum(i_trial,1) || true_event_time(i_trial) > event_times_sum(i_trial,3))
             subplot(2,4,2)
@@ -241,8 +241,8 @@ for i_trial = 1:n_trials
             line([true_event_time(i_trial) true_event_time(i_trial)]/time_factor,event_times_sum(i_trial,[1 3])/time_factor,'LineStyle',':','LineWidth',.75,'color','r')
             miss_count = miss_count+1;
             subplot(2,4,6)
-            scatter3(trials(i_trial).locations(1)-neurons(1).location(1),trials(i_trial).locations(2)-neurons(1).location(2),...
-                -trials(i_trial).locations(3)+neurons(1).location(3),15,'MarkerEdgeColor','r','MarkerFaceColor','r')
+            scatter3(trials(i_trial).locations(1),trials(i_trial).locations(2),...
+                -trials(i_trial).locations(3),15,'MarkerEdgeColor','r','MarkerFaceColor','r')
         end
 %     elseif ~no_spike(i_trial)
 %         if true_event_time(i_trial) > event_times_sum(i_trial,1) && true_event_time(i_trial) < event_times_sum(i_trial,3)
@@ -266,17 +266,17 @@ for i_trial = 1:n_trials
             line([event_times_sum(i_trial,2) event_times_sum(i_trial,2)]/time_factor,event_times_sum(i_trial,[1 3])/time_factor,'LineStyle',':','LineWidth',.75,'color','m')
             fa_count = fa_count + 1;
             subplot(2,4,8)
-            scatter3(trials(i_trial).locations(1)-neurons(1).location(1),trials(i_trial).locations(2)-neurons(1).location(2),...
-                -trials(i_trial).locations(3)+neurons(1).location(3),15,'MarkerEdgeColor','m','MarkerFaceColor','m')
+            scatter3(trials(i_trial).locations(1),trials(i_trial).locations(2),...
+                -trials(i_trial).locations(3),15,'MarkerEdgeColor','m','MarkerFaceColor','m')
         elseif prior_info.induced_intensity.spike_time_max < event_times_sum(i_trial,1)% && prior_info.induced_intensity.time_max > event_times_sum(i_trial,1)
             subplot(2,4,3)
-            scatter(event_times_sum(i_trial,1)/time_factor,1.25 + rand*.67,15,'MarkerEdgeColor','c','MarkerFaceColor','c')
+            scatter(event_times_sum(i_trial,2)/time_factor,1.25 + rand*.67,15,'MarkerEdgeColor','c','MarkerFaceColor','c')
             hold on
-            line([event_times_sum(i_trial,1) event_times_sum(i_trial,1)]/time_factor,event_times_sum(i_trial,[1 3])/time_factor,'LineStyle',':','LineWidth',.75,'color','b')
+            line([event_times_sum(i_trial,2) event_times_sum(i_trial,2)]/time_factor,event_times_sum(i_trial,[1 3])/time_factor,'LineStyle',':','LineWidth',.75,'color','c')
             correj_count = correj_count + 1;
             subplot(2,4,7)
-            scatter3(trials(i_trial).locations(1)-neurons(1).location(1),trials(i_trial).locations(2)-neurons(1).location(2),...
-                -trials(i_trial).locations(3)+neurons(1).location(3),15,'MarkerEdgeColor','c','MarkerFaceColor','c')
+            scatter3(trials(i_trial).locations(1),trials(i_trial).locations(2),...
+                -trials(i_trial).locations(3),15,'MarkerEdgeColor','c','MarkerFaceColor','c')
         elseif prior_info.induced_intensity.time_max < event_times_sum(i_trial,1)
 %             subplot(2,2,3)
 %             scatter(event_times_sum(i_trial,1)/time_factor,1.25 + rand*.67,15,'MarkerEdgeColor','c','MarkerFaceColor','c')
@@ -327,6 +327,12 @@ end
     xlabel('Observed (ms)');ylabel('Predicted (ms)')
 % end
 
+for i = 5:8
+    subplot(2,4,i)
+    xlim([-30 30])
+    ylim([-30 30])
+    zlim([-60 60])
+end
 hit_count
 miss_count
 fa_count
@@ -410,7 +416,7 @@ for i_unq = 1:n_unq
 %    ylim([min(event_times_sum(these_indices,1)) max(event_times_sum(these_indices, 3))+1]);
      line([0 Tmax]/time_factor, [0 Tmax]/time_factor)
     xlabel('Observed (ms)');ylabel('Predicted (ms)')
-    title([num2str(round(unique_loc(i_unq,1)-neurons(1).location(1),1) ) ' ' num2str(round(unique_loc(i_unq,2)-neurons(1).location(2),1)) ' ' num2str(round(unique_loc(i_unq,3)-neurons(1).location(3),1))]);
+%     title([num2str(round(unique_loc(i_unq,1)-neurons(1).location(1),1) ) ' ' num2str(round(unique_loc(i_unq,2)-neurons(1).location(2),1)) ' ' num2str(round(unique_loc(i_unq,3)-neurons(1).location(3),1))]);
 %     for i_pow = 1:length(unique_pow)
 %         txt_string = ['Power ' num2str(unique_pow(i_pow))];
 %         text(Tmax*0.8/time_factor,10*i_pow/time_factor,txt_string,'Color', color_list(i_pow,:))
