@@ -201,10 +201,10 @@ if params.plot.do
                            means_tmp=parameter_path.(i_field).mean(:,i_neuron);
                     ub =parameter_path.(i_field).bounds.up;
                     lb =parameter_path.(i_field).bounds.low;
-              means =mean_tmp;
-              if draw_truth
-                    true_value = log(true_tmp./(1-true_tmp))*ones(2,1);
-              end  
+                  means =mean_tmp;
+                  if draw_truth
+                        true_value = log(true_tmp./(1-true_tmp))*ones(2,1);
+                  end  
               end
                 %------------------------------%
             
