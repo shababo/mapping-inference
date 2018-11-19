@@ -55,7 +55,7 @@ end
 %% Draw plots
 if params.plot.do
     % Figure 1: Convergence path for all neurons for all pathes except for the shapes
-    figure(3)
+    figure(1)
     for i=1:length(fldnames)
         i_field = fldnames{i};
         if ~strcmp(i_field,'shapes')
@@ -179,7 +179,7 @@ if params.plot.do
     end
     
     % Figure 2: a scatter plot between ELBO and some parameters
-    figure(8)
+    figure(2)
     for i=1:length(fldnames)
         i_field = fldnames{i};
         if ~strcmp(i_field,'shapes')

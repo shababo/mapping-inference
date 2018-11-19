@@ -133,10 +133,16 @@ for i_axis = 1:4
                     neurons(i_cell).raw_current=result_shape(i_cell).max_curr(center_indices)';
                 end
             end
+            
+    for i_cell = 1:n_cell
+        figure(i_cell)
+        hist(result_shape(i_cell).max_curr)
+    end
     end
     if exist('neurons')
     pilot_data.(target_axis)=struct;
     pilot_data.(target_axis).neurons=neurons;
     end
+    
 end
 end

@@ -16,8 +16,9 @@ spike_one = normrnd(spike_param.mean,spike_param.sd);
 % spike_one = normrnd(spike_param.mean,spike_param.sd);
 delay_one = normrnd(params.delay_mean,sqrt(params.delay_var));
 if spike_one < time_max
- spike_times=[];
-   event_times=[];
     spike_times = [spike_times spike_one];
     event_times = [event_times spike_one+delay_one];
+else
+    spike_times = [spike_times Inf];
+    event_times = [event_times Inf];    
 end
