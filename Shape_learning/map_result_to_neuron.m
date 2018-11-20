@@ -3,6 +3,7 @@ function [pilot_data] = map_result_to_neuron(path,varargin)
 if ~isempty(varargin)
     oldpath =varargin{1};
 end
+max_current_threshold = 2000; % Simple truncation that remove all entries with max_curr > 2000;
 %%
 axis_list= {'x' 'y' 'z' 'xy'};
 pilot_data = struct;
@@ -127,17 +128,19 @@ for i_axis = 1:4
                 for i_cell = 1:n_cell
                     % Only take the spots at 200 microns
                     center_indices=find(result_shape(i_cell).current_targ_pos(:,3)==200);
-                    neurons(i_cell).stim_grid= result_shape(i_cell).current_targ_pos(center_indices,:)';
+
+                    normal_indices=find(result_shape(i_cell).max_curr(center_indices)< max_current_threshold);
+                    neurons(i_cell).stim_grid= result_shape(i_cell).current_targ_pos(center_indices(normal_indices),:)';
                     %       neurons(i_cell).max_current=result_xy(i_cell).(ax).current';
                     neurons(i_cell).power=50*ones(1,size(neurons(i_cell).stim_grid,2));
-                    neurons(i_cell).raw_current=result_shape(i_cell).max_curr(center_indices)';
+                    neurons(i_cell).raw_current=result_shape(i_cell).max_curr(center_indices(normal_indices))';
                 end
             end
             
-    for i_cell = 1:n_cell
-        figure(i_cell)
-        hist(result_shape(i_cell).max_curr)
-    end
+%     for i_cell = 1:n_cell
+%         figure(i_cell*100)
+%         hist(neurons(i_cell).raw_current)
+%     end
     end
     if exist('neurons')
     pilot_data.(target_axis)=struct;

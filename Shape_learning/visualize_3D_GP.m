@@ -57,7 +57,7 @@ switch plot_params.type
             Vq = griddata(xy_locations(:,1),xy_locations(:,2),this_sample,Xq,Yq);
             fig= figure(i_z);
             
-            imagesc(x_grid,y_grid,Vq',cscale)
+            imagesc(y_grid,x_grid,Vq',cscale)
             ylabel('x');
             xlabel('y');
             title(['z plane:' num2str(unique_z(i_z)) ])
@@ -99,7 +99,7 @@ switch plot_params.type
             %  if output_plot
             subplot(1,3,2)
             
-            imagesc(x_grid,y_grid,Mq',cscale_shape)
+            imagesc(y_grid,x_grid,Mq',cscale_shape)
             %             ylabel('x');
             xlabel('y');
             title(['z plane:' num2str(unique_z(i_z)) '; Mean'])
@@ -114,7 +114,7 @@ switch plot_params.type
             Sq = griddata(xy_locations(:,1),xy_locations(:,2),std_diag(this_z_indices),Xq,Yq);
             cscale_std = [min(std_diag) max(std_diag)];
             %               imagesc(x_grid,y_grid,(Vq-Mq)',cscale_shape)
-            imagesc(x_grid,y_grid,Sq',cscale_std)
+            imagesc(y_grid,x_grid,Sq',cscale_std)
             %             ylabel('x');
             xlabel('y');
             title(['z plane:' num2str(unique_z(i_z)) '; Standard Deviation'])

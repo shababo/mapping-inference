@@ -27,7 +27,7 @@ GP_samples.full.locations=locations;
 GP_samples.full.locations_unique=locations_unique;
 GP_samples.full.mapping_unique=ic;
 
-if strcmp(type,'xy_square')
+if ~strcmp(type,'square')
     % Draw samples from xy and z_separately
     
     GP_samples.full.Kcor_xy=GP_samples.x.Kcor.*GP_samples.y.Kcor;

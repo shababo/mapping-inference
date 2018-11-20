@@ -48,7 +48,7 @@ switch type
             locations_unique(:,1),locations_unique(:,2),locations_unique(:,3));
         
         var_3d = griddata(loc_vec(:,1),loc_vec(:,2),loc_vec(:,3), var_vec,...
-           locations_unique(:,1),locations_unique(:,2),locations_unique(:,3));
+            locations_unique(:,1),locations_unique(:,2),locations_unique(:,3));
         
     case 'square'
         % Interpolation as weighted averages
@@ -69,8 +69,8 @@ switch type
             X_r=sign(X).*radius_to_center;
             mean_val(:,i_ax)=quick_match(X_r,GP_params.(ax).mean_params);
             var_val(:,i_ax)=quick_match(X_r,GP_params.(ax).var_params);
-%             mean_val(:,i_ax)=quick_match(X,GP_params.(ax).mean_params);
-%             var_val(:,i_ax)=quick_match(X,GP_params.(ax).var_params);
+            %             mean_val(:,i_ax)=quick_match(X,GP_params.(ax).mean_params);
+            %             var_val(:,i_ax)=quick_match(X,GP_params.(ax).var_params);
             
         end
         sqloc(sqloc==0)=epsilon;
@@ -98,7 +98,7 @@ switch type
                 X=z_unique;
             else
                 X=xy_unique(:,i_ax);
-%                 X=sign(X).*radius_to_center;
+                %                 X=sign(X).*radius_to_center;
             end
             tau=GP_params.(ax).tau;
             GP_samples.(ax).Kcor=get_kernel_cor(X,X,tau);
@@ -122,25 +122,55 @@ switch type
         var_tmp=[var_val.x var_val.y];
         var_tmp=(var_tmp.^exp_indices);
         xy_var=prod(var_tmp')';
+        
+    case 'xy'
+        %
+    xy_locations = locations(:,1:2);
+        z_locations = locations(:,3);
+        [xy_unique,~,i_xy] = unique(xy_locations,'rows');
+        [z_unique,~,i_z] = unique(z_locations,'rows');
+        
+        sqloc=xy_unique.^2;
+        radius_to_center = sqrt(sum(sqloc'))';
+        mean_val=struct;var_val=struct;
+        for i_ax = 1:3
+            ax = axis_list{i_ax};
+            if i_ax ==3
+                X=z_unique;
+                tau=GP_params.(ax).tau;
+            else
+                X=xy_unique(:,i_ax);
+                tau=GP_params.xy.tau(i_ax);
+            end
+            GP_samples.(ax).Kcor=get_kernel_cor(X,X,tau);
+            GP_samples.(ax).Kcor= (GP_samples.(ax).Kcor+GP_samples.(ax).Kcor')/2;
+        end
+        mean_val.z=quick_match(z_unique,GP_params.z.mean_params);
+        var_val.z=quick_match(z_unique,GP_params.z.var_params);
+        
+        xy_mean=quick_match(xy_unique,GP_params.xy.mean_params);
+        xy_var=quick_match(xy_unique,GP_params.xy.var_params);
+        
+        
 end
-%% Save output 
+%% Save output
 interpolated_shape = struct;
 interpolated_shape.type = type;
-if strcmp(type,'xy_square')
-interpolated_shape.locations = locations;
+if ~strcmp(type,'square')
+    interpolated_shape.locations = locations;
     
-interpolated_shape.mean_xy = xy_mean;
-interpolated_shape.var_xy = xy_var;
-interpolated_shape.index_xy = i_xy;
-
-interpolated_shape.mean_z =  mean_val.z;
-interpolated_shape.var_z =  var_val.z;
-interpolated_shape.index_z = i_z;
-
-interpolated_shape.GP_samples = GP_samples;    
+    interpolated_shape.mean_xy = xy_mean;
+    interpolated_shape.var_xy = xy_var;
+    interpolated_shape.index_xy = i_xy;
+    
+    interpolated_shape.mean_z =  mean_val.z;
+    interpolated_shape.var_z =  var_val.z;
+    interpolated_shape.index_z = i_z;
+    
+    interpolated_shape.GP_samples = GP_samples;
 else
     interpolated_shape.locations = locations;
-interpolated_shape.mean_3d = mean_3d;
-interpolated_shape.var_3d = var_3d;
-interpolated_shape.GP_samples = GP_samples;
+    interpolated_shape.mean_3d = mean_3d;
+    interpolated_shape.var_3d = var_3d;
+    interpolated_shape.GP_samples = GP_samples;
 end

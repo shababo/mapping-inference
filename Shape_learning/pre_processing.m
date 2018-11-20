@@ -1,5 +1,5 @@
 function  [pilot_data]=pre_processing(pilot_data,params)
-%%
+%% Reformat the data structure and preprocess the current 
 % mean_params, var_params,neurons
 axis_list = fieldnames(pilot_data);
 for i_ax = 1:length(axis_list)
@@ -47,7 +47,7 @@ for i_ax = 1:length(axis_list)
     end
     pilot_data.(ax).neurons=neurons;
 end
-%%
+%% Gather data for learning the sigma - current relationships 
 if params.sigma_current_model
     if params.joint_sigma % fit one single model across x,y, and z
         noise_var=[];mean_current =[];
@@ -125,6 +125,7 @@ if params.sigma_current_model
 end
 
 %% Find centers using isometic regresson:
+% Not in use 
 if params.find_shifts % Fit isometric regression to find the mode.
     % plot(neurons(1).stim_grid,neurons(1).scaled_current)
     % 1 to ngrid +1
@@ -179,7 +180,6 @@ end
 for i_ax = 1:length(axis_list)
     ax=axis_list{i_ax};
     neurons=pilot_data.(ax).neurons;
-    
     if ~strcmp(ax,'xy')
         X=[neurons(:).adjusted_grid]';
         Y=[neurons(:).scaled_current]';
@@ -229,18 +229,14 @@ for i_ax = 1:length(axis_list)
         
         pilot_data.(ax).var_params=var_params;
     else
-        
-        ax=axis_list{i_ax};
-        neurons=pilot_data.(ax).neurons;
-        
+
         X=[neurons(:).adjusted_grid]';
+        X=X(:,1:2);
         Y=[neurons(:).scaled_current]';
-        
         params.(ax).X=X;
         params.(ax).Y=Y;
-        
-        fixed_grid_x = -(params.(ax).x.boundary+params.(ax).x.buffer ):5:(params.(ax).x.boundary+params.(ax).x.buffer );
-        fixed_grid_y = -(params.(ax).y.boundary+params.(ax).y.buffer ):5:(params.(ax).y.boundary+params.(ax).y.buffer );
+        fixed_grid_x = -(params.(ax).x.boundary+params.(ax).x.buffer ):3:(params.(ax).x.boundary+params.(ax).x.buffer );
+        fixed_grid_y = -(params.(ax).y.boundary+params.(ax).y.buffer ):3:(params.(ax).y.boundary+params.(ax).y.buffer );
         [temp1, temp2]=meshgrid(fixed_grid_x,fixed_grid_y);
         Xstar=[reshape(temp1,[],1)  reshape(temp2,[],1)];
         %     Xstar=neurons(1).unique_grid;
@@ -278,8 +274,6 @@ end
 %     plot(mean_params.grid,mean_params.values)
 %     hold on;
 %     scatter(mean_params.data.X,mean_params.data.Y)
-
-
 %%
 for i_ax = 1:length(axis_list)
     ax=axis_list{i_ax};
