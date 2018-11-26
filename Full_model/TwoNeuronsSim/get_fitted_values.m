@@ -74,7 +74,7 @@ for i_cell = 1:n_cell
                 delay_params.delay_mean=0;
                 delay_params.delay_var=1e-3;
             end
-            [spikes,events] = spike_curves_sim(stim,delay_params,prior_info.induced_intensity);
+            [spikes,events] = spike_curves_sim(stim,delay_params,prior_info.induced_intensity,Inf);
             if isempty(spikes)
                 spike_records(s)=Inf;
                 event_records(s)=Inf;
@@ -126,7 +126,7 @@ for i_cell = 1:n_cell
                 delay_params.delay_var=1e-3;
                 
             end
-            [spikes,events] = spike_curves_sim(stim,delay_params,prior_info.induced_intensity);
+            [spikes,events] = spike_curves_sim(stim,delay_params,prior_info.induced_intensity,Inf);
             if isempty(spikes)
                 disp('found empty')
                 spike_records(s)=Inf;
@@ -295,7 +295,7 @@ end
 
 % for ii = 1:4
     subplot(2,4,1)
-%     xlim([0 Tmax]/time_factor); ylim([0 Tmax]/time_factor);
+    xlim([0 Tmax]/time_factor); ylim([0 Tmax]/time_factor);
 %     xlim([min(true_event_time(these_indices)) max(true_event_time(these_indices))+1]);
 %    ylim([min(event_times_sum(these_indices,1)) max(event_times_sum(these_indices, 3))+1]);
      line([0 Tmax]/time_factor, [0 Tmax]/time_factor)
@@ -303,7 +303,7 @@ end
     xlabel('Observed (ms)');ylabel('Predicted (ms)')
     
     subplot(2,4,3)
-%     xlim([0 Tmax]/time_factor); ylim([0 Tmax]/time_factor);
+    xlim([0 Tmax]/time_factor); ylim([0 Tmax]/time_factor);
 %     xlim([min(true_event_time(these_indices)) max(true_event_time(these_indices))+1]);
 %    ylim([min(event_times_sum(these_indices,1)) max(event_times_sum(these_indices, 3))+1]);
      line([0 Tmax]/time_factor, [0 Tmax]/time_factor)
@@ -311,6 +311,7 @@ end
     xlabel('Observed (ms)');ylabel('Predicted (ms)')
     
     subplot(2,4,2)
+    xlim([0 Tmax]/time_factor); ylim([0 Tmax]/time_factor);
 %      ylim([0 Tmax]/time_factor);
 %     xlim([min(true_event_time(these_indices)) max(true_event_time(these_indices))+1]);
 %    ylim([min(event_times_sum(these_indices,1)) max(event_times_sum(these_indices, 3))+1]);
@@ -319,7 +320,7 @@ end
     xlabel('Observed (ms)');ylabel('Predicted (ms)')
     
     subplot(2,4,4)
-%     xlim([0 Tmax]/time_factor); ylim([0 Tmax]/time_factor);
+    xlim([0 Tmax]/time_factor); ylim([0 Tmax]/time_factor);
 %     xlim([min(true_event_time(these_indices)) max(true_event_time(these_indices))+1]);
 %    ylim([min(event_times_sum(these_indices,1)) max(event_times_sum(these_indices, 3))+1]);
      line([0 Tmax]/time_factor, [0 Tmax]/time_factor)
