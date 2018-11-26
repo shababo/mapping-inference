@@ -35,6 +35,9 @@ for i_trial = 1:length(trials)
                         if (var_3d < prior_info.GP_minimal_variance)
                             var_3d = prior_info.GP_minimal_variance;
                         end
+                        if isfield(prior_info, 'GP_added_variance')
+                            var_3d = var_3d+prior_info.GP_added_variance;
+                        end
                         %                         lower_bound =max(0, mean_3d-4*sqrt(var_3d));upper_bound =min(1, mean_3d+4*sqrt(var_3d));
                         lower_bound =0;upper_bound =1;
                         variational_params(i_cell).shapes.bounds.low = [variational_params(i_cell).shapes.bounds.low; lower_bound];

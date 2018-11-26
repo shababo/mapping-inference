@@ -92,7 +92,7 @@ switch plot_params.type
             fig= figure(i_z)
             
             subplot(1,3,1)
-            imagesc(x_grid,y_grid,Vq',cscale_shape)
+            imagesc(y_grid,x_grid,Vq',cscale_shape)
             ylabel('x');
             xlabel('y');
             title(['z plane:' num2str(unique_z(i_z)) '; One Sample'])
