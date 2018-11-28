@@ -12,7 +12,11 @@ for i_field = 1:length(fldnames)
     %         this_sample=struct;
     normal_qt =norminv(quantile_prob);%
     normal_samples =normrnd(0,1, [100 1]);% for evaluating mean & variance gamma
-    if ~strcmp(fldnames{i_field},'shapes') && ~strcmp(fldnames{i_field},'GP_minimal_variance')
+% <<<<<<< HEAD
+%     if ~strcmp(fldnames{i_field},'shapes') && ~strcmp(fldnames{i_field},'GP_minimal_variance')
+% =======
+    if ~strcmp(fldnames{i_field},'shapes') & ~strcmp(fldnames{i_field},'z') & ~strcmp(fldnames{i_field},'xy')  
+% >>>>>>> 12c2460e7b5cc64bb7eb5fc4ac439dfea46acc2d
         normal_qt=this_params.mean+normal_qt*exp(this_params.log_sigma/2);
         normal_samples=this_params.mean+normal_samples*exp(this_params.log_sigma/2);
         switch this_params.dist

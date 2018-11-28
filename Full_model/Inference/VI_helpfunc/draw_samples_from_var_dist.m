@@ -11,7 +11,7 @@ for i_cell = 1:n_cell
     for i_field = 1:length(fldnames)
         this_params=variational_params(i_cell).(fldnames{i_field});
         %         this_sample=struct;
-        if ~strcmp(fldnames{i_field},'shapes')
+        if ~strcmp(fldnames{i_field},'shapes') & ~strcmp(fldnames{i_field},'xy') & ~strcmp(fldnames{i_field},'z')
             switch this_params.dist
                 case 'normal'
                     this_raw_sample=normrnd(this_params.mean,exp(this_params.log_sigma/2));

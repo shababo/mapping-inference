@@ -7,7 +7,7 @@ axis_list=fieldnames(GP_params);
 
 tmp_i=strcmp(axis_list,'type');
 axis_list=axis_list(find(~tmp_i));
-dims=length(axis_list);
+dims=min(3,length(axis_list));
 switch type
     case 'linear'
         mean_vec =[];

@@ -22,7 +22,7 @@ for i_cell = 1:n_cell
             params(i_cell).(fldnames{i_field}).prob_logit+new_gradient(i_cell).(fldnames{i_field}).prob_logit;
         end
 %         end
-        if  strcmp(fldnames{i_field},'shapes') & strcmp( params(i_cell).(fldnames{i_field}).dist,'mvn')
+        if ( strcmp(fldnames{i_field},'shapes') | strcmp(fldnames{i_field},'xy') | strcmp(fldnames{i_field},'z'))  & strcmp( params(i_cell).(fldnames{i_field}).dist,'mvn')
             
               Dmat= diag(diag(params(i_cell).(fldnames{i_field}).Sigma_inv).*exp(-params(i_cell).(fldnames{i_field}).log_sigma) );
        params(i_cell).(fldnames{i_field}).Sigma_tilde_inv=params(i_cell).(fldnames{i_field}).Sigma_inv+Dmat;
