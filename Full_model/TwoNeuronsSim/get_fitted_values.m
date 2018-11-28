@@ -402,88 +402,55 @@ return
 %% Summarize the unique locations we stimulated:
 %
 % return
-all_locations=zeros(0,3);
-for i_trial = 1:length(trials)
-    if ~isempty(trials(i_trial).event_times)
-        all_locations=[all_locations; trials(i_trial).locations];
-    end
-end
-[unique_loc, ia,unique_indices]=unique(all_locations, 'rows');
-%
-figure
-n_unq=size(unique_loc,1);
-sub_row = 3;
-sub_col = ceil(n_unq/sub_row);
-[unique_pow, ~, pow_ind]=unique([trials.power_levels]);
-color_list=lines(length(unique_pow));
-for i_unq = 1:n_unq
-    subplot(sub_row,sub_col,i_unq)
-    these_trials = trials(unique_indices==i_unq);
-    these_indices=find(unique_indices==i_unq); % Should give trial an ID
-    % gather the power information:
-    
-    hit_count
-    miss_count
-    fa_count
-    correj_count
-    
-    % figure
-    % % hold on;
-    % % subplot(2,2,4)
-    % for i_trial = 1:n_trials
-    % %     if
-    %     % observed spike within CI
-    %     if ~no_spike(i_trial) && true_event_time(i_trial) > event_times_sum(i_trial,1) && true_event_time(i_trial) < event_times_sum(i_trial,3)
-    %         scatter3(trials(i_trial).locations(1),trials(i_trial).locations(2),trials(i_trial).locations(3),15,'MarkerEdgeColor','b','MarkerFaceColor','b')
-    %         hold on
-    %     % observed spike outside of CI
-    %     elseif ~no_spike(i_trial)  && (true_event_time(i_trial) < event_times_sum(i_trial,1) || true_event_time(i_trial) > event_times_sum(i_trial,3))
-    %         scatter3(trials(i_trial).locations(1),trials(i_trial).locations(2),trials(i_trial).locations(3),15,'MarkerEdgeColor','r','MarkerFaceColor','r')
-    %         hold on
-    %     % no observed spike but CI is within spike time bounds
-    %     elseif no_spike(i_trial) && ~(prior_info.induced_intensity.spike_time_max < event_times_sum(i_trial,1) || 30 > event_times_sum(i_trial,3))
-    %         scatter3(trials(i_trial).locations(1),trials(i_trial).locations(2),trials(i_trial).locations(3),15,'MarkerEdgeColor','m','MarkerFaceColor','m')
-    %         hold on
-    % %         line([true_event_time(i_trial) true_event_time(i_trial)]/time_factor,event_times_sum(i_trial,[1 3])/time_factor,'LineStyle',':','LineWidth',.75,'color','m')
-    %     elseif no_spike(i_trial) && ~(200 < event_times_sum(i_trial,1))
-    %         scatter3(trials(i_trial).locations(1),trials(i_trial).locations(2),trials(i_trial).locations(3),15,'MarkerEdgeColor','c','MarkerFaceColor','c')
-    %         hold on
-    % %         line([true_event_time(i_trial) true_event_time(i_trial)]/time_factor,event_times_sum(i_trial,[1 3])/time_factor,'LineStyle',':','LineWidth',.75,'color','c')
-    %     end
-    % hold on;
-    % end
-    %
-    % axis image
-    % %  xlim([0 Tmax]/time_factor);ylim([0 Tmax]/time_factor);
-    %
-    %  xlabel('x (vert)');ylabel('y (horiz)');zlabel('z (axial/horiz)')
-    % %  title('Event time');
-    % % title(['Hit Count: '
-    
-    return
-    %% Summarize the unique locations we stimulated:
-    %
-    % return
-    all_locations=zeros(0,3);
-    for i_trial = 1:length(trials)
-        if ~isempty(trials(i_trial).event_times)
-            all_locations=[all_locations; trials(i_trial).locations];
-        end
-        hold on;
-        line([true_event_time(idx) true_event_time(idx)]/time_factor,event_times_sum(idx,[1 3])/time_factor,'LineStyle',':','LineWidth',1.0,'Color',color_list(pow_ind(idx),:))
-        hold on;
-    end
-    xlim([0 Tmax]/time_factor); ylim([0 Tmax]/time_factor);
-    %     xlim([min(true_event_time(these_indices)) max(true_event_time(these_indices))+1]);
-    %    ylim([min(event_times_sum(these_indices,1)) max(event_times_sum(these_indices, 3))+1]);
-    line([0 Tmax]/time_factor, [0 Tmax]/time_factor)
-    xlabel('Observed (ms)');ylabel('Predicted (ms)')
-    %     title([num2str(round(unique_loc(i_unq,1)-neurons(1).location(1),1) ) ' ' num2str(round(unique_loc(i_unq,2)-neurons(1).location(2),1)) ' ' num2str(round(unique_loc(i_unq,3)-neurons(1).location(3),1))]);
-    %     for i_pow = 1:length(unique_pow)
-    %         txt_string = ['Power ' num2str(unique_pow(i_pow))];
-    %         text(Tmax*0.8/time_factor,10*i_pow/time_factor,txt_string,'Color', color_list(i_pow,:))
-    %     end
-end
+% all_locations=zeros(0,3);
+% for i_trial = 1:length(trials)
+%     if ~isempty(trials(i_trial).event_times)
+%         all_locations=[all_locations; trials(i_trial).locations];
+%     end
+% end
+% [unique_loc, ia,unique_indices]=unique(all_locations, 'rows');
+% %
+% figure
+% n_unq=size(unique_loc,1);
+% sub_row = 3;
+% sub_col = ceil(n_unq/sub_row);
+% [unique_pow, ~, pow_ind]=unique([trials.power_levels]);
+% color_list=lines(length(unique_pow));
+% for i_unq = 1:n_unq
+%     subplot(sub_row,sub_col,i_unq)
+%     these_trials = trials(unique_indices==i_unq);
+%     these_indices=find(unique_indices==i_unq); % Should give trial an ID
+%     % gather the power information:
+%     
+%     hit_count
+%     miss_count
+%     fa_count
+%     correj_count
+%     
+% 
+%     %% Summarize the unique locations we stimulated:
+%     %
+%     % return
+%     all_locations=zeros(0,3);
+%     for i_trial = 1:length(trials)
+%         if ~isempty(trials(i_trial).event_times)
+%             all_locations=[all_locations; trials(i_trial).locations];
+%         end
+%         hold on;
+%         line([true_event_time(idx) true_event_time(idx)]/time_factor,event_times_sum(idx,[1 3])/time_factor,'LineStyle',':','LineWidth',1.0,'Color',color_list(pow_ind(idx),:))
+%         hold on;
+%     end
+%     xlim([0 Tmax]/time_factor); ylim([0 Tmax]/time_factor);
+%     %     xlim([min(true_event_time(these_indices)) max(true_event_time(these_indices))+1]);
+%     %    ylim([min(event_times_sum(these_indices,1)) max(event_times_sum(these_indices, 3))+1]);
+%     line([0 Tmax]/time_factor, [0 Tmax]/time_factor)
+%     xlabel('Observed (ms)');ylabel('Predicted (ms)')
+%     %     title([num2str(round(unique_loc(i_unq,1)-neurons(1).location(1),1) ) ' ' num2str(round(unique_loc(i_unq,2)-neurons(1).location(2),1)) ' ' num2str(round(unique_loc(i_unq,3)-neurons(1).location(3),1))]);
+%     %     for i_pow = 1:length(unique_pow)
+%     %         txt_string = ['Power ' num2str(unique_pow(i_pow))];
+%     %         text(Tmax*0.8/time_factor,10*i_pow/time_factor,txt_string,'Color', color_list(i_pow,:))
+%     %     end
+% end
 
 %% Visualize the predicted event times
 if params.prediction
@@ -546,76 +513,6 @@ if params.prediction
             %     end
         end
         
-        %% Visualize the predicted event times
-        if params.prediction
-            prs=[0.1 0.5 0.9];
-            for i_trial = 1:length(new_trials)
-                %  trials(i_trial).fitted.spike_times
-                new_trials(i_trial).fitted_summary.event_times=quantile(new_trials(i_trial).fitted.spike_times,prs);
-                new_trials(i_trial).fitted_summary.event_times=quantile(new_trials(i_trial).fitted.spike_times,prs);
-            end
-            
-            % Scatter plot:
-            event_times_sum = zeros(n_trials,3);
-            true_event_time = zeros(n_trials,1);
-            for i_trial = 1:length(new_trials)
-                event_times_sum(i_trial,:)=new_trials(i_trial).fitted_summary.event_times;
-                if isempty(new_trials(i_trial).event_times)
-                    true_event_time(i_trial)=Tmax;
-                else
-                    true_event_time(i_trial)=new_trials(i_trial).event_times(1);
-                end
-            end
-            figure
-            scatter(true_event_time,event_times_sum(:,2),25,'MarkerEdgeColor','b','MarkerFaceColor','b')
-            hold on;
-            for i_trial = 1:length(new_trials)
-                line([true_event_time(i_trial) true_event_time(i_trial)],event_times_sum(i_trial,[1 3]),'LineStyle',':','LineWidth',0.2,'Color','b')
-                hold on;
-            end
-            xlim([0 Tmax]);ylim([0 Tmax]);
-            line([0 Tmax], [0 Tmax])
-            xlabel('Observed (ms)');ylabel('Predicted (ms)')
-            title('Event time');
-            
-            %% Summarize the unique locations in the new trials:
-            %
-            
-            all_locations=zeros(0,3);
-            for i_trial = 1:length(new_trials)
-                all_locations=[all_locations; new_trials(i_trial).locations];
-            end
-            [unique_loc, ia,unique_indices]=unique(all_locations, 'rows');
-            figure
-            n_unq=size(unique_loc,1);
-            
-            for i_unq = 1:n_unq
-                subplot(1,n_unq,i_unq)
-                these_trials = new_trials(unique_indices==i_unq);
-                these_indices=find(unique_indices==i_unq); % Should give trial an ID
-                % gather the power information:
-                [unique_pow, ~, pow_ind]=unique([these_trials.power_levels]);
-                color_list=lines(length(unique_pow));
-                for i_trial=1:length(these_trials)
-                    idx=these_indices(i_trial);
-                    scatter(true_event_time(idx),event_times_sum(idx,2),25,'MarkerEdgeColor',color_list(pow_ind(i_trial),:),...
-                        'MarkerFaceColor',color_list(pow_ind(i_trial),:))
-                    hold on;
-                    line([true_event_time(idx) true_event_time(idx)],event_times_sum(idx,[1 3]),'LineStyle',':','LineWidth',0.2,'Color',color_list(pow_ind(i),:))
-                    hold on;
-                    
-                end
-                xlim([min(true_event_time(these_indices)) max(true_event_time(these_indices))+1]);ylim([min(event_times_sum(these_indices,1)) max(event_times_sum(these_indices, 3))+1]);
-                line([0 Tmax], [0 Tmax])
-                xlabel('Observed (ms)');ylabel('Predicted (ms)')
-                title(['Event time at ' num2str(round(unique_loc(i_unq,1),1)) ' '...
-                    num2str(round(unique_loc(i_unq,2),1)) ' ' num2str(round(unique_loc(i_unq,3),1))]);
-                for i_pow = 1:length(unique_pow)
-                    txt_string = ['Power ' num2str(unique_pow(i_pow))];
-                    text(Tmax*0.8,30*i_pow,txt_string,'Color', color_list(i_pow,:))
-                end
-            end
-        end
     end
 end
 %% Visualize the posteriors of shapes v.s. true shapes, and gain*shapes versus the truth
