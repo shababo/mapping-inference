@@ -19,7 +19,7 @@ new_gradient=struct;
 grad_max=zeros(n_cell,1);
 for i_cell = 1:n_cell
     for i_field = 1:length(fldnames)
-        if ~strcmp(fldnames{i_field},'shapes')
+        if ~strcmp(fldnames{i_field},'shapes') & ~strcmp(fldnames{i_field},'xy') & ~strcmp(fldnames{i_field},'z')
             %         if strcmp(fldnames{i_field},'PR') | strcmp(fldnames{i_field},'gain')
             
             this_field_sigma_f=zeros(S,1);

@@ -17,7 +17,7 @@ for i_cell = 1:n_cell
             this_params=params(i_cell).(fldnames{i_field});
             this_sample=variational_samples(i_cell).(fldnames{i_field});
             this_raw_sample = raw_samples(i_cell).(fldnames{i_field});
-            if ~strcmp(fldnames{i_field},'shapes')
+            if ~strcmp(fldnames{i_field},'shapes') & ~strcmp(fldnames{i_field},'xy') & ~strcmp(fldnames{i_field},'z') 
                 switch this_params.dist
                     case {'normal','log-normal', 'logit-normal'}
                         dmean =   -(this_params.mean-this_raw_sample)./exp(2*this_params.log_sigma);

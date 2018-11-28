@@ -33,9 +33,16 @@ if ~marginal_flag
             if ~isempty(cell_and_pos)
                 power_tmp = trials(i_trial).power_levels(i_loc);
                 for i=1:size(cell_and_pos,1)
+                    if strcmp(prior_info.prior_parameters.GP_params.type,'xy_square')
+                        i_cell = cell_and_pos(i,1);i_xy= cell_and_pos(i,2);i_z= cell_and_pos(i,3);
+                        stim_size(i_trial,i_cell)=stim_size(i_trial,i_cell)+...
+                            power_tmp*variational_samples(i_cell).xy(i_xy)*variational_samples(i_cell).z(i_z);
+                        
+                    else
                     i_cell = cell_and_pos(i,1);i_pos= cell_and_pos(i,2);
                     stim_size(i_trial,i_cell)=stim_size(i_trial,i_cell)+...
                         power_tmp*variational_samples(i_cell).shapes(i_pos);
+                    end
                 end
             end
         end
