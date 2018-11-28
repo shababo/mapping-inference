@@ -5,7 +5,7 @@ clear('variational_params')
 
 GP_params=prior_info.prior_parameters.GP_params;
 type=GP_params.type;
-
+min_dist = 2; % minimun distance to distinguish two stim spot 
 %variational_params(n_cell)=struct;
 for i_cell = 1:n_cell
     variational_params(i_cell)=neurons(i_cell).params(end);
@@ -38,9 +38,23 @@ if strcmp(type, 'xy_square')
                                 this_rel_pos=rel_pos(3);
                             end
                             
-                            [C,tmp,ib] = intersect(variational_params(i_cell).(axis_names{i_axis}).locations,this_rel_pos,'rows');
+                            % Instead of exact matching, find if the new
+                            % stim loc is within 2 microns from existing
+                            % ones
+                            existing_loc_dim=size(variational_params(i_cell).(axis_names{i_axis}).locations);
+                            sq_dist=(variational_params(i_cell).(axis_names{i_axis}).locations- ones(existing_loc_dim(1),1)*this_rel_pos).^2;
+                            if existing_loc_dim(2) > 1
+                                sq_dist = sum(sq_dist,2);
+                            end
+                            if (existing_loc_dim(1) == 0) | min(sq_dist.^(1/2))> min_dist
+                                tmp = []; 
+                            else
+                                
+                                 [~,tmp]=min(sq_dist.^(1/2));
+                            end
+                            %[C,tmp,~] = intersect(variational_params(i_cell).(axis_names{i_axis}).locations,this_rel_pos,'rows');
                             
-                            if isempty(C) % this is a new location:
+                            if isempty(tmp) % this is a new location:
                                 
                                 variational_params(i_cell).(axis_names{i_axis}).locations=...
                                     [variational_params(i_cell).(axis_names{i_axis}).locations; this_rel_pos];
@@ -118,9 +132,9 @@ if strcmp(type, 'xy_square')
                     end
                     
                 else
-                tmp_Kcor=get_kernel_cor(X,X,tau);
-                tmp_Kcor=(tmp_Kcor+tmp_Kcor')/2;
-                Full_Kcor=tmp_Kcor;
+                    tmp_Kcor=get_kernel_cor(X,X,tau);
+                    tmp_Kcor=(tmp_Kcor+tmp_Kcor')/2;
+                    Full_Kcor=tmp_Kcor;
                     
                 end
                 sigma_mat=variational_params(i_cell).(axis_names{i_axis}).prior_sigma*ones(1,length(variational_params(i_cell).(axis_names{i_axis}).prior_sigma));
