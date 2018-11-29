@@ -224,7 +224,9 @@ else
             axis_list= fieldnames(GP_params);
             
             tmp_i=strcmp(axis_list,'type');
-            axis_list=axis_list(find(~tmp_i));
+%             axis_list=axis_list(find(~tmp_i));
+            axis_list={'x', 'y', 'z'};
+            
             for i_ax = 1:length(axis_list)
                 X=locs(:,i_ax);
                 ax=axis_list{i_ax};
