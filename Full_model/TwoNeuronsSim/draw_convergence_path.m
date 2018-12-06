@@ -18,7 +18,7 @@ n_neurons=size(parameter_history,2);
 fldnames = fieldnames(parameter_history(1,1));
 for i=1:length(fldnames)
     i_field = fldnames{i};
-    if ~strcmp(i_field,'shapes')
+    if ~strcmp(i_field,'shapes') && ~strcmp(i_field,'xy') && ~strcmp(i_field,'z')
         tmp_mat = zeros(n_iterations,n_neurons); tmp_mat_sig= tmp_mat;
         for i_neuron = 1:n_neurons
             for i_iteration=1:n_iterations
@@ -28,21 +28,21 @@ for i=1:length(fldnames)
         end
         parameter_path.(i_field).mean=tmp_mat; parameter_path.(i_field).sigma=tmp_mat_sig;
         parameter_path.(i_field).bounds=parameter_history(i_iteration,i_neuron).(i_field).bounds;
-    else
-        parameter_path.(i_field)=struct;
-        parameter_path.(i_field).neurons(n_neurons)=struct;
-        for i_neuron = 1:n_neurons
-            tmp_mat = zeros(n_iterations,length(parameter_history(1,i_neuron).(i_field).mean));
-            tmp_mat_sig= tmp_mat;
-            for i_iteration=1:n_iterations
-                tmp_mat(i_iteration,:) = parameter_history(i_iteration,i_neuron).(i_field).mean;
-                tmp_mat_sig(i_iteration,:) = exp(parameter_history(i_iteration,i_neuron).(i_field).log_sigma);
-            end
-            parameter_path.(i_field).neurons(i_neuron).mean=tmp_mat;
-            parameter_path.(i_field).neurons(i_neuron).sigma=tmp_mat_sig;
-            parameter_path.(i_field).neurons(i_neuron).location=parameter_history(1,i_neuron).shapes.locations;
-            parameter_path.(i_field).neurons(i_neuron).bounds=parameter_history(1,i_neuron).shapes.bounds;
-        end
+%     else
+%         parameter_path.(i_field)=struct;
+%         parameter_path.(i_field).neurons(n_neurons)=struct;
+%         for i_neuron = 1:n_neurons
+%             tmp_mat = zeros(n_iterations,length(parameter_history(1,i_neuron).(i_field).mean));
+%             tmp_mat_sig= tmp_mat;
+%             for i_iteration=1:n_iterations
+%                 tmp_mat(i_iteration,:) = parameter_history(i_iteration,i_neuron).(i_field).mean;
+%                 tmp_mat_sig(i_iteration,:) = exp(parameter_history(i_iteration,i_neuron).(i_field).log_sigma);
+%             end
+%             parameter_path.(i_field).neurons(i_neuron).mean=tmp_mat;
+%             parameter_path.(i_field).neurons(i_neuron).sigma=tmp_mat_sig;
+%             parameter_path.(i_field).neurons(i_neuron).location=parameter_history(1,i_neuron).shapes.locations;
+%             parameter_path.(i_field).neurons(i_neuron).bounds=parameter_history(1,i_neuron).shapes.bounds;
+%         end
     end
 end
 parameter_path.elbo_path = elbo_rec;
