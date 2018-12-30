@@ -93,16 +93,23 @@ switch plot_params.type
             
             subplot(1,3,1)
             imagesc(y_grid,x_grid,Vq',cscale_shape)
-            ylabel('x');
-            xlabel('y');
-            title(['z plane:' num2str(unique_z(i_z)) '; One Sample'])
+            ylabel('x (um)','FontSize',21);
+            xlabel('y (um)','FontSize',21);
+            ax = gca;
+            ax.FontSize = 19;
+            
+            title(['Simulated cell'],'FontSize',21)
             %  if output_plot
             subplot(1,3,2)
             
             imagesc(y_grid,x_grid,Mq',cscale_shape)
-            %             ylabel('x');
-            xlabel('y');
-            title(['z plane:' num2str(unique_z(i_z)) '; Mean'])
+%             ylabel('x (um)','FontSize',21);
+            xlabel('y (um)','FontSize',21);
+            ax = gca;
+            ax.FontSize = 19;
+             ax.YTick=[];
+           
+            title(['Mean'],'FontSize',21)
             hp3 = get(subplot(1,3,2),'Position');
             colorbar('Position', [hp3(1)+hp3(3)+0.01  hp3(2)  0.015  hp3(2)+hp3(3)*3.3])
             
@@ -116,8 +123,12 @@ switch plot_params.type
             %               imagesc(x_grid,y_grid,(Vq-Mq)',cscale_shape)
             imagesc(y_grid,x_grid,Sq',cscale_std)
             %             ylabel('x');
-            xlabel('y');
-            title(['z plane:' num2str(unique_z(i_z)) '; Standard Deviation'])
+%             ylabel('x (um)','FontSize',21);
+            xlabel('y (um)','FontSize',21);
+            ax = gca;
+            ax.FontSize = 19;
+            ax.YTick=[];
+            title(['Standard Deviation'],'FontSize',21)
             hp4 = get(subplot(1,3,3),'Position');
             colorbar('Position', [hp4(1)+hp4(3)+0.01  hp4(2)  0.015  hp4(2)+hp4(3)*3.3])
             
@@ -125,11 +136,11 @@ switch plot_params.type
             %%
             fig = gcf;
             fig.PaperUnits = 'inches';
-            fig.PaperPosition = [0 0 13 4];
-%             saveas(fig,[fig_name 'z'  num2str(unique_z(i_z)) '.png'])
-
-print('-dpng','-r1500', [fig_name 'z'  num2str(unique_z(i_z))])
-            close(fig)
+            fig.PaperPosition = [0 0 10 6];
+            %             saveas(fig,[fig_name 'z'  num2str(unique_z(i_z)) '.png'])
+            
+            % print('-dpng','-r1500', [fig_name 'z'  num2str(unique_z(i_z))])
+            %             close(fig)
             
         end
 end
