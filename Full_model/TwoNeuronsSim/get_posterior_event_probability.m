@@ -104,11 +104,12 @@ for i_cell = 1:n_cell
             end
             if ~isfield(trials(i_trial),'post_density')
                 trials(i_trial).post_density=zeros(n_cell+1,length(trials(i_trial).event_times));
-                trials(i_trial).post_density(1,:)=prior_info.background_rate;
+               
             end
             trials(i_trial).post_density(i_cell+1,:)=mean(density_events);
             
         end
+         trials(i_trial).post_density(1,:)=prior_info.background_rate;
     end
 end
 %%
