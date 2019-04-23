@@ -12,6 +12,9 @@ function [trials ]=get_fitted_values(neurons, trials, new_trials,prior_info,para
 n_cell = length(neurons);
 Tmax=200;%prior_info.induced_intensity.event_time_max;
 time_factor = 20;
+n_trials = length(trials);
+
+if ~params.plot_only
 %% Extract posterior information from neurons
 if isempty(new_trials)
     params.prediction=false;
@@ -53,7 +56,7 @@ if params.prediction
     end
 end
 %% Draw spike times on the fitted trials
-n_trials = length(trials);
+
 for i_cell = 1:n_cell
     for i_trial =1:n_trials
         this_trial=trials(i_trial);
@@ -82,7 +85,7 @@ for i_cell = 1:n_cell
                             else
                                 i_pos= cell_and_pos(i,2);
                                 stim=stim+...
-                                    power_tmp*this_sample.gain*this_samples.shape(i_pos);
+                                    power_tmp*this_sample.gain*this_sample.shapes(i_pos);
                             end
                         end
                         
@@ -186,7 +189,7 @@ if params.prediction
         end
     end
 end
-
+end
 %% Visualization:
 %     - Fits
 %         Draw scatter plot that visualize the shape estimates v.s. the true values
@@ -257,20 +260,26 @@ for i_trial = 1:n_trials
             scatter(true_event_time(i_trial)/time_factor,.25 + rand*.67,15,'MarkerEdgeColor','b','MarkerFaceColor','b')
             hold on
             line([true_event_time(i_trial) true_event_time(i_trial)]/time_factor,event_times_sum(i_trial,[1 3])/time_factor,'LineStyle',':','LineWidth',.75,'color','b')
+            hold on
             hit_count = hit_count+1;
             subplot(2,4,5)
+            
             scatter3(trials(i_trial).locations(1),trials(i_trial).locations(2),...
                 -trials(i_trial).locations(3),15,'MarkerEdgeColor','b','MarkerFaceColor','b')
+            hold on
             % observed spike outside of CI
         elseif (true_event_time(i_trial) < event_times_sum(i_trial,1) || true_event_time(i_trial) > event_times_sum(i_trial,3))
             subplot(2,4,2)
             scatter(true_event_time(i_trial)/time_factor,1.25 + rand*.67,15,'MarkerEdgeColor','r','MarkerFaceColor','r')
             hold on
             line([true_event_time(i_trial) true_event_time(i_trial)]/time_factor,event_times_sum(i_trial,[1 3])/time_factor,'LineStyle',':','LineWidth',.75,'color','r')
+            hold on
             miss_count = miss_count+1;
             subplot(2,4,6)
+            hold on
             scatter3(trials(i_trial).locations(1),trials(i_trial).locations(2),...
                 -trials(i_trial).locations(3),15,'MarkerEdgeColor','r','MarkerFaceColor','r')
+            hold on
         end
         %     elseif ~no_spike(i_trial)
         %         if true_event_time(i_trial) > event_times_sum(i_trial,1) && true_event_time(i_trial) < event_times_sum(i_trial,3)
@@ -292,20 +301,26 @@ for i_trial = 1:n_trials
             scatter(event_times_sum(i_trial,2)/time_factor,1.25 + rand*.67,15,'MarkerEdgeColor','m','MarkerFaceColor','m')
             hold on
             line([event_times_sum(i_trial,2) event_times_sum(i_trial,2)]/time_factor,event_times_sum(i_trial,[1 3])/time_factor,'LineStyle',':','LineWidth',.75,'color','m')
+            hold on
             fa_count = fa_count + 1;
             subplot(2,4,8)
+            hold on
             scatter3(trials(i_trial).locations(1),trials(i_trial).locations(2),...
                 -trials(i_trial).locations(3),15,'MarkerEdgeColor','m','MarkerFaceColor','m')
-        elseif prior_info.induced_intensity.spike_time_max < event_times_sum(i_trial,1)% && prior_info.induced_intensity.time_max > event_times_sum(i_trial,1)
+            hold on
+        elseif prior_info.induced_intensity.spike_time_max < event_times_sum(i_trial,2)% && prior_info.induced_intensity.time_max > event_times_sum(i_trial,1)
             subplot(2,4,3)
             scatter(event_times_sum(i_trial,2)/time_factor,1.25 + rand*.67,15,'MarkerEdgeColor','c','MarkerFaceColor','c')
             hold on
             line([event_times_sum(i_trial,2) event_times_sum(i_trial,2)]/time_factor,event_times_sum(i_trial,[1 3])/time_factor,'LineStyle',':','LineWidth',.75,'color','c')
+            hold on
             correj_count = correj_count + 1;
             subplot(2,4,7)
+            hold on
             scatter3(trials(i_trial).locations(1),trials(i_trial).locations(2),...
                 -trials(i_trial).locations(3),15,'MarkerEdgeColor','c','MarkerFaceColor','c')
-        elseif prior_info.induced_intensity.time_max < event_times_sum(i_trial,1)
+            hold on
+%         elseif prior_info.induced_intensity.time_max < event_times_sum(i_trial,1)
             %             subplot(2,2,3)
             %             scatter(event_times_sum(i_trial,1)/time_factor,1.25 + rand*.67,15,'MarkerEdgeColor','c','MarkerFaceColor','c')
             %             hold on
@@ -316,7 +331,6 @@ for i_trial = 1:n_trials
             %             hold on
             %             line([true_event_time(i_trial) true_event_time(i_trial)]/time_factor,event_times_sum(i_trial,[1 3])/time_factor,'LineStyle',':','LineWidth',.75,'color','c')
         end
-        hold on;
     end
     
     % for ii = 1:4
@@ -325,15 +339,17 @@ for i_trial = 1:n_trials
     %     xlim([min(true_event_time(these_indices)) max(true_event_time(these_indices))+1]);
     %    ylim([min(event_times_sum(these_indices,1)) max(event_times_sum(these_indices, 3))+1]);
     line([0 Tmax]/time_factor, [0 Tmax]/time_factor)
+    hold on
     line(prior_info.induced_intensity.spike_time_max*[1 1]/time_factor, [0 10])
+    hold on
     xlabel('Observed (ms)');ylabel('Predicted (ms)')
     
     subplot(2,4,3)
     xlim([0 Tmax]/time_factor); ylim([0 Tmax]/time_factor);
     %     xlim([min(true_event_time(these_indices)) max(true_event_time(these_indices))+1]);
     %    ylim([min(event_times_sum(these_indices,1)) max(event_times_sum(these_indices, 3))+1]);
-    line([0 Tmax]/time_factor, [0 Tmax]/time_factor)
-    line(prior_info.induced_intensity.spike_time_max*[1 1]/time_factor, [0 10])
+    line([0 Tmax]/time_factor, [0 Tmax]/time_factor); hold on
+    line(prior_info.induced_intensity.spike_time_max*[1 1]/time_factor, [0 10]); hold on
     xlabel('Observed (ms)');ylabel('Predicted (ms)')
     
     subplot(2,4,2)
@@ -341,7 +357,7 @@ for i_trial = 1:n_trials
     %      ylim([0 Tmax]/time_factor);
     %     xlim([min(true_event_time(these_indices)) max(true_event_time(these_indices))+1]);
     %    ylim([min(event_times_sum(these_indices,1)) max(event_times_sum(these_indices, 3))+1]);
-    line([0 Tmax]/time_factor, [0 Tmax]/time_factor)
+    line([0 Tmax]/time_factor, [0 Tmax]/time_factor); hold on
     %      line([0 20],[0 20])
     xlabel('Observed (ms)');ylabel('Predicted (ms)')
     
@@ -349,16 +365,17 @@ for i_trial = 1:n_trials
     xlim([0 Tmax]/time_factor); ylim([0 Tmax]/time_factor);
     %     xlim([min(true_event_time(these_indices)) max(true_event_time(these_indices))+1]);
     %    ylim([min(event_times_sum(these_indices,1)) max(event_times_sum(these_indices, 3))+1]);
-    line([0 Tmax]/time_factor, [0 Tmax]/time_factor)
-    line(prior_info.induced_intensity.spike_time_max*[1 1]/time_factor, [0 10])
+    line([0 Tmax]/time_factor, [0 Tmax]/time_factor); hold on
+    line(prior_info.induced_intensity.spike_time_max*[1 1]/time_factor, [0 10]); hold on
     xlabel('Observed (ms)');ylabel('Predicted (ms)')
 end
 
 for i = 5:8
     subplot(2,4,i)
-    xlim([-30 30])
+    xlim([-40 40])
     ylim([-30 30])
-    zlim([-60 60])
+    zlim([-50 50])
+    view(90,90)
 end
 hit_count
 miss_count

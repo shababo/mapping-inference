@@ -55,10 +55,10 @@ end
 %% Draw plots
 if params.plot.do
     % Figure 1: Convergence path for all neurons for all pathes except for the shapes
-    figure(1)
+    figure%(1)
     for i=1:length(fldnames)
         i_field = fldnames{i};
-        if ~strcmp(i_field,'shapes')
+        if ~strcmp(i_field,'shapes') && ~strcmp(i_field,'z') && ~strcmp(i_field,'xy')
             for i_neuron =1 :n_neurons
                 i_plot = i_neuron+(i-1)*n_neurons;
                 subplot(length(fldnames)-1,n_neurons,i_plot);
@@ -179,10 +179,10 @@ if params.plot.do
     end
     
     % Figure 2: a scatter plot between ELBO and some parameters
-    figure(2)
+    figure%(2)
     for i=1:length(fldnames)
         i_field = fldnames{i};
-        if ~strcmp(i_field,'shapes')
+        if ~strcmp(i_field,'shapes') && ~strcmp(i_field,'z') && ~strcmp(i_field,'xy')
             for i_neuron =1 :n_neurons
                 i_plot = 2*i_neuron-1+(i-1)*2*n_neurons;
                 subplot(length(fldnames)-1,2*n_neurons,i_plot);
