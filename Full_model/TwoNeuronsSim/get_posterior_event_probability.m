@@ -47,58 +47,76 @@ for i_cell = 1:n_cell
         else
             event_times=trials(i_trial).event_times;
             density_events = zeros(S,length(trials(i_trial).event_times));
-            
-            rel_pos=neurons(i_cell).params(end).shapes.locations - ...
-                ones(size(neurons(i_cell).params(end).shapes.locations,1),1)*(this_trial.locations-neurons(i_cell).location);
-            i_shape=find(sum( (rel_pos.^2)')==0 );
-            if isempty(i_shape)
-            else
+            for s=1:S
+                this_sample=posterior_samples{s}(i_cell);
                 
-                for s=1:S
-                    this_sample=posterior_samples{s}(i_cell);
-                    stim=this_trial.power_levels*this_sample.gain*this_sample.shapes(i_shape);
-                    if isfield(this_sample,'delay_mu')
-                        delay_params=struct;
-                        delay_params.delay_mean=this_sample.delay_mu;
-                        delay_params.delay_var=this_sample.delay_sigma^2;
-                    else
-                        delay_params=struct;
-                        delay_params.delay_mean=0;
-                        delay_params.delay_var=1e-3;
+                for i_loc = 1:size(trials(i_trial).locations)
+                    stim=0;
+                    cell_and_pos=trials(i_trial).cell_and_pos{i_loc};
+                    if ~isempty(cell_and_pos)
+                        power_tmp = this_trial.power_levels(i_loc);
+                        
+                        for i=1:size(cell_and_pos,1)
+                            if  i_cell == cell_and_pos(i,1) % Update one cell in this big for-loop
+                                
+                                if strcmp(prior_info.prior_parameters.GP_params.type,'xy_square')
+                                    i_xy= cell_and_pos(i,2);i_z= cell_and_pos(i,3);
+                                    stim=stim+...
+                                        power_tmp*this_sample.gain*this_sample.xy(i_xy)*this_sample.z(i_z);
+                                    
+                                else
+                                    i_pos= cell_and_pos(i,2);
+                                    stim=stim+...
+                                        power_tmp*this_sample.gain*this_samples.shape(i_pos);
+                                end
+                                
+                            end
+                            
+                        end
+                        
                     end
                     
-                    
-                    
-                    delay_mu_temp=delay_params.delay_mean;
-                    delay_var_temp= delay_params.delay_var;
-                    stim_index= min(current_max_grid,...
-                        max(1,round((stim-current_lb)/current_gap)));
-                    spike_times_cond_shape=spike_curves_mean(stim_index);
-                    expectation=delay_mu_temp+spike_times_cond_shape;
-                    standard_dev=sqrt(delay_var_temp+  mean(spike_curves_var(stim_index)));
-                    
-                    
-                    pdf_index = max(1,min(max_grid,round( ((event_times-expectation)/standard_dev +grid.bound)/grid.gap)));
-                    density_events(s,:)=this_sample.PR*pre_density.pdf_grid(pdf_index)/standard_dev;
                 end
+                if isfield(this_sample,'delay_mu')
+                    delay_params=struct;
+                    delay_params.delay_mean=this_sample.delay_mu;
+                    delay_params.delay_var=this_sample.delay_sigma^2;
+                else
+                    delay_params=struct;
+                    delay_params.delay_mean=0;
+                    delay_params.delay_var=1e-3;
+                end
+                
+                
+                
+                delay_mu_temp=delay_params.delay_mean;
+                delay_var_temp= delay_params.delay_var;
+                stim_index= min(current_max_grid,...
+                    max(1,round((stim-current_lb)/current_gap)));
+                spike_times_cond_shape=spike_curves_mean(stim_index);
+                expectation=delay_mu_temp+spike_times_cond_shape;
+                standard_dev=sqrt(delay_var_temp+  mean(spike_curves_var(stim_index)));
+                
+                
+                pdf_index = max(1,min(max_grid,round( ((event_times-expectation)/standard_dev +grid.bound)/grid.gap)));
+                density_events(s,:)=this_sample.PR*pre_density.pdf_grid(pdf_index)/standard_dev;
+                
             end
             if ~isfield(trials(i_trial),'post_density')
                 trials(i_trial).post_density=zeros(n_cell+1,length(trials(i_trial).event_times));
-                trials(i_trial).post_density(1,:)=prior_info.background_rate;
+               
             end
             trials(i_trial).post_density(i_cell+1,:)=mean(density_events);
             
         end
+         trials(i_trial).post_density(1,:)=prior_info.background_rate;
     end
 end
-%% Visualize predicted and true spike times
-% median spike times and quantiles v.s. true spike times
+%%
 for i_trial = 1:n_trials
     total_prob =sum(trials(i_trial).post_density);
     trials(i_trial).soft_assignments =  trials(i_trial).post_density;
     if ~isempty(trials(i_trial).post_density)
-        
-        
         for i_source = 1:size(trials(i_trial).soft_assignments,1)
             trials(i_trial).soft_assignments(i_source,:) =  trials(i_trial).post_density(i_source,:)./total_prob;
         end
