@@ -5,10 +5,14 @@ sum_path = [prior_path];
 load(sum_path)
 
 bounds=struct;
+% bounds.PR=[0.01 1];
+% bounds.gain=[0.005 0.06];
+% bounds.delay_mu=[0 60];
+% bounds.delay_sigma=[0.1 10];
 bounds.PR=[0.01 1];
-bounds.gain=[0.005 0.06];
-bounds.delay_mu=[0 60];
-bounds.delay_sigma=[0.1 10];
+bounds.gain=[0.01 0.05];
+bounds.delay_mu=[30 70];
+bounds.delay_sigma=[5 10];
 
 ini_mean=0;
 ini_sigma=2;

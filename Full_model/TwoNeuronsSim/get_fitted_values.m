@@ -251,11 +251,15 @@ hit_count = 0;
 miss_count = 0;
 fa_count = 0;
 correj_count = 0;
+plot_group1_inds = [];
 for i_trial = 1:n_trials
     %     if
     % observed spike within CI
     if ~no_spike(i_trial) && true_event_time(i_trial) < prior_info.induced_intensity.spike_time_max
         if true_event_time(i_trial) > event_times_sum(i_trial,1) && true_event_time(i_trial) < event_times_sum(i_trial,3)
+            
+            plot_group1_inds = [plot_group1_inds i_trial];
+            
             subplot(2,4,1)
             scatter(true_event_time(i_trial)/time_factor,.25 + rand*.67,15,'MarkerEdgeColor','b','MarkerFaceColor','b')
             hold on
@@ -269,6 +273,8 @@ for i_trial = 1:n_trials
             hold on
             % observed spike outside of CI
         elseif (true_event_time(i_trial) < event_times_sum(i_trial,1) || true_event_time(i_trial) > event_times_sum(i_trial,3))
+            
+            
             subplot(2,4,2)
             scatter(true_event_time(i_trial)/time_factor,1.25 + rand*.67,15,'MarkerEdgeColor','r','MarkerFaceColor','r')
             hold on
