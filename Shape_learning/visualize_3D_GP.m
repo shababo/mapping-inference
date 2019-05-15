@@ -93,8 +93,8 @@ switch plot_params.type
             
             subplot(1,3,1)
             imagesc(y_grid,x_grid,Vq',cscale_shape)
-            ylabel('x (um)','FontSize',21);
-            xlabel('y (um)','FontSize',21);
+            ylabel('x1 (um)','FontSize',21);
+            xlabel('x2 (um)','FontSize',21);
             ax = gca;
             ax.FontSize = 19;
             
@@ -104,7 +104,7 @@ switch plot_params.type
             
             imagesc(y_grid,x_grid,Mq',cscale_shape)
 %             ylabel('x (um)','FontSize',21);
-            xlabel('y (um)','FontSize',21);
+            xlabel('x2 (um)','FontSize',21);
             ax = gca;
             ax.FontSize = 19;
              ax.YTick=[];
@@ -124,7 +124,7 @@ switch plot_params.type
             imagesc(y_grid,x_grid,Sq',cscale_std)
             %             ylabel('x');
 %             ylabel('x (um)','FontSize',21);
-            xlabel('y (um)','FontSize',21);
+            xlabel('x2 (um)','FontSize',21);
             ax = gca;
             ax.FontSize = 19;
             ax.YTick=[];
