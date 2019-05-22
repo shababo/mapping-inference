@@ -23,20 +23,21 @@ prior_params.GP_minimal_variance = 0.01;
 %%
 prior_params.boundary_params= [80 30 120];
 prior_params.initial_boundary_params= [10 10 30];
-% prior_params.shift_x.dist='normal';
-% prior_params.shift_x.type='individual';
-% prior_params.shift_x.mean=summary_results.x.shift_params.mean;
-% prior_params.shift_x.log_sigma=log(summary_results.x.shift_params.var)/2;
-%
-% prior_params.shift_y.dist='normal';
-% prior_params.shift_y.type='individual';
-% prior_params.shift_y.mean=summary_results.y.shift_params.mean;
-% prior_params.shift_y.log_sigma=log(summary_results.y.shift_params.var)/2;
-%
-% prior_params.shift_z.dist='normal';
-% prior_params.shift_z.type='individual';
-% prior_params.shift_z.mean=summary_results.z.shift_params.mean;
-% prior_params.shift_z.log_sigma=log(summary_results.z.shift_params.var)/2;
+
+prior_params.shift_x.dist='logit-normal';
+prior_params.shift_x.type='individual';
+prior_params.shift_x.mean=summary_results.x.shift_params.mean;
+prior_params.shift_x.log_sigma=log(summary_results.x.shift_params.var)/2;
+
+prior_params.shift_y.dist='logit-normal';
+prior_params.shift_y.type='individual';
+prior_params.shift_y.mean=summary_results.y.shift_params.mean;
+prior_params.shift_y.log_sigma=log(summary_results.y.shift_params.var)/2;
+
+prior_params.shift_z.dist='logit-normal';
+prior_params.shift_z.type='individual';
+prior_params.shift_z.mean=summary_results.z.shift_params.mean;
+prior_params.shift_z.log_sigma=log(summary_results.z.shift_params.var)/2;
 
 prior_params.gain.dist='logit-normal';
 prior_params.gain.type='individual';

@@ -124,58 +124,59 @@ if params.sigma_current_model
     end
 end
 
-%% Find centers using isometic regresson:
-% Not in use 
-if params.find_shifts % Fit isometric regression to find the mode.
-    % plot(neurons(1).stim_grid,neurons(1).scaled_current)
-    % 1 to ngrid +1
+%% Learn the center shifts 
+% Use the heuristic approach by picking the peak and the location of nuclei
+if params.find_shifts
+ % 1 to ngrid +1
     for i_ax = 1:length(axis_list)
         ax=axis_list{i_ax};
         neurons=pilot_data.(ax).neurons;
         n_cell = length(neurons);
-        
-        for i_cell = 1:n_cell
-            [unique_stim,unique_ia,unique_ic]=unique(neurons(i_cell).stim_grid);
-            mean_current =zeros(1,max(unique_ic));
-            for i = 1:max(unique_ic)
-                mean_current(i)= mean(neurons(i_cell).scaled_current(unique_ic==i));
+        if ~strcmp(ax,'xy')
+            for i_cell = 1:n_cell
+                [unique_stim,unique_ia,unique_ic]=unique(neurons(i_cell).stim_grid);
+                mean_current =zeros(1,max(unique_ic));
+                for i = 1:max(unique_ic)
+                    mean_current(i)= mean(neurons(i_cell).scaled_current(unique_ic==i));
+                end
+                [~, I_center]=max(mean_current);
+                neurons(i_cell).initial_shift = unique_stim(I_center);
             end
-            n_grid = length( mean_current);
-            [left]=prefixiso(n_grid,mean_current);
-            [right]=prefixiso(n_grid,flip(mean_current));
-            errorl=left.error(2:end);
-            errorr=flip(right.error(2:end));
-            totalerror=zeros(n_grid,1);
-            for i=2:n_grid
-                totalerror(i) = errorl(i-1)+errorr(i);
+            for i_cell = 1:n_cell
+                neurons(i_cell).adjusted_grid = neurons(i_cell).stim_grid-neurons(i_cell).initial_shift;
+                neurons(i_cell).find_shift=params.find_shifts;
             end
-            totalerror(1)=max(totalerror);
-            [~,I_center]=min(totalerror);
-            neurons(i_cell).initial_shift = unique_stim(I_center);
-        end
-        for i_cell = 1:n_cell
-            neurons(i_cell).adjusted_grid = neurons(i_cell).stim_grid-neurons(i_cell).initial_shift;
-            neurons(i_cell).find_shift=params.find_shifts;
-        end
         pilot_data.(ax).neurons=neurons;
+        else
+            for i_cell = 1:n_cell
+                [unique_stim,unique_ia,unique_ic]=unique(neurons(i_cell).stim_grid', 'rows');
+                mean_current =zeros(1,max(unique_ic));
+                for i = 1:max(unique_ic)
+                    mean_current(i)= mean(neurons(i_cell).scaled_current(unique_ic==i));
+                end
+                [~, I_center]=max(mean_current);
+                neurons(i_cell).initial_shift = unique_stim(I_center,:);
+            end
+               for i_cell = 1:n_cell
+                neurons(i_cell).adjusted_grid = neurons(i_cell).stim_grid-transpose(neurons(i_cell).initial_shift)*ones(1,size(neurons(i_cell).stim_grid,2));
+                neurons(i_cell).find_shift=params.find_shifts;
+            end
+        pilot_data.(ax).neurons=neurons;
+        end
     end
-else % Take 0 as the mode
+   else % Take 0 as the mode
     for i_ax = 1:length(axis_list)
         ax=axis_list{i_ax};
         neurons=pilot_data.(ax).neurons;
         n_cell = length(neurons);
-        
         for i_cell = 1:n_cell
             neurons(i_cell).initial_shift=0;
             neurons(i_cell).adjusted_grid = neurons(i_cell).stim_grid;
             neurons(i_cell).find_shift=params.find_shifts;
-            
         end
-        
         pilot_data.(ax).neurons=neurons;
     end
 end
-
 %% Fit the mean funtion from the centered data:
 for i_ax = 1:length(axis_list)
     ax=axis_list{i_ax};
@@ -203,7 +204,6 @@ for i_ax = 1:length(axis_list)
         mean_params.data.fitted=post_mean;
         mean_params.data.X = params.(ax).X;
         pilot_data.(ax).mean_params=mean_params;
-        
         
         neurons=pilot_data.(ax).neurons;
         
@@ -285,3 +285,51 @@ for i_ax = 1:length(axis_list)
     pilot_data.(ax).neurons=neurons;
 end
 
+%% Find centers using isometic regresson:
+% Not in use 
+% if params.find_shifts_isometric % Fit isometric regression to find the mode.
+%     plot(neurons(1).stim_grid,neurons(1).scaled_current)
+%     1 to ngrid +1
+%     for i_ax = 1:length(axis_list)
+%         ax=axis_list{i_ax};
+%         neurons=pilot_data.(ax).neurons;
+%         n_cell = length(neurons);
+%         
+%         for i_cell = 1:n_cell
+%             [unique_stim,unique_ia,unique_ic]=unique(neurons(i_cell).stim_grid);
+%             mean_current =zeros(1,max(unique_ic));
+%             for i = 1:max(unique_ic)
+%                 mean_current(i)= mean(neurons(i_cell).scaled_current(unique_ic==i));
+%             end
+%             n_grid = length( mean_current);
+%             [left]=prefixiso(n_grid,mean_current);
+%             [right]=prefixiso(n_grid,flip(mean_current));
+%             errorl=left.error(2:end);
+%             errorr=flip(right.error(2:end));
+%             totalerror=zeros(n_grid,1);
+%             for i=2:n_grid
+%                 totalerror(i) = errorl(i-1)+errorr(i);
+%             end
+%             totalerror(1)=max(totalerror);
+%             [~,I_center]=min(totalerror);
+%             neurons(i_cell).initial_shift = unique_stim(I_center);
+%         end
+%         for i_cell = 1:n_cell
+%             neurons(i_cell).adjusted_grid = neurons(i_cell).stim_grid-neurons(i_cell).initial_shift;
+%             neurons(i_cell).find_shift=params.find_shifts;
+%         end
+%         pilot_data.(ax).neurons=neurons;
+%     end
+% else % Take 0 as the mode
+%     for i_ax = 1:length(axis_list)
+%         ax=axis_list{i_ax};
+%         neurons=pilot_data.(ax).neurons;
+%         n_cell = length(neurons);
+%         for i_cell = 1:n_cell
+%             neurons(i_cell).initial_shift=0;
+%             neurons(i_cell).adjusted_grid = neurons(i_cell).stim_grid;
+%             neurons(i_cell).find_shift=params.find_shifts;
+%         end
+%         pilot_data.(ax).neurons=neurons;
+%     end
+% end
