@@ -228,6 +228,8 @@ for i_ax = 1:length(axis_list)
         var_params.data.X = params.(ax).X;
         
         pilot_data.(ax).var_params=var_params;
+        
+    pilot_data.(ax).tau=params.(ax).tau;
     else
 
         X=[neurons(:).adjusted_grid]';
@@ -266,6 +268,8 @@ for i_ax = 1:length(axis_list)
         var_params.data.X = params.(ax).X;
         
         pilot_data.(ax).var_params=var_params;
+        
+    pilot_data.(ax).tau=[params.(ax).x.tau params.(ax).y.tau];
     end
 end
 %     figure(1)
@@ -274,7 +278,7 @@ end
 %     plot(mean_params.grid,mean_params.values)
 %     hold on;
 %     scatter(mean_params.data.X,mean_params.data.Y)
-%%
+%% Update the neurons for each dimension 
 for i_ax = 1:length(axis_list)
     ax=axis_list{i_ax};
     neurons=pilot_data.(ax).neurons;
@@ -283,6 +287,23 @@ for i_ax = 1:length(axis_list)
         neurons(i_cell).fit_gain=params.fit_gain;
     end
     pilot_data.(ax).neurons=neurons;
+end
+
+%% Summarize the mean and variance of shifts 
+for i_ax = 1:length(axis_list)
+    ax=axis_list{i_ax};
+   pilot_data.(ax).shift_params =struct;
+    if ~strcmp(ax,'xy')
+   
+   pilot_data.(ax).shift_params.data = [pilot_data.(ax).neurons(:).initial_shift];
+   pilot_data.(ax).shift_params.mean = mean([pilot_data.(ax).neurons(:).initial_shift]);
+   pilot_data.(ax).shift_params.var = var([pilot_data.(ax).neurons(:).initial_shift]);
+    else
+        tmp=reshape([pilot_data.xy.neurons.initial_shift],3,[]);
+        pilot_data.(ax).shift_params.data= tmp(1:2,:);
+        pilot_data.(ax).shift_params.mean= mean(tmp(1:2,:)')';
+        pilot_data.(ax).shift_params.var= var(tmp(1:2,:)')';
+    end
 end
 
 %% Find centers using isometic regresson:
