@@ -1,5 +1,5 @@
 function [values] = quick_match(new_grid,params)
-values=zeros(length(new_grid),1);
+values=zeros(size(new_grid,1),1);
 for i = 1:length(new_grid)
 if size(new_grid,2)>1
 [~,im]=min( sum( abs(params.grid -new_grid(i,:)).^2,2) );

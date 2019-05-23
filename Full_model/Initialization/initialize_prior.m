@@ -25,16 +25,6 @@ load(gp_pilot_path) % An object called gp_pilot
 % prior_params.shift_z.mean=summary_results.z.shift_params.mean;
 % prior_params.shift_z.log_sigma=log(summary_results.z.shift_params.var)/2;
 
-%% Convolute the GP mean functions with an additional normal noise:
-
-axis_list = fieldnames(pilot_data);
-for i_ax = 1:length(axis_list)
-    ax=axis_list{i_ax};
-    neurons=pilot_data.(ax).neurons;
-    n_cell = length(neurons);
-
-end
-
 
 
 %% Add an additional variance term in the GP variance:

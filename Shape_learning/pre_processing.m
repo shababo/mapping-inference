@@ -292,19 +292,55 @@ end
 %% Summarize the mean and variance of shifts 
 for i_ax = 1:length(axis_list)
     ax=axis_list{i_ax};
-   pilot_data.(ax).shift_params =struct;
+    pilot_data.(ax).shift_params =struct;
     if ~strcmp(ax,'xy')
-   
-   pilot_data.(ax).shift_params.data = [pilot_data.(ax).neurons(:).initial_shift];
-   pilot_data.(ax).shift_params.mean = mean([pilot_data.(ax).neurons(:).initial_shift]);
-   pilot_data.(ax).shift_params.var = var([pilot_data.(ax).neurons(:).initial_shift]);
+        
+        pilot_data.(ax).shift_params.data = [pilot_data.(ax).neurons(:).initial_shift];
+        pilot_data.(ax).shift_params.mean = mean([pilot_data.(ax).neurons(:).initial_shift]);
+        pilot_data.(ax).shift_params.var = var([pilot_data.(ax).neurons(:).initial_shift]);
     else
         tmp=reshape([pilot_data.xy.neurons.initial_shift],3,[]);
         pilot_data.(ax).shift_params.data= tmp(1:2,:);
         pilot_data.(ax).shift_params.mean= mean(tmp(1:2,:)')';
-        pilot_data.(ax).shift_params.var= var(tmp(1:2,:)')';
+        pilot_data.(ax).shift_params.var= cov(tmp(1:2,:)')';
     end
 end
+%% Convolute the GP mean functions using the distributions of shifts 
+% i.e., marginalizing the shift to allow for greater robustness 
+% moved to this script since it took a while to run 
+axis_list = fieldnames(pilot_data);
+for i_ax = 1:length(axis_list)
+    ax=axis_list{i_ax};
+    mean_params=  pilot_data.(ax).mean_params;
+    shift_params=  pilot_data.(ax).shift_params;
+    tmp=mean_params.values;
+    
+    
+         if ~strcmp(ax,'xy')
+            shift_grid = -3:0.5:3; % This range should contain almost all probability mass for a standard normal r.v.
+            prob_weight=normpdf(shift_grid);prob_weight=prob_weight/sum(prob_weight); prob_weight=prob_weight';
+            shift_grid = shift_grid*sqrt(shift_params.var)+shift_params.mean; % Transform it given the shift distribution 
+         else
+           [X Y]=meshgrid(-3:0.5:3,-3:0.5:3);
+           shift_grid  = [ reshape(X,[],1) reshape(Y,[],1)];
+            prob_weight=normpdf(shift_grid);prob_weight=prob_weight/sum(prob_weight);
+           shift_grid=shift_grid*sqrtm(shift_params.var) + ones(size(shift_grid,1),1)*(shift_params.mean');
+         end
+    
+    
+    for i_grid = 1:length(mean_params.values)
+            if ~strcmp(ax,'xy')
+             X_r = mean_params.grid(i_grid)+shift_grid;
+             X_r=X_r';
+            else
+                X_r = mean_params.grid(i_grid,:)+shift_grid;
+            end
+        tmp(i_grid)=sum(quick_match(X_r,mean_params).*prob_weight);
+        
+    end
+     pilot_data.(ax).mean_params.convoluted_values=tmp;
+end
+
 
 %% Find centers using isometic regresson:
 % Not in use 
