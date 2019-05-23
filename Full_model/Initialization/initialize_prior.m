@@ -4,7 +4,8 @@ function  [prior_info]=initialize_prior(gp_pilot_path,spike_curve_path)
 %% Handle the GPs 
 load(gp_pilot_path) % An object called gp_pilot
 %% Examine the shifts (hardly any in the gp data)
-% There is hardly any shift in these data 
+% There is hardly any shift in these data...
+
 % mean([gp_pilot.x.neurons(:).initial_shift])
 % mean([gp_pilot.y.neurons(:).initial_shift])
 % mean([gp_pilot.z.neurons(:).initial_shift])
@@ -24,12 +25,14 @@ load(gp_pilot_path) % An object called gp_pilot
 % prior_params.shift_z.type='individual';
 % prior_params.shift_z.mean=summary_results.z.shift_params.mean;
 % prior_params.shift_z.log_sigma=log(summary_results.z.shift_params.var)/2;
-
-
-
 %% Add an additional variance term in the GP variance:
-
-
+axis_list = fieldnames(gp_pilot);
+for i_ax = 1:length(axis_list)
+    ax=axis_list{i_ax};
+    if isfield(ax, params.var_additional)
+        pilot_data.(ax).var_params.values= pilot_data.(ax).var_params.values+params.var_additional.(ax);
+    end
+end
 %% 
 load(spike_curve_path) % 
 
