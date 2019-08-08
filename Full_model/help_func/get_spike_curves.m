@@ -1,4 +1,9 @@
-function [spike_curves, x_current, y_spike_mean, spike_curve_cell_ids] = get_spike_curves(single_patch_path,varargin)
+function [spike_curves, x_current, y_spike_mean] = get_spike_curves(curves_pilot_path,varargin)
+% Revision notes:
+%   1. This function should take a processed data from single-patch
+%   experiments (that can include data from the shape model)
+%   2. We will also need to remove the bad cell in the data, maybe create
+%   another file for clean and procsssed single-patch data 
 
 % inputs are the two result_current and result_spikes data structures 
 % call get_spike_curves(result_current,result_spikes)
@@ -13,66 +18,35 @@ function [spike_curves, x_current, y_spike_mean, spike_curve_cell_ids] = get_spi
 % xlabel('Actual current');ylabel('Mean spike time');
 % 
 
-load(single_patch_path); % should contain result_current,result_spikes
-
-x_current=[];
-spike_curve_cell_ids = [];
-y_spike_mean=[];
-y_spike_sd=[];
-
-for i_cell = 1:length(result_current)
-    if ~isempty(result_current(i_cell).peak_current_means)
-%     i_cell
-
-    %     if i_cell ~= 11
-%     if length(result_current(i_cell).these_powers) ==  length(result_spikes(i_cell).these_powers)
-%         if min(result_current(i_cell).these_powers ==  result_spikes(i_cell).these_powers)==1 
-            % NOTE: using these two criteria will leave only 4 cells.
-            % It seems that not all the cells have matching power levels
-            % between the two structures
-
-        [~,i_c,i_s] = intersect(result_current(i_cell).these_powers,result_spikes(i_cell).these_powers);
-            % make sure the power levels line with those in result_current and
-            % result_spikes
-            x_current =[ x_current result_current(i_cell).peak_current_means(i_c)];
-            spike_curve_cell_ids = [spike_curve_cell_ids i_cell*ones(size(result_current(i_cell).peak_current_means(i_c)))];
-            y_spike_mean=[y_spike_mean result_spikes(i_cell).spike_time_means(i_s)];
-            y_spike_sd=[y_spike_sd result_spikes(i_cell).spike_time_jitter(i_s)];
-%         end
-%     end
-    %     end
-    end
-end
-
+%% Read data from curves_pilot_path
+load(curves_pilot_path); % An object named curves_pilot
+x_current=curves_pilot.x_current;
+y_spike_mean=curves_pilot.y_spike_mean;
+y_spike_sd=curves_pilot.y_spike_sd;
 
 if ~isempty(varargin) && ~isempty(varargin{1})
     specs= varargin{1};
 else
-     
     specs=struct;
-specs.time_max=200; % maximum spike time 
+    specs.time_max=200; % maximum spike time 
 %     specs.F_mean = @(x,xdata)x(1)*exp(-x(2)*xdata) + x(3);
-
     specs.F_mean = @(x,xdata) x(2)./(xdata) + x(3); %min(y_spike_mean) + 
     specs.F_dev = @(x,xdata) x(1) + x(2)./(xdata);
-    
     specs.F_sd = @(x,xdata) min(y_spike_sd) + x(1)./(xdata);
-
     specs.current_multiplier=1e-3;
     specs.current_min=10;
     specs.current_max=3000;
     specs.current_gap=2;
-
     specs.sd_min=2;
     specs.sd_max=15;
-
-specs.dev_max=15; % bound the deviation as well
+    specs.dev_max=15; % bound the deviation as well
 end
-
-
 
 %% Call fmincon:
 % y_spike_mean > specs.time_max 
+
+
+
 ni_mean=isnan(y_spike_mean) |  x_current > specs.current_max | isnan(x_current);
 assignin('base','y_spike_mean',y_spike_mean);
 assignin('base','x_current',x_current);

@@ -1,98 +1,61 @@
 %% Create the prior distributions base on the processed pilot data
-function  [prior_info]=initialize_prior(gp_pilot_path,spike_curve_path)
+function  [prior_info]=initialize_prior(params)
+%% Initialize the output:
+prior_info=struct;
+prior_info.prior_parameters=struct;
+prior_info.background_rate=params.background_rate;
 
-%% Handle the GPs 
-load(gp_pilot_path) % An object called gp_pilot
-%% Examine the shifts (hardly any in the gp data)
-% There is hardly any shift in these data...
-
-% mean([gp_pilot.x.neurons(:).initial_shift])
-% mean([gp_pilot.y.neurons(:).initial_shift])
-% mean([gp_pilot.z.neurons(:).initial_shift])
-% gp_pilot.xy.neurons(:).initial_shift
-
-% prior_params.shift_x.dist='logit-normal';
-% prior_params.shift_x.type='individual';
-% prior_params.shift_x.mean=summary_results.x.shift_params.mean;
-% prior_params.shift_x.log_sigma=log(summary_results.x.shift_params.var)/2;
-% 
-% prior_params.shift_y.dist='logit-normal';
-% prior_params.shift_y.type='individual';
-% prior_params.shift_y.mean=summary_results.y.shift_params.mean;
-% prior_params.shift_y.log_sigma=log(summary_results.y.shift_params.var)/2;
-% 
-% prior_params.shift_z.dist='logit-normal';
-% prior_params.shift_z.type='individual';
-% prior_params.shift_z.mean=summary_results.z.shift_params.mean;
-% prior_params.shift_z.log_sigma=log(summary_results.z.shift_params.var)/2;
-%% Add an additional variance term in the GP variance:
-axis_list = fieldnames(gp_pilot);
-for i_ax = 1:length(axis_list)
-    ax=axis_list{i_ax};
-    if isfield(ax, params.var_additional)
-        pilot_data.(ax).var_params.values= pilot_data.(ax).var_params.values+params.var_additional.(ax);
-    end
-end
-%% 
-load(spike_curve_path) % 
-
-
-sum_path = [prior_path];
-load(sum_path)
-
-bounds=struct;
-% bounds.PR=[0.01 1];
-% bounds.gain=[0.005 0.06];
-% bounds.delay_mu=[0 60];
-% bounds.delay_sigma=[0.1 10];
-bounds.PR=[0.01 1];
-bounds.gain=[0.01 0.05];
-bounds.delay_mu=[30 70];
-bounds.delay_sigma=[5 10];
-
-ini_mean=0;
-ini_sigma=2;
+%% Load and process the prior distributions from the pilot data 
 prior_params=struct;
-
-prior_params.GP_params=summary_results;
-prior_params.GP_minimal_variance = 0.01;
-%% Initialize the priors for all other parameters:
-prior_params.boundary_params= [80 30 120];
-prior_params.initial_boundary_params= [10 10 30];
-
-
 prior_params.gain.dist='logit-normal';
 prior_params.gain.type='individual';
-prior_params.gain.mean=ini_mean;
-prior_params.gain.log_sigma=log(ini_sigma);
-prior_params.gain.bounds.up=bounds.gain(2);
-prior_params.gain.bounds.low=bounds.gain(1);
+prior_params.gain.mean=params.initial_mean;
+prior_params.gain.log_sigma=log(params.initial_var);
+prior_params.gain.bounds.up=params.bounds.gain(2);
+prior_params.gain.bounds.low=params.bounds.gain(1);
 
+if isfield(params,'gain_pilot_path')
+    load(params.gain_pilot_path)
+    fields_list=fieldnames(gain_pilot);
+    % Define the centers as the point on the grid that has the minimal squared
+    % distance to the origin
+    gain=[];
+    for i_fld = 1:length(fields_list)
+        fld=fields_list{i_fld};
+        %size(rmmissing(gain_pilot.(fld).gain))
+        gain=[gain rmmissing(gain_pilot.(fld).gain)];
+    end
+    prior_params.gain.bounds.up=max(params.bounds.gain(2),max(gain)*1.1); 
+    prior_params.gain.bounds.low=min(params.bounds.gain(1),min(gain)*(1-0.1));
+    % logit transformation for given the lower and upper bound:
+    logit_gain=log((gain-prior_params.gain.bounds.low)./(prior_params.gain.bounds.up-gain));
+    prior_params.gain.mean=mean(logit_gain);
+    prior_params.gain.log_sigma=log(var(logit_gain)); % This is actually the variance!
+end
 
-
-prior_params.PR.dist='logit-normal';
-prior_params.PR.type='individual';
-prior_params.PR.mean=ini_mean;
-prior_params.PR.log_sigma=log(ini_sigma);
-prior_params.PR.bounds.up=bounds.PR(2);
-prior_params.PR.bounds.low=bounds.PR(1);
-%         variational_params.PR.bounds.prob_logit=;
-
+% Pair-patched data needed for these: 
 prior_params.delay_mu.dist='logit-normal';
 prior_params.delay_mu.type='individual';
-prior_params.delay_mu.mean=ini_mean;
-prior_params.delay_mu.log_sigma=log(ini_sigma);
-prior_params.delay_mu.bounds.up=bounds.delay_mu(2);
-prior_params.delay_mu.bounds.low=bounds.delay_mu(1);
-
+prior_params.delay_mu.mean=params.initial_mean;
+prior_params.delay_mu.log_sigma=log(params.initial_var);
+prior_params.delay_mu.bounds.up=params.bounds.delay_mu(2);
+prior_params.delay_mu.bounds.low=params.bounds.delay_mu(1);
 
 prior_params.delay_sigma.dist='logit-normal';
 prior_params.delay_sigma.type='individual';
-prior_params.delay_sigma.mean=ini_mean;
-prior_params.delay_sigma.log_sigma=log(ini_sigma);
-prior_params.delay_sigma.bounds.up=bounds.delay_sigma(2);
-prior_params.delay_sigma.bounds.low=bounds.delay_sigma(1);
+prior_params.delay_sigma.mean=params.initial_mean;
+prior_params.delay_sigma.log_sigma=log(params.initial_var);
+prior_params.delay_sigma.bounds.up=params.bounds.delay_sigma(2);
+prior_params.delay_sigma.bounds.low=params.bounds.delay_sigma(1);
 
+% Not available from pilot: 
+prior_params.PR.dist='logit-normal';
+prior_params.PR.type='individual';
+prior_params.PR.mean=params.initial_mean;
+prior_params.PR.log_sigma=log(params.initial_var);
+prior_params.PR.bounds.up=params.bounds.PR(2);
+prior_params.PR.bounds.low=params.bounds.PR(1);
+%         variational_params.PR.bounds.prob_logit=;
 prior_params.background=struct;
 prior_params.background.dist='logit-normal';
 prior_params.background.mean=0;
@@ -115,16 +78,60 @@ prior_params.shapes.prior_sigma=zeros(0,1);
 
 
 
-prior_info.prior_parameters.GP_params.type='xy_square';
-prior_info.induced_intensity=get_spike_curves(spike_curve_path);
+prior_info.prior_parameters=prior_params;
+
+%% Some hard-coded parameters: 
+prior_info.prior_parameters.initial_boundary_params=params.prior_parameters.initial_boundary_params;
+
+%% Handle the GPs 
+load(params.gp_pilot_path) % An object called gp_pilot
+axis_list = fieldnames(gp_pilot);
+% Add an additional variance term in the GP variance:
+for i_ax = 1:length(axis_list)
+    ax=axis_list{i_ax};
+    if isfield(ax, params.GP_var_additional)
+        gp_pilot.(ax).var_params.values= gp_pilot.(ax).var_params.values+params.GP_var_additional.(ax);
+    end
+end
+prior_info.prior_parameters.GP_params=gp_pilot; % Same infor regarding prior distributions in the subfield prior_parameters
+prior_info.prior_parameters.GP_params.GP_minimal_variance = params.GP_minimal_variance;
+prior_info.prior_parameters.GP_added_variance=params.GP_added_variance;
+prior_info.prior_parameters.GP_params.type= params.GP_type;
+
+%% Real the relationships between the current and mean spike time and variance spike time
+load(params.spike_curve_path);
+prior_info.induced_intensity=induced_intensity;
 prior_info.induced_intensity.minimum_stim_threshold = ...
     prior_info.induced_intensity.current(max(find(prior_info.induced_intensity.prob<0.2))+1);
-prior_info.induced_intensity.stim_threshold=5;
-prior_info.induced_intensity.spike_time_max=200;
-prior_info.induced_intensity.event_time_max=300;
-prior_info.background_rate=background_rate;
-prior_info.prior_parameters.initial_boundary_params=[20 20 30];
-if nuclei_design
-    prior_info.prior_parameters.initial_boundary_params=[1 1 1];
-end
-prior_info.GP_added_variance=0.04;
+prior_info.induced_intensity.stim_threshold=params.induced_intensity.stim_threshold;
+
+prior_info.induced_intensity.spike_time_max=params.induced_intensity.spike_time_max;
+prior_info.induced_intensity.event_time_max=params.induced_intensity.event_time_max;
+
+%% Use pilot data to set the priors for these parameters:
+% Use prior info, if path to the summary data is available
+% Use set parameters, if path is not available
+
+
+%% Examine the shifts (hardly any in the gp data)
+% There is hardly any shift in these data...
+
+% mean([gp_pilot.x.neurons(:).initial_shift])
+% mean([gp_pilot.y.neurons(:).initial_shift])
+% mean([gp_pilot.z.neurons(:).initial_shift])
+% gp_pilot.xy.neurons(:).initial_shift
+
+% prior_params.shift_x.dist='logit-normal';
+% prior_params.shift_x.type='individual';
+% prior_params.shift_x.mean=summary_results.x.shift_params.mean;
+% prior_params.shift_x.log_sigma=log(summary_results.x.shift_params.var)/2;
+% 
+% prior_params.shift_y.dist='logit-normal';
+% prior_params.shift_y.type='individual';
+% prior_params.shift_y.mean=summary_results.y.shift_params.mean;
+% prior_params.shift_y.log_sigma=log(summary_results.y.shift_params.var)/2;
+% 
+% prior_params.shift_z.dist='logit-normal';
+% prior_params.shift_z.type='individual';
+% prior_params.shift_z.mean=summary_results.z.shift_params.mean;
+% prior_params.shift_z.log_sigma=log(summary_results.z.shift_params.var)/2;

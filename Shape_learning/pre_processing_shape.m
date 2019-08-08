@@ -1,6 +1,10 @@
-function  [pilot_data]=pre_processing(pilot_data,params)
-%% Reformat the data structure and preprocess the current 
-% mean_params, var_params,neurons
+function  [pilot_data]=pre_processing_shape(pilot_data,params)
+%% Reformat the data and learn the shapes 
+% 1) find shift
+% Based on the estimated shifts
+% 2) estimate mean function
+% 3) estimate variance function
+
 axis_list = fieldnames(pilot_data);
 for i_ax = 1:length(axis_list)
     ax=axis_list{i_ax};
@@ -47,83 +51,6 @@ for i_ax = 1:length(axis_list)
     end
     pilot_data.(ax).neurons=neurons;
 end
-%% Gather data for learning the sigma - current relationships 
-if params.sigma_current_model
-    if params.joint_sigma % fit one single model across x,y, and z
-        noise_var=[];mean_current =[];
-        for i_ax = 1:length(axis_list)
-            ax=axis_list{i_ax};
-            neurons=pilot_data.(ax).neurons;
-            n_cell = length(neurons);
-            for i_cell =1:n_cell
-                noise_var = [noise_var neurons(i_cell).raw_sq_deviation'];
-                mean_current = [mean_current neurons(i_cell).avg_raw_current'];
-            end
-        end
-        dims=[size(noise_var,1)*size(noise_var,2) 1];
-        Y=reshape(sqrt(noise_var), dims);
-        X= [ones(dims) reshape(mean_current, dims)];
-        %     X= [reshape(mean_current, dims)];
-        fun=@(x) sum(( Y-X*x').^2);
-        A = [];b = [];Aeq = [];beq = []; lb = [params.sd_min 0];
-        ub = [Inf Inf]; x0 = [0,0];
-        [est,fval,exitflag,output] =fmincon(fun,x0,A,b,Aeq,beq,lb,ub);
-        for i_ax = 1:length(axis_list)
-            ax=axis_list{i_ax};
-            neurons=pilot_data.(ax).neurons;
-            n_cell = length(neurons);
-            for i_cell = 1:n_cell
-                % NOTE: the current code doest not include scaling by power!
-                scaling_factor= ones(1,length(neurons(i_cell).current))*neurons(i_cell).scale;
-                if params.power_scaling
-                    scaling_factor= neurons(i_cell).power.*scaling_factor;
-                end
-                neurons(i_cell).noise_sigma = (est(1)+est(2)*neurons(i_cell).mean_raw_current)./scaling_factor;
-                neurons(i_cell).slope=est(2);
-                neurons(i_cell).intercept=est(1);
-            end
-            pilot_data.(ax).neurons=neurons;
-        end
-        pilot_data.sd_current =struct;
-        pilot_data.sd_current.X=X;
-        pilot_data.sd_current.Y=Y;
-        pilot_data.sd_current.beta=est;
-        
-    else % fit the sigma-current model separately
-        % Sigma ~ current model (use all data)
-        for i_ax = 1:length(axis_list)
-            ax=axis_list{i_ax};
-            neurons=pilot_data.(ax).neurons;
-            n_cell = length(neurons);
-            noise_var=[];mean_current =[];
-            for i_cell =1:n_cell
-                noise_var = [noise_var neurons(i_cell).raw_sq_deviation'];
-                mean_current = [mean_current neurons(i_cell).avg_raw_current'];
-            end
-            dims=[size(noise_var,1)*size(noise_var,2) 1];
-            Y=reshape(sqrt(noise_var), dims);
-            X= [ones(dims) reshape(mean_current, dims)];
-            %     X= [reshape(mean_current, dims)];
-            fun=@(x) sum(( Y-X*x').^2);
-            A = []; b = [];Aeq = [];
-            beq = []; lb = [params.sd_min 0];
-            ub = [Inf Inf]; x0 = [0,0];
-            [est,fval,exitflag,output] =fmincon(fun,x0,A,b,Aeq,beq,lb,ub);
-            for i_cell = 1:n_cell
-                % NOTE: the current code doest not include scaling by power!
-                scaling_factor= ones(1,length(neurons(i_cell).current))*neurons(i_cell).scale;
-                if params.power_scaling
-                    scaling_factor= neurons(i_cell).power.*scaling_factor;
-                end
-                neurons(i_cell).noise_sigma = (est(1)+est(2)*neurons(i_cell).mean_raw_current)./scaling_factor;
-                neurons(i_cell).slope=est(2);
-                neurons(i_cell).intercept=est(1);
-            end
-            pilot_data.(ax).neurons=neurons;
-        end
-    end
-end
-
 %% Learn the center shifts 
 % Use the heuristic approach by picking the peak and the location of nuclei
 if params.find_shifts
@@ -282,7 +209,7 @@ end
 for i_ax = 1:length(axis_list)
     ax=axis_list{i_ax};
     neurons=pilot_data.(ax).neurons;
-    n_cell = 1:length(neurons);
+    n_cell = length(neurons);
     for i_cell = 1:n_cell
         neurons(i_cell).fit_gain=params.fit_gain;
     end
@@ -314,8 +241,6 @@ for i_ax = 1:length(axis_list)
     mean_params=  pilot_data.(ax).mean_params;
     shift_params=  pilot_data.(ax).shift_params;
     tmp=mean_params.values;
-    
-    
          if ~strcmp(ax,'xy')
             shift_grid = -3:0.5:3; % This range should contain almost all probability mass for a standard normal r.v.
             prob_weight=normpdf(shift_grid);prob_weight=prob_weight/sum(prob_weight); prob_weight=prob_weight';
@@ -326,8 +251,6 @@ for i_ax = 1:length(axis_list)
             prob_weight=normpdf(shift_grid);prob_weight=prob_weight/sum(prob_weight);
            shift_grid=shift_grid*sqrtm(shift_params.var) + ones(size(shift_grid,1),1)*(shift_params.mean');
          end
-    
-    
     for i_grid = 1:length(mean_params.values)
             if ~strcmp(ax,'xy')
              X_r = mean_params.grid(i_grid)+shift_grid;
@@ -339,6 +262,84 @@ for i_ax = 1:length(axis_list)
         
     end
      pilot_data.(ax).mean_params.convoluted_values=tmp;
+end
+
+%% Gather data for learning the sigma - current relationships 
+% We can acutally ignore this property for building the prior!
+if params.sigma_current_model
+    if params.joint_sigma % fit one single model across x,y, and z
+        noise_var=[];mean_current =[];
+        for i_ax = 1:length(axis_list)
+            ax=axis_list{i_ax};
+            neurons=pilot_data.(ax).neurons;
+            n_cell = length(neurons);
+            for i_cell =1:n_cell
+                noise_var = [noise_var neurons(i_cell).raw_sq_deviation'];
+                mean_current = [mean_current neurons(i_cell).avg_raw_current'];
+            end
+        end
+        dims=[size(noise_var,1)*size(noise_var,2) 1];
+        Y=reshape(sqrt(noise_var), dims);
+        X= [ones(dims) reshape(mean_current, dims)];
+        %     X= [reshape(mean_current, dims)];
+        fun=@(x) sum(( Y-X*x').^2);
+        A = [];b = [];Aeq = [];beq = []; lb = [params.sd_min 0];
+        ub = [Inf Inf]; x0 = [0,0];
+        [est,fval,exitflag,output] =fmincon(fun,x0,A,b,Aeq,beq,lb,ub);
+        for i_ax = 1:length(axis_list)
+            ax=axis_list{i_ax};
+            neurons=pilot_data.(ax).neurons;
+            n_cell = length(neurons);
+            for i_cell = 1:n_cell
+                % NOTE: the current code doest not include scaling by power!
+                scaling_factor= ones(1,length(neurons(i_cell).current))*neurons(i_cell).scale;
+                if params.power_scaling
+                    scaling_factor= neurons(i_cell).power.*scaling_factor;
+                end
+                neurons(i_cell).noise_sigma = (est(1)+est(2)*neurons(i_cell).mean_raw_current)./scaling_factor;
+                neurons(i_cell).slope=est(2);
+                neurons(i_cell).intercept=est(1);
+            end
+            pilot_data.(ax).neurons=neurons;
+        end
+        pilot_data.sd_current =struct;
+        pilot_data.sd_current.X=X;
+        pilot_data.sd_current.Y=Y;
+        pilot_data.sd_current.beta=est;
+        
+    else % fit the sigma-current model separately
+        % Sigma ~ current model (use all data)
+        for i_ax = 1:length(axis_list)
+            ax=axis_list{i_ax};
+            neurons=pilot_data.(ax).neurons;
+            n_cell = length(neurons);
+            noise_var=[];mean_current =[];
+            for i_cell =1:n_cell
+                noise_var = [noise_var neurons(i_cell).raw_sq_deviation'];
+                mean_current = [mean_current neurons(i_cell).avg_raw_current'];
+            end
+            dims=[size(noise_var,1)*size(noise_var,2) 1];
+            Y=reshape(sqrt(noise_var), dims);
+            X= [ones(dims) reshape(mean_current, dims)];
+            %     X= [reshape(mean_current, dims)];
+            fun=@(x) sum(( Y-X*x').^2);
+            A = []; b = [];Aeq = [];
+            beq = []; lb = [params.sd_min 0];
+            ub = [Inf Inf]; x0 = [0,0];
+            [est,fval,exitflag,output] =fmincon(fun,x0,A,b,Aeq,beq,lb,ub);
+            for i_cell = 1:n_cell
+                % NOTE: the current code doest not include scaling by power!
+                scaling_factor= ones(1,length(neurons(i_cell).current))*neurons(i_cell).scale;
+                if params.power_scaling
+                    scaling_factor= neurons(i_cell).power.*scaling_factor;
+                end
+                neurons(i_cell).noise_sigma = (est(1)+est(2)*neurons(i_cell).mean_raw_current)./scaling_factor;
+                neurons(i_cell).slope=est(2);
+                neurons(i_cell).intercept=est(1);
+            end
+            pilot_data.(ax).neurons=neurons;
+        end
+    end
 end
 
 
