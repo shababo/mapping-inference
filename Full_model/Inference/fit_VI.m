@@ -21,8 +21,8 @@ eta_threshold=inference_params.eta_threshold;
 maxit=inference_params.maxit;
 lklh_func=inference_params.likelihood;
 change_history=epsilon+1;
-boundary_params = prior_info.prior_parameters.boundary_params;
-GP_params=prior_info.prior_parameters.GP_params;
+boundary_params = prior_info.GP_params.GP_boundary;
+GP_params=prior_info.GP_params;
 spike_curves=prior_info.induced_intensity;
 parameter_current=variational_params;
 if isfield(inference_params, 'event_range')

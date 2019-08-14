@@ -80,9 +80,6 @@ prior_params.shapes.prior_sigma=zeros(0,1);
 
 prior_info.prior_parameters=prior_params;
 
-%% Some hard-coded parameters: 
-prior_info.prior_parameters.initial_boundary_params=params.prior_parameters.initial_boundary_params;
-
 %% Handle the GPs 
 load(params.gp_pilot_path) % An object called gp_pilot
 axis_list = fieldnames(gp_pilot);
@@ -93,10 +90,11 @@ for i_ax = 1:length(axis_list)
         gp_pilot.(ax).var_params.values= gp_pilot.(ax).var_params.values+params.GP_var_additional.(ax);
     end
 end
-prior_info.prior_parameters.GP_params=gp_pilot; % Same infor regarding prior distributions in the subfield prior_parameters
-prior_info.prior_parameters.GP_params.GP_minimal_variance = params.GP_minimal_variance;
-prior_info.prior_parameters.GP_added_variance=params.GP_added_variance;
-prior_info.prior_parameters.GP_params.type= params.GP_type;
+prior_info.GP_params=gp_pilot; % Same infor regarding prior distributions in the subfield prior_parameters
+prior_info.GP_params.GP_minimal_variance = params.GP_minimal_variance;
+prior_info.GP_params.GP_added_variance=params.GP_params.GP_added_variance;
+prior_info.GP_params.GP_boundary=params.GP_params.GP_boundary;
+prior_info.GP_params.type= params.GP_type;
 
 %% Real the relationships between the current and mean spike time and variance spike time
 load(params.spike_curve_path);

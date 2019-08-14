@@ -21,11 +21,11 @@ if ~marginal_flag
         figure(1);
     end
     n_shape=inference_params.MCsamples_for_gradient;
-    GP_params=prior_info.prior_parameters.GP_params;
+    GP_params=prior_info.GP_params;
     n_cell=length(variational_samples);
     n_trial=length(trials);
     stim_size=zeros(n_trial,n_cell);
-    boundary_params = prior_info.prior_parameters.boundary_params;
+    boundary_params = GP_params.GP_boundary;
     %
     for  i_trial = 1:n_trial
         for i_loc = 1:size(trials(i_trial).locations,1)
@@ -33,7 +33,7 @@ if ~marginal_flag
             if ~isempty(cell_and_pos)
                 power_tmp = trials(i_trial).power_levels(i_loc);
                 for i=1:size(cell_and_pos,1)
-                    if strcmp(prior_info.prior_parameters.GP_params.type,'xy_square')
+                    if strcmp(GP_params.type,'xy_square')
                         i_cell = cell_and_pos(i,1);i_xy= cell_and_pos(i,2);i_z= cell_and_pos(i,3);
                         stim_size(i_trial,i_cell)=stim_size(i_trial,i_cell)+...
                             power_tmp*variational_samples(i_cell).xy(i_xy)*variational_samples(i_cell).z(i_z);

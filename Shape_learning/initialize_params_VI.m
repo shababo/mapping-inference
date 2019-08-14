@@ -3,7 +3,7 @@ function [variational_params, prior_params,trials]=initialize_params_VI(neurons,
 n_cell=length(neurons);
 clear('variational_params')
 
-GP_params=prior_info.prior_parameters.GP_params;
+GP_params=prior_info.GP_params;
 type=GP_params.type;
 min_dist = 2; % minimun distance to distinguish two stim spot 
 %variational_params(n_cell)=struct;
@@ -12,7 +12,7 @@ for i_cell = 1:n_cell
     % Check if there are new locations in this batch
 end
 
-boundary_params = prior_info.prior_parameters.boundary_params;
+boundary_params = prior_info.GP_params.GP_boundary;
 
 
 if strcmp(type, 'xy_square')
@@ -72,11 +72,11 @@ if strcmp(type, 'xy_square')
                                 % Adding a small variance to allow the shape to
                                 % learn from the data set when the prior shape
                                 % variance is too small.
-                                if (var_3d <  prior_info.prior_parameters.GP_minimal_variance)
-                                    var_3d =   prior_info.prior_parameters.GP_minimal_variance;
+                                if (var_3d <  prior_info.GP_params.GP_minimal_variance)
+                                    var_3d =   prior_info.GP_params.GP_minimal_variance;
                                 end
                                 if isfield(prior_info, 'GP_added_variance')
-                                    var_3d = var_3d+prior_info.GP_added_variance;
+                                    var_3d = var_3d+prior_info.GP_params.GP_added_variance;
                                 end
                                 %                         lower_bound =max(0, mean_3d-4*sqrt(var_3d));upper_bound =min(1, mean_3d+4*sqrt(var_3d));
                                 lower_bound =0;upper_bound =1;
