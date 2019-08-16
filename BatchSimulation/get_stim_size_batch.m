@@ -1,4 +1,8 @@
 function [stimuli_size] = get_stim_size_batch(neurons,trials,simulation_params)
+% Note: stimulation size calculate for simulation
+% Use get_stim_size_batch_prior to predict the stim size given prior distribution 
+% Use get_stim_size_batch_expected to predict the stim size given current
+% posterior 
 number_of_trials = length(trials);
 number_of_cells =length(neurons);
 stimuli_size=zeros(number_of_trials,number_of_cells);

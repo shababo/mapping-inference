@@ -76,13 +76,13 @@ if ~marginal_flag
     else
         PR_sample=ones(n_cell,1);
     end
-    if isfield(variational_samples(1),'delay_mu')
-        delay_mu_sample=reshape([variational_samples(:).delay_mu], [n_cell 1]);
+    if isfield(variational_samples(1),'delay_mean')
+        delay_mu_sample=reshape([variational_samples(:).delay_mean], [n_cell 1]);
     else
         delay_mu_sample=zeros([n_cell 1]);
     end
-    if isfield(variational_samples(1),'delay_sigma')
-        delay_var_sample=reshape([variational_samples(:).delay_sigma], [n_cell 1]).^2;
+    if isfield(variational_samples(1),'delay_var')
+        delay_var_sample=reshape([variational_samples(:).delay_var], [n_cell 1]);
     else
         delay_var_sample=0.001*ones([n_cell 1]).^2;
     end
@@ -210,9 +210,9 @@ else
     
     gain_sample=reshape([variational_samples(:).gain], [n_cell 1]);
     PR_sample=reshape([variational_samples(:).PR], [n_cell 1]);
-    if isfield(variational_samples(1),'delay_mu')
-        delay_mu_sample=reshape([variational_samples(:).delay_mu], [n_cell 1]);
-        delay_var_sample=reshape([variational_samples(:).delay_sigma], [n_cell 1]).^2;
+    if isfield(variational_samples(1),'delay_mean')
+        delay_mu_sample=reshape([variational_samples(:).delay_mean], [n_cell 1]);
+        delay_var_sample=reshape([variational_samples(:).delay_var], [n_cell 1]);
     else
         delay_mu_sample=zeros([n_cell 1]);
         delay_var_sample=0.001*ones([n_cell 1]).^2;

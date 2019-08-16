@@ -3,12 +3,12 @@ function [parameter_history, elbo_rec] = fit_VI(...
     variational_params,prior_params,...
     inference_params,prior_info)
 %%
-par_fields = {'PR' 'delay_sigma'};
+par_fields = {'PR' 'delay_var'};
 if ~isfield(variational_params(1),'PR')
     par_fields(ismember(par_fields,'PR')) = [];
 end
-if ~isfield(variational_params(1),'delay_sigma')
-    par_fields(ismember(par_fields,'delay_sigma')) = [];
+if ~isfield(variational_params(1),'delay_var')
+    par_fields(ismember(par_fields,'delay_var')) = [];
 end
 
 n_cell=length(neurons);

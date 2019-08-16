@@ -1,5 +1,5 @@
 function [parameter_path]=draw_convergence_path(parameter_history,elbo_rec, params)
-
+%% Draw convergence path for VI
 % params.truth store the true values for neurons
 % params.plot.do a binary for whether drawing the plots
 % params.plot.handles handles for figures.
@@ -59,6 +59,7 @@ if params.plot.do
     for i=1:length(fldnames)
         i_field = fldnames{i};
         if ~strcmp(i_field,'shapes') && ~strcmp(i_field,'z') && ~strcmp(i_field,'xy')
+            strcmp(i_field,'delay_mean')
             for i_neuron =1 :n_neurons
                 i_plot = i_neuron+(i-1)*n_neurons;
                 subplot(length(fldnames)-1,n_neurons,i_plot);
@@ -74,7 +75,7 @@ if params.plot.do
                     mms = exp(means_tmp-sigmas_tmp)./(1+exp(means_tmp-sigmas_tmp))*...
                         (parameter_path.(i_field).bounds.up-parameter_path.(i_field).bounds.low)+parameter_path.(i_field).bounds.low;
                        if draw_truth
-                    true_value = params.truth.neurons(i_neuron).truth.(i_field)*ones(n_iterations,1);
+                            true_value = params.truth.neurons(i_neuron).truth.(i_field)*ones(n_iterations,1);
                        end
                 else
                     means_tmp=parameter_path.(i_field).mean(:,i_neuron);

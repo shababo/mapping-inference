@@ -34,19 +34,19 @@ if isfield(params,'gain_pilot_path')
 end
 
 % Pair-patched data needed for these: 
-prior_params.delay_mu.dist='logit-normal';
-prior_params.delay_mu.type='individual';
-prior_params.delay_mu.mean=params.initial_mean;
-prior_params.delay_mu.log_sigma=log(params.initial_var);
-prior_params.delay_mu.bounds.up=params.bounds.delay_mu(2);
-prior_params.delay_mu.bounds.low=params.bounds.delay_mu(1);
+prior_params.delay_mean.dist='logit-normal';
+prior_params.delay_mean.type='individual';
+prior_params.delay_mean.mean=params.initial_mean;
+prior_params.delay_mean.log_sigma=log(params.initial_var);
+prior_params.delay_mean.bounds.up=params.bounds.delay_mean(2);
+prior_params.delay_mean.bounds.low=params.bounds.delay_mean(1);
 
-prior_params.delay_sigma.dist='logit-normal';
-prior_params.delay_sigma.type='individual';
-prior_params.delay_sigma.mean=params.initial_mean;
-prior_params.delay_sigma.log_sigma=log(params.initial_var);
-prior_params.delay_sigma.bounds.up=params.bounds.delay_sigma(2);
-prior_params.delay_sigma.bounds.low=params.bounds.delay_sigma(1);
+prior_params.delay_var.dist='logit-normal';
+prior_params.delay_var.type='individual';
+prior_params.delay_var.mean=params.initial_mean;
+prior_params.delay_var.log_sigma=log(params.initial_var);
+prior_params.delay_var.bounds.up=params.bounds.delay_var(2);
+prior_params.delay_var.bounds.low=params.bounds.delay_var(1);
 
 % Not available from pilot: 
 prior_params.PR.dist='logit-normal';
