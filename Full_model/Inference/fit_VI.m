@@ -1,15 +1,17 @@
 function [parameter_history, elbo_rec] = fit_VI(...
-    trials,neurons, background_rate, ...
+    trials,neurons, ...
     variational_params,prior_params,...
     inference_params,prior_info)
 %%
-par_fields = {'PR' 'delay_var'};
-if ~isfield(variational_params(1),'PR')
-    par_fields(ismember(par_fields,'PR')) = [];
-end
-if ~isfield(variational_params(1),'delay_var')
-    par_fields(ismember(par_fields,'delay_var')) = [];
-end
+
+% Update these parameters in parallel 
+% par_fields = {'PR' 'delay_var'};
+% if ~isfield(variational_params(1),'PR')
+%     par_fields(ismember(par_fields,'PR')) = [];
+% end
+% if ~isfield(variational_params(1),'delay_var')
+%     par_fields(ismember(par_fields,'delay_var')) = [];
+% end
 
 n_cell=length(neurons);
 n_trial = length(trials);
@@ -59,7 +61,7 @@ while (change_history(iteration) > epsilon && iteration<maxit)
     iteration=iteration+1;
     adjusted_location=zeros(n_cell,3);
     loglklh=zeros(S,1);logprior=zeros(S,1);logvariational=zeros(S,1);
-    %% Calculate the stim size using samples from GP and the shifts
+  
 %     if ~par_gradients
 %         vsam=cell([S 1]);rsam=cell([S 1]);
 %         for s=1:S
@@ -83,74 +85,78 @@ while (change_history(iteration) > epsilon && iteration<maxit)
 %         end
 %     else
         
-        if ~isempty(par_fields)
-            loglklh_tmp=zeros(S,1);logprior_tmp=zeros(S,1);logvariational_tmp=zeros(S,1);
-            [variational_samples,raw_samples] = draw_samples_from_var_dist(parameter_current);
-            variational_mean =variational_samples;
-            fldnames= fieldnames(parameter_current);
-            raw_mean = variational_samples;
-            for i_neuron =1:n_cell
-                for j= 1:length(fldnames)
-                    raw_mean(i_neuron).(fldnames{j})=parameter_current(i_neuron).(fldnames{j}).mean;
-                    %         if ~strcmp(fldnames{j},'shapes')
-                    this_raw = raw_mean(i_neuron).(fldnames{j});
-                    lb= variational_params(i_neuron).(fldnames{j}).bounds.low;
-                    ub= variational_params(i_neuron).(fldnames{j}).bounds.up;
-                    variational_mean(i_neuron).(fldnames{j})= exp(this_raw)./(1+exp(this_raw)).*(ub-lb)+lb;
-                    
-                    %         end
-                end
-            end
-        end
-        vsam=cell([S 1]);rsam=cell([S 1]);
-        
+%         if ~isempty(par_fields)
+%             loglklh_tmp=zeros(S,1);logprior_tmp=zeros(S,1);logvariational_tmp=zeros(S,1);
+%             [variational_samples,raw_samples] = draw_samples_from_var_dist(parameter_current);
+%             variational_mean =variational_samples;
+%             fldnames= fieldnames(parameter_current);
+%             raw_mean = variational_samples;
+%             for i_neuron =1:n_cell
+%                 for j= 1:length(fldnames)
+%                     raw_mean(i_neuron).(fldnames{j})=parameter_current(i_neuron).(fldnames{j}).mean;
+%                     %         if ~strcmp(fldnames{j},'shapes')
+%                     variational_mean(i_neuron).(fldnames{j})= expit(raw_mean(i_neuron).(fldnames{j}),...
+%                     variational_params(i_neuron).(fldnames{j}).bounds.low,variational_params(i_neuron).(fldnames{j}).bounds.up);
+%                     
+%                     %         end
+%                 end
+%             end
+%         end
+       
+    vsam=cell([S 1]);rsam=cell([S 1]);
         for s=1:S
-            
             %         t1=toc;
             [variational_samples,raw_samples] = draw_samples_from_var_dist(parameter_current);
-        %% Calculate the gradients for selected fields:
-        
+               %---------------------------------%
+        % Manually set the true paramters for debugging only:
+%         variational_samples.gain=0.0111;
+%         variational_samples.delay_mean=neurons.truth.delay_mean;
+%         variational_samples.delay_var=neurons.truth.delay_var;
+%         variational_samples.z=1;
+%         variational_samples.xy=1;
+%         variational_samples.background=1e-4;
+        %----------------------------------%
             vsam{s}=variational_samples;rsam{s}=raw_samples;
-       
-            % For the rest of parameters 
-            for i_neuron =1:n_cell
-                variational_samples(i_neuron).PR=variational_mean(i_neuron).PR;
-                raw_samples(i_neuron).PR=raw_mean(i_neuron).PR;
-            end
+%             for i_neuron =1:n_cell
+%                 variational_samples(i_neuron).PR=variational_mean(i_neuron).PR;
+%                 raw_samples(i_neuron).PR=raw_mean(i_neuron).PR;
+%             end
             logprior(s)=get_logdistribution(variational_samples,raw_samples,prior_params);
             logvariational(s)=get_logdistribution(variational_samples,raw_samples,parameter_current);
             if isfield(variational_samples(1),'background')
                 background_rate =  variational_samples(1).background;
             end
             
+            % Calculate likelihood 
             [loglklh(s)] = update_likelihood(trials, variational_samples,parameter_current,...
                 background_rate,lklh_func,spike_curves,neurons,prior_info,inference_params,pre_density);
+            
             lklhweight=logprior(s)+loglklh(s)-logvariational(s);
             this_gradient=get_variational_gradient(variational_samples,raw_samples, parameter_current);
             this_gradient=get_variate_control(lklhweight,this_gradient);
             
             % for selected fields
-            if ~isempty(par_fields)
-                for i_field = 1:length(par_fields)
-                    var_sample=  variational_mean;
-                    r_sample = raw_mean;
-                    for i_neuron =1:n_cell
-                        var_sample(i_neuron).(par_fields{i_field})=vsam{s}(i_neuron).(par_fields{i_field});
-                        r_sample(i_neuron).(par_fields{i_field})=rsam{s}(i_neuron).(par_fields{i_field});
-                    end
-                    logprior_tmp(s)=get_logdistribution(var_sample,r_sample,prior_params);
-                    logvariational_tmp(s)=get_logdistribution(var_sample,r_sample,parameter_current);
-                    [loglklh_tmp(s)] = update_likelihood(trials, var_sample,parameter_current,...
-                        background_rate,lklh_func,spike_curves,neurons,prior_info,inference_params,pre_density);
-                    lklhweight=logprior_tmp(s)+loglklh_tmp(s)-logvariational_tmp(s);
-                    this_gradient_tmp=get_variational_gradient(var_sample,r_sample, parameter_current);
-                    this_gradient_tmp=get_variate_control(lklhweight,this_gradient_tmp);
-                    
-                    for i_neuron = 1:n_cell
-                        this_gradient(i_neuron).(par_fields{i_field})=this_gradient_tmp(i_neuron).(par_fields{i_field});
-                    end
-                end
-            end
+%             if ~isempty(par_fields)
+%                 for i_field = 1:length(par_fields)
+%                     var_sample=  variational_mean;
+%                     r_sample = raw_mean;
+%                     for i_neuron =1:n_cell
+%                         var_sample(i_neuron).(par_fields{i_field})=vsam{s}(i_neuron).(par_fields{i_field});
+%                         r_sample(i_neuron).(par_fields{i_field})=rsam{s}(i_neuron).(par_fields{i_field});
+%                     end
+%                     logprior_tmp(s)=get_logdistribution(var_sample,r_sample,prior_params);
+%                     logvariational_tmp(s)=get_logdistribution(var_sample,r_sample,parameter_current);
+%                     [loglklh_tmp(s)] = update_likelihood(trials, var_sample,parameter_current,...
+%                         background_rate,lklh_func,spike_curves,neurons,prior_info,inference_params,pre_density);
+%                     lklhweight=logprior_tmp(s)+loglklh_tmp(s)-logvariational_tmp(s);
+%                     this_gradient_tmp=get_variational_gradient(var_sample,r_sample, parameter_current);
+%                     this_gradient_tmp=get_variate_control(lklhweight,this_gradient_tmp);
+%                     
+%                     for i_neuron = 1:n_cell
+%                         this_gradient(i_neuron).(par_fields{i_field})=this_gradient_tmp(i_neuron).(par_fields{i_field});
+%                     end
+%                 end
+%             end
             
             % merge gradients:
             
@@ -162,20 +168,20 @@ while (change_history(iteration) > epsilon && iteration<maxit)
 %         end
     end
     %% 
-    
-%     gains=[];PRs=[];delay_sigma=[];meanfs=[];
+%     
+%     gains=[];PRs=[];delay_var=[];meanfs=[];
 %     for i = 1:S
-% %     gains(i) = vsam{i}(1).gain; 
-% %     PRs(i) = vsam{i}.PR; 
-%     delay_sigma(i)=vsam{i}(1).delay_sigma;
-% %     meanfs(i)=gradients(i).PR.mean_f;
+%     gains(i) = vsam{i}(1).gain; 
+%     PRs(i) = vsam{i}.PR; 
+%     delay_var(i)=vsam{i}(1).delay_var;
+%     meanfs(i)=gradients(i).PR.mean_f;
 %     lklhweight(i)=logprior_tmp(i)+loglklh_tmp(i)-logvariational_tmp(i);
 %     end
-% %     figure(1)
-% %     scatter(PRs,loglklh)
+%     figure(1)
+%     scatter(PRs,loglklh)
 %     figure(2)
-%     scatter(delay_sigma,loglklh) 
-% %     figure(2)
+%     scatter(gains,loglklh) 
+%     figure(2)
 %     scatter(PRs,loglklh)
 %     figure(3)
     

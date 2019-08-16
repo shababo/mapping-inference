@@ -59,7 +59,6 @@ if params.plot.do
     for i=1:length(fldnames)
         i_field = fldnames{i};
         if ~strcmp(i_field,'shapes') && ~strcmp(i_field,'z') && ~strcmp(i_field,'xy')
-            strcmp(i_field,'delay_mean')
             for i_neuron =1 :n_neurons
                 i_plot = i_neuron+(i-1)*n_neurons;
                 subplot(length(fldnames)-1,n_neurons,i_plot);

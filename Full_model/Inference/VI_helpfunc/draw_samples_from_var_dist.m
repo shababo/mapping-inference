@@ -47,7 +47,7 @@ for i_cell = 1:n_cell
                     
                      raw_samples(i_cell).(fldnames{i_field})=mvnrnd(this_mean,this_params.Sigma_tilde)';
                       variational_samples(i_cell).(fldnames{i_field})=raw_samples(i_cell).(fldnames{i_field});
-                this_sample=this_raw_sample;
+               
                 case 'logit-normal'
                     for i_loc = 1:length(this_params.mean)
                         

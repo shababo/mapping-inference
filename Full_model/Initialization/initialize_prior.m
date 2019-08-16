@@ -61,7 +61,7 @@ prior_params.background.dist='logit-normal';
 prior_params.background.mean=0;
 prior_params.background.log_sigma=1;
 prior_params.background.bounds=struct;
-prior_params.background.bounds.up=1e-2;
+prior_params.background.bounds.up=2e-4;
 prior_params.background.bounds.low=1e-5;
 prior_params.background.type='common';
 

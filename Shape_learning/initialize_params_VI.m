@@ -61,7 +61,6 @@ if strcmp(type, 'xy_square')
                                 
                                 [interpolated_shape]=interpolate_3D(rel_pos,GP_params,type);
                                 if i_axis == 1
-                                    
                                     mean_3d=interpolated_shape.mean_xy;
                                     var_3d=interpolated_shape.var_xy;
                                 else
@@ -78,12 +77,10 @@ if strcmp(type, 'xy_square')
                                 if isfield(prior_info, 'GP_added_variance')
                                     var_3d = var_3d+prior_info.GP_params.GP_added_variance;
                                 end
-                                %                         lower_bound =max(0, mean_3d-4*sqrt(var_3d));upper_bound =min(1, mean_3d+4*sqrt(var_3d));
-                                lower_bound =0;upper_bound =1;
+                                lower_bound =max(0, mean_3d-2*sqrt(var_3d));upper_bound =min(1, mean_3d+2*sqrt(var_3d));
+%                                 lower_bound =0;upper_bound =1;
                                 variational_params(i_cell).(axis_names{i_axis}).bounds.low = [variational_params(i_cell).(axis_names{i_axis}).bounds.low; lower_bound];
-                                
                                 variational_params(i_cell).(axis_names{i_axis}).bounds.up = [variational_params(i_cell).(axis_names{i_axis}).bounds.up; upper_bound];
-                                
                                 % logit transform:
                                 switch  variational_params(i_cell).(axis_names{i_axis}).dist
                                     case 'logit-normal'
@@ -92,10 +89,12 @@ if strcmp(type, 'xy_square')
                                         variational_params(i_cell).(axis_names{i_axis}).log_sigma=[variational_params(i_cell).(axis_names{i_axis}).log_sigma; 0];% variance is no longer the original one!
                                     case 'mvn'
                                         variational_params(i_cell).(axis_names{i_axis}).prior_sigma=[variational_params(i_cell).(axis_names{i_axis}).prior_sigma; ...
-                                            sqrt(var_3d)];
-                                        %                                 variational_params(i_cell).shapes.mean=[variational_params(i_cell).shapes.mean; 0];
+                                           var_3d];
+%                                          variational_params(i_cell).shapes.mean=[variational_params(i_cell).(axis_names{i_axis}).mean; 0];
                                         variational_params(i_cell).(axis_names{i_axis}).mean=[variational_params(i_cell).(axis_names{i_axis}).mean; ...
-                                            log(mean_3d/(1-mean_3d))];
+                                           log( (mean_3d-lower_bound)/(upper_bound-mean_3d))];
+                                         %variational_params(i_cell).(axis_names{i_axis}).mean=[variational_params(i_cell).(axis_names{i_axis}).mean; ...
+                                          %  mean_3d];
                                         variational_params(i_cell).(axis_names{i_axis}).log_sigma=log(variational_params(i_cell).(axis_names{i_axis}).prior_sigma);
                                         variational_params(i_cell).(axis_names{i_axis}).log_sigma(:)=2;
                                 end

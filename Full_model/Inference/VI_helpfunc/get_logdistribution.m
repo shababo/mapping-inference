@@ -24,15 +24,15 @@ for i_cell = 1:n_cell
         if ~strcmp(fldnames{i_field},'shapes')
             switch this_params.dist
                 case 'normal'
-                    this_logdist=log(normpdf(this_raw_sample,this_params.mean,exp(this_params.log_sigma)));
+                    this_logdist=log(normpdf(this_raw_sample,this_params.mean,exp(this_params.log_sigma/2)));
                 case 'log-normal'
-                    this_logdist=log(normpdf(this_raw_sample,this_params.mean,exp(this_params.log_sigma)))+...
+                    this_logdist=log(normpdf(this_raw_sample,this_params.mean,exp(this_params.log_sigma/2)))+...
                         log(1/this_sample);
                 case 'logit-normal'
-                    this_logdist=   log(normpdf(this_raw_sample,this_params.mean,exp(this_params.log_sigma))/...
+                    this_logdist=   log(normpdf(this_raw_sample,this_params.mean,exp(this_params.log_sigma/2))/...
                         ((this_sample-this_params.bounds.low+epsilon)*(this_params.bounds.up-this_sample+epsilon)) *(this_params.bounds.up-this_params.bounds.low));
                 case 'spiked-logit-normal'
-                    zero_prob =exp(this_params.prob_logit)/(1+exp(this_params.prob_logit));
+                    zero_prob =exp(this_params.prob_logit)/(1+exp(this_params.prob_logit/2));
                     
                     if this_samples == 0
                         this_logdist=   log(max(epsilon,zero_prob));
@@ -51,14 +51,15 @@ for i_cell = 1:n_cell
                     
                     for i_loc = 1:length(this_raw_sample)
                         %                         logdist_tmp=log(normpdf(this_raw_sample(i_loc),this_params.mean(i_loc),exp(this_params.log_sigma(i_loc))));
-                        logdist_tmp=   log(normpdf(this_raw_sample(i_loc),this_params.mean(i_loc),exp(this_params.log_sigma(i_loc)))/...
+                        logdist_tmp=   log(normpdf(this_raw_sample(i_loc),this_params.mean(i_loc),exp(this_params.log_sigma(i_loc)/2))/...
                             ((this_sample(i_loc)-this_params.bounds.low(i_loc)+epsilon)*(this_params.bounds.up(i_loc)-this_sample(i_loc)+epsilon)) *(this_params.bounds.up(i_loc)-this_params.bounds.low(i_loc)));
                     end
                     this_logdist=sum(logdist_tmp);
                 case 'mvn'
                     % transfer the mean:
-                    this_mean=(this_params.bounds.up-this_params.bounds.low).*exp(this_params.mean)./(1+exp(this_params.mean)) +this_params.bounds.low;
-                    this_logdist=log(mvnpdf(reshape(this_raw_sample, size(this_mean)),this_mean,this_params.Sigma_tilde));
+                   this_mean=(this_params.bounds.up-this_params.bounds.low).*exp(this_params.mean)./(1+exp(this_params.mean)) +this_params.bounds.low;
+                   %this_mean=this_params.mean;
+                   this_logdist=log(mvnpdf(reshape(this_raw_sample, size(this_mean)),this_mean,this_params.Sigma_tilde));
             end
         end
         if isnan(this_logdist) | isinf(this_logdist)

@@ -20,7 +20,7 @@ for i_cell = 1:n_cell
             if ~strcmp(fldnames{i_field},'shapes') & ~strcmp(fldnames{i_field},'xy') & ~strcmp(fldnames{i_field},'z') 
                 switch this_params.dist
                     case {'normal','log-normal', 'logit-normal'}
-                        dmean =   -(this_params.mean-this_raw_sample)./exp(2*this_params.log_sigma);
+                        dmean =   (this_raw_sample-this_params.mean)./exp(this_params.log_sigma);
                         dsigma = -1/2+((this_params.mean-this_raw_sample).^2)./(2*exp(this_params.log_sigma));
                     case {'spiked-logit-normal'}
                         dlogit= (this_sample==0)/(1+exp(this_params.prob_logit))-...
@@ -40,8 +40,10 @@ for i_cell = 1:n_cell
                     case 'mvn'
                          mean_prod=(this_params.bounds.up-this_params.bounds.low).*exp(this_params.mean)./((1+exp(this_params.mean)).^2);
                          this_mean=(this_params.bounds.up-this_params.bounds.low).*exp(this_params.mean)./(1+exp(this_params.mean))+this_params.bounds.low;
-                         dmean=-mean_prod.*(this_params.Sigma_tilde_inv*(this_mean-this_raw_sample));
-                         dsigma= diag(this_params.Sigma_inv) .*( ((this_mean-this_raw_sample).^2).*exp(-this_params.log_sigma)/2 - diag(this_params.Sigma_tilde).*exp(-this_params.log_sigma)/2);
+                         dmean=  mean_prod.*(this_params.Sigma_tilde_inv*(this_mean-this_raw_sample));
+                        % dsigma= diag(this_params.Sigma_inv) .*( ((this_mean-this_raw_sample).^2).*exp(-this_params.log_sigma)/2 - diag(this_params.Sigma_tilde).*exp(-this_params.log_sigma)/2);
+                 dsigma=( ((this_raw_sample-this_mean).^2).*exp(-this_params.log_sigma)/2 - diag(this_params.Sigma_tilde).*exp(-this_params.log_sigma)/2);
+                
                 end
                 
             end
