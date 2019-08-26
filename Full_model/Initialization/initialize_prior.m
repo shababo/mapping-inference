@@ -86,15 +86,15 @@ axis_list = fieldnames(gp_pilot);
 % Add an additional variance term in the GP variance:
 for i_ax = 1:length(axis_list)
     ax=axis_list{i_ax};
-    if isfield(ax, params.GP_var_additional)
-        gp_pilot.(ax).var_params.values= gp_pilot.(ax).var_params.values+params.GP_var_additional.(ax);
+    if isfield(ax, params.GP_params.GP_var_additional)
+        gp_pilot.(ax).var_params.values= gp_pilot.(ax).var_params.values+params.GP_params.GP_var_additional.(ax);
     end
 end
 prior_info.GP_params=gp_pilot; % Same infor regarding prior distributions in the subfield prior_parameters
-prior_info.GP_params.GP_minimal_variance = params.GP_minimal_variance;
+prior_info.GP_params.GP_minimal_variance = params.GP_params.GP_minimal_variance;
 prior_info.GP_params.GP_added_variance=params.GP_params.GP_added_variance;
 prior_info.GP_params.GP_boundary=params.GP_params.GP_boundary;
-prior_info.GP_params.type= params.GP_type;
+prior_info.GP_params.type= params.GP_params.type;
 
 %% Real the relationships between the current and mean spike time and variance spike time
 load(params.spike_curve_path);
@@ -105,6 +105,7 @@ prior_info.induced_intensity.stim_threshold=params.induced_intensity.stim_thresh
 
 prior_info.induced_intensity.spike_time_max=params.induced_intensity.spike_time_max;
 prior_info.induced_intensity.event_time_max=params.induced_intensity.event_time_max;
+prior_info.induced_intensity.time_factor=params.time_factor;
 
 %% Use pilot data to set the priors for these parameters:
 % Use prior info, if path to the summary data is available

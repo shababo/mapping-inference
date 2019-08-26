@@ -7,19 +7,30 @@ function [new_shape_sample] = draw_samples_from_shape_conditional(new_shape_para
 %   .Sigma_old covariance of the old shapes
 %   .Sigma_mean product of Simga_cross*inv(Sigma_old)
 %   .Sigma_cond conditional covariance 
-%   .locations % locaitons of the new shapes 
-% We drop all locations that have been stimulated 
+%   .locations % locations of the new shapes 
 
 
 n_cell = length(posterior_sample);
 clear('new_shape_sample')
 new_shape_sample(n_cell)=struct;
 
-for i_cell =1:n_cell
-    this_param=new_shape_params(i_cell);
-   old_shape_values = posterior_sample(i_cell).shapes; 
-   new_shape_mean = this_param.mean_new + this_param.Sigma_mean*(old_shape_values- this_param.mean_old); %
-   
-   new_shape_sample(i_cell).shapes=mvnrnd(new_shape_mean,this_param.Sigma_cond)';
-   
-end
+
+%if strcmp(prior_info.GP_params.type, 'xy_square')
+    n_axis_model =2;
+    axis_names = {'xy', 'z'};
+    % Calculate the joint distribution (correlation matrix for the shapes)
+    if strcmp(new_shape_params(1).(axis_names{1}).dist,'mvn')
+        for i_cell = 1:n_cell
+            this_param=new_shape_params(i_cell);
+            for i_axis = 1:n_axis_model
+                if  ~isempty(this_param.(axis_names{i_axis}).mean_new)
+                old_shape_values = posterior_sample(i_cell).(axis_names{i_axis});
+                new_shape_mean = this_param.(axis_names{i_axis}).mean_new + this_param.(axis_names{i_axis}).Sigma_mean*(old_shape_values- this_param.(axis_names{i_axis}).mean_old); %
+                new_shape_sample(i_cell).(axis_names{i_axis})=mvnrnd(new_shape_mean,this_param.(axis_names{i_axis}).Sigma_cond)';
+                else
+                    new_shape_sample(i_cell).(axis_names{i_axis})=[];
+                end
+            end
+        end
+    end
+%end

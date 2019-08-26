@@ -5,7 +5,7 @@ clear('variational_params')
 
 GP_params=prior_info.GP_params;
 type=GP_params.type;
-min_dist = 2; % minimun distance to distinguish two stim spot 
+min_dist = GP_params.mind_dist; % minimun distance to distinguish two stim spot 
 %variational_params(n_cell)=struct;
 for i_cell = 1:n_cell
     variational_params(i_cell)=neurons(i_cell).params(end);
@@ -96,7 +96,7 @@ if strcmp(type, 'xy_square')
                                          %variational_params(i_cell).(axis_names{i_axis}).mean=[variational_params(i_cell).(axis_names{i_axis}).mean; ...
                                           %  mean_3d];
                                         variational_params(i_cell).(axis_names{i_axis}).log_sigma=log(variational_params(i_cell).(axis_names{i_axis}).prior_sigma);
-                                        variational_params(i_cell).(axis_names{i_axis}).log_sigma(:)=2;
+                                        %variational_params(i_cell).(axis_names{i_axis}).log_sigma(:)=2;
                                 end
                                 ia(i_axis)=length(variational_params(i_cell).(axis_names{i_axis}).mean);
                             else

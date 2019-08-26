@@ -1,6 +1,5 @@
 function [spike_times,event_times] = spike_curves_sim(stim,params,spike_curves,varargin)
-% ,spike_dist,event_times_dist <---- WE CAN RETURN THE WHOLE DISTRIBUTION
-% HERE
+% Draw new spike and new events 
 
 if ~isempty(varargin) && ~isempty(varargin{1})
     time_max = varargin{1};
