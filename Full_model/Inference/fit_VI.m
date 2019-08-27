@@ -125,6 +125,8 @@ while (change_history(iteration) > epsilon && iteration<maxit)
             logvariational(s)=get_logdistribution(variational_samples,raw_samples,parameter_current);
             if isfield(variational_samples(1),'background')
                 background_rate =  variational_samples(1).background;
+            else
+                background_rate = eps;
             end
             
             % Calculate likelihood 
