@@ -6,10 +6,16 @@ for i= 1:length(neurons)
     this_location = neurons(i).location;
     for j= 1:design_params.nlocs_per_neuron
         switch design_params.grid_type
-            case 'random'
+            case 'random_2d'
                 radius=design_params.candidate_grid_params.max_radius;
                 this_radius = unifrnd(0,radius);
                 this_angle = unifrnd(0,1);
+            case 'random_3d'
+                radius=design_params.candidate_grid_params.max_radius;
+                this_radius = unifrnd(0,radius);
+                this_angle = unifrnd(0,1);
+                
+                this_angle2=unifrnd(0,1);
             case 'ring'
                 radius=design_params.candidate_grid_params.max_radius;
                 n_ring=length(design_params.candidate_grid_params.number);
@@ -29,9 +35,15 @@ for i= 1:length(neurons)
             else
                 n_rep=design_params.repeat_number;
             end
+            if strcmp(design_params.grid_type,'random_3d')
+            this_trial_location=this_location+...
+                this_radius*[sin(2*pi*this_angle)*sin(2*pi*this_angle2) cos(2*pi*this_angle)*sin(2*pi*this_angle2) cos(2*pi*this_angle2)];
+            
+            else
             this_trial_location=this_location+...
                 this_radius*[sin(2*pi*this_angle) cos(2*pi*this_angle) 0];
-             
+                
+            end
         end
         
         for i_pow = 1:length(design_params.power_levels)

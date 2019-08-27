@@ -72,6 +72,7 @@ for i_trial = 1:n_trials
     new_trials(i_trial).predicted.source=0;
     new_trials(i_trial).predicted.timepoints=timepoints;
     new_trials(i_trial).predicted.time_factor=time_factor;
+       new_trials(i_trial).predicted.stim=0;
 end
 
 for i_cell = 1:n_cell
@@ -87,6 +88,8 @@ for i_cell = 1:n_cell
         intensity_records=struct;
         intensity_records.spike= zeros(S,length(timepoints));
         intensity_records.event= zeros(S,length(timepoints));
+              stim_records=zeros(S,1);
+   
         for s=1:S
             this_sample=posterior_samples{s}(i_cell);
             for i_loc = 1:size(new_trials(i_trial).locations,1)
@@ -138,13 +141,14 @@ for i_cell = 1:n_cell
             [intensity_tmp] = calculate_intensities(stim,delay_params,prior_info.induced_intensity,timepoints);
             intensity_records.spike(s,:)= intensity_tmp.spike;
             intensity_records.event(s,:)= intensity_tmp.event;
+              stim_records(s)= stim;
         end
         
         new_trials(i_trial).predicted.intensity.spike=[new_trials(i_trial).predicted.intensity.spike; mean(intensity_records.spike)];
         new_trials(i_trial).predicted.intensity.event=[new_trials(i_trial).predicted.intensity.event; mean(intensity_records.event)];
         new_trials(i_trial).predicted.PR=[new_trials(i_trial).predicted.PR; PR_post];
         new_trials(i_trial).predicted.source=[new_trials(i_trial).predicted.source; i_cell];
-        
+        new_trials(i_trial).predicted.stim=[ new_trials(i_trial).predicted.stim; mean(stim_records)];
     end
 end
 

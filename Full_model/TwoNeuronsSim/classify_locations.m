@@ -57,12 +57,15 @@ if strcmp(type, 'xy_square')
                             %[C,tmp,~] = intersect(variational_params(i_cell).(axis_names{i_axis}).locations,this_rel_pos,'rows');
                             if status_flag(i_axis)==0
                                 new_loc_dim=size(new_shape_params(i_cell).(axis_names{i_axis}).locations);
-                                sq_dist=(new_shape_params(i_cell).(axis_names{i_axis}).locations- ones(existing_loc_dim(1),1)*this_rel_pos).^2;
-                                if existing_loc_dim(2) > 1
+                                if (new_loc_dim(1) > 0)
+                                    sq_dist=(new_shape_params(i_cell).(axis_names{i_axis}).locations- ones(new_loc_dim(1),1)*this_rel_pos).^2;
+                                
+                                if new_loc_dim(2) > 1
+                                    
                                     sq_dist = sum(sq_dist,2);
                                 end
-                                
-                                if (existing_loc_dim(1) == 0) | min(sq_dist.^(1/2))> min_dist
+                                end 
+                                if (new_loc_dim(1) == 0) | min(sq_dist.^(1/2))> min_dist
                                     tmp = [];
                                 else
                                     [~,tmp]=min(sq_dist.^(1/2));status_flag(i_axis)=0;
