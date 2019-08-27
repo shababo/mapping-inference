@@ -95,6 +95,7 @@ prior_info.GP_params.GP_minimal_variance = params.GP_params.GP_minimal_variance;
 prior_info.GP_params.GP_added_variance=params.GP_params.GP_added_variance;
 prior_info.GP_params.GP_boundary=params.GP_params.GP_boundary;
 prior_info.GP_params.type= params.GP_params.type;
+prior_info.GP_params.min_dist= params.GP_params.min_dist;
 
 %% Real the relationships between the current and mean spike time and variance spike time
 load(params.spike_curve_path);

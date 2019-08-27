@@ -5,7 +5,7 @@ clear('variational_params')
 
 GP_params=prior_info.GP_params;
 type=GP_params.type;
-min_dist = GP_params.mind_dist; % minimun distance to distinguish two stim spot 
+min_dist = GP_params.min_dist; % minimun distance to distinguish two stim spot 
 %variational_params(n_cell)=struct;
 for i_cell = 1:n_cell
     variational_params(i_cell)=neurons(i_cell).params(end);
