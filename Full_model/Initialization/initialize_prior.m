@@ -34,6 +34,7 @@ if isfield(params,'gain_pilot_path')
 end
 
 % Pair-patched data needed for these: 
+
 prior_params.delay_mean.dist='logit-normal';
 prior_params.delay_mean.type='individual';
 prior_params.delay_mean.mean=params.initial_mean;
@@ -47,6 +48,28 @@ prior_params.delay_var.mean=params.initial_mean;
 prior_params.delay_var.log_sigma=log(params.initial_var);
 prior_params.delay_var.bounds.up=params.bounds.delay_var(2);
 prior_params.delay_var.bounds.low=params.bounds.delay_var(1);
+
+if isfield(prior_params,'delay_pilot_path')
+    load(prior_params.delay_pilot_path)
+    delay_means =  delay_pilot.mean;
+    delay_vars= delay_pilot.var;
+    
+    
+   prior_params.delay_mean.bounds.up=max(params.bounds.delay_mean(2),max(delay_mean)*1.1); 
+   prior_params.delay_mean.bounds.low=max(params.bounds.delay_mean(1),min(delay_mean)*0.9); 
+    % logit transformation for given the lower and upper bound:
+    logit_tmp=log((delay_mean-prior_params.delay_mean.bounds.low)./(prior_params.delay_mean.bounds.up-delay_mean));
+    prior_params.delay_mean.mean=mean(logit_tmp);
+    prior_params.delay_mean.log_sigma=log(var(logit_tmp)); % This is actually the variance!
+    
+    
+   prior_params.delay_var.bounds.up=max(params.bounds.delay_var(2),max(delay_vars)*1.1); 
+   prior_params.delay_var.bounds.low=max(params.bounds.delay_var(1),min(delay_vars)*0.9); 
+    % logit transformation for given the lower and upper bound:
+    logit_tmp=log((delay_vars-prior_params.delay_var.bounds.low)./(prior_params.delay_var.bounds.up-delay_vars));
+    prior_params.delay_var.mean=mean(logit_tmp);
+    prior_params.delay_var.log_sigma=log(var(logit_tmp)); % This is actually the variance!
+end
 
 % Not available from pilot: 
 prior_params.PR.dist='logit-normal';

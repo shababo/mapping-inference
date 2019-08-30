@@ -43,7 +43,7 @@ for i_trial = 1:n_trials
     trials(i_trial).fitted.source=0;
     trials(i_trial).fitted.timepoints=timepoints;
     trials(i_trial).fitted.time_factor=time_factor;
-            trials(i_trial).fitted.stim=0;
+    trials(i_trial).fitted.stim=0;
     
 end
 
@@ -64,31 +64,40 @@ for i_cell = 1:n_cell
         intensity_records=struct;
         intensity_records.spike= zeros(S,length(timepoints));
         intensity_records.event= zeros(S,length(timepoints));
-         stim_records=zeros(S,1);
+        stim_records=zeros(S,1);
         for s=1:S
             this_sample=posterior_samples{s}(i_cell);
             for i_loc = 1:size(trials(i_trial).locations,1)
                 cell_and_pos=trials(i_trial).cell_and_pos{i_loc};
                 stim=0;
                 %                 this_trial.power_levels*this_sample.gain*this_sample.shapes(i_shape);
+                
                 if ~isempty(cell_and_pos)
                     power_tmp = this_trial.power_levels(i_loc);
-                    for i=1:size(cell_and_pos,1)
-                        if  i_cell == cell_and_pos(i,1) % Update one cell in this big for-loop
-                            if strcmp(prior_info.GP_params.type,'xy_square')
-                                i_xy= cell_and_pos(i,2);i_z= cell_and_pos(i,3);
+                    if ~(isfield(neurons(1).params,'shapes') | isfield(neurons(1).params,'xy'))
+                        for i=1:length(cell_and_pos)
+                            if  i_cell == cell_and_pos(i)
                                 stim=stim+...
-                                    power_tmp*this_sample.gain*this_sample.xy(i_xy)*this_sample.z(i_z);
-                            else
-                                i_pos= cell_and_pos(i,2);
-                                stim=stim+...
-                                    power_tmp*this_sample.gain*this_sample.shapes(i_pos);
+                                    power_tmp*this_sample.gain;
+                            end
+                        end
+                    else
+                        for i=1:size(cell_and_pos,1)
+                            if  i_cell == cell_and_pos(i,1) % Update one cell in this big for-loop
+                                if strcmp(prior_info.GP_params.type,'xy_square')
+                                    i_xy= cell_and_pos(i,2);i_z= cell_and_pos(i,3);
+                                    stim=stim+...
+                                        power_tmp*this_sample.gain*this_sample.xy(i_xy)*this_sample.z(i_z);
+                                else
+                                    i_pos= cell_and_pos(i,2);
+                                    stim=stim+...
+                                        power_tmp*this_sample.gain*this_sample.shapes(i_pos);
+                                end
                             end
                         end
                     end
                 end
             end
-            
             if isfield(this_sample,'delay_mean')
                 delay_params=struct;
                 delay_params.delay_mean=this_sample.delay_mean;
@@ -107,7 +116,7 @@ for i_cell = 1:n_cell
         
         trials(i_trial).fitted.intensity.spike=[trials(i_trial).fitted.intensity.spike; mean(intensity_records.spike)];
         trials(i_trial).fitted.intensity.event=[trials(i_trial).fitted.intensity.event; mean(intensity_records.event)];
-                trials(i_trial).fitted.PR=[trials(i_trial).fitted.PR; PR_post];
+        trials(i_trial).fitted.PR=[trials(i_trial).fitted.PR; PR_post];
         trials(i_trial).fitted.source=[trials(i_trial).fitted.source; i_cell];
         trials(i_trial).fitted.stim=[trials(i_trial).fitted.stim; mean(stim_records)];
         

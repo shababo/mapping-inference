@@ -51,7 +51,12 @@ draw_truth=false;
 if isfield(params,'truth')
     draw_truth=true;
 end
-
+shape_flag=0;
+if isfield(parameter_history(1,1),'shapes')
+shape_flag=1;
+elseif isfield(parameter_history(1,1),'xy')
+    shape_flag=2;
+end
 %% Draw plots
 if params.plot.do
     % Figure 1: Convergence path for all neurons for all pathes except for the shapes
@@ -61,7 +66,11 @@ if params.plot.do
 %         if ~strcmp(i_field,'shapes') && ~strcmp(i_field,'z') && ~strcmp(i_field,'xy')
             for i_neuron =1 :n_neurons
                 i_plot = i_neuron+(i-1)*n_neurons;
+<<<<<<< HEAD
                 subplot(length(fldnames),n_neurons,i_plot);
+=======
+                subplot(length(fldnames)-shape_flag,n_neurons,i_plot);
+>>>>>>> 2877e70610fe4690738784ad36af4679f06b5f55
                 
                 % Should wrap this up as a function:
                 if params.plot.original_scale
@@ -185,7 +194,7 @@ if params.plot.do
         if ~strcmp(i_field,'shapes') && ~strcmp(i_field,'z') && ~strcmp(i_field,'xy')
             for i_neuron =1 :n_neurons
                 i_plot = 2*i_neuron-1+(i-1)*2*n_neurons;
-                subplot(length(fldnames)-1,2*n_neurons,i_plot);
+                subplot(length(fldnames)-shape_flag,2*n_neurons,i_plot);
                 sigmas=parameter_path.(i_field).sigma(:,i_neuron);
                 
                      % Should wrap this up as a function:
@@ -223,7 +232,7 @@ if params.plot.do
                 ylabel('ELBO')
                 title(title_string)
                 i_plot = 2*i_neuron+(i-1)*2*n_neurons;
-                subplot(length(fldnames)-1,2*n_neurons,i_plot);
+                subplot(length(fldnames)-shape_flag,2*n_neurons,i_plot);
                 plot(sigmas,parameter_path.elbo_path(2:end))
                 title(title_string)
                 
