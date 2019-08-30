@@ -9,8 +9,8 @@ if plot_params.prediction
 else
       chosen_field = 'fitted';
 end
-
-figure(1)
+fig_num = randi(10000);
+figure(fig_num)
 tmp_loc=reshape([trials(:).locations],3,[])';
 [locations_unique, ~, ic] = unique(tmp_loc,'rows');
 for i_cell = 1:length(neurons)
@@ -38,7 +38,7 @@ hold off;
 % Visualize the trials
 if plot_params.by_neuron
     for i_neuron = 1:length(neurons)
-        figure(i+1)
+        figure(i+1+fig_num)
         these_trials =trials;
         plot_params.vertical_gap = 0.1;
         stim_size = zeros(length(these_trials),1);
@@ -53,7 +53,7 @@ if plot_params.by_neuron
     end
 else
     for i = 1:size(locations_unique,1)
-        figure(i+1)
+        figure(i+1+fig_num)
         these_trials =trials(ic==i);
         plot_params.vertical_gap = 0.1;
         [~, tmp]=sort([these_trials(:).power_levels]); % Ascending

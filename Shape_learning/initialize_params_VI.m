@@ -14,8 +14,8 @@ end
 
 boundary_params = prior_info.GP_params.GP_boundary;
 
-
-if strcmp(type, 'xy_square')
+prior_params=variational_params;
+if strcmp(type, 'xy_square') && isfield(variational_params,'xy')
     n_axis_model =2;
     axis_names = {'xy', 'z'};
     
@@ -152,7 +152,7 @@ if strcmp(type, 'xy_square')
         
     end
     prior_params=variational_params;
-else
+elseif isfield(variational_params,'shapes')
     
     
     for i_trial = 1:length(trials)
@@ -176,11 +176,11 @@ else
                             % Adding a small variance to allow the shape to
                             % learn from the data set when the prior shape
                             % variance is too small.
-                            if (var_3d <   prior_info.prior_parameters.GP_minimal_variance)
-                                var_3d =   prior_info.prior_parameters.GP_minimal_variance;
+                            if (var_3d <   prior_info.GP_params.GP_minimal_variance)
+                                var_3d =   prior_info.GP_params.GP_minimal_variance;
                             end
-                            if isfield(prior_info, 'GP_added_variance')
-                                var_3d = var_3d+prior_info.GP_added_variance;
+                            if isfield(prior_info.GP_params, 'GP_added_variance')
+                                var_3d = var_3d+prior_info.GP_params.GP_added_variance;
                             end
                             %                         lower_bound =max(0, mean_3d-4*sqrt(var_3d));upper_bound =min(1, mean_3d+4*sqrt(var_3d));
                             lower_bound =0;upper_bound =1;
@@ -252,6 +252,36 @@ else
         end
     end
     prior_params=variational_params;
+else
+    locations = [];
+    for i_trial = 1:length(trials)
+        stim_locs = trials(i_trial).locations;
+        for i_loc = size(stim_locs,1)
+            if ~isnan(stim_locs(i_loc,1))
+                trials(i_trial).cell_and_pos{i_loc}= zeros(0,2); %i_cell, i_pos
+                
+                for i_cell = 1:n_cell
+%                     this_loc=neurons(i_cell).location;
+%                     rel_pos=stim_locs(i_loc,:)-this_loc;
+%                     if check_in_boundary(rel_pos,boundary_params)
+%                         [C,ia,ib] = intersect(locations,rel_pos,'rows');
+%                         if isempty(C) % this is a new location:
+%                             locations = ...
+%                                 [locations; rel_pos];
+                            
+                            
+                            trials(i_trial).cell_and_pos{i_loc}=[trials(i_trial).cell_and_pos{i_loc};...
+                                i_cell 0];
+%                         else
+%                             trials(i_trial).cell_and_pos{i_loc}=[trials(i_trial).cell_and_pos{i_loc};...
+%                                 i_cell ia];
+%                         end
+%                     end
+                    
+                end
+            end
+        end
+    end
 end
 %%
 
