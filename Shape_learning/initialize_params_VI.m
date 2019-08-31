@@ -10,38 +10,9 @@ for i_cell = 1:n_cell
 end
 
 
-<<<<<<< HEAD
-prior_params=variational_params;
-if strcmp(type, 'xy_square') && isfield(variational_params,'xy')
-    n_axis_model =2;
-    axis_names = {'xy', 'z'};
-=======
-if ~(isfield(neurons(1).params(end),'shapes') | isfield(neurons(1).params(end),'xy'))
-    % Single location for each neuron
-    % One location corresponds to only one neuron!
+
+if (isfield(neurons(1).params(end),'shapes') | isfield(neurons(1).params(end),'xy'))
     
-    boundary_params = 4; % allow for some errors
->>>>>>> 2877e70610fe4690738784ad36af4679f06b5f55
-    
-    for i_trial = 1:length(trials)
-        stim_locs = trials(i_trial).locations;
-        for i_loc = size(stim_locs,1)
-            if ~isnan(stim_locs(i_loc,1))
-                trials(i_trial).cell_and_pos{i_loc}= zeros(0,3); %i_cell, i_pos
-                for i_cell = 1:n_cell
-                    this_loc=neurons(i_cell).location;
-                    rel_pos=stim_locs(i_loc,:)-this_loc;
-                    if sum(rel_pos.^2)<boundary_params
-                        % Check for xy shape and z shape:
-                        trials(i_trial).cell_and_pos{i_loc}=[trials(i_trial).cell_and_pos{i_loc};...
-                            i_cell];
-                    end
-                end
-            end
-        end
-    end
-    
-else
     
     GP_params=prior_info.GP_params;
     type=GP_params.type;
@@ -390,31 +361,25 @@ elseif isfield(variational_params,'shapes')
     end
     prior_params=variational_params;
 else
-    locations = [];
+    % Single location for each neuron
+    % One location corresponds to only one neuron!
+    
+    boundary_params = 4; % allow for some errors
+
+    
     for i_trial = 1:length(trials)
         stim_locs = trials(i_trial).locations;
         for i_loc = size(stim_locs,1)
             if ~isnan(stim_locs(i_loc,1))
-                trials(i_trial).cell_and_pos{i_loc}= zeros(0,2); %i_cell, i_pos
-                
+                trials(i_trial).cell_and_pos{i_loc}= zeros(0,3); %i_cell, i_pos
                 for i_cell = 1:n_cell
-%                     this_loc=neurons(i_cell).location;
-%                     rel_pos=stim_locs(i_loc,:)-this_loc;
-%                     if check_in_boundary(rel_pos,boundary_params)
-%                         [C,ia,ib] = intersect(locations,rel_pos,'rows');
-%                         if isempty(C) % this is a new location:
-%                             locations = ...
-%                                 [locations; rel_pos];
-                            
-                            
-                            trials(i_trial).cell_and_pos{i_loc}=[trials(i_trial).cell_and_pos{i_loc};...
-                                i_cell 0];
-%                         else
-%                             trials(i_trial).cell_and_pos{i_loc}=[trials(i_trial).cell_and_pos{i_loc};...
-%                                 i_cell ia];
-%                         end
-%                     end
-                    
+                    this_loc=neurons(i_cell).location;
+                    rel_pos=stim_locs(i_loc,:)-this_loc;
+                    if sum(rel_pos.^2)<boundary_params
+                        % Check for xy shape and z shape:
+                        trials(i_trial).cell_and_pos{i_loc}=[trials(i_trial).cell_and_pos{i_loc};...
+                            i_cell];
+                    end
                 end
             end
         end
