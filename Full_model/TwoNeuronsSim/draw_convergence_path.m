@@ -66,11 +66,9 @@ if params.plot.do
 %         if ~strcmp(i_field,'shapes') && ~strcmp(i_field,'z') && ~strcmp(i_field,'xy')
             for i_neuron =1 :n_neurons
                 i_plot = i_neuron+(i-1)*n_neurons;
-<<<<<<< HEAD
-                subplot(length(fldnames),n_neurons,i_plot);
-=======
+
                 subplot(length(fldnames)-shape_flag,n_neurons,i_plot);
->>>>>>> 2877e70610fe4690738784ad36af4679f06b5f55
+
                 
                 % Should wrap this up as a function:
                 if params.plot.original_scale
