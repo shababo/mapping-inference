@@ -45,7 +45,7 @@ end
 if isfield(this_trial,'event_times')
 if ~isempty(this_trial.event_times)
 tmp=this_trial.event_times/this_trial.(chosen_field).time_factor;
-plot([tmp;tmp], [vertical_shift;vertical_shift+barheight],'--','LineWidth',lw+1,'Color','k')
+plot([tmp;tmp], [vertical_shift;vertical_shift+barheight],'-','LineWidth',lw+1,'Color','k')
 end
 end
 

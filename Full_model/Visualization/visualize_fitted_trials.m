@@ -38,7 +38,7 @@ hold off;
 % Visualize the trials
 if plot_params.by_neuron
     for i_neuron = 1:length(neurons)
-        figure(i_neuron+1+fig_num)
+       fig= figure(i_neuron+1+fig_num)
         these_trials =trials;
         plot_params.vertical_gap = 0.1;
         stim_size = zeros(length(these_trials),1);
@@ -51,10 +51,14 @@ if plot_params.by_neuron
 %         rankings(tmp)=rankings;
         visualize_fitted_trial_multiple(these_trials, stim_size,plot_params)
         title(['Neuron ' num2str( i_neuron )])
+        if isfield(plot_params,'save_path')
+            save_path = [plot_params.save_path '_' num2str(i+1) '.png'];
+            saveas(fig,save_path)
+        end
     end
 else
     for i = 1:size(locations_unique,1)
-        figure(i+1+fig_num)
+        fig=figure(i+1+fig_num)
         these_trials =trials(ic==i);
         plot_params.vertical_gap = 0.1;
 %         [~, tmp]=sort([these_trials(:).power_levels]); % Ascending
@@ -62,6 +66,10 @@ else
 %         rankings(tmp)=rankings;        
         visualize_fitted_trial_multiple(these_trials,[these_trials(:).power_levels],plot_params)
         title(['Location ' num2str(i)])
+        if isfield(plot_params,'save_path')
+            save_path = [plot_params.save_path '_' num2str(i+1) '.png'];
+            saveas(fig,save_path)
+        end
     end
 end
 

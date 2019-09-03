@@ -18,7 +18,7 @@ n_neurons=size(parameter_history,2);
 fldnames = fieldnames(parameter_history(1,1));
 for i=1:length(fldnames)
     i_field = fldnames{i};
-%     if ~strcmp(i_field,'shapes') && ~strcmp(i_field,'xy') && ~strcmp(i_field,'z')
+     if ~strcmp(i_field,'shapes') && ~strcmp(i_field,'xy') && ~strcmp(i_field,'z')
         tmp_mat = zeros(n_iterations,n_neurons); tmp_mat_sig= tmp_mat;
         for i_neuron = 1:n_neurons
             for i_iteration=1:n_iterations
@@ -43,7 +43,7 @@ for i=1:length(fldnames)
 %             parameter_path.(i_field).neurons(i_neuron).location=parameter_history(1,i_neuron).shapes.locations;
 %             parameter_path.(i_field).neurons(i_neuron).bounds=parameter_history(1,i_neuron).shapes.bounds;
 %         end
-%     end
+     end
 end
 parameter_path.elbo_path = elbo_rec;
 %% Record the true values
@@ -63,7 +63,7 @@ if params.plot.do
     figure%(1)
     for i=1:length(fldnames)
         i_field = fldnames{i};
-%         if ~strcmp(i_field,'shapes') && ~strcmp(i_field,'z') && ~strcmp(i_field,'xy')
+        if ~strcmp(i_field,'shapes') && ~strcmp(i_field,'z') && ~strcmp(i_field,'xy')
             for i_neuron =1 :n_neurons
                 i_plot = i_neuron+(i-1)*n_neurons;
 
@@ -182,7 +182,7 @@ if params.plot.do
 %              title(title_string)
 %                line([0 1],[0, 1])
 %             end
-%         end
+         end
     end
     
     % Figure 2: a scatter plot between ELBO and some parameters

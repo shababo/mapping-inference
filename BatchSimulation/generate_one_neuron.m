@@ -6,7 +6,9 @@ one_neuron=struct;
 %     one_neuron.truth.location=cell_locations(i_cell,:);
     shift_tmp=[0 0 0];
     one_neuron.truth.shift=shift_tmp;
-    one_neuron.truth.optical_gain=0.025+(rand([1 1])-0.5)*0.01;
+    one_neuron.truth.optical_gain=0.05+(rand([1 1])-0.5)*0.01;
+    one_neuron.truth.gain=one_neuron.truth.optical_gain'
+    
 %     one_neuron.truth.PR=gamma_truth(i_cell);
     
     one_neuron.truth.delay_mean=(rand(1)-0.5)*5+40;

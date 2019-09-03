@@ -14,7 +14,6 @@ for i= 1:length(neurons)
                 radius=design_params.candidate_grid_params.max_radius;
                 this_radius = unifrnd(0,radius);
                 this_angle = unifrnd(0,1);
-                
                 this_angle2=unifrnd(0,1);
             case 'ring'
                 radius=design_params.candidate_grid_params.max_radius;
