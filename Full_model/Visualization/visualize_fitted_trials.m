@@ -38,28 +38,29 @@ hold off;
 % Visualize the trials
 if plot_params.by_neuron
     for i_neuron = 1:length(neurons)
-        figure(i+1+fig_num)
+        figure(i_neuron+1+fig_num)
         these_trials =trials;
         plot_params.vertical_gap = 0.1;
         stim_size = zeros(length(these_trials),1);
         for i = 1:length(these_trials)
             stim_size(i)=these_trials(i).(chosen_field).stim(i_neuron+1);
         end
-        [~, tmp]=sort(stim_size); % Ascending
-        rankings = 1:length(these_trials);
-        rankings(tmp)=rankings;
-        visualize_fitted_trial_multiple(these_trials, rankings,plot_params)
-        title(['Neuron ' num2str(i)])
+%         [~, tmp]=unique(stim_size); % Ascending
+%         
+%         rankings = 1:length(these_trials);
+%         rankings(tmp)=rankings;
+        visualize_fitted_trial_multiple(these_trials, stim_size,plot_params)
+        title(['Neuron ' num2str( i_neuron )])
     end
 else
     for i = 1:size(locations_unique,1)
         figure(i+1+fig_num)
         these_trials =trials(ic==i);
         plot_params.vertical_gap = 0.1;
-        [~, tmp]=sort([these_trials(:).power_levels]); % Ascending
-        rankings = 1:length(these_trials);
-        rankings(tmp)=rankings;        
-        visualize_fitted_trial_multiple(these_trials, rankings,plot_params)
+%         [~, tmp]=sort([these_trials(:).power_levels]); % Ascending
+%         rankings = 1:length(these_trials);
+%         rankings(tmp)=rankings;        
+        visualize_fitted_trial_multiple(these_trials,[these_trials(:).power_levels],plot_params)
         title(['Location ' num2str(i)])
     end
 end
