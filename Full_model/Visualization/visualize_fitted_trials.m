@@ -10,29 +10,30 @@ else
       chosen_field = 'fitted';
 end
 fig_num = randi(10000);
-figure(fig_num)
+i = 0
+% figure(fig_num)
 tmp_loc=reshape([trials(:).locations],3,[])';
 [locations_unique, ~, ic] = unique(tmp_loc,'rows');
-for i_cell = 1:length(neurons)
-    tmp=neurons(i_cell).location;
-    scatter3(tmp(1),tmp(2),tmp(3),ref_size*2,  'MarkerFaceColor','red','MarkerEdgeColor','red');
-    hold on;
-    if plot_params.by_neuron
-        text(tmp(1),tmp(2), tmp(3),num2str(i_cell));
-    end
-end
-
-for i = 1:size(locations_unique,1)
-    tmp=locations_unique(i,:);
-    % Size scaled with power
-    tmp_size = ref_size/2;
-    scatter3(tmp(1),tmp(2), tmp(3), tmp_size,'MarkerFaceColor','blue','MarkerEdgeColor','blue','MarkerFaceAlpha',0.1);
-    hold on;
-    if ~plot_params.by_neuron
-        text(tmp(1),tmp(2), tmp(3),num2str(i));
-    end
-end
-hold off;
+% for i_cell = 1:length(neurons)
+%     tmp=neurons(i_cell).location;
+%     scatter3(tmp(1),tmp(2),tmp(3),ref_size*2,  'MarkerFaceColor','red','MarkerEdgeColor','red');
+%     hold on;
+%     if plot_params.by_neuron
+%         text(tmp(1),tmp(2), tmp(3),num2str(i_cell));
+%     end
+% end
+% 
+% for i = 1:size(locations_unique,1)
+%     tmp=locations_unique(i,:);
+%     % Size scaled with power
+%     tmp_size = ref_size/2;
+%     scatter3(tmp(1),tmp(2), tmp(3), tmp_size,'MarkerFaceColor','blue','MarkerEdgeColor','blue','MarkerFaceAlpha',0.1);
+%     hold on;
+%     if ~plot_params.by_neuron
+%         text(tmp(1),tmp(2), tmp(3),num2str(i));
+%     end
+% end
+% hold off;
 
 
 % Visualize the trials

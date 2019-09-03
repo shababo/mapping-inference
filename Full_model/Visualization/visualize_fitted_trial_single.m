@@ -39,7 +39,7 @@ else
 end
 
 for i = 1:n_neuron
-    plot(realtimepoints, fits(i,:)+vertical_shift*ones(1,size(fits,2)),'Color',[neuron_colors(i,:) alpha],'LineWidth',lw)
+    plot(realtimepoints, fits(i,:)/max(fits(i,:))*plot_params.vertical_gap+vertical_shift*ones(1,size(fits,2)),'Color',[neuron_colors(i,:) alpha],'LineWidth',lw)
     hold on;
 end
 if isfield(this_trial,'event_times')
