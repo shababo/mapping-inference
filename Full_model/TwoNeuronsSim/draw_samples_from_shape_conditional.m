@@ -9,6 +9,8 @@ function [new_shape_sample] = draw_samples_from_shape_conditional(new_shape_para
 %   .Sigma_cond conditional covariance 
 %   .locations % locations of the new shapes 
 
+% Note that the Gaussian r.v.s are unbounded
+% We apply a recifier to force the shape value to live between 0 and 1.
 
 n_cell = length(posterior_sample);
 clear('new_shape_sample')
@@ -26,7 +28,9 @@ new_shape_sample(n_cell)=struct;
                 if  ~isempty(this_param.(axis_names{i_axis}).mean_new)
                 old_shape_values = posterior_sample(i_cell).(axis_names{i_axis});
                 new_shape_mean = this_param.(axis_names{i_axis}).mean_new + this_param.(axis_names{i_axis}).Sigma_mean*(old_shape_values- this_param.(axis_names{i_axis}).mean_old); %
-                new_shape_sample(i_cell).(axis_names{i_axis})=mvnrnd(new_shape_mean,this_param.(axis_names{i_axis}).Sigma_cond)';
+                tmp=mvnrnd(new_shape_mean,this_param.(axis_names{i_axis}).Sigma_cond)';
+                tmp(tmp<0)=0;tmp(tmp>1)=1;
+                new_shape_sample(i_cell).(axis_names{i_axis})= tmp;
                 else
                     new_shape_sample(i_cell).(axis_names{i_axis})=[];
                 end
