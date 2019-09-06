@@ -24,16 +24,29 @@ for i= 1:length(neurons)
                 this_angle = randsample( 1:n_ring_grid,1)/n_ring_grid;
             case 'nuclei'
                 this_radius=0;this_angle=0;
+            case 'linesearch'
+                % Determine the chosen locations here: 
+                design_params.grid_type='chosen';
+                % There should only be two neurons
+                one_loc=neurons(1).location;two_loc=neurons(2).location;
+                numgrid=design_params.nlocs_per_neuron*2;
+                gap=(two_loc-one_loc)/(numgrid-3);
+                design_params.chosen_locations=ones(numgrid,1)*one_loc+...
+                    [-1:(numgrid-2)]'*gap;
+                jchosen=1;
         end
+        
         if strcmp(design_params.grid_type,'chosen')
-            this_trial_location= design_params.chosen_locations(j,:);
+            this_trial_location= design_params.chosen_locations(jchosen,:);
             n_rep=design_params.repeat_number;
+            jchosen=jchosen+1;
         else
             if j==1 & design_params.always_nucleus
                 this_radius=0; n_rep=design_params.repeat_number_nucleus;
             else
                 n_rep=design_params.repeat_number;
             end
+            
             if strcmp(design_params.grid_type,'random_3d')
             this_trial_location=this_location+...
                 this_radius*[sin(2*pi*this_angle)*sin(2*pi*this_angle2) cos(2*pi*this_angle)*sin(2*pi*this_angle2) cos(2*pi*this_angle2)];
@@ -41,15 +54,13 @@ for i= 1:length(neurons)
             else
             this_trial_location=this_location+...
                 this_radius*[sin(2*pi*this_angle) cos(2*pi*this_angle) 0];
-                
             end
         end
         
         for i_pow = 1:length(design_params.power_levels)
             for i_rep=1:n_rep
-                    i_trial = i_trial +1;
-        
-                   trials(i_trial).locations=this_trial_location;
+                    i_trial = i_trial +1;        
+                trials(i_trial).locations=this_trial_location;
                 trials(i_trial).power_levels=design_params.power_levels(i_pow);
             end
         end
