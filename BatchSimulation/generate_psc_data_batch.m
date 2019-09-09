@@ -15,9 +15,9 @@ for i_trial = 1:number_of_trials
         k=stimuli_size(i_trial,i_cell);
         params_sim=neurons(i_cell).truth;
 %         params_sim.linkfuncs=experiment_setup.prior_info.induced_intensity.linkfunc;
-        stim_threshold=prior_info.induced_intensity.minimum_stim_threshold/neurons(i_cell).truth.optical_gain;
+        stim_threshold=prior_info.induced_intensity.minimum_stim_threshold/neurons(i_cell).truth.gain;
         if k > stim_threshold
-            stim=k*neurons(i_cell).truth.optical_gain;
+            stim=k*neurons(i_cell).truth.gain;
             [spikes,events] = spike_curves_sim(stim,params_sim,prior_info.induced_intensity);
             
             if ~isempty(spikes)
