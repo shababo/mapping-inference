@@ -24,7 +24,8 @@ for i_cell = 1:n_cell
 %         end
         if ( strcmp(fldnames{i_field},'shapes') | strcmp(fldnames{i_field},'xy') | strcmp(fldnames{i_field},'z'))  & strcmp( params(i_cell).(fldnames{i_field}).dist,'mvn')
             
-       Dmat= diag(diag(params(i_cell).(fldnames{i_field}).Sigma_inv).*exp(-params(i_cell).(fldnames{i_field}).log_sigma) );
+       %Dmat= diag(diag(params(i_cell).(fldnames{i_field}).Sigma_inv).*exp(-params(i_cell).(fldnames{i_field}).log_sigma) );
+       Dmat= diag(exp(-params(i_cell).(fldnames{i_field}).log_sigma) );
        params(i_cell).(fldnames{i_field}).Sigma_tilde_inv=params(i_cell).(fldnames{i_field}).Sigma_inv+Dmat;
         params(i_cell).(fldnames{i_field}).Sigma_tilde=inv(params(i_cell).(fldnames{i_field}).Sigma_tilde_inv);
         params(i_cell).(fldnames{i_field}).Sigma_tilde=(params(i_cell).(fldnames{i_field}).Sigma_tilde+params(i_cell).(fldnames{i_field}).Sigma_tilde')/2;
