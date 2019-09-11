@@ -38,17 +38,3 @@ for i= 1:n
 end
 
 
-
-switch simulation_params.batch.location
-    case 'x'
-        neurons(2).truth.location=[simulation_params.batch.location_radius 0 0];
-    case 'y'
-        neurons(2).truth.location=[0 simulation_params.batch.location_radius 0];
-    case 'z'
-        neurons(2).truth.location=[0 0 simulation_params.batch.location_radius];
-    case 'a'
-        a1=unifrnd(0,1)*2*pi;a2=unifrnd(0,1)*2*pi;
-        neurons(2).truth.location=simulation_params.batch.location_radius*...
-            [sin(a1)*cos(a2) cos(a1)*cos(a2) sin(a2)];
-end
-  neurons(2).location=neurons(2).truth.location+neurons(2).truth.shift;
