@@ -35,11 +35,19 @@ end
 if    isfield(plot_params,'vertical_gap') 
     barheight=plot_params.vertical_gap;
 else
-    barheight = max(max(fits));
+    barheight = plot_params.max_intensity;
 end
 
+if  isfield(plot_params,'max_intensity') 
+    max_int=plot_params.max_intensity;
+else
+    max_int = max(max(fits));
+end
+
+
+
 for i = 1:n_neuron
-    plot(realtimepoints, fits(i,:)/max(fits(i,:))*plot_params.vertical_gap+vertical_shift*ones(1,size(fits,2)),'Color',[neuron_colors(i,:) alpha],'LineWidth',lw)
+    plot(realtimepoints, fits(i,:)/max_int*plot_params.vertical_gap+vertical_shift*ones(1,size(fits,2)),'Color',[neuron_colors(i,:) alpha],'LineWidth',lw)
     hold on;
 end
 if isfield(this_trial,'event_times')
