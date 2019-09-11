@@ -10,7 +10,7 @@ else
       chosen_field = 'fitted';
 end
 fig_num = randi(10000);
-i = 0
+i = 0;
 % figure(fig_num)
 tmp_loc=reshape([trials(:).locations],3,[])';
 [locations_unique, ~, ic] = unique(tmp_loc,'rows');
@@ -35,6 +35,17 @@ tmp_loc=reshape([trials(:).locations],3,[])';
 % end
 % hold off;
 
+% Find the maximum intensity and use it to standardize all intensities 
+plot_params.max_intensity=1e-2;
+for i_trial = 1:length(trials)
+    this_trial =trials(i_trial);
+if plot_params.spike 
+    fits = this_trial.(chosen_field).intensity.spike;
+else
+    fits =this_trial.(chosen_field).intensity.event;
+end
+    plot_params.max_intensity = max(plot_params.max_intensity, max(max(fits)));
+end
 
 % Visualize the trials
 if plot_params.by_neuron
