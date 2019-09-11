@@ -26,7 +26,7 @@ for s =1:S
 end
 
 %% Calculate the fitted intensities (as posterior averages)
-if isfield(posterior_samples,'background')
+if isfield(posterior_samples{1},'background')
     bg_tmp =cellfun(@(x) x.background,posterior_samples);
     background_post=mean(bg_tmp);
 else
@@ -49,8 +49,11 @@ end
 
 for i_cell = 1:n_cell
     
-    if isfield(posterior_samples,'PR')
-        PR_tmp =cellfun(@(x) x.PR,posterior_samples);
+    if isfield(posterior_samples{1},'PR')
+        PR_tmp=zeros(S,1);
+        for s=1:S
+            PR_tmp(s)=posterior_samples{s}(i_cell).PR;
+        end
         PR_post=mean(PR_tmp);
     else
         PR_post = 1.0;
@@ -123,3 +126,7 @@ for i_cell = 1:n_cell
         
     end
 end
+%%
+plot(trials(1).fitted.timepoints(1,:), trials(1).fitted.intensity.spike(2,:))
+hold on;
+plot(trials(1).fitted.timepoints(1,:), trials(1).fitted.intensity.spike(3,:))
