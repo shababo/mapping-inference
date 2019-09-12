@@ -127,6 +127,6 @@ for i_cell = 1:n_cell
     end
 end
 %%
-plot(trials(1).fitted.timepoints(1,:), trials(1).fitted.intensity.spike(2,:))
-hold on;
-plot(trials(1).fitted.timepoints(1,:), trials(1).fitted.intensity.spike(3,:))
+% plot(trials(1).fitted.timepoints(1,:), trials(1).fitted.intensity.spike(2,:))
+% hold on;
+% plot(trials(1).fitted.timepoints(1,:), trials(1).fitted.intensity.spike(3,:))
