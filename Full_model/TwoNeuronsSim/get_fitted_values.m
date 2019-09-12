@@ -116,14 +116,11 @@ for i_cell = 1:n_cell
                 delay_params.delay_mean=0;
                 delay_params.delay_var=1e-3;
             end
-            
             [intensity_tmp] = calculate_intensities(stim,delay_params,prior_info.induced_intensity,timepoints);
             intensity_records.spike(s,:)= intensity_tmp.spike;
             intensity_records.event(s,:)= intensity_tmp.event;
             stim_records(s)= stim;
         end
-        
-        
         % Calculate the intensity at the events:
         if ~isempty(trials(i_trial).event_times)
             tmp=trials(i_trial).event_times;
@@ -133,17 +130,13 @@ for i_cell = 1:n_cell
                 [~, im]=min(abs( tmp(i_event)-timepoints/time_factor));
                 event_intensity(i_event)=tmp_mean(im);
             end
-            
         trials(i_trial).fitted.event_intensity=[ trials(i_trial).fitted.event_intensity; event_intensity];
         end
-        
-        
         trials(i_trial).fitted.intensity.spike=[trials(i_trial).fitted.intensity.spike; mean(intensity_records.spike)];
         trials(i_trial).fitted.intensity.event=[trials(i_trial).fitted.intensity.event; mean(intensity_records.event)];
         trials(i_trial).fitted.PR=[trials(i_trial).fitted.PR; PR_post];
         trials(i_trial).fitted.source=[trials(i_trial).fitted.source; i_cell];
         trials(i_trial).fitted.stim=[trials(i_trial).fitted.stim; mean(stim_records)];
-        
     end
 end
 %%
