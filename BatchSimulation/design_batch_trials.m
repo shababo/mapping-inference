@@ -2,6 +2,7 @@ function [trials] = design_batch_trials(neurons,design_params)
 %%
 trials(1) =struct;
 i_trial =0;
+        chosen_flag=false;
 for i= 1:length(neurons)
     this_location = neurons(i).location;
     jchosen=1;% for fixed design
