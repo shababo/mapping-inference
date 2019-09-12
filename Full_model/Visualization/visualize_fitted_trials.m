@@ -70,33 +70,38 @@ if plot_params.by_neuron
     end
 else
     for i = 1:size(locations_unique,1)
-        fig=figure(i+1+fig_num);
+
         these_trials =trials(ic==i);
-%         plot_params.vertical_gap = 0.1;
-% %         [~, tmp]=sort([these_trials(:).power_levels]); % Ascending
-% %         rankings = 1:length(these_trials);
-% %         rankings(tmp)=rankings;        
-        visualize_fitted_trial_multiple(these_trials,[these_trials(:).power_levels],plot_params)
-        title(['Location ' num2str(i)])
-        if isfield(plot_params,'save_path')
-            save_path = [plot_params.save_path '_' num2str(i+1) '.png'];
-            saveas(fig,save_path)
-        end
-        
-%         the_trial = find([these_trials.power_levels] == 25);
-%         the_trial = these_trials(the_trial(1))
-%         fig=figure(199999);%figure(size(locations_unique,1)+fig_num+200);
-%         hold on
-%         scatter3(locations_unique(i,1),locations_unique(i,2),locations_unique(i,3),[],the_trial.fitted.stim(2)/50)
-%         
-%         fig=figure(1999999);%figure(size(locations_unique,1)+fig_num+201);
-%         if isnan(the_trial.event_times) || the_trial.event_times > 160
-%             event_time = 0;
-%         else
-%             event_time = (160 - the_trial.event_times)/160;
+
+                
+                
+%         fig=figure(i+1+fig_num);
+% %         plot_params.vertical_gap = 0.1;
+% % %         [~, tmp]=sort([these_trials(:).power_levels]); % Ascending
+% % %         rankings = 1:length(these_trials);
+% % %         rankings(tmp)=rankings;        
+%         visualize_fitted_trial_multiple(these_trials,[these_trials(:).power_levels],plot_params)
+%         title(['Location ' num2str(i)])
+%         if isfield(plot_params,'save_path')
+%             save_path = [plot_params.save_path '_' num2str(i+1) '.png'];
+%             saveas(fig,save_path)
 %         end
-%         hold on
-%         scatter3(locations_unique(i,1),locations_unique(i,2),locations_unique(i,3),[],event_time)
+        
+        the_trial = find([these_trials.power_levels] == 75);
+        the_trial = these_trials(the_trial(1))
+        fig=figure(199999);%figure(size(locations_unique,1)+fig_num+200);
+        hold on
+        scatter3(locations_unique(i,1),locations_unique(i,2),locations_unique(i,3),[],the_trial.fitted.stim(2)/75)
+        
+        fig=figure(1999999);%figure(size(locations_unique,1)+fig_num+201);
+        if isnan(the_trial.event_times) || the_trial.event_times > 160
+            event_time = 0;
+        else
+            event_time = (160 - the_trial.event_times)/160;
+        end
+        hold on
+        scatter3(locations_unique(i,1),locations_unique(i,2),locations_unique(i,3),[],event_time)
+
         
     end
 end
