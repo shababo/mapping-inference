@@ -76,11 +76,13 @@ if (isfield(neurons(1).params(end),'shapes') | isfield(neurons(1).params(end),'x
                                     % Adding a small variance to allow the shape to
                                     % learn from the data set when the prior shape
                                     % variance is too small.
-                                    if (var_3d <  prior_info.GP_params.GP_minimal_variance)
-                                        var_3d =   prior_info.GP_params.GP_minimal_variance;
-                                    end
-                                    if isfield(prior_info, 'GP_added_variance')
-                                        var_3d = var_3d+prior_info.GP_params.GP_added_variance;
+                                    if sqrt(sum( this_rel_pos.^2))>min_dist % if this loc is not near the nucleus
+                                        if (var_3d <  prior_info.GP_params.GP_minimal_variance)
+                                            var_3d =   prior_info.GP_params.GP_minimal_variance;
+                                        end
+                                        if isfield(prior_info, 'GP_added_variance')
+                                            var_3d = var_3d+prior_info.GP_params.GP_added_variance;
+                                        end
                                     end
                                     lower_bound =max(0, mean_3d-2*sqrt(var_3d));upper_bound =min(1, mean_3d+2*sqrt(var_3d));
                                     %                                 lower_bound =0;upper_bound =1;

@@ -63,7 +63,8 @@ while (change_history(iteration) > epsilon && iteration<maxit)
     loglklh=zeros(S,1);logprior=zeros(S,1);logvariational=zeros(S,1);
   
     vsam=cell([S 1]);rsam=cell([S 1]);
-        for s=1:S
+   
+    for s=1:S
             %         t1=toc;
             [variational_samples,raw_samples] = draw_samples_from_var_dist(parameter_current);
                %---------------------------------%
@@ -74,7 +75,8 @@ while (change_history(iteration) > epsilon && iteration<maxit)
 %         variational_samples.z=1;
 %         variational_samples.xy=1;
 %         variational_samples(1).background=1e-4;
-%  variational_samples(1).PR=rand(1);variational_samples(2).PR=rand(1);
+%   variational_samples(1).PR=rand(1);
+%  variational_samples(2).PR=0.4;
         %----------------------------------%
             vsam{s}=variational_samples;rsam{s}=raw_samples;
 
@@ -103,11 +105,10 @@ while (change_history(iteration) > epsilon && iteration<maxit)
 %         end
     end
     %% 
-% % %     
-% PRs=[];
-%   for i = 1:S
-%     PRs(i) = vsam{i}(2).PR; 
-%     %lklhweight(i)=logprior_tmp(i)+loglklh_tmp(i)-logvariational_tmp(i);
+%     PRs=[];
+%     for i = 1:S
+%         PRs(i) = vsam{i}(2).PR;
+%         %lklhweight(i)=logprior_tmp(i)+loglklh_tmp(i)-logvariational_tmp(i);
 %     end
 %     figure(1)
 %     scatter(PRs,loglklh)

@@ -83,20 +83,20 @@ else
             saveas(fig,save_path)
         end
         
-        the_trial = find([these_trials.power_levels] == 25);
-        the_trial = these_trials(the_trial(1))
-        fig=figure(199999);%figure(size(locations_unique,1)+fig_num+200);
-        hold on
-        scatter3(locations_unique(i,1),locations_unique(i,2),locations_unique(i,3),[],the_trial.fitted.stim(2)/50)
-        
-        fig=figure(1999999);%figure(size(locations_unique,1)+fig_num+201);
-        if isnan(the_trial.event_times) || the_trial.event_times > 160
-            event_time = 0;
-        else
-            event_time = (160 - the_trial.event_times)/160;
-        end
-        hold on
-        scatter3(locations_unique(i,1),locations_unique(i,2),locations_unique(i,3),[],event_time)
+%         the_trial = find([these_trials.power_levels] == 25);
+%         the_trial = these_trials(the_trial(1))
+%         fig=figure(199999);%figure(size(locations_unique,1)+fig_num+200);
+%         hold on
+%         scatter3(locations_unique(i,1),locations_unique(i,2),locations_unique(i,3),[],the_trial.fitted.stim(2)/50)
+%         
+%         fig=figure(1999999);%figure(size(locations_unique,1)+fig_num+201);
+%         if isnan(the_trial.event_times) || the_trial.event_times > 160
+%             event_time = 0;
+%         else
+%             event_time = (160 - the_trial.event_times)/160;
+%         end
+%         hold on
+%         scatter3(locations_unique(i,1),locations_unique(i,2),locations_unique(i,3),[],event_time)
         
     end
 end
