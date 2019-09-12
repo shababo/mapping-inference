@@ -15,9 +15,9 @@ for i= 1:n
     neurons(i).truth.gain=prior_sample.gain;
     
     if i==1
-        neurons(i).truth.PR=rand(1)*0.5+0.3;
+        neurons(i).truth.PR=rand(1)*0.5+0.5;
     else
-        neurons(i).truth.PR= (rand(1)>0.5)*(rand(1)*0.5+0.3);
+        neurons(i).truth.PR= (rand(1)>0.5)*(rand(1)*0.4+0.6);
     end
     
     %     one_neuron.truth.PR=gamma_truth(i_cell);
