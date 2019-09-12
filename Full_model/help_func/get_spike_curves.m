@@ -30,12 +30,12 @@ else
     specs=struct;
     specs.time_max=200; % maximum spike time 
 %     specs.F_mean = @(x,xdata)x(1)*exp(-x(2)*xdata) + x(3);
-    specs.F_mean = @(x,xdata) x(2)./(xdata) + x(3); %min(y_spike_mean) + 
+    specs.F_mean = @(x,xdata) x(2)./(xdata + x(1)) + x(3); %min(y_spike_mean) + 
     specs.F_dev = @(x,xdata) x(1) + x(2)./(xdata);
     specs.F_sd = @(x,xdata) min(y_spike_sd) + x(1)./(xdata);
     specs.current_multiplier=1e-3;
     specs.current_min=10;
-    specs.current_max=3000;
+    specs.current_max=10000;
     specs.current_gap=2;
     specs.sd_min=2;
     specs.sd_max=15;

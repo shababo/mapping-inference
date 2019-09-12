@@ -181,8 +181,8 @@ if (isfield(neurons(1).params(end),'shapes') | isfield(neurons(1).params(end),'x
                                 % Adding a small variance to allow the shape to
                                 % learn from the data set when the prior shape
                                 % variance is too small.
-                                if (var_3d <   prior_info.prior_parameters.GP_minimal_variance)
-                                    var_3d =   prior_info.prior_parameters.GP_minimal_variance;
+                                if (var_3d <   prior_info.GP_params.GP_minimal_variance)
+                                    var_3d =   prior_info.GP_params.GP_minimal_variance;
                                 end
                                 if isfield(prior_info, 'GP_added_variance')
                                     var_3d = var_3d+prior_info.GP_added_variance;

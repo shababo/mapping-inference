@@ -42,7 +42,7 @@ for i_field = 1:length(fldnames)
         post_stat.(fldnames{i_field}).sd=std(this_sample);
         post_stat.(fldnames{i_field}).upper_quantile=this_qt(3);
         post_stat.(fldnames{i_field}).lower_quantile=this_qt(1);
-    elseif strcmp(fldnames{i_field},'shapes') % shape parameters:
+    else %if strcmp(fldnames{i_field},'shapes') % shape parameters:
         post_stat.(fldnames{i_field})=struct;
         if ~isempty(this_params.mean)
             
