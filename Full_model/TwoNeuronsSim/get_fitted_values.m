@@ -32,7 +32,7 @@ if isfield(posterior_samples{1},'background')
 else
     background_post = 0;
 end
-    
+
 
 for i_trial = 1:n_trials
     trials(i_trial).fitted=struct;
@@ -44,6 +44,12 @@ for i_trial = 1:n_trials
     trials(i_trial).fitted.timepoints=timepoints;
     trials(i_trial).fitted.time_factor=time_factor;
     trials(i_trial).fitted.stim=0;
+    
+    if ~isempty(trials(i_trial).event_times)
+        trials(i_trial).fitted.event_intensity =background_post*ones(1,length(trials(i_trial).event_times));
+    else
+        trials(i_trial).fitted.event_intensity =[];
+    end
     
 end
 
@@ -117,12 +123,26 @@ for i_cell = 1:n_cell
             stim_records(s)= stim;
         end
         
+        
+        % Calculate the intensity at the events:
+        if ~isempty(trials(i_trial).event_times)
+            tmp=trials(i_trial).event_times;
+            tmp_mean=mean(intensity_records.event);
+            event_intensity =zeros(1,length(tmp));
+            for i_event = 1:length(tmp)
+                [~, im]=min(abs( tmp(i_event)-timepoints/time_factor));
+                event_intensity(i_event)=tmp_mean(im);
+            end
+            
+        trials(i_trial).fitted.event_intensity=[ trials(i_trial).fitted.event_intensity; event_intensity];
+        end
+        
+        
         trials(i_trial).fitted.intensity.spike=[trials(i_trial).fitted.intensity.spike; mean(intensity_records.spike)];
         trials(i_trial).fitted.intensity.event=[trials(i_trial).fitted.intensity.event; mean(intensity_records.event)];
         trials(i_trial).fitted.PR=[trials(i_trial).fitted.PR; PR_post];
         trials(i_trial).fitted.source=[trials(i_trial).fitted.source; i_cell];
         trials(i_trial).fitted.stim=[trials(i_trial).fitted.stim; mean(stim_records)];
-        
         
     end
 end
