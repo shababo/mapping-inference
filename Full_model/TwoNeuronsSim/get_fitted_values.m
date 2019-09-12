@@ -127,10 +127,10 @@ for i_cell = 1:n_cell
             tmp_mean=mean(intensity_records.event);
             event_intensity =zeros(1,length(tmp));
             for i_event = 1:length(tmp)
-                [~, im]=min(abs( tmp(i_event)-timepoints/time_factor));
+                [~, im]=min(abs( tmp(i_event)-timepoints));
                 event_intensity(i_event)=tmp_mean(im);
             end
-        trials(i_trial).fitted.event_intensity=[ trials(i_trial).fitted.event_intensity; event_intensity];
+        trials(i_trial).fitted.event_intensity=[trials(i_trial).fitted.event_intensity; event_intensity];
         end
         trials(i_trial).fitted.intensity.spike=[trials(i_trial).fitted.intensity.spike; mean(intensity_records.spike)];
         trials(i_trial).fitted.intensity.event=[trials(i_trial).fitted.intensity.event; mean(intensity_records.event)];
