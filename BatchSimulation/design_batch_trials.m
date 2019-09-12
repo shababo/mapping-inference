@@ -45,7 +45,7 @@ for i= 1:length(neurons)
                     [-1:(numgrid-2)]'*gap;
                               chosen_flag=true;
             case 'chosen'
-                chose_flag=true;
+                chosen_flag=true;
         end
         
         if chosen_flag
