@@ -4,6 +4,7 @@ trials(1) =struct;
 i_trial =0;
 for i= 1:length(neurons)
     this_location = neurons(i).location;
+    jchosen=1;% for fixed design
     for j= 1:design_params.nlocs_per_neuron
         switch design_params.grid_type
             case 'random_2d'
@@ -24,6 +25,14 @@ for i= 1:length(neurons)
                 this_angle = randsample( 1:n_ring_grid,1)/n_ring_grid;
             case 'nuclei'
                 this_radius=0;this_angle=0;
+            case 'off-nuclei'
+                
+                radius=design_params.candidate_grid_params.max_radius;
+                n_point=design_params.nlocs_per_neuron-1;
+                angles = (1:n_point)/n_point;
+                tmp_loc=[[0 0 0]; [sin(2*pi*angles)' cos(2*pi*angles)' zeros(n_point,1)]];
+                design_params.chosen_locations = ones(size(tmp_loc,1),1)*neurons(i).location+tmp_loc;
+                chosen_flag=true;
             case 'linesearch'
                 % Determine the chosen locations here: 
                 design_params.grid_type='chosen';
@@ -33,10 +42,12 @@ for i= 1:length(neurons)
                 gap=(two_loc-one_loc)/(numgrid-3);
                 design_params.chosen_locations=ones(numgrid,1)*one_loc+...
                     [-1:(numgrid-2)]'*gap;
-                jchosen=1;
+                              chosen_flag=true;
+            case 'chosen'
+                chose_flag=true;
         end
         
-        if strcmp(design_params.grid_type,'chosen')
+        if chosen_flag
             this_trial_location= design_params.chosen_locations(jchosen,:);
             n_rep=design_params.repeat_number;
             jchosen=jchosen+1;
@@ -50,7 +61,6 @@ for i= 1:length(neurons)
             if strcmp(design_params.grid_type,'random_3d')
             this_trial_location=this_location+...
                 this_radius*[sin(2*pi*this_angle)*sin(2*pi*this_angle2) cos(2*pi*this_angle)*sin(2*pi*this_angle2) cos(2*pi*this_angle2)];
-            
             else
             this_trial_location=this_location+...
                 this_radius*[sin(2*pi*this_angle) cos(2*pi*this_angle) 0];
