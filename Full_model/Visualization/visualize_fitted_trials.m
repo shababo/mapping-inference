@@ -101,6 +101,7 @@ else
         end
         hold on
         scatter3(locations_unique(i,1),locations_unique(i,2),locations_unique(i,3),[],event_time)
+
         
     end
 end

@@ -19,7 +19,7 @@ n_stimulated= size(prob_this_trial,1);
 %n_grid=size(prob_this_trial,2);
       
 if n_events == 0
-    likelihood = prod(not_fire_prob);
+    likelihood = prod(exp(not_fire_prob));
 elseif n_events > n_stimulated
     % the gamma sample is not feasible
     likelihood= 1e-20;
@@ -31,7 +31,7 @@ else
         fired_cells=combinations_of_event_sources(k,:);
         orders_of_cells = perms(fired_cells);
         for j= 1:size(orders_of_cells,1)
-            cond_prob = not_fire_prob;
+            cond_prob = exp(not_fire_prob);
             for i_event = 1:n_events
                 cond_prob(orders_of_cells(i_event))=prob_this_trial(orders_of_cells(i_event), ...
                    i_event);
