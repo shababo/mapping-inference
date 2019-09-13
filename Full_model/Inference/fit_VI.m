@@ -3,7 +3,6 @@ function [parameter_history, elbo_rec] = fit_VI(...
     variational_params,prior_params,...
     inference_params,prior_info)
 %%
-
 % Update these parameters in parallel 
 % par_fields = {'PR' 'delay_var'};
 % if ~isfield(variational_params(1),'PR')
@@ -69,7 +68,7 @@ while (change_history(iteration) > epsilon && iteration<maxit)
             [variational_samples,raw_samples] = draw_samples_from_var_dist(parameter_current);
                %---------------------------------%
         % Manually set the true paramters for debugging only:
-%         variational_samples(1).gain=0.0479;variational_samples(2).gain=0.0211;
+%         variational_samples(1).gain=0.02;
 %         variational_samples.delay_mean=neurons.truth.delay_mean;
 %         variational_samples.delay_var=neurons.truth.delay_var;
 %         variational_samples.z=1;
@@ -104,15 +103,15 @@ while (change_history(iteration) > epsilon && iteration<maxit)
             end
 %         end
     end
-    %% 
-%     PRs=[];
+%     %% 
+%     gains=[];
 %     for i = 1:S
-%         PRs(i) = vsam{i}(2).PR;
+%         gains(i) = vsam{i}(1).gain;
 %         %lklhweight(i)=logprior_tmp(i)+loglklh_tmp(i)-logvariational_tmp(i);
 %     end
 %     figure(1)
-%     scatter(PRs,loglklh)
-%     
+%     scatter(gains,loglklh)
+    
 %     scatter(PRs,lklhweight)
 %      figure(3)
 %     scatter(PRs,meanfs)

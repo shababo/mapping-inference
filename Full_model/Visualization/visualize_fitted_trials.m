@@ -85,5 +85,18 @@ these_trials =trials(ic==i);
     end
 end
 
-
+if isfield(plot_params,'off_loc')
+    fig= figure(i_neuron+4+fig_num)
+       these_trials =trials;
+       plot_params.vertical_gap = 0.1;
+       dist_list = zeros(length(these_trials),1);
+        for i = 1:length(these_trials)
+            
+            rel_pos=these_trials(i).locations-neurons(1).location;
+            dist_list(i)= min( sqrt(sum(rel_pos(1:2).^2)),abs(rel_pos(3)));
+        end
+       visualize_fitted_trial_multiple(these_trials,dist_list,plot_params)
+      ylim([0,2.5])
+     ylabel('Trials ordered by deviation from xy-plane and z-axis');
+end
 

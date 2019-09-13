@@ -17,14 +17,12 @@ clear('posterior_params')
 for i_cell = 1:n_cell
     posterior_params(i_cell)=neurons(i_cell).params(end);
 end
-
 %% Draw samples from posterior distributions
 S= params.MC_params.sample_size;
 posterior_samples = cell([S 1]);
 for s =1:S
     [posterior_samples{s},~] = draw_samples_from_var_dist(posterior_params);
 end
-
 %% Calculate the fitted intensities (as posterior averages)
 if isfield(posterior_samples{1},'background')
     bg_tmp =cellfun(@(x) x.background,posterior_samples);
@@ -32,7 +30,6 @@ if isfield(posterior_samples{1},'background')
 else
     background_post = 0;
 end
-
 
 for i_trial = 1:n_trials
     trials(i_trial).fitted=struct;

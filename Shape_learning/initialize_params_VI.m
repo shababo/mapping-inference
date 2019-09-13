@@ -80,7 +80,7 @@ if (isfield(neurons(1).params(end),'shapes') | isfield(neurons(1).params(end),'x
                                         if (var_3d <  prior_info.GP_params.GP_minimal_variance)
                                             var_3d =   prior_info.GP_params.GP_minimal_variance;
                                         end
-                                        if isfield(prior_info, 'GP_added_variance')
+                                        if isfield(prior_info.GP_params, 'GP_added_variance')
                                             var_3d = var_3d+prior_info.GP_params.GP_added_variance;
                                         end
                                     end
