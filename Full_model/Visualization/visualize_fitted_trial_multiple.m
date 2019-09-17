@@ -14,6 +14,7 @@ rankings_std= (rankings-min(rankings))/range(rankings);% scaled stim levels/rank
 n_ranks = length(unique(rankings_std));
 for i_trial=1:n_trials
     plot_params.vertical_shift= vertical_gap*n_ranks*(1-rankings_std(i_trial));
+    plot_params.this_loc = plot_params.loc_indices(i_trial);
     this_trial = these_trials(i_trial);
     visualize_fitted_trial_single(this_trial, plot_params)
 end

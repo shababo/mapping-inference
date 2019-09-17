@@ -6,171 +6,150 @@ epsilon=1e-3;
 axis_list=fieldnames(GP_params);
 
 tmp_i=strcmp(axis_list,'type');
-axis_list=axis_list(find(~tmp_i));
-dims=min(3,length(axis_list));
+dims=3;
 switch type
     case 'linear'
-        mean_vec =[];
-        loc_vec=zeros([0 3]);
-        var_vec=[];
-        range_increase=2; % double the min and max
-        % we also want to increase the range of grid (fill with zeros) for
-        % interpolation
-        for i_ax = 1:dims
-            ax = axis_list{i_ax};
-            extended_grid =  GP_params.(ax).mean_params.grid;
-            grid_gap = GP_params.(ax).mean_params.grid(2)-GP_params.(ax).mean_params.grid(1);
-            right_ext= max(extended_grid):grid_gap:range_increase*max(extended_grid);
-            left_ext = range_increase*min(extended_grid):grid_gap:min(extended_grid);
-            extended_grid = [left_ext extended_grid right_ext];
-            loc_tmp = zeros([length(extended_grid) 3]);
-            
-            loc_tmp(:,i_ax)= extended_grid;
-            
-            loc_vec=[loc_vec; loc_tmp];
-            
-            extended_mean=[zeros(length(left_ext),1);  GP_params.(ax).mean_params.values; zeros(length(right_ext),1)];
-            mean_vec = [mean_vec; extended_mean];
-            
-            extended_var=[zeros(length(left_ext),1);  GP_params.(ax).var_params.values; zeros(length(right_ext),1)];
-            var_vec = [var_vec;  extended_var];
-            
-            X=locations(:,i_ax);
-            
-            tau=GP_params.(ax).tau;
-            GP_samples.(ax).Kcor=get_kernel_cor(X,X,tau);
-            GP_samples.(ax).Kcor= (GP_samples.(ax).Kcor+GP_samples.(ax).Kcor')/2;
-            
-        end
-        %
         
-        mean_3d = griddata(loc_vec(:,1),loc_vec(:,2),loc_vec(:,3), mean_vec,...
-            locations_unique(:,1),locations_unique(:,2),locations_unique(:,3));
-        
-        var_3d = griddata(loc_vec(:,1),loc_vec(:,2),loc_vec(:,3), var_vec,...
-            locations_unique(:,1),locations_unique(:,2),locations_unique(:,3));
-        
-    case 'square'
-        % Interpolation as weighted averages
-        
+    case 'x-y-z' % used to be square
+        % Interpolate 3d mean & var as weighted product of three GPs
+        axis_list={'x','y','z'};
         mean_val=locations;
         var_val=locations;
         sqloc=locations.^2;
         radius_to_center = sqrt(sum(sqloc'))';
-        
         for i_ax = 1:dims
             ax = axis_list{i_ax};
-            
             X=locations(:,i_ax);
             tau=GP_params.(ax).tau;
             GP_samples.(ax).Kcor=get_kernel_cor(X,X,tau);
             GP_samples.(ax).Kcor= (GP_samples.(ax).Kcor+GP_samples.(ax).Kcor')/2;
-            
             X_r=sign(X).*radius_to_center;
             mean_val(:,i_ax)=quick_match(X_r,GP_params.(ax).mean_params);
             var_val(:,i_ax)=quick_match(X_r,GP_params.(ax).var_params);
-            %             mean_val(:,i_ax)=quick_match(X,GP_params.(ax).mean_params);
-            %             var_val(:,i_ax)=quick_match(X,GP_params.(ax).var_params);
-            
         end
         sqloc(sqloc==0)=epsilon;
         ssq = sum(sqloc');
         ssq_mat = ssq' *ones(1,3);
         exp_indices = sqloc./ssq_mat;
-        
         mean_tmp=(mean_val.^exp_indices);
         mean_3d=prod(mean_tmp')';
-        
         var_tmp=(var_val.^exp_indices);
         var_3d=prod(var_tmp')';
-    case 'xy_square'
-        % Interpolation as weighted averages
+    case '(x-y)-z' % used to be xy-square
+        % Interpolate 3d mean & var as weighted product of three GPs
+        % Output the interpolation of xy and z
+        axis_list={'x','y','z'};
+        mean_val=struct;var_val=struct;
         xy_locations = locations(:,1:2);
         z_locations = locations(:,3);
         [xy_unique,~,i_xy] = unique(xy_locations,'rows');
         [z_unique,~,i_z] = unique(z_locations,'rows');
-        sqloc=xy_unique.^2;
-        radius_to_center = sqrt(sum(sqloc'))';
-        mean_val=struct;var_val=struct;
+        
         for i_ax = 1:dims
             ax = axis_list{i_ax};
-            if i_ax ==3
-                X=z_unique;
+            if i_ax == 3
+            X=xy_unique(:,i_ax);
             else
-                X=xy_unique(:,i_ax);
-                %                 X=sign(X).*radius_to_center;
+            X=z_unique;    
             end
-            tau=GP_params.(ax).tau;
-            GP_samples.(ax).Kcor=get_kernel_cor(X,X,tau);
-            GP_samples.(ax).Kcor= (GP_samples.(ax).Kcor+GP_samples.(ax).Kcor')/2;
             
+            tau=GP_params.(ax).tau;
             mean_val.(ax)=quick_match(X,GP_params.(ax).mean_params);
             var_val.(ax)=quick_match(X,GP_params.(ax).var_params);
+            if i_ax == 1
+                GP_samples.xy.Kcor=get_kernel_cor(X,X,tau);
+                
+            elseif i_ax == 2
+                GP_samples.xy.Kcor=GP_samples.xy.Kcor.*get_kernel_cor(X,X,tau);
+                GP_samples.xy.Kcor= (GP_samples.xy.Kcor+GP_samples.xy.Kcor')/2;
+            end
         end
+        GP_samples.z.Kcor=get_kernel_cor(X,X,tau);
+        GP_samples.z.Kcor= (GP_samples.z.Kcor+GP_samples.z.Kcor')/2;
         
         % Interpolate the xy-mean:
-        sqloc=xy_unique.^2;
+        sqloc=locations.^2;
         sqloc(sqloc==0)=epsilon;
-        ssq = sum(sqloc');
-        ssq_mat = ssq' *ones(1,2);
-        exp_indices = sqloc./ssq_mat;
-        exp_mean=ones(1,2);
+        ssq = sum(sqloc(1:2)'); ssq_mat = ssq' *ones(1,2);
+        exp_indices = sqloc(1:2)./ssq_mat;
         mean_tmp=[mean_val.x mean_val.y];
-        mean_tmp=(mean_tmp.^exp_mean);
+        mean_tmp=(mean_tmp.^exp_indices);
         xy_mean=prod(mean_tmp')';
-        
         var_tmp=[var_val.x var_val.y];
         var_tmp=(var_tmp.^exp_indices);
         xy_var=prod(var_tmp')';
         
-    case 'xy'
-        %
-    xy_locations = locations(:,1:2);
+        % Interpolate the 3D GP values:
+        ssq = sum(sqloc'); ssq_mat = ssq' *ones(1,2);
+        exp_indices = [sqloc(1)+sqloc(2) sqloc(3)]./ssq_mat;
+        
+
+        
+        xy_mean_full = xy_mean(i_xy);z_mean_full = z_mean(i_z); 
+        mean_tmp=([xy_mean_full z_mean_full].^exp_indices);
+        mean_3d=prod(mean_tmp')';
+        
+        
+        xy_var_full = xy_var(i_xy);z_var_full = z_var(i_z); 
+        var_tmp=([xy_var_full z_var_full].^exp_indices);
+        var_3d=prod(var_tmp')';
+    case 'xy-z' % used to be xy
+        % Obtain the values from the xy GP and z GP
+        % Interpolate the 3D value
+        
+        xy_locations = locations(:,1:2);
         z_locations = locations(:,3);
         [xy_unique,~,i_xy] = unique(xy_locations,'rows');
         [z_unique,~,i_z] = unique(z_locations,'rows');
         
-        sqloc=xy_unique.^2;
-        radius_to_center = sqrt(sum(sqloc'))';
-        mean_val=struct;var_val=struct;
-        for i_ax = 1:3
-            ax = axis_list{i_ax};
-            if i_ax ==3
-                X=z_unique;
-                tau=GP_params.(ax).tau;
-            else
-                X=xy_unique(:,i_ax);
-                tau=GP_params.xy.tau(i_ax);
-            end
-            GP_samples.(ax).Kcor=get_kernel_cor(X,X,tau);
-            GP_samples.(ax).Kcor= (GP_samples.(ax).Kcor+GP_samples.(ax).Kcor')/2;
-        end
-        mean_val.z=quick_match(z_unique,GP_params.z.mean_params);
-        var_val.z=quick_match(z_unique,GP_params.z.var_params);
-        
+        z_mean=quick_match(z_unique,GP_params.z.mean_params);
+        z_var=quick_match(z_unique,GP_params.z.var_params);
         xy_mean=quick_match(xy_unique,GP_params.xy.mean_params);
         xy_var=quick_match(xy_unique,GP_params.xy.var_params);
+       
+        x=xy_unique(:,1);y=xy_unique(:,2);z=z_unique;
+        GP_samples.xy.Kcor=get_kernel_cor(x,x,GP_params.xy.tau(1)).*get_kernel_cor(y,y,GP_params.xy.tau(2));
+        GP_samples.xy.Kcor= (GP_samples.xy.Kcor+GP_samples.xy.Kcor')/2;    
+        GP_samples.z.Kcor=get_kernel_cor(z,z,GP_params.z.tau);
+        GP_samples.z.Kcor= (GP_samples.z.Kcor+GP_samples.z.Kcor')/2;
+
+        % Interpolate the 3D GP values: 
+        tmp=locations.^2;
+        sqloc=[tmp(1)+tmp(2) tmp(3)];
+        sqloc(sqloc==0)=epsilon;
+        
+        ssq = sum(sqloc');
+        ssq_mat = ssq' *ones(1,2);
+        exp_indices = sqloc./ssq_mat;
+        
+        xy_mean_full = xy_mean(i_xy);z_mean_full = z_mean(i_z); 
+        mean_tmp=([xy_mean_full z_mean_full].^exp_indices);
+        mean_3d=prod(mean_tmp')';
         
         
+        xy_var_full = xy_var(i_xy);z_var_full = z_var(i_z); 
+        var_tmp=([xy_var_full z_var_full].^exp_indices);
+        var_3d=prod(var_tmp')';
 end
 %% Save output
 interpolated_shape = struct;
 interpolated_shape.type = type;
-if ~strcmp(type,'square')
+if strcmp(type,'x-y-z')
+    interpolated_shape.locations = locations;
+    interpolated_shape.mean_3d = mean_3d;
+    interpolated_shape.var_3d = var_3d;
+    interpolated_shape.GP_samples = GP_samples;
+else
+    
     interpolated_shape.locations = locations;
     
     interpolated_shape.mean_xy = xy_mean;
     interpolated_shape.var_xy = xy_var;
     interpolated_shape.index_xy = i_xy;
-    
-    interpolated_shape.mean_z =  mean_val.z;
-    interpolated_shape.var_z =  var_val.z;
+    interpolated_shape.mean_z =  z_mean;
+    interpolated_shape.var_z =  z_var;
     interpolated_shape.index_z = i_z;
-    
-    interpolated_shape.GP_samples = GP_samples;
-else
-    interpolated_shape.locations = locations;
     interpolated_shape.mean_3d = mean_3d;
-    interpolated_shape.var_3d = var_3d;
+    interpolated_shape.var_3d =  var_3d;
     interpolated_shape.GP_samples = GP_samples;
 end

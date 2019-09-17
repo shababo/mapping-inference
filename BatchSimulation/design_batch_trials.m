@@ -17,7 +17,7 @@ for i= 1:length(neurons)
                 this_radius = unifrnd(0,radius);
                 this_angle = unifrnd(0,1);
                 this_angle2=unifrnd(0,1);
-            case 'ring'
+       case 'ring'
                 radius=design_params.candidate_grid_params.max_radius;
                 n_ring=length(design_params.candidate_grid_params.number);
                 i_ring = randsample(1:n_ring,1,true,design_params.candidate_grid_params.number);

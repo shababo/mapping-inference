@@ -76,6 +76,7 @@ while (change_history(iteration) > epsilon && iteration<maxit)
 %         variational_samples(1).background=1e-4;
 %   variational_samples(1).PR=rand(1);
 %  variational_samples(2).PR=0.4;
+%variational_samples.shapes=rand([1 2]);
         %----------------------------------%
             vsam{s}=variational_samples;rsam{s}=raw_samples;
 
@@ -103,15 +104,20 @@ while (change_history(iteration) > epsilon && iteration<maxit)
             end
 %         end
     end
-%     %% 
-%     gains=[];
+%% 
+%     shapes_val=zeros(S,length(vsam{1}.shapes));
+%       lklhweights=zeros(S,1);
 %     for i = 1:S
-%         gains(i) = vsam{i}(1).gain;
-%         %lklhweight(i)=logprior_tmp(i)+loglklh_tmp(i)-logvariational_tmp(i);
+%         shapes_val(i,:) = vsam{i}(1).shapes;
+%         lklhweights(i)=logprior(i)+loglklh(i)-logvariational(i);
 %     end
-%     figure(1)
-%     scatter(gains,loglklh)
-    
+%     for i = 1:size(shapes_val,2)
+%     figure(i)
+%     scatter(shapes_val(:,i),lklhweights)
+%     hold on;
+%     line([neurons.truth.shapes_sim.values(i) neurons.truth.shapes_sim.values(i)], [min(loglklh) max(loglklh)])
+%     hold off;
+%     end
 %     scatter(PRs,lklhweight)
 %      figure(3)
 %     scatter(PRs,meanfs)

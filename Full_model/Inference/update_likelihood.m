@@ -1,18 +1,9 @@
 function [loglklh] = update_likelihood(trials,variational_samples,parameter_current, ...
     background_rate,lklh_func,spike_curves,neurons,prior_info,inference_params,pre_density,varargin)
 %%
-
 figure_flag =false;
-
-% if ~isempty(varargin)
-%     marginal_flag = varargin{1};
-% else
 marginal_flag = false;
-% end
-% tic;
-% tstart=toc;
-% t1=toc;
-% ts(:)=0;
+
 
 %%
 % if ~marginal_flag
@@ -32,25 +23,25 @@ for  i_trial = 1:n_trial
         cell_and_pos=trials(i_trial).cell_and_pos{i_loc};
         if ~isempty(cell_and_pos)
             power_tmp = trials(i_trial).power_levels(i_loc);
-            
-            if ~(isfield(neurons(1).params,'shapes') | isfield(neurons(1).params,'xy'))
-                for i=1:length(cell_and_pos)
-                    i_cell = cell_and_pos(i);
-                    stim_size(i_trial,i_cell)=stim_size(i_trial,i_cell)+power_tmp;
-                end
-            else
-                for i=1:size(cell_and_pos,1)
-                    
-                    if strcmp(GP_params.type,'xy_square')
+            switch inference_params.shape_type
+                case 'fact'
+                    for i=1:size(cell_and_pos,1)
                         i_cell = cell_and_pos(i,1);i_xy= cell_and_pos(i,2);i_z= cell_and_pos(i,3);
                         stim_size(i_trial,i_cell)=stim_size(i_trial,i_cell)+...
                             power_tmp*variational_samples(i_cell).xy(i_xy)*variational_samples(i_cell).z(i_z);
-                    else
+                    end
+                case 'non-fact'
+                    for i=1:size(cell_and_pos,1)
+                        
                         i_cell = cell_and_pos(i,1);i_pos= cell_and_pos(i,2);
                         stim_size(i_trial,i_cell)=stim_size(i_trial,i_cell)+...
                             power_tmp*variational_samples(i_cell).shapes(i_pos);
                     end
-                end
+                case 'single'
+                    for i=1:length(cell_and_pos)
+                        i_cell = cell_and_pos(i);
+                        stim_size(i_trial,i_cell)=stim_size(i_trial,i_cell)+power_tmp;
+                    end
             end
         end
     end
@@ -108,6 +99,8 @@ for  i_trial = 1:n_trial
     
     %     t6=toc;
     i_count = 1;
+
+        add_pen=0;
     for i_cell = 1:n_cell % can reduce to cell with sufficiently large stimuliaton
         effective_stim=stim_size(i_trial,i_cell)*gain_sample(i_cell);
         if effective_stim>minimum_stim_threshold
@@ -128,11 +121,14 @@ for  i_trial = 1:n_trial
                 PR_sample(i_cell)*[pdf_grid(pdf_index)/standard_dev cdf_grid(cdf_index_max)-cdf_grid(cdf_index_min)];
             %         t10=toc;
             %         ts(6)=t9-t8+ts(6);ts(7)=t10-t9+ts(7);
+            if  ~isempty(event_times)
+                add_pen= add_pen+ PR_sample(i_cell)*sum([(event_times-expectation)/standard_dev].^2);
+            end
         end
     end
     
     %     t11=toc;
-    loglklh_vec(i_trial)=  lklh_func(trials(i_trial),prob_this_trial);
+    loglklh_vec(i_trial)=  lklh_func(trials(i_trial),prob_this_trial)-add_pen*inference_params.redirect_pen;
     %     t7=toc;
     %     ts(4)=t6-t5+ts(4);ts(5)=t7-t11+ts(5);
     %             if figure_flag

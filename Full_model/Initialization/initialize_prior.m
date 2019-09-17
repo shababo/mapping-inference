@@ -98,7 +98,7 @@ prior_params.shapes.log_sigma=zeros(0,1);
 prior_params.shapes.bounds.up=zeros(0,1);
 prior_params.shapes.bounds.low=zeros(0,1);
 prior_params.shapes.prior_sigma=zeros(0,1);
-
+prior_params.shapes.vi_sigma=zeros(0,1);
 
 
 prior_info.prior_parameters=prior_params;

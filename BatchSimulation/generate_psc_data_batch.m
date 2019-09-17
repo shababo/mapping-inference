@@ -50,4 +50,7 @@ for i_trial = 1:number_of_trials
     else
          trials(i_trial).event_times = trials(i_trial).truth.spike_times;
     end
+    if mod(i_trial,50)==1
+    fprintf('Trials generated: %d;\n',i_trial)
+    end
 end

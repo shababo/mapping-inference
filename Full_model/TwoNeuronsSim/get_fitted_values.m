@@ -1,4 +1,4 @@
-function [trials ] = get_fitted_values(neurons, trials, prior_info, params)
+function [trials ] = get_fitted_values(neurons, trials, prior_info, inference_params,params)
 %% Outline:
 % - Draw samples of all relevant parameters from their posterior
 % distributions
@@ -21,8 +21,18 @@ end
 S= params.MC_params.sample_size;
 posterior_samples = cell([S 1]);
 for s =1:S
+    
     [posterior_samples{s},~] = draw_samples_from_var_dist(posterior_params);
+    if params.mean_only % use the posterior mean for inference
+        for i_cell = 1:n_cell
+            fldnames=fieldnames(posterior_samples{s});
+            for ifld = 1:length(fldnames)
+                posterior_samples{s}(i_cell).(fldnames{ifld})=neurons(i_cell).posterior_stat(end).(fldnames{ifld}).mean;
+            end
+        end
+    end
 end
+
 %% Calculate the fitted intensities (as posterior averages)
 if isfield(posterior_samples{1},'background')
     bg_tmp =cellfun(@(x) x.background,posterior_samples);
@@ -79,29 +89,35 @@ for i_cell = 1:n_cell
                 %                 this_trial.power_levels*this_sample.gain*this_sample.shapes(i_shape);
                 
                 if ~isempty(cell_and_pos)
-                    power_tmp = this_trial.power_levels(i_loc);
-                    if ~(isfield(neurons(1).params,'shapes') | isfield(neurons(1).params,'xy'))
-                        for i=1:length(cell_and_pos)
-                            if  i_cell == cell_and_pos(i)
-                                stim=stim+...
-                                    power_tmp*this_sample.gain;
-                            end
-                        end
-                    else
-                        for i=1:size(cell_and_pos,1)
-                            if  i_cell == cell_and_pos(i,1) % Update one cell in this big for-loop
-                                if strcmp(prior_info.GP_params.type,'xy_square')
+                    
+                    power_tmp = trials(i_trial).power_levels(i_loc);
+                    switch inference_params.shape_type
+                        case 'fact'
+                            for i=1:size(cell_and_pos,1)
+                                
+                                if  i_cell == cell_and_pos(i,1)
                                     i_xy= cell_and_pos(i,2);i_z= cell_and_pos(i,3);
                                     stim=stim+...
                                         power_tmp*this_sample.gain*this_sample.xy(i_xy)*this_sample.z(i_z);
-                                else
+                                end
+                            end
+                        case 'non-fact'
+                            for i=1:size(cell_and_pos,1)
+                                if  i_cell == cell_and_pos(i,1)
                                     i_pos= cell_and_pos(i,2);
                                     stim=stim+...
                                         power_tmp*this_sample.gain*this_sample.shapes(i_pos);
                                 end
                             end
-                        end
+                        case 'single'
+                            for i=1:length(cell_and_pos)
+                                if  i_cell == cell_and_pos(i)
+                                    stim=stim+...
+                                        power_tmp*this_sample.gain;
+                                end
+                            end
                     end
+                    
                 end
             end
             if isfield(this_sample,'delay_mean')
@@ -127,7 +143,7 @@ for i_cell = 1:n_cell
                 [~, im]=min(abs( tmp(i_event)-timepoints));
                 event_intensity(i_event)=tmp_mean(im);
             end
-        trials(i_trial).fitted.event_intensity=[trials(i_trial).fitted.event_intensity; event_intensity];
+            trials(i_trial).fitted.event_intensity=[trials(i_trial).fitted.event_intensity; event_intensity];
         end
         trials(i_trial).fitted.intensity.spike=[trials(i_trial).fitted.intensity.spike; mean(intensity_records.spike)];
         trials(i_trial).fitted.intensity.event=[trials(i_trial).fitted.intensity.event; mean(intensity_records.event)];
@@ -140,3 +156,7 @@ end
 % plot(trials(1).fitted.timepoints(1,:), trials(1).fitted.intensity.spike(2,:))
 % hold on;
 % plot(trials(1).fitted.timepoints(1,:), trials(1).fitted.intensity.spike(3,:))
+% for s = 1:S
+%     plot(intensity_records.event(s,:))
+%     hold on;
+% end
