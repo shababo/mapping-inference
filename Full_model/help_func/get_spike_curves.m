@@ -143,12 +143,12 @@ spike_curves.sd_param=sd_param;
 spike_curves.dev_param=dev_param;
 spike_curves.specs=specs;
 %%
-% time_grid = 1:Tmax;
-spike_curves.prob=zeros(length(spike_curves.mean),1);
-for l=1:length(spike_curves.mean)
-    spike_curves.prob(l)=normcdf(specs.time_max,spike_curves.mean(l),...
-    sqrt(spike_curves.sd(l)^2));
-end
-spike_curves.time_max=specs.time_max;
+% % time_grid = 1:Tmax;
+% spike_curves.prob=zeros(length(spike_curves.mean),1);
+% for l=1:length(spike_curves.mean)
+%     spike_curves.prob(l)=normcdf(specs.time_max,spike_curves.mean(l),...
+%     sqrt(spike_curves.sd(l)^2));
+% end
+% spike_curves.time_max=specs.time_max;
 
 

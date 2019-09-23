@@ -124,10 +124,9 @@ prior_info.GP_params.min_dist= params.GP_params.min_dist;
 load(params.spike_curve_path);
 prior_info.induced_intensity=induced_intensity;
 prior_info.induced_intensity.minimum_stim_threshold = ...
-    prior_info.induced_intensity.current(max(find(prior_info.induced_intensity.prob<0.2))+1);
+    prior_info.induced_intensity.current(max(find(  prior_info.induced_intensity.mean>   prior_info.induced_intensity.time_max ))+1);
 prior_info.induced_intensity.stim_threshold=params.induced_intensity.stim_threshold;
 
-prior_info.induced_intensity.spike_time_max=params.induced_intensity.spike_time_max;
 prior_info.induced_intensity.event_time_max=params.induced_intensity.event_time_max;
 prior_info.induced_intensity.time_factor=params.time_factor;
 

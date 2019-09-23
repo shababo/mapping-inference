@@ -1,9 +1,8 @@
 function [loss] = lif_glm_firstspike_loglikelihood_for_VI(...
     mpp_this_trial, prob_this_trial_all)
-            
-%             mpp_this_trial=mpp(i_trial);
-            
-%prob_this_trial
+  %%          
+%             mpp_this_trial=trials(i_trial);
+% prob_this_trial_all=prob_this_trial;
 % n_stimulated = prob_this_trial(:,end)>1e-2;
 % stimmed_cells=find(sum(prob_this_trial,2)>1e-2);
 % prob_this_trial=prob_this_trial(stimmed_cells,:);
@@ -23,7 +22,7 @@ if n_events == 0
     likelihood = prod((not_fire_prob));
 elseif n_events > n_stimulated
     % the gamma sample is not feasible
-    likelihood= 1e-20;
+    likelihood= 1e-100;
 else
     combinations_of_event_sources = combnk(1:n_stimulated,n_events);
     prob_combs = zeros(size(combinations_of_event_sources,1)*factorial(n_events),1);
@@ -45,8 +44,8 @@ else
     likelihood = sum(prob_combs);
     
 end
-if likelihood< 1e-20
-        likelihood=1e-20;
+if likelihood< 1e-100
+        likelihood=1e-100;
     end
  loss=log(likelihood);
 end

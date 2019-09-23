@@ -47,7 +47,13 @@ for  i_trial = 1:n_trial
     end
 end
 % t2=toc;
-Tmax=spike_curves.event_time_max;Tmin=0;
+if isfield(variational_samples(1),'delay_mean')
+    Tmax=spike_curves.event_time_max;
+else
+    Tmax=spike_curves.time_max;
+end
+Tmin=0;
+
 if isfield(inference_params, 'event_range')
     Tmax = inference_params.event_range(2);
     Tmin = inference_params.event_range(1);
@@ -72,7 +78,7 @@ gain_sample=reshape([variational_samples(:).gain], [n_cell 1]);
 if isfield(variational_samples(1),'PR')
     PR_sample=reshape([variational_samples(:).PR], [n_cell 1]);
 else
-    PR_sample=ones(n_cell,1);
+    PR_sample=ones(n_cell,1)*0.999;
 end
 if isfield(variational_samples(1),'delay_mean')
     delay_mu_sample=reshape([variational_samples(:).delay_mean], [n_cell 1]);
@@ -99,32 +105,40 @@ for  i_trial = 1:n_trial
     
     %     t6=toc;
     i_count = 1;
-
-        add_pen=0;
+    add_pen=0;
     for i_cell = 1:n_cell % can reduce to cell with sufficiently large stimuliaton
         effective_stim=stim_size(i_trial,i_cell)*gain_sample(i_cell);
-        if effective_stim>minimum_stim_threshold
-            %                 t8=toc;
-            delay_mu_temp=delay_mu_sample(i_cell);
-            delay_var_temp=delay_var_sample(i_cell);
-            i_count = i_count + 1;
-            stim_index= min(current_max_grid,...
-                max(1,round((effective_stim-current_lb)/current_gap)));
-            spike_times_cond_shape=spike_curves_mean(stim_index);
-            expectation=delay_mu_temp+spike_times_cond_shape;
-            standard_dev=sqrt(delay_var_temp+  mean(spike_curves_var(stim_index)));
-            %         t9=toc;
-            cdf_index_max = max(1,min(max_grid,round( ((Tmax-expectation)/standard_dev +grid_bound)/grid_gap)));
-            cdf_index_min = max(1,min(max_grid,round( ((Tmin-expectation)/standard_dev +grid_bound)/grid_gap)));
-            pdf_index = max(1,min(max_grid,round( ((event_times-expectation)/standard_dev +grid_bound)/grid_gap)));
+        %         if effective_stim>minimum_stim_threshold
+        %                 t8=toc;
+        delay_mu_temp=delay_mu_sample(i_cell);
+        delay_var_temp=delay_var_sample(i_cell);
+        i_count = i_count + 1;
+        stim_index= min(current_max_grid,...
+            max(1,round((effective_stim-current_lb)/current_gap)));
+        spike_times_cond_shape=spike_curves_mean(stim_index);
+        expectation=delay_mu_temp+spike_times_cond_shape;
+        standard_dev=sqrt(delay_var_temp+  mean(spike_curves_var(stim_index)));
+        %         t9=toc;
+        %             cdf_index_max = max(1,min(max_grid,round( ((Tmax-expectation)/standard_dev +grid_bound)/grid_gap)));
+        %             cdf_index_min = max(1,min(max_grid,round( ((Tmin-expectation)/standard_dev +grid_bound)/grid_gap)));
+        %             pdf_index = max(1,min(max_grid,round( ((event_times-expectation)/standard_dev +grid_bound)/grid_gap)));
+        %             prob_this_trial(i_count,:)=...
+        %                 PR_sample(i_cell)*[pdf_grid(pdf_index)/standard_dev cdf_grid(cdf_index_max)-cdf_grid(cdf_index_min)];
+        
+%         if effective_stim>minimum_stim_threshold
+            
             prob_this_trial(i_count,:)=...
-                PR_sample(i_cell)*[pdf_grid(pdf_index)/standard_dev cdf_grid(cdf_index_max)-cdf_grid(cdf_index_min)];
+                PR_sample(i_cell)*[normpdf( (event_times-expectation)/standard_dev)  normcdf((Tmax-expectation)/standard_dev )- normcdf((Tmin-expectation)/standard_dev )];
+%         else
+%             prob_this_trial(i_count,:)=...
+%                 PR_sample(i_cell)*[zeros(1,length(event_times))  normcdf((Tmax-expectation)/standard_dev )- normcdf((Tmin-expectation)/standard_dev )];
+%         end    
             %         t10=toc;
             %         ts(6)=t9-t8+ts(6);ts(7)=t10-t9+ts(7);
             if  ~isempty(event_times)
                 add_pen= add_pen+ PR_sample(i_cell)*sum([(event_times-expectation)/standard_dev].^2);
             end
-        end
+        
     end
     
     %     t11=toc;

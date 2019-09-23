@@ -23,7 +23,7 @@ if n_events == 0
 %     likelihood = prod((not_fire_prob));
 elseif n_events > n_stimulated
     % the gamma sample is not feasible
-    likelihood= 1e-20;
+    likelihood= 1e-100;
 else
     combinations_of_event_sources = combnk(1:n_stimulated,n_events);
     prob_combs = zeros(size(combinations_of_event_sources,1)*factorial(n_events),1);
@@ -44,8 +44,8 @@ else
     likelihood = sum(prob_combs);
     
 end
-if likelihood< 1e-20
-        likelihood=1e-20;
+if likelihood< 1e-100
+        likelihood=1e-100;
     end
  loss=log(likelihood);
 end

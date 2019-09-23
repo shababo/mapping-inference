@@ -1,7 +1,7 @@
 function [trials] = generate_psc_data_batch(neurons,trials,stimuli_size,prior_info,simulation_params)
 %% 
 background_rate=simulation_params.background_rate;
-spike_time_max=prior_info.induced_intensity.spike_time_max;
+spike_time_max=prior_info.induced_intensity.time_max;
 event_time_max=prior_info.induced_intensity.event_time_max;
 delay_indicator=simulation_params.batch.delay_indicator;
 %%

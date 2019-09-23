@@ -35,14 +35,14 @@ end
 iteration = 1;loglklh_rec=[];
 % Calculate a grid for standard normal r.v. for quick CDF calculation:
 pre_density=struct;
-grid.bound=4;grid.gap=0.1;
+grid.bound=15;grid.gap=0.01;
 pre_density.grid=grid;
 pre_density.normal_grid = -grid.bound:grid.gap:grid.bound;
 for i = 1:length(pre_density.normal_grid)
     pre_density.cdf_grid(i) =normcdf(pre_density.normal_grid(i),0,1);
     pre_density.pdf_grid(i)=normpdf(pre_density.normal_grid(i),0,1);
 end
-% S=100;
+% S=200;
 % clear('parameter_history')
 % clear('gradients')
 %%
@@ -68,7 +68,7 @@ while (change_history(iteration) > epsilon && iteration<maxit)
             [variational_samples,raw_samples] = draw_samples_from_var_dist(parameter_current);
                %---------------------------------%
         % Manually set the true paramters for debugging only:
-%         variational_samples(1).gain=0.02;
+%         variational_samples(1).gain=0.04;
 %         variational_samples.delay_mean=neurons.truth.delay_mean;
 %         variational_samples.delay_var=neurons.truth.delay_var;
 %         variational_samples.z=1;
@@ -76,7 +76,9 @@ while (change_history(iteration) > epsilon && iteration<maxit)
 %         variational_samples(1).background=1e-4;
 %   variational_samples(1).PR=rand(1);
 %  variational_samples(2).PR=0.4;
-%variational_samples.shapes=rand([1 2]);
+% variational_samples.shapes(1)=neurons(1).truth.shapes_sim.values(1);
+% variational_samples.shapes(2)=neurons(1).truth.shapes_sim.values(2);
+% variational_samples.shapes(2)=rand(1)*(0.9+0.4)-0.4;
         %----------------------------------%
             vsam{s}=variational_samples;rsam{s}=raw_samples;
 
@@ -108,15 +110,19 @@ while (change_history(iteration) > epsilon && iteration<maxit)
 %     shapes_val=zeros(S,length(vsam{1}.shapes));
 %       lklhweights=zeros(S,1);
 %     for i = 1:S
-%         shapes_val(i,:) = vsam{i}(1).shapes;
+%         shapes_val(i,:) = vsam{i}(1).shapes*vsam{i}(1).gain;
 %         lklhweights(i)=logprior(i)+loglklh(i)-logvariational(i);
 %     end
-%     for i = 1:size(shapes_val,2)
+% %     for i = 1:size(shapes_val,2)
+% i=2;
 %     figure(i)
-%     scatter(shapes_val(:,i),lklhweights)
+%     scatter(shapes_val(:,i),loglklh,'MarkerFaceColor','blue')
 %     hold on;
-%     line([neurons.truth.shapes_sim.values(i) neurons.truth.shapes_sim.values(i)], [min(loglklh) max(loglklh)])
+%     line([neurons.truth.shapes_sim.values(i) neurons.truth.shapes_sim.values(i)]*0.04, [min(loglklh) max(loglklh)],'Color','red','LineWidth',3)
 %     hold off;
+%     xlabel('Excitability (shape times gain)','FontSize',15);
+%     ylabel('Log-Likelihood','FontSize',15)
+%     title('Global','FontSize',15)
 %     end
 %     scatter(PRs,lklhweight)
 %      figure(3)
