@@ -52,7 +52,6 @@ switch type
             else
             X=z_unique;    
             end
-            
             tau=GP_params.(ax).tau;
             mean_val.(ax)=GP_params.(ax).mean_params.excite(quick_match(X,GP_params.(ax).mean_params));
             var_val.(ax)=quick_match(X,GP_params.(ax).var_params);
@@ -67,17 +66,19 @@ switch type
         GP_samples.z.Kcor=get_kernel_cor(X,X,tau);
         GP_samples.z.Kcor= (GP_samples.z.Kcor+GP_samples.z.Kcor')/2;
         
-        % Interpolate the xy-mean:
+   % Interpolate the xy-mean:
         sqloc=locations.^2;
         sqloc(sqloc==0)=epsilon;
         ssq = sum(sqloc(1:2)'); ssq_mat = ssq' *ones(1,2);
         exp_indices = sqloc(1:2)./ssq_mat;
+        
         mean_tmp=[mean_val.x mean_val.y];
         mean_tmp=(mean_tmp.^exp_indices);
         xy_mean=prod(mean_tmp')';
         var_tmp=[var_val.x var_val.y];
         var_tmp=(var_tmp.^exp_indices);
         xy_var=prod(var_tmp')';
+        
         
         % Interpolate the 3D GP values:
         ssq = sum(sqloc'); ssq_mat = ssq' *ones(1,2);
@@ -93,6 +94,7 @@ switch type
         xy_var_full = xy_var(i_xy);z_var_full = z_var(i_z); 
         var_tmp=([xy_var_full z_var_full].^exp_indices);
         var_3d=prod(var_tmp')';
+     
     case 'xy-z' % used to be xy
         % Obtain the values from the xy GP and z GP
         % Interpolate the 3D value
@@ -102,9 +104,9 @@ switch type
         [xy_unique,~,i_xy] = unique(xy_locations,'rows');
         [z_unique,~,i_z] = unique(z_locations,'rows');
         
-        z_mean=GP_params.z.mean_params.excite(quick_match(z_unique,GP_params.z.mean_params));
+        z_mean=quick_match(z_unique,GP_params.z.mean_params);
         z_var=quick_match(z_unique,GP_params.z.var_params);
-        xy_mean=GP_params.xy.mean_params.excite(quick_match(xy_unique,GP_params.xy.mean_params));
+        xy_mean=quick_match(xy_unique,GP_params.xy.mean_params);
         xy_var=quick_match(xy_unique,GP_params.xy.var_params);
        
         x=xy_unique(:,1);y=xy_unique(:,2);z=z_unique;
@@ -113,23 +115,9 @@ switch type
         GP_samples.z.Kcor=get_kernel_cor(z,z,GP_params.z.tau);
         GP_samples.z.Kcor= (GP_samples.z.Kcor+GP_samples.z.Kcor')/2;
 
-        % Interpolate the 3D GP values: 
-        tmp=locations.^2;
-        sqloc=[tmp(1)+tmp(2) tmp(3)];
-        sqloc(sqloc==0)=epsilon;
-        
-        ssq = sum(sqloc');
-        ssq_mat = ssq' *ones(1,2);
-        exp_indices = sqloc./ssq_mat;
-        
-        xy_mean_full = xy_mean(i_xy);z_mean_full =z_mean(i_z); 
-        mean_tmp=([xy_mean_full z_mean_full].^exp_indices);
-        mean_3d=prod(mean_tmp')';
-        
-        
-        xy_var_full = xy_var(i_xy);z_var_full = z_var(i_z); 
-        var_tmp=([xy_var_full z_var_full].^exp_indices);
-        var_3d=prod(var_tmp')';
+       [mean_3d]=GP_params.interpolation_func(locations, xy_mean,i_xy,z_mean,i_z,epsilon);
+       
+       [var_3d]=GP_params.interpolation_func(locations, xy_var,i_xy,z_var,i_z,epsilon);
 end
 %% Save output
 interpolated_shape = struct;

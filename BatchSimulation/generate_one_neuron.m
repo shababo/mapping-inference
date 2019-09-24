@@ -1,4 +1,6 @@
-function [one_neuron] = generate_one_neuron(simulation_params,prior_params)
+function [one_neuron] = generate_one_neuron(simulation_params,prior_info)
+prior_params=prior_info.prior_parameters;
+
 one_neuron=struct;
 one_neuron.truth=struct;
 shift_tmp=[0 0 0];
@@ -11,7 +13,7 @@ one_neuron.truth.PR=1;
 prior_sample= draw_samples_from_var_dist(tmp_params);
 
 % one_neuron.truth.gain=prior_sample.gain;
-one_neuron.truth.gain=0.04;
+one_neuron.truth.gain=prior_info.excite_inv( 0.04);
 
 one_neuron.truth.shape=[];
 

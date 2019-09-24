@@ -52,8 +52,8 @@ else % for xy-z and (x-y)-z
     GP_samples.full.samples_xy = zeros(size(GP_samples.full.mean_xy, 1),n_shapes );
     GP_samples.full.samples_z = zeros(size(GP_samples.full.mean_z, 1),n_shapes );
     for i_shape = 1:n_shapes
-        GP_samples.full.samples_xy(:,i_shape)=min(1,max(0,mvnrnd(GP_samples.full.mean_xy,GP_samples.full.Kcov_xy)))';
-        GP_samples.full.samples_z(:,i_shape)=min(1,max(0,mvnrnd(GP_samples.full.mean_z,GP_samples.full.Kcov_z)))';
+        GP_samples.full.samples_xy(:,i_shape)=mvnrnd(GP_samples.full.mean_xy,GP_samples.full.Kcov_xy)';
+        GP_samples.full.samples_z(:,i_shape)=mvnrnd(GP_samples.full.mean_z,GP_samples.full.Kcov_z)';
     end
     
     % Interpolate the 3D shapes from the 2D and 1D samples
@@ -71,19 +71,17 @@ else % for xy-z and (x-y)-z
         exp_tmp = [1-exp_indices(3) exp_indices(3)];
         exp_mean=ones(1,2);
         for i_shape = 1:n_shapes
-            sample_tmp=[GP_samples.full.samples_xy(i_xy,i_shape) GP_samples.full.samples_z(i_z,i_shape)];
-            sample_tmp=(sample_tmp.^exp_mean);
-            sample_3d=prod(sample_tmp')';
+            
+            [sample_3d]=GP_params.interpolation_func(locations_unique(i_loc,:), ...
+                GP_samples.full.samples_xy(i_xy,i_shape),1, GP_samples.full.samples_z(i_z,i_shape),1,epsilon);
             GP_samples.full.samples_unique(i_loc,i_shape)=sample_3d;
             
-            mean_tmp=[GP_samples.full.mean_xy(i_xy) GP_samples.full.mean_z(i_z)];
-            mean_tmp=(mean_tmp.^exp_mean);
-            mean_3d=prod(mean_tmp')';
+          [mean_3d]=GP_params.interpolation_func(locations_unique(i_loc,:), ...
+                GP_samples.full.mean_xy(i_xy),1, GP_samples.full.mean_z(i_z),1,epsilon);
             GP_samples.full.mean(i_loc)=mean_3d;
             
-            var_tmp=[interpolated_shape.var_xy(i_xy) interpolated_shape.var_z(i_z)];
-            var_tmp=(var_tmp.^exp_tmp);
-            var_3d=prod(var_tmp')';
+            [var_3d]=GP_params.interpolation_func(locations_unique(i_loc,:), ...
+                interpolated_shape.var_xy(i_xy),1, interpolated_shape.var_z(i_z),1,epsilon);
             GP_samples.full.var(i_loc)=var_3d;
         end
         %     GP_samples.full.loglklh(i_shape)= log(mvnpdf(GP_samples.full.samples_unique(:,i_shape),GP_samples.full.mean,GP_samples.full.Kcov));

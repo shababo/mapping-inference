@@ -98,7 +98,7 @@ for i_cell = 1:n_cell
                                 if  i_cell == cell_and_pos(i,1)
                                     i_xy= cell_and_pos(i,2);i_z= cell_and_pos(i,3);
                                     stim=stim+...
-                                        power_tmp*this_sample.gain*this_sample.xy(i_xy)*this_sample.z(i_z);
+                                        power_tmp*inference_params.excite(this_sample.gain+this_sample.xy(i_xy)+this_sample.z(i_z));
                                 end
                             end
                         case 'non-fact'
@@ -106,14 +106,14 @@ for i_cell = 1:n_cell
                                 if  i_cell == cell_and_pos(i,1)
                                     i_pos= cell_and_pos(i,2);
                                     stim=stim+...
-                                        power_tmp*this_sample.gain*this_sample.shapes(i_pos);
+                                        power_tmp*inference_params.excite(this_sample.gain+this_sample.shapes(i_pos));
                                 end
                             end
                         case 'single'
                             for i=1:length(cell_and_pos)
                                 if  i_cell == cell_and_pos(i)
                                     stim=stim+...
-                                        power_tmp*this_sample.gain;
+                                        power_tmp*inference_params.excite(this_sample.gain);
                                 end
                             end
                     end

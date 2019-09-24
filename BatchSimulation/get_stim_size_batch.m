@@ -30,6 +30,7 @@ for l=1:number_of_trials
             neurons(i_cell).truth.shapes_sim.locations= [neurons(i_cell).truth.shapes_sim.locations; rel_pos];
             this_size = griddata(simulation_params.mesh_grid(:,1),simulation_params.mesh_grid(:,2),simulation_params.mesh_grid(:,3),...
                 neurons(i_cell).truth.shape,rel_pos(1),rel_pos(2),rel_pos(3),'linear');
+            this_size = neurons(i_cell).truth.excite(this_size);
             neurons(i_cell).truth.shapes_sim.values=[ neurons(i_cell).truth.shapes_sim.values; this_size];
             neurons(i_cell).truth.shapes_sim.indices{length(neurons(i_cell).truth.shapes_sim.indices)+1}=l;
         else

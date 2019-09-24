@@ -5,6 +5,8 @@ prior_info=struct;
 prior_info.prior_parameters=struct;
 prior_info.background_rate=params.background_rate;
 
+prior_info.excite=params.excite;
+prior_info.excite_inv=params.excite_inv;    
 %% Load and process the prior distributions from the pilot data 
 prior_params=struct;
 prior_params.gain.dist='logit-normal';

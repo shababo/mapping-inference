@@ -188,10 +188,10 @@ switch inference_params.shape_type
                                     end
 
                                 end
-                                lower_bound =max(zero_bound,mean_3d-2*sqrt(var_3d_vi));upper_bound =min(1, mean_3d+2*sqrt(var_3d_vi));
+                                lower_bound =mean_3d-2*sqrt(var_3d_vi);upper_bound = mean_3d+2*sqrt(var_3d_vi);
                                 %                                 lower_bound =0;upper_bound =1;
-                                variational_params(i_cell).shapes.bounds.low = [variational_params(i_cell).shapes.bounds.low; inference_params.inv_excite(lower_bound)];
-                                variational_params(i_cell).shapes.bounds.up = [variational_params(i_cell).shapes.bounds.up; inference_params.inv_excite(upper_bound)];
+                                variational_params(i_cell).shapes.bounds.low = [variational_params(i_cell).shapes.bounds.low;lower_bound];
+                                variational_params(i_cell).shapes.bounds.up = [variational_params(i_cell).shapes.bounds.up;upper_bound];
                                 % logit transform:
                                 switch  variational_params(i_cell).shapes.dist
                                     case 'mvn'

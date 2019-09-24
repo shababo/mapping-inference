@@ -42,7 +42,7 @@ for i = 1:length(pre_density.normal_grid)
     pre_density.cdf_grid(i) =normcdf(pre_density.normal_grid(i),0,1);
     pre_density.pdf_grid(i)=normpdf(pre_density.normal_grid(i),0,1);
 end
-% S=200;
+% S=300;
 % clear('parameter_history')
 % clear('gradients')
 %%
@@ -68,7 +68,7 @@ while (change_history(iteration) > epsilon && iteration<maxit)
             [variational_samples,raw_samples] = draw_samples_from_var_dist(parameter_current);
                %---------------------------------%
         % Manually set the true paramters for debugging only:
-%         variational_samples(1).gain=0.04;
+%         variational_samples(1).gain=log(0.04);
 %         variational_samples.delay_mean=neurons.truth.delay_mean;
 %         variational_samples.delay_var=neurons.truth.delay_var;
 %         variational_samples.z=1;
@@ -76,9 +76,9 @@ while (change_history(iteration) > epsilon && iteration<maxit)
 %         variational_samples(1).background=1e-4;
 %   variational_samples(1).PR=rand(1);
 %  variational_samples(2).PR=0.4;
-% variational_samples.shapes(1)=neurons(1).truth.shapes_sim.values(1);
+% variational_samples.shapes(1)=log(neurons(1).truth.shapes_sim.values(1));
 % variational_samples.shapes(2)=neurons(1).truth.shapes_sim.values(2);
-% variational_samples.shapes(2)=rand(1)*(0.9+0.4)-0.4;
+% variational_samples.shapes(2)=log(rand(1)+0.0001);
         %----------------------------------%
             vsam{s}=variational_samples;rsam{s}=raw_samples;
 
