@@ -1,78 +1,10 @@
 function [loglklh] = update_likelihood(trials,variational_samples,parameter_current, ...
     background_rate,lklh_func,spike_curves,neurons,prior_info,inference_params,pre_density,varargin)
-%%
-figure_flag =false;
-marginal_flag = false;
-
-
-%%
-% if ~marginal_flag
-%%
-if figure_flag
-    figure(1);
-end
 n_shape=inference_params.MCsamples_for_gradient;
 GP_params=prior_info.GP_params;
 n_cell=length(variational_samples);
 n_trial=length(trials);
-stim_size=zeros(n_trial,n_cell);
 boundary_params = GP_params.GP_boundary;
-%
-for  i_trial = 1:n_trial
-    for i_loc = 1:size(trials(i_trial).locations,1)
-        cell_and_pos=trials(i_trial).cell_and_pos{i_loc};
-        if ~isempty(cell_and_pos)
-            power_tmp = trials(i_trial).power_levels(i_loc);
-            switch inference_params.shape_type
-                case 'fact'
-                    for i=1:size(cell_and_pos,1)
-                        i_cell = cell_and_pos(i,1);i_xy= cell_and_pos(i,2);i_z= cell_and_pos(i,3);
-                        stim_size(i_trial,i_cell)=stim_size(i_trial,i_cell)+...
-                            power_tmp*variational_samples(i_cell).xy(i_xy)*variational_samples(i_cell).z(i_z);
-                    end
-                case 'non-fact'
-                    for i=1:size(cell_and_pos,1)
-                        
-                        i_cell = cell_and_pos(i,1);i_pos= cell_and_pos(i,2);
-                        stim_size(i_trial,i_cell)=stim_size(i_trial,i_cell)+...
-                            power_tmp*variational_samples(i_cell).shapes(i_pos);
-                    end
-                case 'single'
-                    for i=1:length(cell_and_pos)
-                        i_cell = cell_and_pos(i);
-                        stim_size(i_trial,i_cell)=stim_size(i_trial,i_cell)+power_tmp;
-                    end
-            end
-        end
-    end
-end
-% t2=toc;
-if isfield(variational_samples(1),'delay_mean')
-    Tmax=spike_curves.event_time_max;
-else
-    Tmax=spike_curves.time_max;
-end
-Tmin=0;
-
-if isfield(inference_params, 'event_range')
-    Tmax = inference_params.event_range(2);
-    Tmin = inference_params.event_range(1);
-end
-max_grid =length(pre_density.pdf_grid);
-minimum_stim_threshold=spike_curves.minimum_stim_threshold;
-% t3=toc;
-loglklh=zeros(n_cell,1);
-% Use evenly-spaced grid for spike_curves.current for easy mapping:
-current_lb=min(spike_curves.current);
-current_gap=spike_curves.current(2)-spike_curves.current(1);
-current_max_grid = length(spike_curves.current);
-
-spike_curves_var=spike_curves.sd.^2;
-spike_curves_mean=spike_curves.mean;
-pdf_grid=pre_density.pdf_grid;
-cdf_grid=pre_density.cdf_grid;
-grid_bound=pre_density.grid.bound;
-grid_gap=pre_density.grid.gap;
 
 gain_sample=reshape([variational_samples(:).gain], [n_cell 1]);
 if isfield(variational_samples(1),'PR')
@@ -90,6 +22,59 @@ if isfield(variational_samples(1),'delay_var')
 else
     delay_var_sample=0.001*ones([n_cell 1]).^2;
 end
+
+stim_size=zeros(n_trial,n_cell);
+for  i_trial = 1:n_trial
+    for i_loc = 1:size(trials(i_trial).locations,1)
+        cell_and_pos=trials(i_trial).cell_and_pos{i_loc};
+        if ~isempty(cell_and_pos)
+            power_tmp = trials(i_trial).power_levels(i_loc);
+            switch inference_params.shape_type
+                case 'fact'
+                    for i=1:size(cell_and_pos,1)
+                        i_cell = cell_and_pos(i,1);i_xy= cell_and_pos(i,2);i_z= cell_and_pos(i,3);
+                        stim_size(i_trial,i_cell)=stim_size(i_trial,i_cell)+...
+                            power_tmp*inference_params.excite(variational_samples(i_cell).xy(i_xy)*variational_samples(i_cell).z(i_z)+gain_sample(i_cell));
+                    end
+                case 'non-fact'
+                    for i=1:size(cell_and_pos,1)
+                        i_cell = cell_and_pos(i,1);i_pos= cell_and_pos(i,2);
+                        stim_size(i_trial,i_cell)=stim_size(i_trial,i_cell)+...
+                            power_tmp*inference_params.excite(variational_samples(i_cell).shapes(i_pos)+gain_sample(i_cell));
+                    end
+                case 'single'
+                    for i=1:length(cell_and_pos)
+                        i_cell = cell_and_pos(i);
+                        stim_size(i_trial,i_cell)=stim_size(i_trial,i_cell)+power_tmp*inference_params.excite(gain_sample(i_cell));
+                    end
+            end
+        end
+    end
+end
+% t2=toc;
+if isfield(variational_samples(1),'delay_mean')
+    Tmax=spike_curves.event_time_max;
+else
+    Tmax=spike_curves.time_max;
+end
+Tmin=0;
+
+if isfield(inference_params, 'event_range')
+    Tmax = inference_params.event_range(2);
+    Tmin = inference_params.event_range(1);
+end
+
+
+minimum_stim_threshold=spike_curves.minimum_stim_threshold;
+% t3=toc;
+loglklh=zeros(n_cell,1);
+% Use evenly-spaced grid for spike_curves.current for easy mapping:
+current_lb=min(spike_curves.current);
+current_gap=spike_curves.current(2)-spike_curves.current(1);
+current_max_grid = length(spike_curves.current);
+
+spike_curves_var=spike_curves.sd.^2;
+spike_curves_mean=spike_curves.mean;
 %
 % t4=toc;
 loglklh_vec = zeros(n_trial,1);
@@ -107,7 +92,7 @@ for  i_trial = 1:n_trial
     i_count = 1;
     add_pen=0;
     for i_cell = 1:n_cell % can reduce to cell with sufficiently large stimuliaton
-        effective_stim=stim_size(i_trial,i_cell)*gain_sample(i_cell);
+        effective_stim=stim_size(i_trial,i_cell);
         %         if effective_stim>minimum_stim_threshold
         %                 t8=toc;
         delay_mu_temp=delay_mu_sample(i_cell);
@@ -118,27 +103,14 @@ for  i_trial = 1:n_trial
         spike_times_cond_shape=spike_curves_mean(stim_index);
         expectation=delay_mu_temp+spike_times_cond_shape;
         standard_dev=sqrt(delay_var_temp+  mean(spike_curves_var(stim_index)));
-        %         t9=toc;
-        %             cdf_index_max = max(1,min(max_grid,round( ((Tmax-expectation)/standard_dev +grid_bound)/grid_gap)));
-        %             cdf_index_min = max(1,min(max_grid,round( ((Tmin-expectation)/standard_dev +grid_bound)/grid_gap)));
-        %             pdf_index = max(1,min(max_grid,round( ((event_times-expectation)/standard_dev +grid_bound)/grid_gap)));
-        %             prob_this_trial(i_count,:)=...
-        %                 PR_sample(i_cell)*[pdf_grid(pdf_index)/standard_dev cdf_grid(cdf_index_max)-cdf_grid(cdf_index_min)];
-        
-%         if effective_stim>minimum_stim_threshold
-            
+        %         t9=toc;   
             prob_this_trial(i_count,:)=...
                 PR_sample(i_cell)*[normpdf( (event_times-expectation)/standard_dev)  normcdf((Tmax-expectation)/standard_dev )- normcdf((Tmin-expectation)/standard_dev )];
-%         else
-%             prob_this_trial(i_count,:)=...
-%                 PR_sample(i_cell)*[zeros(1,length(event_times))  normcdf((Tmax-expectation)/standard_dev )- normcdf((Tmin-expectation)/standard_dev )];
-%         end    
-            %         t10=toc;
+        %         t10=toc;
             %         ts(6)=t9-t8+ts(6);ts(7)=t10-t9+ts(7);
             if  ~isempty(event_times)
                 add_pen= add_pen+ PR_sample(i_cell)*sum([(event_times-expectation)/standard_dev].^2);
             end
-        
     end
     
     %     t11=toc;

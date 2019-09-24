@@ -2,14 +2,10 @@ function [variational_params, prior_params,trials]=initialize_params_VI(neurons,
 %% This function needs to be cleaned up
 n_cell=length(neurons);
 clear('variational_params')
-
-%variational_params(n_cell)=struct;
 for i_cell = 1:n_cell
     variational_params(i_cell)=neurons(i_cell).params(end);
-    % Check if there are new locations in this batch
 end
-
-
+zero_bound = 1e-10;
 switch inference_params.shape_type
     case 'fact'
         % Estimate a factorized shape (S_xyz ~ S_xy S_z)
@@ -76,10 +72,10 @@ switch inference_params.shape_type
                                         end
                                     else
                                     end
-                                    lower_bound =max(0, mean_3d-2*sqrt(var_3d));upper_bound =min(1, mean_3d+2*sqrt(var_3d));
+                                    lower_bound = max(zero_bound,mean_3d-2*sqrt(var_3d_vi));upper_bound =min(1, mean_3d+2*sqrt(var_3d));
                                     %                                 lower_bound =0;upper_bound =1;
-                                    variational_params(i_cell).(axis_names{i_axis}).bounds.low = [variational_params(i_cell).(axis_names{i_axis}).bounds.low; lower_bound];
-                                    variational_params(i_cell).(axis_names{i_axis}).bounds.up = [variational_params(i_cell).(axis_names{i_axis}).bounds.up; upper_bound];
+                                    variational_params(i_cell).(axis_names{i_axis}).bounds.low = [variational_params(i_cell).(axis_names{i_axis}).bounds.low; inference_params.inv_excite(lower_bound)];
+                                    variational_params(i_cell).(axis_names{i_axis}).bounds.up = [variational_params(i_cell).(axis_names{i_axis}).bounds.up; inference_params.inv_excite(upper_bound)];
                                     % logit transform:
                                     switch  variational_params(i_cell).(axis_names{i_axis}).dist
                                         case 'logit-normal'
@@ -142,7 +138,6 @@ switch inference_params.shape_type
                 end
             end
         end
-        
     case 'non-fact'
         % Non-factorize shape from the same prior:
         GP_params=prior_info.GP_params;
@@ -162,10 +157,6 @@ switch inference_params.shape_type
                         rel_pos=stim_locs(i_loc,:)-this_loc;
                         if check_in_boundary(rel_pos,boundary_params)
                             % Check for xy shape and z shape:
-                            
-                            % Instead of exact matching, find if the new
-                            % stim loc is within 2 microns from existing
-                            % ones
                             existing_loc_dim=size(variational_params(i_cell).shapes.locations);
                             sq_dist=sum((variational_params(i_cell).shapes.locations- ones(existing_loc_dim(1),1)*rel_pos).^2,2);
                             if (existing_loc_dim(1) == 0) | min(sq_dist.^(1/2))> min_dist
@@ -197,10 +188,10 @@ switch inference_params.shape_type
                                     end
 
                                 end
-                                lower_bound =max(0, mean_3d-2*sqrt(var_3d_vi));upper_bound =min(1, mean_3d+2*sqrt(var_3d_vi));
+                                lower_bound =max(zero_bound,mean_3d-2*sqrt(var_3d_vi));upper_bound =min(1, mean_3d+2*sqrt(var_3d_vi));
                                 %                                 lower_bound =0;upper_bound =1;
-                                variational_params(i_cell).shapes.bounds.low = [variational_params(i_cell).shapes.bounds.low; lower_bound];
-                                variational_params(i_cell).shapes.bounds.up = [variational_params(i_cell).shapes.bounds.up; upper_bound];
+                                variational_params(i_cell).shapes.bounds.low = [variational_params(i_cell).shapes.bounds.low; inference_params.inv_excite(lower_bound)];
+                                variational_params(i_cell).shapes.bounds.up = [variational_params(i_cell).shapes.bounds.up; inference_params.inv_excite(upper_bound)];
                                 % logit transform:
                                 switch  variational_params(i_cell).shapes.dist
                                     case 'mvn'

@@ -4,7 +4,7 @@ function  [pilot_data]=pre_processing_shape(pilot_data,params)
 % Based on the estimated shifts
 % 2) estimate mean function
 % 3) estimate variance function
-
+zero_bound = 1e-10;
 axis_list = fieldnames(pilot_data);
 for i_ax = 1:length(axis_list)
     ax=axis_list{i_ax};
@@ -110,30 +110,31 @@ for i_ax = 1:length(axis_list)
     neurons=pilot_data.(ax).neurons;
     if ~strcmp(ax,'xy')
         X=[neurons(:).adjusted_grid]';
-        Y=[neurons(:).scaled_current]';
+        Y=max(zero_bound,[neurons(:).scaled_current]);
+        Y= params.inv_excite(Y)';
         if params.symmetric
             X=[X; -X];
             Y=[Y; Y];
         end
         params.(ax).X=X;
         params.(ax).Y=Y;
+        params.(ax).prior_mean=params.inv_excite(zero_bound);
         
         fixed_grid = -(params.(ax).boundary+params.(ax).buffer ):0.1:(params.(ax).boundary+params.(ax).buffer );
         Xstar=fixed_grid';
         
-        
         [pred_mean, post_mean,prior_var] = get_GP_boundary(Xstar, params.(ax));
-%         post_mean = smooth(x,y,0.1,'loess');
+%      post_mean = smooth(x,y,0.1,'loess');
         mean_params.grid=fixed_grid;
         mean_params.values=pred_mean;
         mean_params.prior_var=prior_var;
         mean_params.data.Y = params.(ax).Y;
         mean_params.data.fitted=post_mean;
         mean_params.data.X = params.(ax).X;
+        mean_params.inv_excite=  params.inv_excite;  mean_params.excite=  params.excite;
         pilot_data.(ax).mean_params=mean_params;
         
         neurons=pilot_data.(ax).neurons;
-        
         observed_values =  params.(ax).Y;
         fitted_values =mean_params.data.fitted;
         sqdev=(observed_values-fitted_values).^2;
@@ -146,24 +147,30 @@ for i_ax = 1:length(axis_list)
         if isfield(params.(ax),'tau_var')
             params.(ax).tau=params.(ax).tau_var;
         end
+          params.(ax).prior_mean=zero_bound;
+      
         [pred_var, post_var,prior_var] = get_GP_boundary(Xstar, params.(ax));
         var_params.grid=fixed_grid;
-        var_params.values=pred_var;
+        var_params.values=max(zero_bound,pred_var);
         var_params.prior_var=prior_var;
         
         var_params.data.Y = params.(ax).Y;
         var_params.data.X = params.(ax).X;
+        var_params.inv_excite=  params.inv_excite;  var_params.excite=  params.excite;
         
         pilot_data.(ax).var_params=var_params;
-        
-    pilot_data.(ax).tau=params.(ax).tau;
+        pilot_data.(ax).tau=params.(ax).tau;
     else
 
         X=[neurons(:).adjusted_grid]';
         X=X(:,1:2);
-        Y=[neurons(:).scaled_current]';
+        Y=max(zero_bound,[neurons(:).scaled_current]);
+        Y=params.inv_excite(Y)';
         params.(ax).X=X;
         params.(ax).Y=Y;
+        params.(ax).prior_mean=params.inv_excite(zero_bound);
+      
+          
         fixed_grid_x = -(params.(ax).x.boundary+params.(ax).x.buffer ):3:(params.(ax).x.boundary+params.(ax).x.buffer );
         fixed_grid_y = -(params.(ax).y.boundary+params.(ax).y.buffer ):3:(params.(ax).y.boundary+params.(ax).y.buffer );
         [temp1, temp2]=meshgrid(fixed_grid_x,fixed_grid_y);
@@ -176,6 +183,7 @@ for i_ax = 1:length(axis_list)
         mean_params.data.Y = params.(ax).Y;
         mean_params.data.fitted=post_mean;
         mean_params.data.X = params.(ax).X;
+        mean_params.inv_excite=  params.inv_excite;  mean_params.excite=  params.excite;
         pilot_data.(ax).mean_params=mean_params;
         
         
@@ -186,13 +194,15 @@ for i_ax = 1:length(axis_list)
         sqdev=(observed_values-fitted_values).^2;
         % change the response variable to squared deviation
         params.(ax).Y=sqdev;
+          params.(ax).prior_mean=zero_bound;
+      
         [pred_var, post_var,prior_var] = get_2DGP_boundary(Xstar, params.(ax));
         var_params.grid=Xstar;
-        var_params.values=pred_var;
+        var_params.values=max(zero_bound,pred_var);
         var_params.prior_var=prior_var;
-        
         var_params.data.Y = params.(ax).Y;
         var_params.data.X = params.(ax).X;
+        var_params.inv_excite=  params.inv_excite;  var_params.excite=  params.excite;
         
         pilot_data.(ax).var_params=var_params;
         

@@ -107,22 +107,22 @@ while (change_history(iteration) > epsilon && iteration<maxit)
 %         end
     end
 %% 
-%     shapes_val=zeros(S,length(vsam{1}.shapes));
-%       lklhweights=zeros(S,1);
-%     for i = 1:S
-%         shapes_val(i,:) = vsam{i}(1).shapes*vsam{i}(1).gain;
-%         lklhweights(i)=logprior(i)+loglklh(i)-logvariational(i);
-%     end
-% %     for i = 1:size(shapes_val,2)
-% i=2;
-%     figure(i)
-%     scatter(shapes_val(:,i),loglklh,'MarkerFaceColor','blue')
-%     hold on;
-%     line([neurons.truth.shapes_sim.values(i) neurons.truth.shapes_sim.values(i)]*0.04, [min(loglklh) max(loglklh)],'Color','red','LineWidth',3)
-%     hold off;
-%     xlabel('Excitability (shape times gain)','FontSize',15);
-%     ylabel('Log-Likelihood','FontSize',15)
-%     title('Global','FontSize',15)
+    shapes_val=zeros(S,length(vsam{1}.shapes));
+      lklhweights=zeros(S,1);
+    for i = 1:S
+        shapes_val(i,:) = vsam{i}(1).shapes+vsam{i}(1).gain;
+        lklhweights(i)=logprior(i)+loglklh(i)-logvariational(i);
+    end
+%     for i = 1:size(shapes_val,2)
+i=2;
+    figure(i)
+    scatter(shapes_val(:,i),loglklh,'MarkerFaceColor','blue')
+    hold on;
+    line(log([neurons.truth.shapes_sim.values(i) neurons.truth.shapes_sim.values(i)]*0.04), [min(loglklh) max(loglklh)],'Color','red','LineWidth',3)
+    hold off;
+    xlabel('log-Excitability (shape + gain)','FontSize',15);
+    ylabel('Log-Likelihood','FontSize',15)
+    title('Global','FontSize',15)
 %     end
 %     scatter(PRs,lklhweight)
 %      figure(3)

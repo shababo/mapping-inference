@@ -24,7 +24,7 @@ switch type
             GP_samples.(ax).Kcor=get_kernel_cor(X,X,tau);
             GP_samples.(ax).Kcor= (GP_samples.(ax).Kcor+GP_samples.(ax).Kcor')/2;
             X_r=sign(X).*radius_to_center;
-            mean_val(:,i_ax)=quick_match(X_r,GP_params.(ax).mean_params);
+            mean_val(:,i_ax)=GP_params.(ax).mean_params.excite(quick_match(X_r,GP_params.(ax).mean_params));
             var_val(:,i_ax)=quick_match(X_r,GP_params.(ax).var_params);
         end
         sqloc(sqloc==0)=epsilon;
@@ -54,7 +54,7 @@ switch type
             end
             
             tau=GP_params.(ax).tau;
-            mean_val.(ax)=quick_match(X,GP_params.(ax).mean_params);
+            mean_val.(ax)=GP_params.(ax).mean_params.excite(quick_match(X,GP_params.(ax).mean_params));
             var_val.(ax)=quick_match(X,GP_params.(ax).var_params);
             if i_ax == 1
                 GP_samples.xy.Kcor=get_kernel_cor(X,X,tau);
@@ -102,9 +102,9 @@ switch type
         [xy_unique,~,i_xy] = unique(xy_locations,'rows');
         [z_unique,~,i_z] = unique(z_locations,'rows');
         
-        z_mean=quick_match(z_unique,GP_params.z.mean_params);
+        z_mean=GP_params.z.mean_params.excite(quick_match(z_unique,GP_params.z.mean_params));
         z_var=quick_match(z_unique,GP_params.z.var_params);
-        xy_mean=quick_match(xy_unique,GP_params.xy.mean_params);
+        xy_mean=GP_params.xy.mean_params.excite(quick_match(xy_unique,GP_params.xy.mean_params));
         xy_var=quick_match(xy_unique,GP_params.xy.var_params);
        
         x=xy_unique(:,1);y=xy_unique(:,2);z=z_unique;
@@ -122,7 +122,7 @@ switch type
         ssq_mat = ssq' *ones(1,2);
         exp_indices = sqloc./ssq_mat;
         
-        xy_mean_full = xy_mean(i_xy);z_mean_full = z_mean(i_z); 
+        xy_mean_full = xy_mean(i_xy);z_mean_full =z_mean(i_z); 
         mean_tmp=([xy_mean_full z_mean_full].^exp_indices);
         mean_3d=prod(mean_tmp')';
         

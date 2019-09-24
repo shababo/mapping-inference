@@ -25,10 +25,10 @@ if isfield(params,'gain_pilot_path')
         %size(rmmissing(gain_pilot.(fld).gain))
         gain=[gain rmmissing(gain_pilot.(fld).gain)];
     end
-    prior_params.gain.bounds.up=max(params.bounds.gain(2),max(gain)*1.1); 
-    prior_params.gain.bounds.low=min(params.bounds.gain(1),min(gain)*(1-0.1));
+    prior_params.gain.bounds.up=params.excite_inv(max( params.bounds.gain(2),max(gain)*1.1)); 
+    prior_params.gain.bounds.low=params.excite_inv(min(params.bounds.gain(1),min(gain)*0.9));
     % logit transformation for given the lower and upper bound:
-    logit_gain=log((gain-prior_params.gain.bounds.low)./(prior_params.gain.bounds.up-gain));
+    logit_gain=log((params.excite_inv(gain)-prior_params.gain.bounds.low)./(prior_params.gain.bounds.up-params.excite_inv(gain)));
     prior_params.gain.mean=mean(logit_gain);
     prior_params.gain.log_sigma=log(var(logit_gain)); % This is actually the variance!
 end
@@ -54,9 +54,8 @@ if isfield(prior_params,'delay_pilot_path')
     delay_means =  delay_pilot.mean;
     delay_vars= delay_pilot.var;
     
-    
-   prior_params.delay_mean.bounds.up=max(params.bounds.delay_mean(2),max(delay_mean)*1.1); 
-   prior_params.delay_mean.bounds.low=max(params.bounds.delay_mean(1),min(delay_mean)*0.9); 
+    prior_params.delay_mean.bounds.up=max(params.bounds.delay_mean(2),max(delay_mean)*1.1); 
+    prior_params.delay_mean.bounds.low=max(params.bounds.delay_mean(1),min(delay_mean)*0.9); 
     % logit transformation for given the lower and upper bound:
     logit_tmp=log((delay_mean-prior_params.delay_mean.bounds.low)./(prior_params.delay_mean.bounds.up-delay_mean));
     prior_params.delay_mean.mean=mean(logit_tmp);

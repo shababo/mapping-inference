@@ -69,9 +69,14 @@ K_data_xy=K_data{1}.*K_data{2};
 K_exp_xy=K_data_xy+ diag(ones(length(this_X),1))*sigma_noise;
 
 K_inv=inv(K_exp_xy);
-KY=K_inv*(Y);
-post_mean=max(epsilon, K_data_xy*KY);
-pred_mean= max(epsilon,K_star_xy*KY);
+
+
+prior_mean=params.prior_mean*ones(length(Y),1);
+KY=K_inv*(Y-prior_mean);
+
+
+post_mean=prior_mean+K_data_xy*KY;
+pred_mean=params.prior_mean*ones(length(Xstar),1)+K_star_xy*KY;
 
 
 prior_var = sigma_varstar(:,1).*sigma_varstar(:,2);

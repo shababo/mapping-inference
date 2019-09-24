@@ -49,6 +49,9 @@ sigma_mat_star_right= ones(length(nsqstar),1)*sigma_var';
 % A1=nsqstar*ones(1,length(nsq)) ; A2= ones(length(nsqstar),1)*nsq';
 % tau_mat =( ((abs(A1+A2)-abs(A1-A2))/2).^(distance_factor)+1)*tau;
 K_pred= sigma_mat_star_left.*exp(-K_pred./tau).*sigma_mat_star_right;
-post_mean=max(epsilon, K*inv(K_exp)*(Y));
-pred_mean= max(epsilon,K_pred*inv(K_exp)*(Y));
+
+% With non-zero means: 
+prior_mean=params.prior_mean*ones(length(Y),1);
+post_mean=prior_mean+K*inv(K_exp)*(Y-prior_mean);
+pred_mean= params.prior_mean*ones(length(Xstar),1)+K_pred*inv(K_exp)*(Y-prior_mean);
 prior_var = sigma_varstar;
