@@ -150,6 +150,7 @@ for i_cell = 1:n_cell
         trials(i_trial).fitted.PR=[trials(i_trial).fitted.PR; PR_post];
         trials(i_trial).fitted.source=[trials(i_trial).fitted.source; i_cell];
         trials(i_trial).fitted.stim=[trials(i_trial).fitted.stim; mean(stim_records)];
+         trials(i_trial).fitted.loc_id= cell_and_pos(1,2);
     end
 end
 %%
