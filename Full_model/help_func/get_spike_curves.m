@@ -140,6 +140,13 @@ spike_curves.dev(min_dev_index)=0;
 spike_curves.x_current=x_current;
 spike_curves.y_spike_mean=y_spike_mean;
 spike_curves.y_spike_sd=y_spike_sd;
+
+
+yfit=specs.F_mean(mean_param,x_current);
+ydev=abs(yfit-y_spike_mean);
+ 
+spike_curves.y_spike_dev=ydev;
+
 spike_curves.mean_param=mean_param;
 spike_curves.sd_param=sd_param;
 spike_curves.dev_param=dev_param;
