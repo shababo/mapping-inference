@@ -268,7 +268,7 @@ switch inference_params.shape_type
             stim_locs = trials(i_trial).locations;
             for i_loc = size(stim_locs,1)
                 if ~isnan(stim_locs(i_loc,1))
-                    trials(i_trial).cell_and_pos{i_loc}= zeros(0,3); %i_cell, i_pos
+                    trials(i_trial).cell_and_pos{i_loc}= zeros(0,2); %i_cell, i_pos
                     for i_cell = 1:n_cell
                         this_loc=neurons(i_cell).location;
                         rel_pos=stim_locs(i_loc,:)-this_loc;

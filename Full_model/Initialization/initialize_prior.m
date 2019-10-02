@@ -5,6 +5,7 @@ prior_info=struct;
 prior_info.prior_parameters=struct;
 prior_info.background_rate=params.background_rate;
 
+prior_info.exp_excite_flag=params.exp_excite_flag;
 prior_info.excite=params.excite;
 prior_info.excite_inv=params.excite_inv;    
 %% Load and process the prior distributions from the pilot data 
@@ -129,11 +130,10 @@ prior_info.induced_intensity.minimum_stim_threshold = ...
 prior_info.induced_intensity.stim_threshold=params.induced_intensity.stim_threshold;
 prior_info.induced_intensity.event_time_max=params.induced_intensity.event_time_max;
 prior_info.induced_intensity.time_factor=params.time_factor;
-
+prior_info.induced_intensity.inflate_func =params.induced_intensity.inflate_func;
 %% Use pilot data to set the priors for these parameters:
 % Use prior info, if path to the summary data is available
 % Use set parameters, if path is not available
-
 
 %% Examine the shifts (hardly any in the gp data)
 % There is hardly any shift in these data...

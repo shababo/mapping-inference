@@ -12,11 +12,8 @@ for i_field = 1:length(fldnames)
     %         this_sample=struct;
     normal_qt =norminv(quantile_prob);%
     normal_samples =normrnd(0,1, [100 1]);% for evaluating mean & variance gamma
-% <<<<<<< HEAD
-%     if ~strcmp(fldnames{i_field},'shapes') && ~strcmp(fldnames{i_field},'GP_minimal_variance')
-% =======
+
     if ~strcmp(fldnames{i_field},'shapes') & ~strcmp(fldnames{i_field},'z') & ~strcmp(fldnames{i_field},'xy')  
-% >>>>>>> 12c2460e7b5cc64bb7eb5fc4ac439dfea46acc2d
         normal_qt=this_params.mean+normal_qt*exp(this_params.log_sigma/2);
         normal_samples=this_params.mean+normal_samples*exp(this_params.log_sigma/2);
         switch this_params.dist
@@ -38,7 +35,7 @@ for i_field = 1:length(fldnames)
                 this_sample=exp(normal_samples)./(1+exp(normal_samples))*...
                     (this_params.bounds.up-this_params.bounds.low)+this_params.bounds.low;
         end
-        post_stat.(fldnames{i_field}).mean=this_qt(2);
+        post_stat.(fldnames{i_field}).median=this_qt(2);
         post_stat.(fldnames{i_field}).sd=std(this_sample);
         post_stat.(fldnames{i_field}).upper_quantile=this_qt(3);
         post_stat.(fldnames{i_field}).lower_quantile=this_qt(1);
@@ -49,7 +46,7 @@ for i_field = 1:length(fldnames)
             if strcmp(this_params.dist,'mvn')
                 this_mean=(this_params.bounds.up-this_params.bounds.low).*exp(this_params.mean)./(1+exp(this_params.mean))...
                     +this_params.bounds.low;
-                Dmat= diag(exp(-2*this_params.log_sigma) );
+                Dmat= diag(exp(-this_params.log_sigma) );
                 
                 Sigma_tilde=inv(this_params.Sigma_tilde+Dmat);
                 this_sigma = sqrt(diag(Sigma_tilde));
@@ -71,7 +68,7 @@ for i_field = 1:length(fldnames)
                         this_sample=exp(normal_samples)./(1+exp(normal_samples))*...
                             (this_params.bounds.up(i_loc)-this_params.bounds.low(i_loc))+this_params.bounds.low(i_loc);
                 end
-                post_stat.(fldnames{i_field}).mean(i_loc)=this_qt(2);
+                post_stat.(fldnames{i_field}).median(i_loc)=this_qt(2);
                 post_stat.(fldnames{i_field}).sd(i_loc)=std(this_sample);
                 post_stat.(fldnames{i_field}).upper_quantile(i_loc)=this_qt(3);
                 post_stat.(fldnames{i_field}).lower_quantile(i_loc)=this_qt(1);
