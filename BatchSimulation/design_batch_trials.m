@@ -32,7 +32,7 @@ for i= 1:length(neurons)
                 n_point=design_params.nlocs_per_neuron-1;
                 angles = (1:n_point)/n_point;
                 tmp_loc=[[0 0 0]; [sin(2*pi*angles)' cos(2*pi*angles)' zeros(n_point,1)]];
-                design_params.chosen_locations = ones(size(tmp_loc,1),1)*neurons(i).location+tmp_loc;
+                design_params.chosen_locations = ones(size(tmp_loc,1),1)*neurons(i).location+radius*tmp_loc;
                 chosen_flag=true;
             case 'linesearch'
                 % Determine the chosen locations here: 

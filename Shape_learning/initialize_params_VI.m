@@ -263,7 +263,7 @@ switch inference_params.shape_type
         % Single location for each neuron
         % One location corresponds to only one neuron!
         
-        boundary_params = 4; % allow for some errors
+        boundary_params = 1; % allow for some errors
         for i_trial = 1:length(trials)
             stim_locs = trials(i_trial).locations;
             for i_loc = size(stim_locs,1)
@@ -281,7 +281,8 @@ switch inference_params.shape_type
                 end
             end
         end
-        
+%         variational_params=rmfield(variational_params,{'shapes'});
+        prior_params=variational_params;
 end
 %%
 % GP_params=experiment_setup.prior_info.prior_parameters.GP_params
