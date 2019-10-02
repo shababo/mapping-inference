@@ -72,7 +72,7 @@ if plot_params.by_neuron
 
         plot_params.these_indices=plot_params.loc_indices;
         [covered_flags]=visualize_fitted_trial_multiple(these_trials, stim_size,plot_params);
-        title(['Neuron ' num2str( i_neuron )],'FontSize', plot_params.lab_size)
+        title(plot_params.main_title,'FontSize', plot_params.lab_size)
         if isfield(plot_params,'save_path')
             set(gcf,'PaperUnits','inches','PaperPosition',[0 0 8 6])
             save_path = [plot_params.save_path '_All.png'];
@@ -139,22 +139,22 @@ for i = 1:size(locations_unique,1)
 end
 %% Draw the trials at the problematic locations: 
 
-% plot_params.fit_type='full_intensity';
-% for i = 1:size(locations_unique,1)
-%     if ~covered_flags(i)
-%         these_trials =trials(ic==i);
-%         fig=figure(10+i+fig_num);
-%         plot_params.these_indices=plot_params.loc_indices(ic==i);
-%         %         plot_params.vertical_gap = 0.1;
-%         % %         [~, tmp]=sort([these_trials(:).power_levels]); % Ascending
-%         % %         rankings = 1:length(these_trials);
-%         % %         rankings(tmp)=rankings;
-%         visualize_fitted_trial_multiple(these_trials,[these_trials(:).power_levels],plot_params);
-%         title(['Location ' num2str(i)],'FontSize', plot_params.lab_size)
-%             if isfield(plot_params,'save_path')
-%                 save_path = [plot_params.save_path '_Loc' num2str(i) '.png'];
-%                 saveas(fig,save_path)
-%             end
-%         ylim([0 5+plot_params.time_max]);
-%     end
-% end
+plot_params.fit_type='full_intensity';
+for i = 1:size(locations_unique,1)
+    if ~covered_flags(i)
+        these_trials =trials(ic==i);
+        fig=figure(10+i+fig_num);
+        plot_params.these_indices=plot_params.loc_indices(ic==i);
+        %         plot_params.vertical_gap = 0.1;
+        % %         [~, tmp]=sort([these_trials(:).power_levels]); % Ascending
+        % %         rankings = 1:length(these_trials);
+        % %         rankings(tmp)=rankings;
+        visualize_fitted_trial_multiple(these_trials,[these_trials(:).power_levels],plot_params);
+        title(['Location ' num2str(i)],'FontSize', plot_params.lab_size)
+            if isfield(plot_params,'save_path')
+                save_path = [plot_params.save_path '_Loc' num2str(i) '.png'];
+                saveas(fig,save_path)
+            end
+        ylim([0 5+plot_params.time_max]);
+    end
+end

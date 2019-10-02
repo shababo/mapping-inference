@@ -32,10 +32,11 @@ else
 %     specs.F_mean = @(x,xdata)x(1)*exp(-x(2)*xdata) + x(3);
     %specs.F_mean = @(x,xdata) x(2)./(xdata + x(1)) + x(3); %min(y_spike_mean) + 
     % New mean function that reflects the saturation of the min spike time:
-    specs.F_mean = @(x,xdata)  (x(2)./(xdata + x(1)) + x(3)).*(xdata<x(4))+(xdata>=x(4)).*(x(2)./(x(4) + x(1)) + x(3)) ; %min(y_spike_mean) + 
+    specs.F_mean = @(x,xdata)   (xdata+x(1)<=1e-5).*(x(2)./(1e-5)+ x(3))+...
+        (x(2)./(xdata + x(1)) + x(3)).*(xdata+x(1)>1e-5).*(xdata<x(4))+(xdata>=x(4)).*(x(2)./(x(4) + x(1)) + x(3)) ; %min(y_spike_mean) + 
     
-    specs.F_dev = @(x,xdata)  (x(2)./(xdata + x(1)).^2 + x(3)).*(xdata<x(4))+(xdata>=x(4)).*(x(2)./(x(4) + x(1)).^2 + x(3)) ; %min(y_spike_mean) + 
-    specs.F_sd =  @(x,xdata)  (x(2)./(xdata + x(1)).^2 + x(3)).*(xdata<x(4))+(xdata>=x(4)).*(x(2)./(x(4) + x(1)).^2 + x(3)) ; %min(y_spike_mean) + 
+    specs.F_dev = @(x,xdata)  (xdata+x(1)<=1e-5).*(x(2)./(1e-5).^2 + x(3)) + (xdata+x(1)>1e-5).*(x(2)./(xdata + x(1)).^2 + x(3)); %min(y_spike_mean) + 
+    specs.F_sd =  @(x,xdata)   (xdata+x(1)<=1e-5).*(x(2)./(1e-5).^2 + x(3)) + (xdata+x(1)>1e-5).*(x(2)./(xdata + x(1)).^2 + x(3)); %min(y_spike_mean) + 
     specs.current_multiplier=1e-3;
     specs.current_min=10;
     specs.current_max=10000;
@@ -49,9 +50,6 @@ end
 
 %% Call fmincon:
 % y_spike_mean > specs.time_max 
-
-
-
 ni_mean=isnan(y_spike_mean) |  x_current > specs.current_max | isnan(x_current);
 assignin('base','y_spike_mean',y_spike_mean);
 assignin('base','x_current',x_current);
@@ -105,7 +103,7 @@ opts = optimoptions('fminunc','Algorithm','quasi-newton','Display','off');
 % F_sd=fit(xdata',ydata','smoothingspline');
 %% 
 %% Obtain a grid of the mean and variance:
-
+% specs.current_min=max(specs.current_min, -mean_param(1)+1e-5); % prevent singularity
 current_grid = specs.current_min:specs.current_gap:specs.current_max;
 x_grid= current_grid;
 
@@ -122,7 +120,7 @@ spike_dev_grid=exp(specs.F_dev(dev_param,x_grid));
 % spike_sd_grid=sd_average.*ones(length(x_grid),1);
 
 spike_curves=struct;
-spike_curves.current=current_grid*specs.current_multiplier;
+spike_curves.current=x_grid*specs.current_multiplier;
 spike_curves.mean=spike_mean_grid;
 spike_curves.sd=spike_sd_grid;
 spike_curves.dev=spike_dev_grid;
@@ -152,6 +150,11 @@ spike_curves.sd_param=sd_param;
 spike_curves.dev_param=dev_param;
 spike_curves.specs=specs;
  spike_curves.time_max=specs.time_max;
+ 
+ spike_curves.F_mean=specs.F_mean;
+ spike_curves.F_sd=specs.F_sd;
+ spike_curves.F_dev=specs.F_dev;
+ spike_curves.current_multiplier=specs.current_multiplier;
 % %%
 % scatter(x_current,y_spike_mean)
 % hold on;
@@ -165,7 +168,7 @@ spike_curves.specs=specs;
 % ylim([min(y_spike_sd)-20 max(y_spike_sd)+20])
 % hold on;
 % %%
-% scatter(xdata,ydev,'MarkerFaceColor','red');
+% scatter(x_current,ydev,'MarkerFaceColor','red');
 % hold on;
 % plot(x_grid,spike_dev_grid) 
 % ylim([min(ydev) max(ydev)])

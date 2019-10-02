@@ -55,15 +55,32 @@ for i = 1:size(fits,1)
             total_int = cumsum(fits(i,:));
             total_int=total_int/max(total_int);
             plot(fits(i,:)/max_int*plot_params.gap+shift*ones(1,size(fits,2)),realtimepoints,'Color',plot_params.colors(plot_params.this_loc,:),'LineWidth',lw)
-            quantiles_tmp =[ max(realtimepoints(find(total_int<quantile_prob(1)) ));  max(realtimepoints(find(total_int<quantile_prob(2)) ))];            
+            qt_lower=max(realtimepoints(find(total_int<quantile_prob(1)) ));
+              if isempty(qt_lower)
+                  qt_lower=min(realtimepoints);
+              end
+              qt_upper=max(realtimepoints(find(total_int<quantile_prob(2)) ));
+              if isempty(qt_upper)
+                  qt_upper=max(realtimepoints);
+              end
+              quantiles_tmp =[qt_lower qt_upper];
             scatter([shift  shift], quantiles_tmp, plot_params.markerSize,  '^','MarkerFaceColor','red',...
                 'MarkerEdgeColor','red')
         
         case 'quantiles'
             total_int = cumsum(fits(i,:));
               total_int=total_int/max(total_int);
-            quantiles_tmp =[ max(realtimepoints(find(total_int<quantile_prob(1)) ));  max(realtimepoints(find(total_int<quantile_prob(2)) ))];            
-            plot([shift  shift], quantiles_tmp,':','LineWidth',lw+1,'Color',plot_params.colors(plot_params.this_loc,:))
+            
+              qt_lower=max(realtimepoints(find(total_int<quantile_prob(1)) ));
+              if isempty(qt_lower)
+                  qt_lower=min(realtimepoints);
+              end
+              qt_upper=max(realtimepoints(find(total_int<quantile_prob(2)) ));
+              if isempty(qt_upper)
+                  qt_upper=max(realtimepoints);
+              end
+              quantiles_tmp =[qt_lower qt_upper];
+              plot([shift  shift], quantiles_tmp,':','LineWidth',lw+1,'Color',plot_params.colors(plot_params.this_loc,:))
            
     end
     
