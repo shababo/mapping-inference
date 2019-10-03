@@ -207,9 +207,10 @@ switch inference_params.shape_type
                             else
                                 ia=tmp;
                             end
-                        end
                         trials(i_trial).cell_and_pos{i_loc}=[trials(i_trial).cell_and_pos{i_loc};...
                             i_cell ia];
+                        
+                        end
                     end
                 end
             end
