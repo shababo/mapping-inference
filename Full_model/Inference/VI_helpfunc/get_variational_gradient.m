@@ -9,7 +9,7 @@ function [this_gradient]=get_variational_gradient(variational_samples,raw_sample
 % calculate the gradients
 fldnames = fieldnames(params(1));
 n_cell = length(params);
-% clear('this_gradient')
+clear('this_gradient')
 this_gradient(n_cell)= struct;
 for i_cell = 1:n_cell
     for i_field = 1:length(fldnames)

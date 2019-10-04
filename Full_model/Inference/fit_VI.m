@@ -107,20 +107,21 @@ while (change_history(iteration) > epsilon && iteration<maxit)
 %         end
     end
 %% 
+% 
+%     i_loc=10;
 %     shapes_val=zeros(S,length(vsam{1}.shapes));
 %     gains=zeros(S,1);
 %       lklhweights=zeros(S,1);
 %     for i = 1:S
-% %         shapes_val(i,:) = vsam{i}(1).shapes+vsam{i}(1).gain;
+%         shapes_val(i,:) = vsam{i}(1).shapes+vsam{i}(1).gain;
 %         gains(i,:) = vsam{i}(1).gain;
 %         lklhweights(i)=logprior(i)+loglklh(i)-logvariational(i);
 %     end
 % %     for i = 1:size(shapes_val,2)
 % % i=2;
 %     figure(1)
-%     scatter(gains,loglklh,'MarkerFaceColor','blue')
+%     scatter(shapes_val(:,i_loc),lklhweights,'MarkerFaceColor','blue')
 %     hold on;
-%     i_loc=10;
 %     line(log([neurons.truth.shapes_sim.values(i_loc) neurons.truth.shapes_sim.values(i_loc)]*0.04), [min(loglklh) max(loglklh)],'Color','red','LineWidth',3)
 % 
 %     xlabel('log-Excitability (shape + gain)','FontSize',15);
@@ -158,6 +159,11 @@ while (change_history(iteration) > epsilon && iteration<maxit)
     fprintf('Iteration %d; change %d; time %d; \n',iteration,change_history(iteration),tdiff)
     % ELBO %d;PR %d; ,elbo_rec(iteration),parameter_current(1,1).PR.mean)
 %     fprintf('PR %d; \n',parameter_current.PR.mean)
+% %%
+% new_gradient.shapes.sigma(10)
+% 
+% new_gradient.shapes.mean(10)
 
+%%
 end
 fprintf('VI fitted after %d iteration;\n',iteration)

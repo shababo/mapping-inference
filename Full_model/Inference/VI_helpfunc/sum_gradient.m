@@ -135,19 +135,19 @@ for i_cell = 1:n_cell
 %             scale_tmp = max(1,max_tmp/eta_max);
 %             scale_tmp = max(1,grad_max(i_cell)/eta_max);
             
-            grad_scale=max(abs([new_gradient(i_cell).(fldnames{i_field}).mean, new_gradient(i_cell).(fldnames{i_field}).sigma]));
-%             grad_scale= max(abs([new_gradient(i_cell).(fldnames{i_field}).mean]));
+%             grad_scale=max(abs([new_gradient(i_cell).(fldnames{i_field}).mean, new_gradient(i_cell).(fldnames{i_field}).sigma]));
+            grad_scale= median(abs([new_gradient(i_cell).(fldnames{i_field}).mean]));
             grad_scale=max(1,grad_scale/(eta_max));
             new_gradient(i_cell).(fldnames{i_field}).mean= ...
                 new_gradient(i_cell).(fldnames{i_field}).mean/grad_scale;
             
             
-%             grad_scale= max(abs([new_gradient(i_cell).(fldnames{i_field}).sigma]));
-%             grad_scale=max(1,grad_scale/(eta_max));
+            grad_scale= median(abs([new_gradient(i_cell).(fldnames{i_field}).sigma]));
+            grad_scale=max(1,grad_scale/(eta_max));
             new_gradient(i_cell).(fldnames{i_field}).sigma= ...
                 new_gradient(i_cell).(fldnames{i_field}).sigma/grad_scale;
         else
-            grad_scale= max(abs([new_gradient(i_cell).(fldnames{i_field}).mean new_gradient(i_cell).(fldnames{i_field}).sigma]));
+            grad_scale= median(abs([new_gradient(i_cell).(fldnames{i_field}).mean new_gradient(i_cell).(fldnames{i_field}).sigma]));
             grad_scale=max(1,grad_scale/(eta_max_PR));
 % grad_scale=max(1,grad_scale/1);
             new_gradient(i_cell).(fldnames{i_field}).mean= ...
