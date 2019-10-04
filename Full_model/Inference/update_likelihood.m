@@ -22,7 +22,7 @@ if isfield(variational_samples(1),'delay_var')
 else
     delay_var_sample=0.001*ones([n_cell 1]).^2;
 end
-
+%%
 stim_size=zeros(n_trial,n_cell);
 for  i_trial = 1:n_trial
     for i_loc = 1:size(trials(i_trial).locations,1)

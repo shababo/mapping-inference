@@ -264,7 +264,7 @@ switch inference_params.shape_type
         % Single location for each neuron
         % One location corresponds to only one neuron!
         
-        boundary_params = 1; % allow for some errors
+%         boundary_params = 1; % allow for some errors
         for i_trial = 1:length(trials)
             stim_locs = trials(i_trial).locations;
             for i_loc = size(stim_locs,1)
@@ -273,11 +273,11 @@ switch inference_params.shape_type
                     for i_cell = 1:n_cell
                         this_loc=neurons(i_cell).location;
                         rel_pos=stim_locs(i_loc,:)-this_loc;
-                        if sum(rel_pos.^2)<boundary_params
+%                         if sum(rel_pos.^2)<boundary_params
                             % Check for xy shape and z shape:
                             trials(i_trial).cell_and_pos{i_loc}=[trials(i_trial).cell_and_pos{i_loc};...
-                                i_cell];
-                        end
+                                [i_cell 1]];
+%                         end
                     end
                 end
             end

@@ -1,5 +1,5 @@
 function [covered_flags] = visualize_fitted_trial_multiple(these_trials, yval,plot_params)
-
+%%
 % Visualize multiple trials at the same locations, ordered by power levels
 if length(unique(yval))==1
    

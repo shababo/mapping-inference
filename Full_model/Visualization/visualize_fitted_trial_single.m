@@ -1,5 +1,6 @@
 function [covered_flag] = visualize_fitted_trial_single(this_trial, plot_params)
 alpha=plot_params.alpha;
+%%
 if plot_params.prediction
     chosen_field = 'predicted';
 else

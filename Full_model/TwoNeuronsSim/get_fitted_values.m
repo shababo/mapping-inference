@@ -129,7 +129,7 @@ for i_cell = 1:n_cell
                 delay_params.delay_mean=0;
                 delay_params.delay_var=1e-3;
             end
-            [intensity_tmp] = calculate_intensities(stim,delay_params,prior_info.induced_intensity,timepoints,params);
+            [intensity_tmp] = calculate_intensities(stim,delay_params,prior_info.induced_intensity,timepoints,inference_params);
             intensity_records.spike(s,:)= intensity_tmp.spike;
             intensity_records.event(s,:)= intensity_tmp.event;
             stim_records(s)= stim;
