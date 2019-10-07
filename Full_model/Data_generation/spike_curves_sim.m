@@ -8,11 +8,17 @@ else
 end
 
 spike_times = [];event_times=[];
-[~, Ia]=min(abs(stim - spike_curves.current));
+
+stim=stim/spike_curves.current_multiplier;
 spike_param = struct;
-spike_param.mean=spike_curves.mean(Ia);
-spike_param.sd=spike_curves.sd(Ia);
-spike_one = time_max +1;
+spike_param.mean=spike_curves.F_mean(spike_curves.mean_param,stim);
+if params.combined_variance
+    spike_param.sd= spike_curves.inflate_func(...
+        sqrt(spike_curves.F_sd(spike_curves.sd_param,stim)^2+spike_curves.F_dev(spike_curves.dev_param,stim)^2), params.inflate_func_coef);
+else
+    spike_param.sd=spike_curves.inflate_func(...
+        spike_curves.F_sd(spike_curves.sd_param,stim), params.inflate_func_coef);
+end
 % Spikes are generated from a truncated normal distribution, truncated at
 % time_max
 spike_one = normrnd(spike_param.mean,spike_param.sd);

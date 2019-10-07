@@ -131,6 +131,7 @@ prior_info.induced_intensity.stim_threshold=params.induced_intensity.stim_thresh
 prior_info.induced_intensity.event_time_max=params.induced_intensity.event_time_max;
 prior_info.induced_intensity.time_factor=params.time_factor;
 prior_info.induced_intensity.inflate_func =params.induced_intensity.inflate_func;
+
 %% Use pilot data to set the priors for these parameters:
 % Use prior info, if path to the summary data is available
 % Use set parameters, if path is not available
