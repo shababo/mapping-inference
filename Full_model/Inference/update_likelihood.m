@@ -1,5 +1,6 @@
 function [loglklh] = update_likelihood(trials,variational_samples,parameter_current, ...
     background_rate,lklh_func,spike_curves,neurons,prior_info,inference_params,pre_density,varargin)
+%%
 n_shape=inference_params.MCsamples_for_gradient;
 GP_params=prior_info.GP_params;
 n_cell=length(variational_samples);
@@ -43,7 +44,7 @@ for  i_trial = 1:n_trial
                             power_tmp*inference_params.excite(variational_samples(i_cell).shapes(i_pos)+gain_sample(i_cell));
                     end
                 case 'single'
-                    for i=1:length(cell_and_pos)
+                    for i=1:size(cell_and_pos,1)
                         i_cell = cell_and_pos(i);
                         stim_size(i_trial,i_cell)=stim_size(i_trial,i_cell)+power_tmp*inference_params.excite(gain_sample(i_cell));
                     end

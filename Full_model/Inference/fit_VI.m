@@ -43,8 +43,8 @@ for i = 1:length(pre_density.normal_grid)
     pre_density.pdf_grid(i)=normpdf(pre_density.normal_grid(i),0,1);
 end
 % S=300;
-% clear('parameter_history')
-% clear('gradients')
+clear('parameter_history')
+clear('gradients')
 %%
 tic;
 fprintf('Threshold %d; S %d\n',eta_threshold,S)
@@ -68,7 +68,7 @@ while (change_history(iteration) > epsilon && iteration<maxit)
             [variational_samples,raw_samples] = draw_samples_from_var_dist(parameter_current);
                %---------------------------------%
         % Manually set the true paramters for debugging only:
-%         variational_samples(1).gain=log(0.04);
+%         variational_samples(1).gain=log(truth(2)/2);
 %         variational_samples.delay_mean=neurons.truth.delay_mean;
 %         variational_samples.delay_var=neurons.truth.delay_var;
 %         variational_samples.z=1;
@@ -113,18 +113,21 @@ while (change_history(iteration) > epsilon && iteration<maxit)
 %     gains=zeros(S,1);
 %       lklhweights=zeros(S,1);
 %     for i = 1:S
-%         shapes_val(i,:) = vsam{i}(1).shapes+vsam{i}(1).gain;
+% %         shapes_val(i,:) = vsam{i}(1).shapes+vsam{i}(1).gain;
 %         gains(i,:) = vsam{i}(1).gain;
 %         lklhweights(i)=logprior(i)+loglklh(i)-logvariational(i);
 %     end
 % %     for i = 1:size(shapes_val,2)
 % % i=2;
 %     figure(1)
-%     scatter(shapes_val(:,i_loc),lklhweights,'MarkerFaceColor','blue')
+%     scatter(gains,loglklh,'MarkerFaceColor','blue')
 %     hold on;
-%     line(log([neurons.truth.shapes_sim.values(i_loc) neurons.truth.shapes_sim.values(i_loc)]*0.04), [min(loglklh) max(loglklh)],'Color','red','LineWidth',3)
+% % %     line(log([neurons.truth.shapes_sim.values(i_loc) neurons.truth.shapes_sim.values(i_loc)]*0.04), [min(loglklh) max(loglklh)],'Color','red','LineWidth',3)
+%  line( log([truth(2) truth(2)]), [min(loglklh) max(loglklh)],'Color','red','LineWidth',3)
+%  hold off;
+%  line( [neurons.truth.gain neurons.truth.gain]+log(neurons.truth.shapes_sim.values(i_loc)), [min(loglklh) max(loglklh)],'Color','red','LineWidth',3)
 % 
-%     xlabel('log-Excitability (shape + gain)','FontSize',15);
+% %     xlabel('log-Excitability (shape + gain)','FontSize',15);
 %     ylabel('Log-Likelihood','FontSize',15)
 %     title('Global','FontSize',15)
 %         hold off;

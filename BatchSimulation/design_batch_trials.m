@@ -29,8 +29,8 @@ for i= 1:length(neurons)
             case 'off-nuclei'
                 
                 radius=design_params.candidate_grid_params.max_radius;
-                n_point=design_params.nlocs_per_neuron-1;
-                angles = (1:n_point)/n_point;
+                n_point=design_params.nlocs_per_neuron;
+                angles = (0:n_point-1)/n_point;
                 tmp_loc=[[0 0 0]; [sin(2*pi*angles)' cos(2*pi*angles)' zeros(n_point,1)]];
                 design_params.chosen_locations = ones(size(tmp_loc,1),1)*neurons(i).location+radius*tmp_loc;
                 chosen_flag=true;
@@ -70,7 +70,7 @@ for i= 1:length(neurons)
         
         for i_pow = 1:length(design_params.power_levels)
             for i_rep=1:n_rep
-                    i_trial = i_trial +1;        
+                i_trial = i_trial +1;
                 trials(i_trial).locations=this_trial_location;
                 trials(i_trial).power_levels=design_params.power_levels(i_pow);
             end
