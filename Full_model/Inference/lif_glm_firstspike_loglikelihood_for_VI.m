@@ -44,9 +44,9 @@ else
     likelihood = sum(prob_combs);
     
 end
-if likelihood< 1e-100
-        likelihood=1e-100;
-    end
+% if likelihood< 1e-100
+%         likelihood=1e-100;
+% end
  loss=log(likelihood);
 end
 

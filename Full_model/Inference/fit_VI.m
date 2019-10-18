@@ -91,8 +91,8 @@ while (change_history(iteration) > epsilon && iteration<maxit)
             end
             
             % Calculate likelihood 
-            [loglklh(s)] = update_likelihood(trials, variational_samples,parameter_current,...
-                background_rate,lklh_func,spike_curves,neurons,prior_info,inference_params,pre_density);
+            [loglklh(s)] = update_likelihood(trials, variational_samples,...
+                background_rate,lklh_func,spike_curves,prior_info,inference_params);
             
             lklhweight=logprior(s)+loglklh(s)-logvariational(s);
             this_gradient=get_variational_gradient(variational_samples,raw_samples, parameter_current);
