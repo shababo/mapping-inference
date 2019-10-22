@@ -80,22 +80,22 @@ if plot_params.by_neuron
         end
     end
 else
-    for i = 1:size(locations_unique,1)
-these_trials =trials(ic==i);
-        fig=figure(i+1+fig_num);
-%         plot_params.vertical_gap = 0.1;
-% %         [~, tmp]=sort([these_trials(:).power_levels]); % Ascending
-% %         rankings = 1:length(these_trials);
-% %         rankings(tmp)=rankings;        
-
-        plot_params.these_indices=plot_params.loc_indices(ic==i);
-        visualize_fitted_trial_multiple(these_trials,[these_trials(:).power_levels],plot_params)
-        title(['Location ' num2str(i)],'FontSize', plot_params.lab_size)
-        if isfield(plot_params,'save_path')
-            save_path = [plot_params.save_path '_' num2str(i+1) '.png'];
-            saveas(fig,save_path)
-        end
-    end
+%     for i = 1:size(locations_unique,1)
+% these_trials =trials(ic==i);
+%         fig=figure(i+1+fig_num);
+% %         plot_params.vertical_gap = 0.1;
+% % %         [~, tmp]=sort([these_trials(:).power_levels]); % Ascending
+% % %         rankings = 1:length(these_trials);
+% % %         rankings(tmp)=rankings;        
+% 
+%         plot_params.these_indices=plot_params.loc_indices(ic==i);
+%         visualize_fitted_trial_multiple(these_trials,[these_trials(:).power_levels],plot_params)
+%         title(['Location ' num2str(i)],'FontSize', plot_params.lab_size)
+%         if isfield(plot_params,'save_path')
+%             save_path = [plot_params.save_path '_' num2str(i+1) '.png'];
+%             saveas(fig,save_path)
+%         end
+%     end
 end
 
 % set(gca, 'XScale',  plot_params.stim_scale)
@@ -125,6 +125,14 @@ ylim([0 plot_params.time_max]);
 
 %% Draw a spatial map: 
 fig=figure(10+fig_num);
+
+for i=1:length(neurons)
+    this_loc = neurons(i).location;
+scatter3(this_loc(1),this_loc(2),this_loc(3),plot_params.markerSize*3,"s",'filled',...
+        'MarkerFaceColor', 'k',  'MarkerEdgeColor','k')
+hold on;
+end
+    
 for i = 1:size(locations_unique,1)
     scatter3(locations_unique(i,1),locations_unique(i,2),locations_unique(i,3),plot_params.markerSize,'filled',...
         'MarkerFaceColor', plot_params.colors(i,:),  'MarkerEdgeColor',plot_params.colors(i,:))
@@ -132,15 +140,16 @@ for i = 1:size(locations_unique,1)
     if ~covered_flags(i)
        text(locations_unique(i,1),locations_unique(i,2),locations_unique(i,3), ['Loc ' num2str(i)]);
     end
-    if isfield(plot_params,'save_path')
-        save_path = [plot_params.save_path '_Map.png'];
-        saveas(fig,save_path)
-    end
+    
+end
+if isfield(plot_params,'save_path')
+    save_path = [plot_params.save_path '_Map.png'];
+    saveas(fig,save_path)
 end
 %% Draw the trials at the problematic locations: 
-
 plot_params.fit_type='full_intensity';
 for i = 1:size(locations_unique,1)
+    plot_params.by_neuron=false;
     if ~covered_flags(i)
         these_trials =trials(ic==i);
         fig=figure(10+i+fig_num);

@@ -21,7 +21,6 @@ end
 S= params.MC_params.sample_size;
 posterior_samples = cell([S 1]);
 for s =1:S
-    
     [posterior_samples{s},~] = draw_samples_from_var_dist(posterior_params);
     if params.mean_only % use the posterior mean for inference
         for i_cell = 1:n_cell
@@ -32,7 +31,6 @@ for s =1:S
         end
     end
 end
-
 %% Calculate the fitted intensities (as posterior averages)
 if isfield(posterior_samples{1},'background')
     bg_tmp =cellfun(@(x) x.background,posterior_samples);
@@ -51,13 +49,11 @@ for i_trial = 1:n_trials
     trials(i_trial).fitted.timepoints=timepoints;
     trials(i_trial).fitted.time_factor=time_factor;
     trials(i_trial).fitted.stim=0;
-    
     if ~isempty(trials(i_trial).event_times)
         trials(i_trial).fitted.event_intensity =background_post*ones(1,length(trials(i_trial).event_times));
     else
         trials(i_trial).fitted.event_intensity =[];
     end
-    
 end
 
 for i_cell = 1:n_cell

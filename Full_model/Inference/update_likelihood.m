@@ -73,13 +73,6 @@ loglklh=zeros(n_cell,1);
 current_lb=min(spike_curves.current);
 current_gap=spike_curves.current(2)-spike_curves.current(1);
 current_max_grid = length(spike_curves.current);
-if inference_params.combined_variance
-    spike_curves_sd= prior_info.induced_intensity.inflate_func(sqrt(spike_curves.sd.^2+spike_curves.dev.^2),inference_params.inflate_func_coef);
-    spike_curves_var=spike_curves_sd.^2;
-else
-    spike_curves_sd=prior_info.induced_intensity.inflate_func(spike_curves.sd,inference_params.inflate_func_coef);
-    spike_curves_var=spike_curves_sd.^2;
-end
 spike_curves_mean=spike_curves.mean;
 %
 % t4=toc;
@@ -108,16 +101,10 @@ for  i_trial = 1:n_trial
         %             max(1,round((effective_stim-current_lb)/current_gap)));
         %         spike_times_cond_shape=spike_curves_mean(stim_index);
         %         standard_dev=sqrt(delay_var_temp+  mean(spike_curves_var(stim_index)));
-        stim=effective_stim/spike_curves.current_multiplier;
-        spike_times_cond_shape=spike_curves.F_mean(spike_curves.mean_param,stim);
         
-        if inference_params.combined_variance
-            sd_tmp= spike_curves.inflate_func(sqrt(spike_curves.F_sd(spike_curves.sd_param,stim)^2+...
-                spike_curves.F_dev(spike_curves.dev_param,stim)^2), inference_params.inflate_func_coef);
-        else
-            sd_tmp=spike_curves.inflate_func(...
-                spike_curves.F_sd(spike_curves.sd_param,stim), inference_params.inflate_func_coef);
-        end
+        spike_times_cond_shape=spike_curves.F_mean(spike_curves.mean_param,effective_stim/spike_curves.current_multiplier);
+        
+        sd_tmp= spike_curves.inflate_func(effective_stim, inference_params.inflate_func_coef);
         
         standard_dev=sqrt(delay_var_temp+  sd_tmp^2);
         expectation=delay_mu_temp+spike_times_cond_shape;

@@ -3,16 +3,9 @@ function [intensity] = calculate_intensities(stim,delay_params,spike_curves,time
 intensity=struct;
 %intensity.spike = [];
 %intensity.event=[];
-stim=stim/spike_curves.current_multiplier;
 spike_param = struct;
-spike_param.mean=spike_curves.F_mean(spike_curves.mean_param,stim);
-if params.combined_variance
-    spike_param.sd= spike_curves.inflate_func(...
-        sqrt(spike_curves.F_sd(spike_curves.sd_param,stim)^2+spike_curves.F_dev(spike_curves.dev_param,stim)^2), params.inflate_func_coef);
-else
-    spike_param.sd=spike_curves.inflate_func(...
-        spike_curves.F_sd(spike_curves.sd_param,stim), params.inflate_func_coef);
-end
+spike_param.mean=spike_curves.F_mean(spike_curves.mean_param,stim/spike_curves.current_multiplier);
+    spike_param.sd= spike_curves.inflate_func(stim, params.inflate_func_coef);
 
 % Spikes are generated from a truncated normal distribution, truncated at
 % time_max

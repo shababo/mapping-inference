@@ -2,24 +2,18 @@ function [covered_flags] = visualize_fitted_trial_multiple(these_trials, yval,pl
 %%
 % Visualize multiple trials at the same locations, ordered by power levels
 if length(unique(yval))==1
-   
-plot_params.gap=yval(1)*0.2;
+    plot_params.gap=yval(1)*0.2;
 else
-plot_params.gap=range(yval)/length(unique(yval));
+    plot_params.gap=range(yval)/length(unique(yval));
 end
-
 n_trials = length(these_trials);
 covered_flags=ones(length(unique( plot_params.loc_indices)),1);
-
 if plot_params.by_neuron
-   
     ytxt='Estimated stimulation size (log)';
 else
-
     ytxt='Power level';
 end
 yval_max = max(yval);
-
 % if plot_params.increasing 
 % rankings_std= (max(yval)-yval)/range(yval);% scaled stim levels/rankings     
 % else

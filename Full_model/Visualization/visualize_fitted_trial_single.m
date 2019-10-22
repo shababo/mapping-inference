@@ -104,11 +104,9 @@ if isfield(this_trial,'event_times')
 
 end
 
-
 if (~covered_flag) & strcmp(plot_params.fit_type,'quantiles')
     text(shift,tmp+0.2,['Loc ' num2str( plot_params.this_loc) ' Pow ' num2str(this_trial.power_levels)]);
 end
-
 if strcmp(plot_params.fit_type,'quantiles')
 plot([shift  shift], [0 sum(sum(fits))],'-','LineWidth',lw+5,'Color',plot_params.colors(plot_params.this_loc,:))
 end
