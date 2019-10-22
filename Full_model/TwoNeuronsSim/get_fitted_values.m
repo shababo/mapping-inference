@@ -106,8 +106,8 @@ for i_cell = 1:n_cell
                                 end
                             end
                         case 'single'
-                            for i=1:length(cell_and_pos)
-                                if  i_cell == cell_and_pos(i)
+                            for i=1:size(cell_and_pos,1)
+                                if  i_cell == cell_and_pos(i,1)
                                     stim=stim+...
                                         power_tmp*inference_params.excite(this_sample.gain);
                                 end

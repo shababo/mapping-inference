@@ -117,8 +117,8 @@ while (change_history(iteration) > epsilon && iteration<maxit)
 %         gains(i,:) = vsam{i}(1).gain;
 %         lklhweights(i)=logprior(i)+loglklh(i)-logvariational(i);
 %     end
-% %     for i = 1:size(shapes_val,2)
-% % i=2;
+% % %     for i = 1:size(shapes_val,2)
+% % % i=2;
 %     figure(1)
 %     scatter(gains,loglklh,'MarkerFaceColor','blue')
 %     hold on;
