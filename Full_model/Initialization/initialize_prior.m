@@ -92,7 +92,7 @@ prior_params.background.type='common';
 
 prior_params.shapes=struct;
 % prior_params.shapes.dist='logit-normal';
-prior_params.shapes.dist='mvn';  % using GP approximation
+prior_params.shapes.dist='mvn';  % using GP approximation, mvn, mvn-logit
 prior_params.shapes.type='individual';
 prior_params.shapes.locations=zeros(0,3);
 prior_params.shapes.mean=zeros(0,1);

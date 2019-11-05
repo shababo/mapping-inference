@@ -40,12 +40,20 @@ for i_cell = 1:n_cell
                         log(normpdf(this_raw_sample,this_params.mean,exp(this_params.log_sigma))/...
                         ((this_sample-this_params.bounds.low)*(this_params.bounds.up-this_sample)) *(this_params.bounds.up-this_params.bounds.low));
                 end
-            case 'mvn'
+            case 'mvn-logit'
                 % transfer the mean:
                 this_raw_sample=raw_samples(i_cell).(fldnames{i_field});
                 this_params=params(i_cell).(fldnames{i_field});
                 
                 this_mean=(this_params.bounds.up-this_params.bounds.low).*exp(this_params.mean)./(1+exp(this_params.mean)) +this_params.bounds.low;
+                %this_mean=this_params.mean;
+                this_logdist=log(mvnpdf(reshape(this_raw_sample, size(this_mean)),this_mean,this_params.Sigma_tilde));
+            
+            case 'mvn'
+                this_raw_sample=raw_samples(i_cell).(fldnames{i_field});
+                this_params=params(i_cell).(fldnames{i_field});
+                
+                this_mean=this_params.mean;
                 %this_mean=this_params.mean;
                 this_logdist=log(mvnpdf(reshape(this_raw_sample, size(this_mean)),this_mean,this_params.Sigma_tilde));
         end

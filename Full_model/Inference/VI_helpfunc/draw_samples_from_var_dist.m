@@ -41,7 +41,12 @@ for i_cell = 1:n_cell
             end
         else % the shape parameters:
             switch this_params.dist
-                case 'mvn'
+                 case 'mvn'
+                    % transfer the mean:
+                    this_mean=this_params.mean;
+                     raw_samples(i_cell).(fldnames{i_field})=mvnrnd(this_mean,this_params.Sigma_tilde)';
+                      variational_samples(i_cell).(fldnames{i_field})=raw_samples(i_cell).(fldnames{i_field});
+                case 'mvn-logit'
                     % transfer the mean:
                     this_mean=(this_params.bounds.up-this_params.bounds.low).*exp(this_params.mean)./(1+exp(this_params.mean)) +this_params.bounds.low;
                     

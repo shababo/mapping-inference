@@ -54,12 +54,20 @@ end
 % Visualize the trials
 if plot_params.by_neuron
     for i_neuron = 1:length(neurons)
-       fig= figure(i_neuron+1+fig_num)
-        these_trials =trials;
+       fig= figure(i_neuron+1+fig_num);
+       plot_params.loc_indices=ic;
+       
+       if   plot_params.event_only % only show locations with recorded events 
+       these_trials =trials(plot_params.evt_flag==1);
+       plot_params.these_indices=plot_params.loc_indices(plot_params.evt_flag==1);
+      
+       else
+       these_trials =trials;
+       plot_params.these_indices=plot_params.loc_indices;
+       end 
         plot_params.gap = 0.1;
         plot_params.colors=lines(size(locations_unique,1)); 
-        plot_params.loc_indices=ic;
-        stim_size = zeros(length(these_trials),1);
+         stim_size = zeros(length(these_trials),1);
         
         for i = 1:length(these_trials)
             stim_size(i)=these_trials(i).(chosen_field).stim(i_neuron+1);
@@ -70,12 +78,11 @@ if plot_params.by_neuron
 %         rankings = 1:length(these_trials);
 %         rankings(tmp)=rankings;
 
-        plot_params.these_indices=plot_params.loc_indices;
         [covered_flags]=visualize_fitted_trial_multiple(these_trials, stim_size,plot_params);
         title(plot_params.main_title,'FontSize', plot_params.lab_size)
         if isfield(plot_params,'save_path')
             set(gcf,'PaperUnits','inches','PaperPosition',[0 0 8 6])
-            save_path = [plot_params.save_path '_All.png'];
+            save_path = [plot_params.save_path plot_params.typename '_All.png'];
             saveas(fig,save_path)
         end
     end
@@ -132,21 +139,32 @@ scatter3(this_loc(1),this_loc(2),this_loc(3),plot_params.markerSize*3,"s",'fille
         'MarkerFaceColor', 'k',  'MarkerEdgeColor','k')
 hold on;
 end
-    
+% Map plot_params.evt_flag to locations:
+evt_flag_loc = zeros(size(locations_unique,1),1);
+for i= 1:size(locations_unique,1)
+   evt_flag_loc(i)=max(plot_params.evt_flag(ic==i));
+end
+
 for i = 1:size(locations_unique,1)
+    if evt_flag_loc(i)==1
     scatter3(locations_unique(i,1),locations_unique(i,2),locations_unique(i,3),plot_params.markerSize,'filled',...
         'MarkerFaceColor', plot_params.colors(i,:),  'MarkerEdgeColor',plot_params.colors(i,:))
     hold on;
-    if ~covered_flags(i)
+    if ~covered_flags(i) 
        text(locations_unique(i,1),locations_unique(i,2),locations_unique(i,3), ['Loc ' num2str(i)]);
     end
-    
+    else
+        scatter3(locations_unique(i,1),locations_unique(i,2),locations_unique(i,3),plot_params.markerSize,...
+         'MarkerEdgeColor',plot_params.colors(i,:))
+    hold on;
+    end
 end
 if isfield(plot_params,'save_path')
-    save_path = [plot_params.save_path '_Map.png'];
+    save_path = [plot_params.save_path plot_params.typename '_Map.png'];
     saveas(fig,save_path)
 end
 %% Draw the trials at the problematic locations: 
+if  plot_params.event_only
 plot_params.fit_type='full_intensity';
 for i = 1:size(locations_unique,1)
     plot_params.by_neuron=false;
@@ -161,9 +179,11 @@ for i = 1:size(locations_unique,1)
         visualize_fitted_trial_multiple(these_trials,[these_trials(:).power_levels],plot_params);
         title(['Location ' num2str(i)],'FontSize', plot_params.lab_size)
             if isfield(plot_params,'save_path')
-                save_path = [plot_params.save_path '_Loc' num2str(i) '.png'];
+                        mkdir([plot_params.save_path  plot_params.typename ]);
+                save_path = [plot_params.save_path  plot_params.typename  '/Loc' num2str(i) '.png'];
                 saveas(fig,save_path)
             end
         ylim([0 5+plot_params.time_max]);
     end
+end
 end

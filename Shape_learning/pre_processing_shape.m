@@ -51,6 +51,8 @@ for i_ax = 1:length(axis_list)
     end
     pilot_data.(ax).neurons=neurons;
 end
+%% Set the nugget:
+pilot_data.nugget=params.nugget;
 %% Learn the center shifts 
 % Use the heuristic approach by picking the peak and the location of nuclei
 if params.find_shifts
