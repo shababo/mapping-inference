@@ -14,9 +14,9 @@ for i_trial = 1:number_of_trials
     for i_cell = 1:number_of_cells
         k=stimuli_size(i_trial,i_cell);
         params_sim=neurons(i_cell).truth;
-         params_sim.combined_variance=simulation_params.combined_variance;
+        params_sim.combined_variance=simulation_params.combined_variance;
          
-         params_sim.inflate_func_coef=simulation_params.inflate_func_coef;
+        params_sim.inflate_func_coef=simulation_params.inflate_func_coef;
 %         params_sim.linkfuncs=experiment_setup.prior_info.induced_intensity.linkfunc;
 %         stim_threshold=prior_info.induced_intensity.minimum_stim_threshold/neurons(i_cell).truth.gain;
 %         if k > stim_threshold

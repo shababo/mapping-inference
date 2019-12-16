@@ -43,11 +43,11 @@ tmp_loc=reshape([trials(:).locations],3,[])';
 plot_params.max_intensity=1e-2;
 for i_trial = 1:length(trials)
     this_trial =trials(i_trial);
-if plot_params.spike 
-    fits = this_trial.(chosen_field).intensity.spike;
-else
-    fits =this_trial.(chosen_field).intensity.event;
-end
+    if plot_params.spike
+        fits = this_trial.(chosen_field).intensity.spike;
+    else
+        fits =this_trial.(chosen_field).intensity.event;
+    end
     plot_params.max_intensity = max(plot_params.max_intensity, max(max(fits)));
 end
 
@@ -80,6 +80,12 @@ if plot_params.by_neuron
 
         [covered_flags]=visualize_fitted_trial_multiple(these_trials, stim_size,plot_params);
         title(plot_params.main_title,'FontSize', plot_params.lab_size)
+        yyaxis left
+ylim([0 plot_params.time_max]);
+
+yyaxis right
+ylabel('Expected # events','FontSize', plot_params.lab_size)
+ylim([0 plot_params.time_max]);
         if isfield(plot_params,'save_path')
             set(gcf,'PaperUnits','inches','PaperPosition',[0 0 8 6])
             save_path = [plot_params.save_path plot_params.typename '_All.png'];
@@ -107,12 +113,7 @@ end
 
 % set(gca, 'XScale',  plot_params.stim_scale)
 % xlim([-3 5])
-yyaxis left
-ylim([0 plot_params.time_max]);
 
-yyaxis right
-ylabel('Expected # events','FontSize', plot_params.lab_size)
-ylim([0 plot_params.time_max]);
 
 % if isfield(plot_params,'off_loc')
 %     fig= figure(i_neuron+4+fig_num)
@@ -129,7 +130,65 @@ ylim([0 plot_params.time_max]);
 %      ylabel('Trials ordered by deviation from xy-plane and z-axis');
 % end
 % 
+%% Draw the coverage of the true spikes in groundtruth data:
+if isfield(trials(1),'truth') 
+    
+    rec=plot_params.spike;
+plot_params.spike =true;
+plot_params.max_intensity=1e-2;
+for i_trial = 1:length(trials)
+    this_trial =trials(i_trial);
+    fits = this_trial.(chosen_field).intensity.spike;
+      plot_params.max_intensity = max(plot_params.max_intensity, max(max(fits)));
+end
 
+% Visualize the trials
+    for i_neuron = 1:length(neurons)
+       fig= figure(i_neuron+1+2*fig_num);
+       plot_params.loc_indices=ic;
+       
+       if   plot_params.event_only % only show locations with recorded events
+           these_trials =trials(plot_params.evt_flag==1);
+           plot_params.these_indices=plot_params.loc_indices(plot_params.evt_flag==1);
+       else
+           these_trials =trials;
+           plot_params.these_indices=plot_params.loc_indices;
+       end
+        plot_params.gap = 0.1;
+        plot_params.colors=lines(size(locations_unique,1)); 
+        
+        spike_times = zeros(length(these_trials),1);
+        
+        for i = 1:length(these_trials)
+            these_trials(i).event_times=these_trials(i).truth.spike_times;
+           spike_times(i)=these_trials(i).truth.spike_times;
+        end
+%         spike_times_loc=zeros(max(ic),1);
+%         for i=1:max(ic)
+%             spike_times_loc(i)=mean(spike_times(ic==i));
+%         end
+%        spike_times_mean = spike_times_loc(ic);
+
+        visualize_fitted_trial_multiple(these_trials, spike_times,plot_params);
+        title(plot_params.main_title,'FontSize', plot_params.lab_size)
+        
+xlabel('Spike time')
+yyaxis left
+ylim([0 plot_params.time_max]);
+
+yyaxis right
+ylabel('Expected # events','FontSize', plot_params.lab_size)
+ylim([0 plot_params.time_max]);
+
+
+        if isfield(plot_params,'save_path')
+            set(gcf,'PaperUnits','inches','PaperPosition',[0 0 8 6])
+            save_path = [plot_params.save_path plot_params.typename '_Spike.png'];
+            saveas(fig,save_path)
+        end
+    end
+    plot_params.spike=rec;
+end 
 %% Draw a spatial map: 
 fig=figure(10+fig_num);
 
@@ -178,12 +237,13 @@ for i = 1:size(locations_unique,1)
         % %         rankings(tmp)=rankings;
         visualize_fitted_trial_multiple(these_trials,[these_trials(:).power_levels],plot_params);
         title(['Location ' num2str(i)],'FontSize', plot_params.lab_size)
+        
+        ylim([0 5+plot_params.time_max]);
             if isfield(plot_params,'save_path')
                         mkdir([plot_params.save_path  plot_params.typename ]);
                 save_path = [plot_params.save_path  plot_params.typename  '/Loc' num2str(i) '.png'];
                 saveas(fig,save_path)
             end
-        ylim([0 5+plot_params.time_max]);
     end
 end
 end
